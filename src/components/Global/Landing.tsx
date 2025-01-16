@@ -1,10 +1,86 @@
-"use client";
 import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { Clock, Users, BarChart2, Crown, Star, Filter, Search, Activity, DollarSign, Target, Zap, ChevronDown, Lock } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, LineChart, Line } from 'recharts';
+import { Clock, Users, BarChart2, Crown, Star, Filter, Activity, DollarSign, Target, Zap, ChevronDown, Lock, ArrowUpRight, ArrowDownRight, MessageCircle, Heart, Repeat2, Eye, AlertCircle } from 'lucide-react';
+import TradingViewChart from './TradingViewChart ';
+
+interface TokenData {
+  price: number;
+  change24h: number;
+  predictions: {
+    date: string;
+    price: number;
+    predictions: number;
+  }[];
+}
+
+interface TokenDataMap {
+  [key: string]: TokenData;
+}
+
+interface Predictor {
+  name: string;
+  handle: string;
+  avatar: string;
+  currentPrediction: string;
+  weekChange: string;
+  monthChange: string;
+  accuracy: string;
+  mindshare: string;
+  tokens: string[];
+  totalPredictions: number;
+  successRate: number;
+  premium: boolean;
+  isAI?: boolean;
+}
+
+interface MarketStat {
+  label: string;
+  value: string;
+  change: string;
+  icon: React.FC<any>;
+}
+
+interface TweetMetrics {
+  likes: number;
+  retweets: number;
+  replies: number;
+  views: number;
+}
+
+interface TokenAnalysis {
+  token: string;
+  analysis: {
+    direction: 'bullish' | 'bearish';
+    action: 'buy' | 'sell';
+    timeframe: 'short-term' | 'long-term';
+    confidence: number;
+    risk_level: 'low' | 'medium' | 'high';
+  };
+  market_data: {
+    current_price: number;
+    price_change_24h_percentage: number;
+    market_cap: number;
+    total_volume: number;
+  };
+}
+
+interface Signal {
+  timestamp: string;
+  original_tweet: string;
+  contains_trading_signal: boolean;
+  token_analysis?: TokenAnalysis[];
+  tweet_metrics: TweetMetrics;
+  message?: string;
+}
+
+interface ChartDataPoint {
+  time: string;
+  price: number;
+  volume: number;
+}
 
 // Sample token data
-const tokenData = {
+const tokenData: TokenDataMap = {
   BTC: {
     price: 42000,
     change24h: 2.5,
@@ -32,7 +108,7 @@ const tokenData = {
 };
 
 // Extended sample data
-const predictionData = [
+const predictionData: Predictor[] = [
   {
     name: 'Michael Saylor',
     handle: '@saylor',
@@ -96,7 +172,7 @@ const predictionData = [
     }))
 );
 
-const marketStats = [
+const marketStats: MarketStat[] = [
   { label: 'Total Predictions', value: '156.75K', change: '+30.20%', icon: BarChart2 },
   { label: 'Active Predictors', value: '14.17K', change: '+34.08%', icon: Users },
   { label: 'AI Agents', value: '2.5K', change: '+25.5%', icon: Zap },
@@ -105,33 +181,238 @@ const marketStats = [
   { label: 'Avg. Prediction Time', value: '4.2 days', change: '-2.1%', icon: Clock },
 ];
 
+const COINGECKO_API_KEY = 'CG-Wb3ZDGXhHgXANkUipBfQ35TN';
+
 export default function PredictionDashboard() {
   const [timeframe, setTimeframe] = useState('7D');
-  const [selectedToken, setSelectedToken] = useState<'BTC' | 'ETH'>('BTC');
+  const [selectedToken, setSelectedToken] = useState('BTC');
   const [view, setView] = useState('overview');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<any>(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('/api/top100Influencers');
-        if (!response.ok) {
-          throw new Error('Failed to fetch data');
-        }
-
-        const result = await response.json();
-        setData(result);
-      } catch (err) {
-        setError(err);
-      } finally {
-        setLoading(false);
+  const [error, setError] = useState(null);
+  const [chartData, setChartData] = useState(null);
+  
+const signals: Signal[] = [
+  {
+    "timestamp": "2025-01-09T17:47:58.373Z",
+    "original_tweet": "If you're an AI Agent, pivot to DeFAI. https://t.co/J0e3jUQQI6",
+    "contains_trading_signal": false,
+    "message": "No trading signals detected",
+    "tweet_metrics": {
+      "likes": 118,
+      "retweets": 13,
+      "replies": 24,
+      "views": 7156
+    }
+  },
+  {
+    "timestamp": "2025-01-09T17:48:01.400Z",
+    "original_tweet": "$VU is currently trading at $7M MCap, up 21% in the last 24 hrs.",
+    "contains_trading_signal": true,
+    "token_analysis": [{
+      "token": "vu",
+      "analysis": {
+        "direction": "bullish",
+        "action": "buy",
+        "timeframe": "short-term",
+        "confidence": 24,
+        "risk_level": "medium"
+      },
+      "market_data": {
+        "current_price": 0.0075001,
+        "price_change_24h_percentage": 21.08452,
+        "market_cap": 7455986,
+        "total_volume": 144110
       }
-    };
+    }],
+    "tweet_metrics": {
+      "likes": 27,
+      "retweets": 1,
+      "replies": 15,
+      "views": 4727
+    }
+  }
+];
 
-    fetchData();
-  }, []);
+// Generate sample price data for the chart
+const generatePriceData = (initialPrice: number, trend: 'up' | 'down' = 'up'): ChartDataPoint[] => {
+  const data: ChartDataPoint[] = [];
+  let price = initialPrice;
+  for (let i = 0; i < 24; i++) {
+    price = price * (1 + (trend === 'up' ? 0.02 : -0.02) * Math.random());
+    data.push({
+      time: `${i}h`,
+      price: price,
+      volume: Math.random() * 10000
+    });
+  }
+  return data;
+};
+
+const getSignalColor = (analysis?: TokenAnalysis['analysis']): string => {
+  if (!analysis) return 'bg-gray-600';
+  
+  if (analysis.direction === 'bullish') {
+    return analysis.timeframe === 'short-term' ? 'bg-yellow-500' : 'bg-emerald-500';
+  }
+  return 'bg-red-500';
+};
+
+const getSignalGradient = (analysis?: TokenAnalysis['analysis']): [string, string] => {
+  if (!analysis) return ['#374151', '#1F2937'];
+  
+  if (analysis.direction === 'bullish') {
+    return analysis.timeframe === 'short-term' 
+      ? ['#F59E0B', '#B45309'] 
+      : ['#10B981', '#059669'];
+  }
+  return ['#EF4444', '#B91C1C'];
+};
+
+// useEffect(() => {
+//   const fetchCoinData = async () => {
+//     try {
+//       setLoading(true);
+      
+//       // Calculate timestamps for the last 24 hours
+//       const now = Math.floor(Date.now() / 1000);
+//       const oneDayAgo = now - (24 * 60 * 60);
+
+//       console.log(COINGECKO_API_KEY);
+
+//       const options = {
+//         method: 'GET',
+//         headers: {
+//           'accept': 'application/json',
+//           'x-cg-pro-api-key': COINGECKO_API_KEY
+//         }
+//       };
+
+//       // Using the pro API endpoint with range
+//       const response = await fetch(
+//         `https://pro-api.coingecko.com/api/v3/coins/velvet-unicorn-by-virtuals/market_chart/range?vs_currency=usd&days=1`,
+//         options
+//       );
+
+//       if (!response.ok) {
+//         const errorData = await response.json();
+//         throw new Error(errorData.error || 'Failed to fetch data');
+//       }
+
+//       const data = await response.json();
+      
+//       // Transform the data for Recharts
+//       const transformedData = data.prices.map((item, index) => ({
+//         timestamp: item[0],
+//         time: formatTimestamp(item[0]),
+//         price: item[1],
+//         marketCap: data.market_caps[index][1],
+//         volume: data.total_volumes[index][1]
+//       }));
+
+//       setChartData(transformedData);
+//     } catch (err) {
+//       setError(err.message);
+//       console.error('Error fetching data:', err);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   fetchCoinData();
+
+//   // Set up polling every 5 minutes
+//   const pollInterval = setInterval(fetchCoinData, 5 * 60 * 1000);
+
+//   // Cleanup interval on component unmount
+//   return () => clearInterval(pollInterval);
+// }, []); // Empty dependency array means this runs once on mount
+
+// const renderChart = (dataKey, color, gradient = false) => {
+//   if (!chartData) return null;
+
+//   return (
+//     <div className="bg-gray-800 rounded-lg p-4 h-48">
+//       <div className="text-sm text-gray-400 mb-2">
+//         {dataKey.charAt(0).toUpperCase() + dataKey.slice(1)} (24h)
+//       </div>
+//       <ResponsiveContainer width="100%" height="100%">
+//         {gradient ? (
+//           <AreaChart data={chartData}>
+//             <defs>
+//               <linearGradient id={`gradient-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
+//                 <stop offset="5%" stopColor={color} stopOpacity={0.8}/>
+//                 <stop offset="95%" stopColor={color} stopOpacity={0}/>
+//               </linearGradient>
+//             </defs>
+//             <XAxis dataKey="time" stroke="#4B5563" />
+//             <YAxis 
+//               stroke="#4B5563"
+//               tickFormatter={formatNumber}
+//             />
+//             <Tooltip
+//               contentStyle={{
+//                 backgroundColor: '#1F2937',
+//                 border: 'none',
+//                 borderRadius: '8px'
+//               }}
+//               formatter={(value) => formatNumber(value)}
+//             />
+//             <Area
+//               type="monotone"
+//               dataKey={dataKey}
+//               stroke={color}
+//               fill={`url(#gradient-${dataKey})`}
+//             />
+//           </AreaChart>
+//         ) : (
+//           <LineChart data={chartData}>
+//             <XAxis dataKey="time" stroke="#4B5563" />
+//             <YAxis
+//               stroke="#4B5563"
+//               tickFormatter={formatNumber}
+//             />
+//             <Tooltip
+//               contentStyle={{
+//                 backgroundColor: '#1F2937',
+//                 border: 'none',
+//                 borderRadius: '8px'
+//               }}
+//               formatter={(value) => formatNumber(value)}
+//             />
+//             <Line
+//               type="monotone"
+//               dataKey={dataKey}
+//               stroke={color}
+//               dot={false}
+//             />
+//           </LineChart>
+//         )}
+//       </ResponsiveContainer>
+//     </div>
+//   );
+// };
+
+// if (loading && !chartData) {
+//   return <div className="text-center p-6">Loading charts...</div>;
+// }
+
+if (error) {
+  return (
+    <div className="text-center p-6">
+      <div className="text-red-500 mb-2">Error: {error}</div>
+      <button 
+        onClick={() => {
+          setError(null);
+          setLoading(true);
+        }}
+        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+      >
+        Retry
+      </button>
+    </div>
+  );
+}
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -183,7 +464,7 @@ export default function PredictionDashboard() {
               </div>
             </div>
             <div className="h-96">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="90%">
                 <AreaChart data={tokenData[selectedToken].predictions}>
                   <defs>
                     <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
@@ -220,6 +501,10 @@ export default function PredictionDashboard() {
                   />
                 </AreaChart>
               </ResponsiveContainer>
+
+<div className='mt-10'>
+              <TradingViewChart />
+              </div>
             </div>
           </div>
 
@@ -423,6 +708,184 @@ export default function PredictionDashboard() {
             </div>
           </div>
         </div>
+
+        <div className="bg-gray-800 rounded-xl p-6 mt-8">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-bold">Live Trading Signals</h2>
+        <div className="flex gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+            <span className="text-sm text-gray-400">Buy</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+            <span className="text-sm text-gray-400">Short-term</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-red-500"></div>
+            <span className="text-sm text-gray-400">Sell</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        {signals.map((signal, index) => (
+          <div key={index} className={`bg-gray-700 rounded-lg p-6 hover:bg-gray-600 transition-colors relative overflow-hidden ${
+            signal.contains_trading_signal ? 'border-l-4 border-' + (signal.token_analysis[0].analysis.direction === 'bullish' ? 'emerald' : 'red') + '-500' : ''
+          }`}>
+            {signal.contains_trading_signal ? (
+              <>
+                <div className="absolute top-0 right-0 p-2">
+                  <div className={`${getSignalColor(signal.token_analysis[0].analysis)} text-white px-4 py-1 rounded-full text-sm font-semibold`}>
+                    {signal.token_analysis[0].analysis.direction.toUpperCase()} • {signal.token_analysis[0].analysis.timeframe.toUpperCase()}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Signal Info */}
+                  <div className="lg:col-span-1">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className={`${getSignalColor(signal.token_analysis[0].analysis)} rounded-full p-3`}>
+                        {signal.token_analysis[0].analysis.direction === "bullish" ? 
+                          <ArrowUpRight className="w-6 h-6" /> : 
+                          <ArrowDownRight className="w-6 h-6" />
+                        }
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold">
+                          ${signal.token_analysis[0].token.toUpperCase()}
+                        </div>
+                        <div className="text-sm text-gray-400 flex items-center gap-2">
+                          <Clock className="w-4 h-4" />
+                          {new Date(signal.timestamp).toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="bg-gray-800 rounded-lg p-4">
+                        <div className="text-gray-400 mb-2">Price Change (24h)</div>
+                        <div className="text-2xl font-bold text-emerald-500">
+                          +{signal.token_analysis[0].market_data.price_change_24h_percentage.toFixed(2)}%
+                        </div>
+                      </div>
+
+                      <div className="bg-gray-800 rounded-lg p-4">
+                        <div className="text-gray-400 mb-2">Signal Confidence</div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 bg-gray-600 rounded-full h-2">
+                            <div 
+                              className={`${getSignalColor(signal.token_analysis[0].analysis)} h-2 rounded-full`}
+                              style={{ width: `${signal.token_analysis[0].analysis.confidence}%` }}
+                            />
+                          </div>
+                          <span className="text-lg font-bold">{signal.token_analysis[0].analysis.confidence}%</span>
+                        </div>
+                      </div>
+
+                      <div className="bg-gray-800 rounded-lg p-4">
+                        <div className="text-gray-400 mb-2">Risk Level</div>
+                        <div className="flex items-center gap-2">
+                          <AlertCircle className={`${
+                            signal.token_analysis[0].analysis.risk_level === 'high' ? 'text-red-500' :
+                            signal.token_analysis[0].analysis.risk_level === 'medium' ? 'text-yellow-500' :
+                            'text-emerald-500'
+                          }`} />
+                          <span className="text-lg font-bold capitalize">
+                            {signal.token_analysis[0].analysis.risk_level}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Charts */}
+                  <div className="lg:col-span-2 space-y-4">
+                    <div className="bg-gray-800 rounded-lg p-4 h-48">
+                      <div className="text-sm text-gray-400 mb-2">Price Action (24h)</div>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={generatePriceData(signal.token_analysis[0].market_data.current_price)}>
+                          <defs>
+                            <linearGradient id={`gradient-${index}`} x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor={getSignalGradient(signal.token_analysis[0].analysis)[0]} stopOpacity={0.8}/>
+                              <stop offset="95%" stopColor={getSignalGradient(signal.token_analysis[0].analysis)[1]} stopOpacity={0}/>
+                            </linearGradient>
+                          </defs>
+                          <XAxis dataKey="time" stroke="#4B5563" />
+                          <YAxis stroke="#4B5563" />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: '#1F2937',
+                              border: 'none',
+                              borderRadius: '8px'
+                            }}
+                          />
+                          <Area 
+                            type="monotone" 
+                            dataKey="price" 
+                            stroke={getSignalGradient(signal.token_analysis[0].analysis)[0]}
+                            fill={`url(#gradient-${index})`}
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    <div className="bg-gray-800 rounded-lg p-4 h-32">
+                      <div className="text-sm text-gray-400 mb-2">Volume</div>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={generatePriceData(signal.token_analysis[0].market_data.current_price)}>
+                          <XAxis dataKey="time" stroke="#4B5563" />
+                          <YAxis stroke="#4B5563" />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: '#1F2937',
+                              border: 'none',
+                              borderRadius: '8px'
+                            }}
+                          />
+                          <Bar dataKey="volume" fill="#3B82F6" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-gray-600">
+                  <p className="text-gray-300 mb-4">{signal.original_tweet}</p>
+                  <div className="flex items-center justify-between text-gray-400 text-sm">
+                    <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-1">
+                        <Heart className="w-4 h-4" />
+                        <span>{signal.tweet_metrics.likes}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Repeat2 className="w-4 h-4" />
+                        <span>{signal.tweet_metrics.retweets}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MessageCircle className="w-4 h-4" />
+                        <span>{signal.tweet_metrics.replies}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Eye className="w-4 h-4" />
+                        <span>{signal.tweet_metrics.views}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center justify-between">
+                <p className="text-gray-300">{signal.original_tweet}</p>
+                <div className="text-sm text-gray-400">
+                  {new Date(signal.timestamp).toLocaleString()}
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
       </div>
     </div>
   );
