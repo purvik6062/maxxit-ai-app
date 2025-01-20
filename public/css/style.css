@@ -1431,7 +1431,7 @@ frenify_typing span {
 
 .fn__nav_bar .bar__item_notification .ntfc_list p a:hover,
 .techwave_fn_footer .menu_items a:hover {
-  color: var(--techwave-main-color);
+  color: rgb(121, 121, 230);
 }
 
 .fn__nav_bar .bar__item_notification .ntfc_list span,
