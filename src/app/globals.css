@@ -5,6 +5,10 @@
 @import url("../../public/css/plugins.css");
 @import url("../../public/css/style.css");
 
+/* html, body {
+  color: white !important;
+} */
+
 .new_select {
   border: 1px solid blue;
 }

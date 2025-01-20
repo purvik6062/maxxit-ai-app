@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { Users, LineChart } from "lucide-react";
 import { Footer } from "../index";
 
 const Home = () => {
@@ -21,19 +22,13 @@ const Home = () => {
                 <ul>
                   <li>
                     <div className="item">
-                      <a>
+                      <a href="/impact-leaderboard">
                         <span className="icon">
-                          <img
-                            src="img/lighticon/light-19.png"
-                            className="fn__svg"
-                            alt=""
-                          />
+                           <Users className="h-10 w-10" />
                         </span>
-                        <h2 className="title">Buy Any Token</h2>
+                        <h2 className="title">Impact Leaderboard</h2>
                         <p className="desc">
-                          Lorem ipsum, dolor sit amet consectetur adipisicing
-                          elit. Error quibusdam amet a harum quaerat facere
-                          vitae id odio sed facilis quas atque aut.
+                        Cut through the noise with our Impact Leaderboard. We rank Crypto Twitter accounts based on their prediction accuracy and profitability over 1d, 1w, 1M, and 1y intervals
                         </p>
                         <span className="arrow">
                           <img
@@ -47,19 +42,13 @@ const Home = () => {
                   </li>
                   <li>
                     <div className="item">
-                      <a>
+                      <a href="/heartbeat-dashboard">
                         <span className="icon">
-                          <img
-                            src="img/lighticon/light-16.png"
-                            className="fn__svg"
-                            alt=""
-                          />
+                           <LineChart className="h-10 w-10" />
                         </span>
-                        <h2 className="title">Sell Any Token</h2>
+                        <h2 className="title">Heartbeat Dashboard</h2>
                         <p className="desc">
-                          Lorem ipsum, dolor sit amet consectetur adipisicing
-                          elit. Error quibusdam amet a harum quaerat facere
-                          vitae id odio sed facilis quas atque aut.
+                        Stay ahead of the market with real-time insights. Our Heartbeat Leaderboard highlights the most impactful crypto trends by combining influencer predictions and market movements.
                         </p>
                         <span className="arrow">
                           <img
@@ -77,22 +66,11 @@ const Home = () => {
 
             <div className="section_right">
               <div className="company_info">
-                {/* <img src="img/light-logo.png" alt="" /> */}
-                <h1 className="mt-1 mainHead">TradingMinds</h1>
-                <p className="fn__animated_text">
-                  Trading Minds is an AI-powered platform designed to evaluate the credibility and accuracy of trading-related Twitter accounts, helping enthusiasts make informed decisions. It dynamically ranks accounts on a leaderboard based on prediction accuracy, engagement, and activity. Users can subscribe to high-performing accounts and automate trading decisions through AI-driven execution.
+                <h1 className="mt-1 font-bold text-3xl text-balance bg-gradient-to-r from-white to-blue-600 bg-clip-text text-left text-transparent">CTxbt</h1>
+                <p className="fn__animated_text text-gray-300">
+                  CTxbt is an AI-powered platform designed to evaluate the credibility and accuracy of trading-related Twitter accounts, helping enthusiasts make informed decisions. It dynamically ranks accounts on a leaderboard based on prediction accuracy, engagement, and activity. Users can subscribe to high-performing accounts and automate trading decisions through AI-driven execution.
                 </p>
                 <hr />
-                <div className="fn__members">
-                  <div className="active item">
-                    <span className="circle"></span>
-                    <span className="text">1111111 Online</span>
-                  </div>
-                  <div className="item">
-                    <span className="circle"></span>
-                    <span className="text">23645833 Members</span>
-                  </div>
-                </div>
               </div>
             </div>
           </div>

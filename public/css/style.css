@@ -1647,8 +1647,8 @@ a.fn__like.has__like .full__like {
 }
 
 .techwave_fn_interactive_list .icon {
-  width: 120px;
-  height: 120px;
+  width: 80px;
+  height: 80px;
   border-radius: 100%;
   background-color: var(--techwave-main-color);
   position: relative;

@@ -28,8 +28,6 @@ const Header = ({ networkName, setActiveComponent }: any) => {
                 <div className="ml-5 flex">
                   {[
                     "Predictions",
-                    "Leaderboard",
-                    "Analytics",
                     "AI Insights",
                   ].map((item) => (
                     <button

@@ -523,11 +523,11 @@ if (error) {
                   <div key={index} className="bg-gray-700 rounded-lg p-4 hover:bg-gray-600 transition-colors">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-3">
-                        <img
+                        {/* <img
                           src={predictor.avatar}
                           className="w-10 h-10 rounded-full"
                           alt={predictor.name}
-                        />
+                        /> */}
                         <div>
                           <div className="flex items-center gap-2">
                             <h3 className="font-bold">{predictor.name}</h3>
@@ -729,7 +729,7 @@ if (error) {
       </div>
 
       <div className="space-y-6">
-        {signals.map((signal, index) => (
+        {signals.map((signal: any, index: any) => (
           <div key={index} className={`bg-gray-700 rounded-lg p-6 hover:bg-gray-600 transition-colors relative overflow-hidden ${
             signal.contains_trading_signal ? 'border-l-4 border-' + (signal.token_analysis[0].analysis.direction === 'bullish' ? 'emerald' : 'red') + '-500' : ''
           }`}>

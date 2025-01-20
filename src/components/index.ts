@@ -12,8 +12,8 @@ import useTimeout from "./Global/useTimeout";
 
 //BODY COMPONENTS
 import Home from "./Body/Home";
-import TradeTokens from "./Body/TradeTokens";
-import TopExchangeTokens from "./Body/TopExchangeTokens";
+import ImpactLeaderboard from "./Body/ImpactLeaderboard";
+import HeartbeatDashboard from "./Body/HeartbeatDashboard";
 import Networks from "./Body/Networks";
 import MindMap from "./Body/MindMap";
 import AddNetwork from "./Body/AddNetwork";
@@ -31,8 +31,8 @@ export {
   Preloader,
   SideBar,
   Home,
-  TradeTokens,
-  TopExchangeTokens,
+  ImpactLeaderboard,
+  HeartbeatDashboard,
   Networks,
   MindMap,
   AddNetwork,

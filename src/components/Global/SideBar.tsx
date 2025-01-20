@@ -58,11 +58,11 @@ const SideBar: React.FC<SideBarProps> = ({ setActiveComponent }) => {
       icon: "img/lighticon/light-14.png",
     },
     {
-      menu: "Trade Tokens",
+      menu: "Impact Leaderboard",
       icon: "img/lighticon/light-17.png",
     },
     {
-      menu: "Top Exchange Tokens",
+      menu: "Heartbeat Dashboard",
       icon: "img/lighticon/light-7.png",
     },
     {
@@ -72,31 +72,27 @@ const SideBar: React.FC<SideBarProps> = ({ setActiveComponent }) => {
   ];
 
   const array2: MenuItem[] = [
-    {
-      menu: "Add Network",
-      icon: "img/lighticon/light-10.png",
-    },
-    {
-      menu: "Trading",
-      icon: "img/lighticon/light-6.png",
-    },
-    {
-      menu: "Pricing",
-      icon: "img/lighticon/light-16.png",
-    },
+    // {
+    //   menu: "Add Network",
+    //   icon: "img/lighticon/light-10.png",
+    // },
+    // {
+    //   menu: "Trading",
+    //   icon: "img/lighticon/light-6.png",
+    // },
+    // {
+    //   menu: "Pricing",
+    //   icon: "img/lighticon/light-16.png",
+    // },
     {
       menu: "Profile",
       icon: "img/lighticon/light-4.png",
     },
-    {
-      menu: "Add Token Pair",
-      icon: "img/lighticon/light-19.png",
-    },
   ];
 
-  const logout = (): void => {
-    window.location.reload();
-  };
+  // const logout = (): void => {
+  //   window.location.reload();
+  // };
 
   return (
     <div className="techwave_fn_leftpanel">
@@ -104,23 +100,24 @@ const SideBar: React.FC<SideBarProps> = ({ setActiveComponent }) => {
       <div className="leftpanel_logo">
         <a className="fn_logo">
           <span className="full_logo">
-            <img src="img/Purple1.png" className="desktop_logo" alt="" />
+            <img src="img/ctxbt_logo.png" className="desktop_logo w-[200px] h-[70px]" alt="" />
             {/* above is the logo of cryptobot for big screen  */}
-            <img src="img/Purple1.png" className="retina_logo" alt="" />
+            <img src="img/ctxbt_logo.png" className="retina_logo w-[200px] h-[70px]" alt="" />
             {/* above is the logo of cryptobot for small screen */}
           </span>
           <span className="short_logo">
             <img
-              src="img/logo-desktop-mini.png"
+              src="img/logo.svg"
               className="desktop_logo"
               alt=""
             />
             {/* the above logo is the logo of T for the big screen */}
             <img
-              src="img/logo-desktop-mini.png"
-              className="retina_logo"
+              src="img/logo.svg"
+              className="retina_logo w-[45px] h-[40px]"
               alt=""
             />
+            {/* the above logo is the logo of T for the smaller screen */}
           </span>
         </a>
         <a href="#" className="fn__closer fn__icon_button desktop_closer">
@@ -147,7 +144,7 @@ const SideBar: React.FC<SideBarProps> = ({ setActiveComponent }) => {
           title="User Tools"
         />
 
-        <div className="nav_group">
+        {/* <div className="nav_group">
           <h2 className="group__title">Controls</h2>
           <ul className="group__list">
             <li onClick={() => logout()}>
@@ -167,7 +164,7 @@ const SideBar: React.FC<SideBarProps> = ({ setActiveComponent }) => {
               </a>
             </li>
           </ul>
-        </div>
+        </div> */}
       </div>
     </div>
   );

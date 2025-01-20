@@ -13,8 +13,8 @@ import {
   Preloader,
   SideBar,
   Home,
-  TradeTokens,
-  TopExchangeTokens,
+  ImpactLeaderboard,
+  HeartbeatDashboard,
   Networks,
   MindMap,
   AddNetwork,
@@ -119,10 +119,10 @@ const HomePage: React.FC = () => {
             <SideBar setActiveComponent={setActiveComponent} />
             {activeComponent === "Home" ? (
               <Home />
-            ) : activeComponent === "Trade Tokens" ? (
-              <TradeTokens />
-            ) : activeComponent === "Top Exchange Tokens" ? (
-              <TopExchangeTokens />
+            ) : activeComponent === "Impact Leaderboard" ? (
+              <ImpactLeaderboard />
+            ) : activeComponent === "Heartbeat Dashboard" ? (
+              <HeartbeatDashboard />
             ) : activeComponent === "Networks" ? (
               <Networks
                 networkName={networkName}
