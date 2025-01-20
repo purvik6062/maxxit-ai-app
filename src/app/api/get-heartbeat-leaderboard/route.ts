@@ -28,7 +28,7 @@ export async function GET(request: Request): Promise<Response> {
           id: entry.id,
           handle: entry.handle,
           name: entry.name,
-          heartbeat: entry.score,
+          score: entry.heartbeat,
         })),
         pagination: {
           total,
