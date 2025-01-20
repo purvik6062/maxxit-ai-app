@@ -11,6 +11,7 @@ import {
   FaCrown,
 } from "react-icons/fa";
 import { Footer } from "../index";
+import StarGrid from "./StarGrid";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
@@ -115,11 +116,12 @@ const HeartbeatDashboard = () => {
   return (
     <div className="techwave_fn_content">
       <div
-        className="min-h-screen bg-gradient-to-b from-[#020617] to-[#0f172a]"
+        className="relative min-h-screen"
         ref={container}
       >
-        <div className="container mx-auto px-4 py-16">
-          <div className="relative">
+        <StarGrid />
+        <div className="mx-auto py-16">
+          <div className="relative p-[2rem]">
             {/* Decorative elements */}
             <div className="absolute inset-0 overflow-hidden">
               <div className="absolute -left-1/4 top-0 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl"></div>

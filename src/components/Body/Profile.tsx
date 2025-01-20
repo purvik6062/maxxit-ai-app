@@ -14,7 +14,7 @@ const Profile = ({ setActiveComponent, notifyError, notifySuccess }: any) => {
   }, []);
 
   return (
-    <div className="techwave_fn_content">
+    <div className="techwave_fn_content bg-gradient-to-b from-[#020617] to-[#0f172a]">
       <div className="techwave_fn_page">
         <div className="techwave_fn_user_profile_page">
           <div className="techwave_fn_pagetitle">
@@ -23,12 +23,12 @@ const Profile = ({ setActiveComponent, notifyError, notifySuccess }: any) => {
 
           <div className="container small">
             <div className="techwave_fn_user_profile">
-              <div className="user__profile">
+              <div className="user__profile bg-gradient-to-b from-[#020617] to-[#0f172a]">
                 <div className="user_avatar">
                   <img src={userDetails?.image || "img/crypto.png"} alt="" />
                 </div>
 
-                <div className="user_details">
+                <div className="user_details bg-gradient-to-b from-[#020617] to-[#0f172a]">
                   <ul>
                     <li>
                       <div className="item">
@@ -58,15 +58,9 @@ const Profile = ({ setActiveComponent, notifyError, notifySuccess }: any) => {
                   </ul>
                 </div>
 
-                <a
-                  onClick={() => setActiveComponent("Setting")}
-                  className="user_edit fn__icon_button"
-                >
-                  <img src="img/lighticon/light-4.png" alt="" />
-                </a>
               </div>
 
-              <div className="user__plan">
+              <div className="user__plan bg-gradient-to-b from-[#0b0e1d] to-[#0c2153]">
                 <div className="plan_left">
                   <h4 className="subtitle">Your Key</h4>
                   <p className="info">
@@ -75,11 +69,6 @@ const Profile = ({ setActiveComponent, notifyError, notifySuccess }: any) => {
                     {shortenAddress(userDetails?.praviteKey) || "update"}
                   </p>
                 </div>
-              </div>
-
-              <div className="user__interests">
-                <h4 className="title">Your Bigraphy</h4>
-                <p>{userDetails?.biography || "Update"}</p>
               </div>
             </div>
           </div>

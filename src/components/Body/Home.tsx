@@ -12,7 +12,7 @@ const Home = () => {
   }, []); // No cleanup needed since we want to maintain visibility
 
   return (
-    <div className="techwave_fn_content">
+    <div className="techwave_fn_content bg-gradient-to-b from-[#020617] to-[#0f172a]">
       <div className="techwave_fn_page">
         <div className="techwave_fn_home">
           <div className="section_home">
@@ -27,8 +27,8 @@ const Home = () => {
               <div className="techwave_fn_interactive_list">
                 <ul>
                   <li>
-                    <div className="item">
-                      <a href="/impact-leaderboard">
+                    <div className="item bg-gradient-to-b from-[#020617] to-[#0f172a]">
+                      <a>
                         <span className="icon">
                           <Users className="h-8 w-8" />
                         </span>
@@ -47,8 +47,8 @@ const Home = () => {
                     </div>
                   </li>
                   <li>
-                    <div className="item">
-                      <a href="/heartbeat-dashboard">
+                    <div className="item bg-gradient-to-b from-[#020617] to-[#0f172a]">
+                      <a>
                         <span className="icon">
                           <LineChart className="h-8 w-8" />
                         </span>
