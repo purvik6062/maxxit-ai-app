@@ -65,34 +65,14 @@ const SideBar: React.FC<SideBarProps> = ({ setActiveComponent }) => {
       menu: "Heartbeat Dashboard",
       icon: "img/lighticon/light-7.png",
     },
-    {
-      menu: "MindMap",
-      icon: "img/lighticon/light-15.png",
-    },
   ];
 
   const array2: MenuItem[] = [
-    // {
-    //   menu: "Add Network",
-    //   icon: "img/lighticon/light-10.png",
-    // },
-    // {
-    //   menu: "Trading",
-    //   icon: "img/lighticon/light-6.png",
-    // },
-    // {
-    //   menu: "Pricing",
-    //   icon: "img/lighticon/light-16.png",
-    // },
     {
       menu: "Profile",
       icon: "img/lighticon/light-4.png",
     },
   ];
-
-  // const logout = (): void => {
-  //   window.location.reload();
-  // };
 
   return (
     <div className="techwave_fn_leftpanel">
@@ -143,28 +123,6 @@ const SideBar: React.FC<SideBarProps> = ({ setActiveComponent }) => {
           array={array2}
           title="User Tools"
         />
-
-        {/* <div className="nav_group">
-          <h2 className="group__title">Controls</h2>
-          <ul className="group__list">
-            <li onClick={() => logout()}>
-              <a
-                className="fn__tooltip menu__item"
-                data-position="right"
-                title="Log Out"
-              >
-                <span className="icon">
-                  <img
-                    src="img/lighticon/light-10.png"
-                    className="fn__svg"
-                    alt=""
-                  />
-                </span>
-                <span className="text">Log Out</span>
-              </a>
-            </li>
-          </ul>
-        </div> */}
       </div>
     </div>
   );

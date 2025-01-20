@@ -11,6 +11,7 @@ import {
   FaCrown,
 } from "react-icons/fa";
 import { LuWandSparkles } from "react-icons/lu";
+import StarGrid from "./StarGrid";
 import { Footer } from "../index";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -79,12 +80,11 @@ const ImpactLeaderboard = () => {
 
   return (
     <div className="techwave_fn_content">
-      <div
-        className="min-h-screen bg-gradient-to-b from-[#020617] to-[#0f172a]"
-        ref={container}
-      >
-        <div className="container mx-auto px-4 py-16">
-          <div className="relative">
+      <div className="relative min-h-screen" ref={container}>
+        <StarGrid />
+        <div className="mx-auto py-16">
+          <div className="relative p-[2rem]">
+            {/* Decorative elements */}
             <div className="absolute inset-0 overflow-hidden">
               <div className="absolute -left-1/4 top-0 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl"></div>
               <div className="absolute -right-1/4 bottom-0 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl"></div>
@@ -127,9 +127,9 @@ const ImpactLeaderboard = () => {
               </div>
 
               <div className="grid gap-4">
-                {agents.map((agent) => (
+                {agents.map((agent: any, index: any) => (
                   <div
-                    key={agent._id.$oid}
+                    key={index}
                     className="rankings-card group relative bg-blue-900/20 backdrop-blur-sm border border-blue-500/20 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-500/40"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-green-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
