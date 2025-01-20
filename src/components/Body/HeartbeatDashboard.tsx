@@ -13,75 +13,13 @@ import {
 import { Footer } from "../index";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-
-const cryptoAgents = [
-  {
-    id: 1,
-    handle: "@aixbt_agent",
-    name: "aiXBT",
-    heartbeat: 85,
-  },
-  {
-    id: 2,
-    handle: "@vadertrader",
-    name: "Vader",
-    heartbeat: 65,
-  },
-  {
-    id: 3,
-    handle: "@AltcoinPsycho",
-    name: "Altcoin Psycho",
-    heartbeat: 60,
-  },
-  {
-    id: 4,
-    handle: "@CryptoMessiah",
-    name: "Crypto Messiah",
-    heartbeat: 50,
-  },
-  {
-    id: 5,
-    handle: "@HsakaTrades",
-    name: "Hsaka",
-    heartbeat: 70,
-  },
-  {
-    id: 6,
-    handle: "@TheCryptoDog",
-    name: "The Crypto Dog",
-    heartbeat: 80,
-  },
-  {
-    id: 7,
-    handle: "@AltcoinSherpa",
-    name: "Altcoin Sherpa",
-    heartbeat: 75,
-  },
-  {
-    id: 8,
-    handle: "@CryptoCred",
-    name: "CryptoCred",
-    heartbeat: 60,
-  },
-  {
-    id: 9,
-    handle: "@TheMoonCarl",
-    name: "The Moon",
-    heartbeat: 70,
-  },
-  {
-    id: 10,
-    handle: "@girlgone_crypto",
-    name: "Girl Gone Crypto",
-    heartbeat: 65,
-  },
-];
-
+import { useHeartbeatLeaderboard } from "@/hooks/useHeartbeatLeaderboard";
 
 const HeartbeatDashboard = () => {
   const container = useRef(null);
   gsap.registerPlugin(useGSAP);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { agents, loading, error } = useHeartbeatLeaderboard();
 
   useEffect(() => {
     if (isModalOpen) {
@@ -93,24 +31,50 @@ const HeartbeatDashboard = () => {
 
   useGSAP(
     () => {
-      const tl = gsap.timeline({ defaults: { ease: "power2.inOut" } });
+      if (!loading && agents.length > 0) {
+        const tl = gsap.timeline({ defaults: { ease: "power2.inOut" } });
 
-      tl.fromTo(
-        ".rankings-card",
-        {
-          y: 40,
-          opacity: 0,
-        },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.8,
-          stagger: 0.1,
-        }
-      );
+        tl.fromTo(
+          ".rankings-card",
+          {
+            y: 40,
+            opacity: 0,
+          },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.8,
+            stagger: 0.1,
+          }
+        );
+      }
     },
-    { scope: container }
+    { scope: container, dependencies: [loading, agents] }
   );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#020617] to-[#0f172a] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="text-white text-xl">Loading heartbeat data...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#020617] to-[#0f172a] flex items-center justify-center">
+        <div className="text-center p-6 bg-red-900/20 rounded-lg border border-red-500/20">
+          <div className="text-red-400 text-xl mb-4">
+            Error loading heartbeat data
+          </div>
+          <div className="text-red-300/80">{error}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="techwave_fn_content">
@@ -120,7 +84,6 @@ const HeartbeatDashboard = () => {
       >
         <div className="container mx-auto px-4 py-16">
           <div className="relative">
-            {/* Decorative elements */}
             <div className="absolute inset-0 overflow-hidden">
               <div className="absolute -left-1/4 top-0 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl"></div>
               <div className="absolute -right-1/4 bottom-0 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl"></div>
@@ -161,9 +124,9 @@ const HeartbeatDashboard = () => {
               </div>
 
               <div className="grid gap-4">
-                {cryptoAgents.map((agent) => (
+                {agents.map((agent: any) => (
                   <div
-                    key={agent.id}
+                    key={agent._id.$oid}
                     className="rankings-card group relative bg-blue-900/20 backdrop-blur-sm border border-blue-500/20 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-500/40"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-green-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -206,13 +169,13 @@ const HeartbeatDashboard = () => {
                         </div>
                         <div className="w-32 h-2 bg-white/70 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-gradient-to-r from-blue-400 to-gray-500  rounded-full"
+                            className="h-full bg-gradient-to-r from-blue-400 to-gray-500 rounded-full"
                             style={{ width: `${agent.heartbeat}%` }}
                           />
                         </div>
                         <div className="ml-6">
                           <button
-                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500/20 /20 hover:from-blue-500/30 hover:/30 border border-blue-500/30 hover:border-blue-500/50 transition-all duration-300 group"
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500/20 hover:from-blue-500/30 border border-blue-500/30 hover:border-blue-500/50 transition-all duration-300 group"
                             onClick={() => setIsModalOpen(true)}
                           >
                             <FaCrown color="yellow" />
