@@ -28,7 +28,7 @@ export async function GET(request: Request): Promise<Response> {
           id: entry.id,
           handle: entry.handle,
           name: entry.name,
-          score: entry.score, // Make sure this matches your database field name
+          heartbeat: entry.score,
         })),
         pagination: {
           total,
