@@ -100,9 +100,9 @@ const SideBar: React.FC<SideBarProps> = ({ setActiveComponent }) => {
       <div className="leftpanel_logo">
         <a className="fn_logo">
           <span className="full_logo">
-            <img src="img/ctxbt_logo.png" className="desktop_logo w-[200px] h-[70px]" alt="" />
+            <img src="img/ctxbt_logo.png" className="desktop_logo " alt="" />
             {/* above is the logo of cryptobot for big screen  */}
-            <img src="img/ctxbt_logo.png" className="retina_logo w-[200px] h-[70px]" alt="" />
+            <img src="img/ctxbt_logo.png" className="retina_logo " alt="" />
             {/* above is the logo of cryptobot for small screen */}
           </span>
           <span className="short_logo">
