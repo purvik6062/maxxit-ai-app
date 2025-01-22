@@ -28,7 +28,6 @@ import {
   Loader,
 } from "../components/index";
 
-// Interface for network data
 interface NetworkData {
   networkName: string;
   praviteKey: string;
@@ -36,7 +35,6 @@ interface NetworkData {
 }
 
 const HomePage: React.FC = () => {
-  // STATE VARIABLES
   const [activeComponent, setActiveComponent] = useState<string>("Home");
   const [membershipType, setMembershipType] = useState<string>("Premium");
   const [authBackEndID, setAuthBackEndID] = useState<string>("");

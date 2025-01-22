@@ -1,4 +1,3 @@
-// Props interfaces for components
 interface NetworksProps {
     networkName: string;
     setNetworkName: (name: string) => void;

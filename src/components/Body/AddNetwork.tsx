@@ -17,7 +17,7 @@ const AddNetwork = ({ axios }: any) => {
     rpcUrl: "",
     apiKey: "",
     walletAddress: "",
-    praviteKey: "",
+    privateKey: "",
     image: displayImg,
   });
 
@@ -26,7 +26,7 @@ const AddNetwork = ({ axios }: any) => {
   };
 
   const saveNetwork = () => {
-    const { networkName, rpcUrl, apiKey, walletAddress, praviteKey, image } =
+    const { networkName, rpcUrl, apiKey, walletAddress, privateKey, image } =
       network;
 
     if (
@@ -34,7 +34,7 @@ const AddNetwork = ({ axios }: any) => {
       !rpcUrl ||
       !apiKey ||
       !walletAddress ||
-      !praviteKey ||
+      !privateKey ||
       !image
     )
       return notifyError("Provide all data");
@@ -89,7 +89,7 @@ const AddNetwork = ({ axios }: any) => {
 
   const onDrop = useCallback(async (acceptedFile: any) => {
     await uploadToInfura(acceptedFile[0]);
-  },[]);
+  }, []);
 
   const {
     getInputProps,
