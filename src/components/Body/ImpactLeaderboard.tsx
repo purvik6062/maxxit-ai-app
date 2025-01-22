@@ -9,7 +9,7 @@ import {
   FaCrown,
 } from "react-icons/fa";
 import { LuWandSparkles } from "react-icons/lu";
-import StarGrid from "./StarGrid";
+import ImpactGrid from "./ImpactGrid";
 import { Footer } from "../index";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -156,7 +156,7 @@ const ImpactLeaderboard = () => {
   return (
     <div className="techwave_fn_content">
       <div className="relative min-h-screen" ref={container}>
-        <StarGrid />
+        <ImpactGrid />
         <div className="mx-auto py-16">
           <div className="relative p-[2rem]">
             {/* Decorative elements */}

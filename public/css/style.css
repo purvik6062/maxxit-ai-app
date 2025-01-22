@@ -1,9 +1,9 @@
 @charset "utf-8";
 :root,
 [data-techwave-skin="light"]:root {
-  --techwave-main-color: #7c5fe3;
-  --techwave-main-color1: #8768f8;
-  --techwave-main-color2: #b7a4fb;
+  --techwave-main-color: #3484B3;
+  --techwave-main-color1: #4A9CC4;
+  --techwave-main-color2: #73C7E1;
 }
 
 hr,
@@ -803,7 +803,7 @@ frenify_typing span {
   margin-left: 10px;
   display: inline-block;
   height: 24px;
-  background-color: #ab0cdf;
+  background-color: #14639C;
   color: #fff;
   font-weight: 500;
   line-height: 25px;
@@ -893,6 +893,12 @@ frenify_typing span {
   .panel-opened .techwave_fn_leftpanel .group__title {
     display: none;
   }
+
+  .full_logo {
+    display: block;
+    width: 250px;
+  }
+
   .panel-opened .techwave_fn_leftpanel .group__list ul {
     display: none !important;
   }
@@ -1431,7 +1437,7 @@ frenify_typing span {
 
 .fn__nav_bar .bar__item_notification .ntfc_list p a:hover,
 .techwave_fn_footer .menu_items a:hover {
-  color: rgb(121, 121, 230);
+  color: #2391e0;
 }
 
 .fn__nav_bar .bar__item_notification .ntfc_list span,
@@ -3362,7 +3368,7 @@ a.fn__like.no_border .fn__svg {
 }
 
 .techwave_fn_sign .logo {
-  background-image: none, url(../img/logo-desktop-full.png);
+  /* background-image: none, url(../img/new_name_logo.svg); */
   background-size: 141px;
   background-position: center top;
   background-repeat: no-repeat;

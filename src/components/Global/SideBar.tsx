@@ -27,7 +27,7 @@ const SideBarComponent: React.FC<SideBarComponentProps> = ({
 }) => (
   <div className="nav_group">
     <h2 className="group__title">{title}</h2>
-    <ul className="group__list">
+    <ul className="group__list hover:cursor-pointer">
       {array.map((menu, index) => (
         <li key={index} onClick={() => setActiveComponent(menu.menu)}>
           <a
@@ -80,20 +80,20 @@ const SideBar: React.FC<SideBarProps> = ({ setActiveComponent }) => {
       <div className="leftpanel_logo">
         <a className="fn_logo">
           <span className="full_logo">
-            <img src="img/ctxbt_logo.png" className="desktop_logo " alt="" />
+            <img src="img/new_name_logo.svg" className="desktop_logo" alt="" />
             {/* above is the logo of cryptobot for big screen  */}
-            <img src="img/ctxbt_logo.png" className="retina_logo " alt="" />
+            <img src="img/new_name_logo.svg" className="retina_logo" alt="" />
             {/* above is the logo of cryptobot for small screen */}
           </span>
           <span className="short_logo">
             <img
-              src="img/logo.svg"
+              src="img/new_logo.svg"
               className="desktop_logo"
               alt=""
             />
             {/* the above logo is the logo of T for the big screen */}
             <img
-              src="img/logo.svg"
+              src="img/new_logo.svg"
               className="retina_logo w-[45px] h-[40px]"
               alt=""
             />

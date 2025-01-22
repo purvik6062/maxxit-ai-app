@@ -1,38 +1,35 @@
-import React, { useRef } from "react";
-import { useState, useEffect } from "react";
-import {
-  FaRegCopy,
-  FaTrophy,
-  FaStar,
-  FaArrowUp,
-  FaArrowDown,
-  FaCrown,
-} from "react-icons/fa";
-import { Footer } from "../index";
-import StarGrid from "./StarGrid";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
-import { useHeartbeatLeaderboard } from "@/hooks/useHeartbeatLeaderboard";
+import React, { useRef } from "react"
+import { useState, useEffect } from "react"
+import { FaRegCopy, FaTrophy, FaStar, FaArrowUp, FaArrowDown, FaCrown } from "react-icons/fa"
+import { Footer } from "../index"
+import "../../app/css/heartbeat.css"
+import HeartbeatBackground from "./HeartbeatBackground"
+import gsap from "gsap"
+import { useGSAP } from "@gsap/react"
+import { useHeartbeatLeaderboard } from "@/hooks/useHeartbeatLeaderboard"
+import { HeartbeatChart } from "./HeartbeatChart"
+import { HeartbeatStats } from "./HeartbeatStats"
+import { HeartbeatComparison } from "./HeartbeatComparison"
+import { HeartbeatTrend } from "./HeartbeatTrend"
 
 const HeartbeatDashboard = () => {
-  const container = useRef(null);
-  gsap.registerPlugin(useGSAP);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const { agents, loading, error } = useHeartbeatLeaderboard();
+  const container = useRef(null)
+  gsap.registerPlugin(useGSAP)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const { agents, loading, error } = useHeartbeatLeaderboard()
 
   useEffect(() => {
     if (isModalOpen) {
-      document.body.style.overflow = "hidden";
+      document.body.style.overflow = "hidden"
     } else {
-      document.body.style.overflow = "unset";
+      document.body.style.overflow = "unset"
     }
-  }, [isModalOpen]);
+  }, [isModalOpen])
 
   useGSAP(
     () => {
       if (!loading && agents.length > 0) {
-        const tl = gsap.timeline({ defaults: { ease: "power2.inOut" } });
-
+        const tl = gsap.timeline({ defaults: { ease: "power2.inOut" } })
         tl.fromTo(
           ".rankings-card",
           {
@@ -44,25 +41,21 @@ const HeartbeatDashboard = () => {
             opacity: 1,
             duration: 0.8,
             stagger: 0.1,
-          }
-        );
+          },
+        )
       }
     },
-    { scope: container, dependencies: [loading, agents] }
-  );
+    { scope: container, dependencies: [loading, agents] },
+  )
 
-  const renderContent = () => {
+  const renderAgentsList = () => {
     if (loading) {
       return (
-        <div className="flex flex-col items-center justify-center ">
+        <div className="flex flex-col items-center justify-center min-h-[200px]">
           <div className="relative w-24 h-24">
-            {/* Outer ring */}
             <div className="absolute inset-0 rounded-full border-4 border-blue-500/20"></div>
-            {/* Spinning ring */}
             <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-500 animate-spin"></div>
-            {/* Inner pulsing circle */}
             <div className="absolute inset-4 rounded-full bg-blue-500/20 animate-pulse"></div>
-            {/* Center dot */}
             <div className="absolute inset-[42%] rounded-full bg-blue-400"></div>
           </div>
           <div className="text-center space-y-2">
@@ -72,22 +65,26 @@ const HeartbeatDashboard = () => {
             <p className="text-slate-400">Fetching market pulse data...</p>
           </div>
         </div>
-      );
+      )
     }
 
     if (error) {
       return (
         <div className="text-center p-8 rounded-xl border border-red-500/20 bg-gradient-to-b from-red-500/10 to-transparent backdrop-blur-sm">
-          <div className="text-red-400 text-2xl font-bold mb-4">
-            Error Loading Heartbeat Data
-          </div>
+          <div className="text-red-400 text-2xl font-bold mb-4">Error Loading Heartbeat Data</div>
           <div className="text-red-300/80 max-w-md mx-auto">{error}</div>
         </div>
-      );
+      )
     }
 
     return (
-      <div className="grid gap-4">
+      <div className="grid gap-8">
+        <HeartbeatStats agents={agents} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <HeartbeatChart agents={agents} />
+          <HeartbeatComparison agents={agents} />
+        </div>
+        <HeartbeatTrend agents={agents} />
         {agents.map((agent, index) => (
           <div
             key={index}
@@ -97,20 +94,10 @@ const HeartbeatDashboard = () => {
             <div className="relative p-6 flex items-center justify-between">
               <div className="flex items-center space-x-6">
                 <div className="flex items-center justify-center w-[41px]">
-                  {agent.id === 1 && (
-                    <FaTrophy className="w-6 h-6 text-yellow-300" />
-                  )}
-                  {agent.id === 2 && (
-                    <FaTrophy className="w-6 h-6 text-gray-400" />
-                  )}
-                  {agent.id === 3 && (
-                    <FaTrophy className="w-6 h-6 text-amber-700" />
-                  )}
-                  {agent.id > 3 && (
-                    <span className="text-2xl font-bold text-slate-400">
-                      #{agent.id}
-                    </span>
-                  )}
+                  {agent.id === 1 && <FaTrophy className="w-6 h-6 text-yellow-300" />}
+                  {agent.id === 2 && <FaTrophy className="w-6 h-6 text-gray-400" />}
+                  {agent.id === 3 && <FaTrophy className="w-6 h-6 text-amber-700" />}
+                  {agent.id > 3 && <span className="text-2xl font-bold text-slate-400">#{agent.id}</span>}
                 </div>
                 <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-400 flex items-center justify-center text-white font-bold text-lg">
                   {agent.name.charAt(0)}
@@ -149,67 +136,55 @@ const HeartbeatDashboard = () => {
           </div>
         ))}
       </div>
-    );
-  };
+    )
+  }
 
   return (
     <div className="techwave_fn_content">
-      <div className="relative min-h-screen" ref={container}>
-        <StarGrid />
-        <div className="mx-auto py-16">
-          <div className="relative p-[2rem]">
-            {/* Decorative elements */}
-            <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute -left-1/4 top-0 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl"></div>
-              <div className="absolute -right-1/4 bottom-0 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl"></div>
-            </div>
-
-            <div className="relative space-y-6">
-              <div className="text-center mb-16 relative">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-blue-500/20 rounded-full blur-3xl"></div>
-
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/15 backdrop-blur-sm mb-6">
-                  <span className="animate-pulse text-2xl">💓</span>
-                  <span className="text-base font-medium text-blue-400">
-                    Real-time Analytics
-                  </span>
-                </div>
-
-                <h1 className="relative text-3xl md:text-4xl font-bold mb-6">
-                  <span className="">🌟</span>
-                  <span className="bg-gradient-to-r from-white via-blue-200 to-blue-400 bg-clip-text text-transparent">
-                    Heartbeat Rankings
-                  </span>
-                  <span className="">📊</span>
-                </h1>
-
-                <div className="flex flex-col items-center gap-4">
-                  <p className="text-xl text-slate-300/90 max-w-2xl">
-                    Discover the Pulse of Crypto Markets through our Elite
-                    Analysts
-                  </p>
-                  <div className="flex items-center gap-2 text-white">
-                    <span>🎯 Precision</span>
-                    <span className="text-slate-300">•</span>
-                    <span>🚀 Performance</span>
-                    <span className="text-slate-300">•</span>
-                    <span>💎 Reliability</span>
-                  </div>
-                </div>
+      <div ref={container}>
+        {/* Upper content section with fixed height and heartbeat animation */}
+        <div className="relative h-[60vh]">
+          <HeartbeatBackground />
+          <div className="relative h-full flex flex-col items-center justify-center">
+            <div className="text-center space-y-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/15 backdrop-blur-sm">
+                <span className="animate-pulse text-2xl">💓</span>
+                <span className="text-base font-medium text-blue-400">Real-time Analytics</span>
               </div>
 
-              {renderContent()}
+              <h1 className="relative text-3xl md:text-4xl font-bold">
+                <span className="">🌟</span>
+                <span className="bg-gradient-to-r from-white via-blue-200 to-blue-400 bg-clip-text text-transparent">
+                  Heartbeat Rankings
+                </span>
+                <span className="">📊</span>
+              </h1>
+
+              <div className="flex flex-col items-center gap-4">
+                <p className="text-xl text-slate-300/90 max-w-2xl">
+                  Discover the Pulse of Crypto Markets through our Elite Analysts
+                </p>
+                <div className="flex items-center gap-2 text-white">
+                  <span>🎯 Precision</span>
+                  <span className="text-slate-300">•</span>
+                  <span>🚀 Performance</span>
+                  <span className="text-slate-300">•</span>
+                  <span>💎 Reliability</span>
+                </div>
+              </div>
             </div>
           </div>
+        </div>
+
+        {/* Lower section for agent listings */}
+        <div className="relative bg-gray-900/80 min-h-[50vh] pb-12 pt-[1rem]">
+          <div className="max-w-7xl mx-auto px-[2rem] pb-12">{renderAgentsList()}</div>
         </div>
       </div>
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setIsModalOpen(false)}
-          />
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
           <div className="relative z-50 w-full max-w-lg overflow-hidden rounded-xl bg-gray-900 p-6 shadow-2xl">
             <div className="mx-auto flex max-w-sm flex-col items-center">
               <div className="flex items-center mt-6 gap-1">
@@ -219,9 +194,8 @@ const HeartbeatDashboard = () => {
                 <div>🚀✨</div>
               </div>
               <p className="mt-2 text-center text-gray-300">
-                Exciting developments are underway! Our team is working hard to
-                bring you cutting-edge AI-powered trading features. Stay tuned
-                for updates! 🛠️💡
+                Exciting developments are underway! Our team is working hard to bring you cutting-edge AI-powered
+                trading features. Stay tuned for updates! 🛠️💡
               </p>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -235,7 +209,8 @@ const HeartbeatDashboard = () => {
       )}
       <Footer />
     </div>
-  );
-};
+  )
+}
 
-export default HeartbeatDashboard;
+export default HeartbeatDashboard
+
