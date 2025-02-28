@@ -2,13 +2,11 @@
 import { useEffect, useState } from "react";
 
 interface CryptoAgent {
-  _id: {
-    $oid: string;
-  };
+  _id: string;
   id: number;
   handle: string;
   name: string;
-  impactFactor: number;
+  subscriberCount: number;
 }
 
 export const useImpactLeaderboard = () => {
@@ -34,7 +32,12 @@ export const useImpactLeaderboard = () => {
           );
         }
 
-        setAgents(data.data?.leaderboard || []);
+        // Sort by subscriber count in descending order
+        const sortedData = data.data.sort((a: CryptoAgent, b: CryptoAgent) => 
+          b.subscriberCount - a.subscriberCount
+        );
+
+        setAgents(sortedData || []);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "An unexpected error occurred"

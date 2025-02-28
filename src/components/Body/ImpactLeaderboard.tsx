@@ -8,17 +8,22 @@ import {
   FaArrowDown,
   FaCrown,
 } from "react-icons/fa";
+import { X } from "lucide-react";
 import { LuWandSparkles } from "react-icons/lu";
 import ImpactGrid from "./ImpactGrid";
 import { Footer } from "../index";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { useImpactLeaderboard } from "@/hooks/useImpactLeaderboard";
+import { useAccount } from 'wagmi';
+import { toast } from 'react-toastify';
 
 const ImpactLeaderboard = () => {
   const container = useRef(null);
   gsap.registerPlugin(useGSAP);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { address } = useAccount();
+  const [subscribedHandles, setSubscribedHandles] = useState<string[]>([]);
   const { agents, loading, error } = useImpactLeaderboard();
 
   useEffect(() => {
@@ -51,6 +56,68 @@ const ImpactLeaderboard = () => {
     },
     { scope: container, dependencies: [loading, agents] }
   );
+
+  useEffect(() => {
+    const fetchSubscribedHandles = async () => {
+      if (!address) return;
+
+      try {
+        const response = await fetch(`/api/get-user?walletAddress=${address}`);
+        const data = await response.json();
+
+        if (data.success && data.data.subscribedAccounts) {
+          setSubscribedHandles(data.data.subscribedAccounts);
+        }
+      } catch (error) {
+        console.error("Failed to fetch subscribed handles:", error);
+      }
+    };
+
+    fetchSubscribedHandles();
+  }, [address]);
+
+  const handleSubscribe = async (handle: string) => {
+    if (!address) {
+      toast.error("Please connect your wallet first", {
+        position: "top-center",
+      });
+      return;
+    }
+
+    const cleanHandle = handle.replace('@', '');
+
+    try {
+      const response = await fetch('/api/subscribe-influencer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          walletAddress: address,
+          influencerHandle: cleanHandle,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'Failed to subscribe');
+      }
+
+      setSubscribedHandles(prev => [...prev, cleanHandle]);
+      
+      toast.success("Successfully subscribed to influencer!", {
+        position: "top-center",
+      });
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to subscribe",
+        {
+          position: "top-center",
+        }
+      );
+    }
+  };
 
   const renderContent = () => {
     if (loading) {
@@ -89,66 +156,64 @@ const ImpactLeaderboard = () => {
 
     return (
       <div className="grid gap-4">
-        {agents.map((agent, index) => (
-          <div
-            key={index}
-            className="rankings-card group relative bg-blue-900/20 backdrop-blur-sm border border-blue-500/20 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-500/40"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-green-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <div className="relative p-6 flex items-center justify-between">
-              <div className="flex items-center space-x-6">
-                <div className="flex items-center justify-center w-[41px]">
-                  {agent.id === 1 && (
-                    <FaTrophy className="w-6 h-6 text-yellow-300" />
-                  )}
-                  {agent.id === 2 && (
-                    <FaTrophy className="w-6 h-6 text-gray-400" />
-                  )}
-                  {agent.id === 3 && (
-                    <FaTrophy className="w-6 h-6 text-amber-700" />
-                  )}
-                  {agent.id > 3 && (
-                    <span className="text-2xl font-bold text-slate-400">
-                      #{agent.id}
-                    </span>
-                  )}
-                </div>
-                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-400 flex items-center justify-center text-white font-bold text-lg">
-                  {agent.name.charAt(0)}
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white">{agent.name}</h3>
-                  <p className="text-slate-400">{agent.handle}</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-8">
-                <div className="text-right">
-                  <div className="text-sm text-slate-400">Impact Factor</div>
-                  <div className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-blue-200 bg-clip-text text-transparent">
-                    {agent.impactFactor}
+        {agents.map((agent, index) => {
+          const cleanHandle = agent.handle.replace('@', '');
+          const isSubscribed = subscribedHandles.includes(cleanHandle);
+
+          return (
+            <div
+              key={index}
+              className="rankings-card group relative bg-blue-900/20 backdrop-blur-sm border border-blue-500/20 rounded-xl overflow-hidden transition-all duration-300"
+            >
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="relative p-6 flex items-center justify-between">
+                <div className="flex items-center space-x-6">
+                  <div className="flex items-center justify-center w-[41px]">
+                    {agent.id === 1 && (
+                      <FaTrophy className="w-6 h-6 text-yellow-300" />
+                    )}
+                    {agent.id === 2 && (
+                      <FaTrophy className="w-6 h-6 text-gray-400" />
+                    )}
+                    {agent.id === 3 && (
+                      <FaTrophy className="w-6 h-6 text-amber-700" />
+                    )}
+                    {agent.id > 3 && (
+                      <span className="text-2xl font-bold text-slate-400">
+                        #{agent.id}
+                      </span>
+                    )}
+                  </div>
+                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-400 flex items-center justify-center text-white font-bold text-lg">
+                    {agent.name.charAt(0)}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white">{agent.name}</h3>
+                    <p className="text-slate-400">{agent.handle}</p>
                   </div>
                 </div>
-                <div className="w-32 h-2 bg-white/70 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-blue-400 to-gray-500 rounded-full"
-                    style={{ width: `${agent.impactFactor}%` }}
-                  />
-                </div>
-                <div className="ml-6">
-                  <button
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500/20 hover:from-blue-500/30 border border-blue-500/30 hover:border-blue-500/50 transition-all duration-300 group"
-                    onClick={() => setIsModalOpen(true)}
-                  >
-                    <FaCrown color="yellow" />
-                    <span className="text-sm font-medium text-white group-hover:text-blue-200 transition-colors duration-300">
-                      Subscribe Agent
-                    </span>
-                  </button>
+                <div className="flex items-center space-x-8">
+                  <div className="ml-6">
+                    <button
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
+                        isSubscribed 
+                          ? 'bg-green-500/20 border-green-500/30 cursor-default'
+                          : 'bg-gradient-to-r from-blue-500/20 hover:from-blue-500/60 border border-blue-500/30 hover:border-blue-500/100'
+                      } transition-all duration-300 group`}
+                      onClick={() => !isSubscribed && handleSubscribe(agent.handle)}
+                      disabled={isSubscribed}
+                    >
+                      <FaCrown color={isSubscribed ? "green" : "yellow"} />
+                      <span className="text-sm font-medium text-white group-hover:text-blue-200 transition-colors duration-300">
+                        {isSubscribed ? 'Subscribed' : 'Subscribe'}
+                      </span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   };
@@ -188,7 +253,8 @@ const ImpactLeaderboard = () => {
 
                 <div className="flex flex-col items-center gap-4">
                   <p className="text-xl text-slate-300/90 max-w-2xl">
-                    Discover the Pulse of Crypto Markets through our Elite Analysts
+                    Discover the Pulse of Crypto Markets through our Elite
+                    Analysts
                   </p>
                   <div className="flex items-center gap-2 text-white">
                     <span>🎯 Precision</span>
@@ -213,6 +279,15 @@ const ImpactLeaderboard = () => {
             onClick={() => setIsModalOpen(false)}
           />
           <div className="relative z-50 w-full max-w-lg overflow-hidden rounded-xl bg-gray-900 p-6 shadow-2xl">
+          <button
+                onClick={() => setIsModalOpen(false)}
+                className="absolute top-2 right-3 text-white text-xl font-bold hover:text-gray-300 p-2 bg-gray-700 rounded-full"
+              >
+                <X
+                  size={20}
+                  className="hover:text-cyan-400 hover:scale-110"
+                />
+              </button>
             <div className="mx-auto flex max-w-sm flex-col items-center">
               <div className="flex items-center mt-6 gap-1">
                 <h3 className="bg-gradient-to-r from-blue-400 to-white bg-clip-text text-center text-2xl font-semibold text-transparent">
