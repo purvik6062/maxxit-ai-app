@@ -15,8 +15,9 @@ import { Footer } from "../index";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { useImpactLeaderboard } from "@/hooks/useImpactLeaderboard";
-import { useAccount } from 'wagmi';
-import { toast } from 'react-toastify';
+import { useAccount } from "wagmi";
+import { toast } from "react-toastify";
+import { useCredits } from "@/context/CreditsContext";
 
 const ImpactLeaderboard = () => {
   const container = useRef(null);
@@ -25,6 +26,10 @@ const ImpactLeaderboard = () => {
   const { address } = useAccount();
   const [subscribedHandles, setSubscribedHandles] = useState<string[]>([]);
   const { agents, loading, error } = useImpactLeaderboard();
+  const [subscribingHandle, setSubscribingHandle] = useState<string | null>(
+    null
+  );
+  const { credits, updateCredits } = useCredits();
 
   useEffect(() => {
     if (isModalOpen) {
@@ -84,13 +89,15 @@ const ImpactLeaderboard = () => {
       return;
     }
 
-    const cleanHandle = handle.replace('@', '');
+    const cleanHandle = handle.replace("@", "");
+
+    setSubscribingHandle(cleanHandle);
 
     try {
-      const response = await fetch('/api/subscribe-influencer', {
-        method: 'POST',
+      const response = await fetch("/api/subscribe-influencer", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           walletAddress: address,
@@ -101,14 +108,17 @@ const ImpactLeaderboard = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error?.message || 'Failed to subscribe');
+        throw new Error(data.error?.message || "Failed to subscribe");
       }
 
-      setSubscribedHandles(prev => [...prev, cleanHandle]);
-      
+      setSubscribedHandles((prev) => [...prev, cleanHandle]);
+
       toast.success("Successfully subscribed to influencer!", {
         position: "top-center",
       });
+
+      await updateCredits();
+
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to subscribe",
@@ -116,6 +126,8 @@ const ImpactLeaderboard = () => {
           position: "top-center",
         }
       );
+    } finally { 
+      setSubscribingHandle(null);
     }
   };
 
@@ -157,8 +169,9 @@ const ImpactLeaderboard = () => {
     return (
       <div className="grid gap-4">
         {agents.map((agent, index) => {
-          const cleanHandle = agent.handle.replace('@', '');
+          const cleanHandle = agent.handle.replace("@", "");
           const isSubscribed = subscribedHandles.includes(cleanHandle);
+          const isCurrentlySubscribing = subscribingHandle === cleanHandle;
 
           return (
             <div
@@ -188,24 +201,44 @@ const ImpactLeaderboard = () => {
                     {agent.name.charAt(0)}
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-white">{agent.name}</h3>
+                    <h3 className="text-xl font-bold text-white">
+                      {agent.name}
+                    </h3>
                     <p className="text-slate-400">{agent.handle}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-8">
                   <div className="ml-6">
                     <button
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
-                        isSubscribed 
-                          ? 'bg-green-500/20 border-green-500/30 cursor-default'
-                          : 'bg-gradient-to-r from-blue-500/20 hover:from-blue-500/60 border border-blue-500/30 hover:border-blue-500/100'
-                      } transition-all duration-300 group`}
-                      onClick={() => !isSubscribed && handleSubscribe(agent.handle)}
-                      disabled={isSubscribed}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg
+        ${
+          isSubscribed || isCurrentlySubscribing
+            ? "bg-green-500/20 border-green-500/30 cursor-default"
+            : "bg-gradient-to-r from-blue-500/20 hover:from-blue-500/60 border border-blue-500/30 hover:border-blue-500/100"
+        }
+        transition-all duration-300 group
+        ${isCurrentlySubscribing ? "animate-pulse" : ""}`}
+                      onClick={() =>
+                        !isSubscribed &&
+                        !isCurrentlySubscribing &&
+                        handleSubscribe(agent.handle)
+                      }
+                      disabled={isSubscribed || isCurrentlySubscribing}
                     >
-                      <FaCrown color={isSubscribed ? "green" : "yellow"} />
+                      <FaCrown
+                        color={
+                          isSubscribed || isCurrentlySubscribing
+                            ? "green"
+                            : "yellow"
+                        }
+                        className={isCurrentlySubscribing ? "animate-pulse" : ""}
+                      />
                       <span className="text-sm font-medium text-white group-hover:text-blue-200 transition-colors duration-300">
-                        {isSubscribed ? 'Subscribed' : 'Subscribe'}
+                        {isCurrentlySubscribing
+                          ? "Subscribing..."
+                          : isSubscribed
+                          ? "Subscribed"
+                          : "Subscribe"}
                       </span>
                     </button>
                   </div>
@@ -279,15 +312,12 @@ const ImpactLeaderboard = () => {
             onClick={() => setIsModalOpen(false)}
           />
           <div className="relative z-50 w-full max-w-lg overflow-hidden rounded-xl bg-gray-900 p-6 shadow-2xl">
-          <button
-                onClick={() => setIsModalOpen(false)}
-                className="absolute top-2 right-3 text-white text-xl font-bold hover:text-gray-300 p-2 bg-gray-700 rounded-full"
-              >
-                <X
-                  size={20}
-                  className="hover:text-cyan-400 hover:scale-110"
-                />
-              </button>
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-2 right-3 text-white text-xl font-bold hover:text-gray-300 p-2 bg-gray-700 rounded-full"
+            >
+              <X size={20} className="hover:text-cyan-400 hover:scale-110" />
+            </button>
             <div className="mx-auto flex max-w-sm flex-col items-center">
               <div className="flex items-center mt-6 gap-1">
                 <h3 className="bg-gradient-to-r from-blue-400 to-white bg-clip-text text-center text-2xl font-semibold text-transparent">
@@ -296,9 +326,9 @@ const ImpactLeaderboard = () => {
                 <div>🚀✨</div>
               </div>
               <p className="mt-2 text-center text-gray-300">
-                Exciting developments are underway! Our team is working hard to bring
-                you cutting-edge AI-powered trading features. Stay tuned for
-                updates! 🛠️💡
+                Exciting developments are underway! Our team is working hard to
+                bring you cutting-edge AI-powered trading features. Stay tuned
+                for updates! 🛠️💡
               </p>
               <button
                 onClick={() => setIsModalOpen(false)}

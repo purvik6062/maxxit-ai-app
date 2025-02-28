@@ -5,11 +5,11 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "@rainbow-me/rainbowkit/styles.css";
-import { useAccount } from 'wagmi';
+import "../../app/css/input.css";
+import { useAccount } from "wagmi";
+import { useCredits } from "@/context/CreditsContext";
 
 const Header = ({ networkName, setActiveComponent }: any) => {
-  const [userDetails, setUserDetails] = useState({});
-  const [userMembership, setUserMembership] = useState<any>();
   const [view, setView] = useState("overview");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false);
@@ -19,48 +19,22 @@ const Header = ({ networkName, setActiveComponent }: any) => {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [generatedOtp, setGeneratedOtp] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
-  const [userCredits, setUserCredits] = useState<number | null>(null);
+  // const [userCredits, setUserCredits] = useState<number | null>(null);
   const { address, isConnected } = useAccount();
+  const { credits } = useCredits();
 
-  const inputRefs = Array(6).fill(0).map(() => React.createRef<HTMLInputElement>());
+  const inputRefs = Array(6)
+    .fill(0)
+    .map(() => React.createRef<HTMLInputElement>());
 
   useEffect(() => {
+    console.log("Modal state changed:", { isModalOpen, isTelegramModalOpen });
     if (isModalOpen || isTelegramModalOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
     }
   }, [isModalOpen, isTelegramModalOpen]);
-
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("userProfile") || "{}");
-    const userMembership = localStorage.getItem("USER_MEMBERSHIP") || "";
-
-    setUserMembership(userMembership);
-    setUserDetails(user);
-  }, []);
-
-  // Monitor wallet connection status
-  useEffect(() => {
-    if (isConnected) {
-      toast.success("Wallet connected successfully!", {
-        position: "top-center",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-
-      // Check if this is first connection
-      const hasSeenTelegramPrompt = localStorage.getItem("hasSeenTelegramPrompt");
-      if (!hasSeenTelegramPrompt) {
-        setTimeout(() => {
-          setIsTelegramModalOpen(true);
-        }, 2000);
-      }
-    }
-  }, [isConnected]);
 
   // Add new useEffect to fetch user data
   useEffect(() => {
@@ -69,17 +43,33 @@ const Header = ({ networkName, setActiveComponent }: any) => {
 
       try {
         const response = await fetch(`/api/get-user?walletAddress=${address}`);
+
+        // Check if response is 404 (user not found)
+        if (response.status === 404) {
+          // This is a new user, show telegram modal
+          setTimeout(() => {
+            setIsTelegramModalOpen(true);
+          }, 0);
+          return;
+        }
+
         const data = await response.json();
 
         if (data.success) {
-          setUserCredits(data.data.credits);
+          // setUserCredits(data.data.credits);
           setShowTokens(true);
+
+          // Check if user has a telegramId already
+          if (data.data.telegramId) {
+            // Store telegramId in localStorage for future reference
+            localStorage.setItem("hasSeenTelegramPrompt", "true");
+            localStorage.setItem("telegramUsername", data.data.telegramId);
+          }
         }
       } catch (error) {
         console.error("Failed to fetch user data:", error);
       }
     };
-
     fetchUserData();
   }, [address]);
 
@@ -98,27 +88,27 @@ const Header = ({ networkName, setActiveComponent }: any) => {
     }
 
     // Remove @ if user included it
-    const cleanUsername = telegramUsername.replace('@', '');
+    const cleanUsername = telegramUsername.replace("@", "");
 
     setIsVerifying(true);
     const newOtp = generateRandomOtp();
 
     try {
-      const response = await fetch('/api/send-telegram-otp', {
-        method: 'POST',
+      const response = await fetch("/api/send-telegram-otp", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           username: cleanUsername,
-          otp: newOtp
+          otp: newOtp,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to send OTP');
+        throw new Error(data.message || "Failed to send OTP");
       }
 
       setIsVerifying(false);
@@ -128,7 +118,10 @@ const Header = ({ networkName, setActiveComponent }: any) => {
       });
     } catch (error) {
       setIsVerifying(false);
-      const errorMessage = error instanceof Error ? error.message : "Failed to send OTP. Please try again.";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to send OTP. Please try again.";
       toast.error(errorMessage, {
         position: "top-center",
       });
@@ -136,7 +129,6 @@ const Header = ({ networkName, setActiveComponent }: any) => {
   };
 
   const handleLater = () => {
-    localStorage.setItem("hasSeenTelegramPrompt", "true");
     setIsTelegramModalOpen(false);
   };
 
@@ -155,15 +147,18 @@ const Header = ({ networkName, setActiveComponent }: any) => {
     }
   };
 
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
     // Move to previous input on backspace if current input is empty
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
       inputRefs[index - 1].current?.focus();
     }
   };
 
   const verifyOtp = async () => {
-    const enteredOtp = otp.join('');
+    const enteredOtp = otp.join("");
 
     if (enteredOtp.length !== 6) {
       toast.error("Please enter all 6 digits of the OTP", {
@@ -176,10 +171,10 @@ const Header = ({ networkName, setActiveComponent }: any) => {
 
     if (enteredOtp === generatedOtp) {
       try {
-        const response = await fetch('/api/create-user', {
-          method: 'POST',
+        const response = await fetch("/api/create-user", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             walletAddress: address,
@@ -191,17 +186,20 @@ const Header = ({ networkName, setActiveComponent }: any) => {
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.message || 'Failed to create user');
+          throw new Error(data.message || "Failed to create user");
         }
 
         localStorage.setItem("hasSeenTelegramPrompt", "true");
         localStorage.setItem("telegramUsername", telegramUsername);
         setIsTelegramModalOpen(false);
         setShowTokens(true);
-        toast.success("Successfully registered! 100 Credits credited to your account!", {
-          position: "top-center",
-          autoClose: 5000,
-        });
+        toast.success(
+          "Successfully registered! 100 Credits credited to your account!",
+          {
+            position: "top-center",
+            autoClose: 5000,
+          }
+        );
       } catch (error) {
         toast.error("Failed to create user account. Please try again.", {
           position: "top-center",
@@ -212,7 +210,7 @@ const Header = ({ networkName, setActiveComponent }: any) => {
         position: "top-center",
       });
     }
-    
+
     setIsVerifying(false);
   };
 
@@ -226,24 +224,35 @@ const Header = ({ networkName, setActiveComponent }: any) => {
               <div className="flex items-center">
                 <h1 className="text-xl font-bold">AI</h1>
                 <div className="ml-5 flex">
-                  {[
-                    "Predictions",
-                    "AI Insights",
-                  ].map((item) => (
+                  {["Predictions", "AI Insights"].map((item) => (
                     <button
                       key={item}
                       onClick={() => setIsModalOpen(true)}
-                      className={`px-3 py-2 rounded-md text-sm font-medium ${view === item.toLowerCase()
-                        ? "bg-gray-700 text-white"
-                        : "text-gray-300 hover:bg-gray-600"
-                        }`}
+                      className={`px-3 py-2 rounded-md text-sm font-medium ${
+                        view === item.toLowerCase()
+                          ? "bg-gray-700 text-white"
+                          : "text-gray-300 hover:bg-gray-600"
+                      }`}
                     >
                       {item}
                     </button>
                   ))}
-                  {showTokens && userCredits !== null && (
+                  {showTokens && (
                     <div className="ml-4 flex items-center px-3 py-1 rounded-full bg-gradient-to-r from-blue-500/20 to-blue-700/20 border border-blue-500/50">
-                      <span className="text-blue-400 font-medium mr-1 text-sm">{userCredits}</span>
+                      <span className="text-blue-400 font-medium mr-1 text-sm">
+                        {credits !== null ? (
+                          credits
+                        ) : (
+                          <div
+                            className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-blue-400 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
+                            role="status"
+                          >
+                            <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">
+                              Loading...
+                            </span>
+                          </div>
+                        )}
+                      </span>
                       <span className="text-gray-300 text-sm">Credits</span>
                     </div>
                   )}
@@ -301,15 +310,23 @@ const Header = ({ networkName, setActiveComponent }: any) => {
       {/* Telegram URL Modal */}
       {isTelegramModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-          // Removed the onClick handler to prevent closing when clicking outside
-          />
-          <div className="relative z-50 w-full max-w-lg overflow-hidden rounded-xl bg-gray-900 p-6 shadow-2xl border border-blue-500/30">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+          <div className="relative z-50 w-full max-w-md overflow-hidden rounded-xl bg-gray-900 p-6 shadow-2xl border border-blue-500/30">
             <div className="mx-auto flex max-w-sm flex-col">
               <div className="text-center">
-                <div className="inline-flex items-center justify-center p-2 bg-blue-500/10 rounded-full mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400">
+                <div className="inline-flex items-center justify-center p-3 bg-blue-500/15 rounded-full mb-5">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-blue-400"
+                  >
                     <path d="M18 8l-1-4-1 1-2 1-3-1h-2L7 6 6 5 5 8l-1 3v2l1 3 3 3 2 1h2l3-1 2-2 1-2 1-5z"></path>
                     <path d="M11 8h.01"></path>
                     <path d="M13 12h.01"></path>
@@ -318,33 +335,117 @@ const Header = ({ networkName, setActiveComponent }: any) => {
                     <path d="M13 16h.01"></path>
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-1">Welcome to the AI Trading Platform!</h3>
+                <h3 className="text-2xl font-bold text-white mb-1">
+                  Welcome to the CTxbt - Signal Generator Platform
+                </h3>
                 <div className="h-1 w-24 bg-gradient-to-r from-blue-500 to-blue-700 mx-auto my-3 rounded-full"></div>
                 <p className="text-gray-300 mb-6">
-                  To claim your <span className="text-blue-400 font-semibold">100 FREE Credits</span>, please enter your Telegram username below.
+                  To claim your{" "}
+                  <span className="text-blue-400 font-semibold">
+                    100 FREE Credits
+                  </span>
+                  , please enter your Telegram username below.
                 </p>
               </div>
 
               {!showOtpInput ? (
-                <div className="space-y-4">
+                <div className="space-y-5">
                   <div className="relative">
-                    <div className="flex items-center bg-gray-800 rounded-lg border border-gray-700">
+                    <div className="flex items-center bg-gray-800 rounded-lg border border-gray-700 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all">
                       <span className="pl-4 text-gray-400">@</span>
                       <input
                         type="text"
                         value={telegramUsername}
                         onChange={(e) => setTelegramUsername(e.target.value)}
                         placeholder="username"
-                        className="w-full px-2 py-3 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        className="w-full px-2 py-3 rounded-lg bg-gray-800 text-white focus:outline-none"
                       />
                     </div>
-                    <p className="text-xs text-gray-400 mt-2">
-                      Important: Please follow these steps:
-                      1. Start a chat with <a href="https://t.me/Tst01ccxt_testing_bot" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">@Tst01ccxt_testing_bot</a>
-                      2. Send the message "start" to the bot
-                      3. Enter your Telegram username above (same as in your Telegram profile)
-                      4. Click "Send OTP" to receive verification code
-                    </p>
+                  </div>
+
+                  <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50">
+                    <h4 className="text-sm font-medium text-blue-400 mb-3 flex items-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="mr-2"
+                      >
+                        <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+                        <path d="M12 8v4"></path>
+                        <path d="M12 16h.01"></path>
+                      </svg>
+                      Important Steps
+                    </h4>
+                    <ol className="space-y-2 text-sm text-gray-300">
+                      <li className="flex items-start">
+                        <span className="flex items-center justify-center w-5 h-5 bg-blue-500/20 text-blue-400 rounded-full mr-2 text-xs font-bold flex-shrink-0">
+                          1
+                        </span>
+                        <span>
+                          Start a chat with{" "}
+                          <a
+                            href="https://t.me/Tst01ccxt_testing_bot"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-400 hover:underline inline-flex items-center"
+                          >
+                            @Tst01ccxt_testing_bot
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="12"
+                              height="12"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="ml-1"
+                            >
+                              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                              <polyline points="15 3 21 3 21 9"></polyline>
+                              <line x1="10" y1="14" x2="21" y2="3"></line>
+                            </svg>
+                          </a>
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="flex items-center justify-center w-5 h-5 bg-blue-500/20 text-blue-400 rounded-full mr-2 text-xs font-bold flex-shrink-0">
+                          2
+                        </span>
+                        <span>
+                          Send the message{" "}
+                          <code className="px-1.5 py-0.5 bg-gray-700 rounded text-gray-200">
+                            "start"
+                          </code>{" "}
+                          to the bot
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="flex items-center justify-center w-5 h-5 bg-blue-500/20 text-blue-400 rounded-full mr-2 text-xs font-bold flex-shrink-0">
+                          3
+                        </span>
+                        <span>
+                          Enter your Telegram username above (same as in your
+                          Telegram profile)
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="flex items-center justify-center w-5 h-5 bg-blue-500/20 text-blue-400 rounded-full mr-2 text-xs font-bold flex-shrink-0">
+                          4
+                        </span>
+                        <span>
+                          Click "Send OTP" to receive verification code
+                        </span>
+                      </li>
+                    </ol>
                   </div>
 
                   <div className="flex gap-3 mt-6">
@@ -352,48 +453,80 @@ const Header = ({ networkName, setActiveComponent }: any) => {
                       onClick={handleLater}
                       className="flex-1 rounded-lg border border-gray-600 px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all"
                     >
-                      I'll do it later
+                      Cancel
                     </button>
                     <button
                       onClick={handleProceed}
                       disabled={isVerifying}
-                      className="flex-1 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-3 text-sm font-medium text-white hover:from-blue-600 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all shadow-lg shadow-blue-700/20 disabled:opacity-70 disabled:cursor-not-allowed"
+                      className="flex-1 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-3 text-sm font-medium text-white hover:from-blue-600 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all shadow-lg shadow-blue-700/20 disabled:opacity-70 disabled:cursor-not-allowedd"
                     >
                       {isVerifying ? (
                         <span className="flex items-center justify-center">
-                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          <svg
+                            className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
                           </svg>
                           Sending OTP...
                         </span>
-                      ) : "Send OTP"}
+                      ) : (
+                        "Send OTP"
+                      )}
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-5">
                   <div>
+                    <div className="flex items-center mb-4">
+                      <div className="h-px bg-gray-800 flex-1"></div>
+                      <p className="px-3 text-sm text-gray-400">
+                        Enter Verification Code
+                      </p>
+                      <div className="h-px bg-gray-800 flex-1"></div>
+                    </div>
+
                     <p className="text-sm text-gray-400 text-center mb-4">
-                      Please enter the 6-digit OTP sent to your Telegram handle.
+                      We've sent a 6-digit OTP to your Telegram account
                     </p>
-                    <div className="flex justify-center gap-2">
+
+                    {/* OTP input */}
+                    <div className="flex justify-center gap-2 max-w-xs mx-auto">
                       {otp.map((digit, index) => (
                         <input
                           key={index}
                           ref={inputRefs[index]}
                           type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                           maxLength={1}
                           value={digit}
-                          onChange={(e) => handleOtpChange(index, e.target.value)}
+                          onChange={(e) =>
+                            handleOtpChange(index, e.target.value)
+                          }
                           onKeyDown={(e) => handleKeyDown(index, e)}
-                          className="w-10 h-10 text-center text-lg font-bold rounded-md bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                          className="w-10 h-12 text-center text-lg font-bold rounded-full bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 otpInput"
                         />
                       ))}
                     </div>
                   </div>
 
-                  <div className="flex gap-3">
+                  <div className="flex gap-3 mt-6">
                     <button
                       onClick={() => setShowOtpInput(false)}
                       className="flex-1 rounded-lg border border-gray-600 px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all"
@@ -407,25 +540,54 @@ const Header = ({ networkName, setActiveComponent }: any) => {
                     >
                       {isVerifying ? (
                         <span className="flex items-center justify-center">
-                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          <svg
+                            className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
                           </svg>
                           Verifying...
                         </span>
-                      ) : "Verify OTP"}
+                      ) : (
+                        "Verify OTP"
+                      )}
                     </button>
                   </div>
 
-                  <p className="text-xs text-gray-400 text-center">
-                    Didn't receive the OTP? <button onClick={handleProceed} className="text-blue-400 hover:underline">Resend</button>
-                  </p>
+                  <div className="text-center">
+                    <p className="text-xs text-gray-400">
+                      Didn't receive the OTP?{" "}
+                      <button
+                        onClick={handleProceed}
+                        className="text-blue-400 hover:underline"
+                      >
+                        Resend
+                      </button>
+                    </p>
+                  </div>
                 </div>
               )}
 
-              <p className="text-xs text-gray-400 text-center mt-4">
-                By proceeding, you'll receive 100 Credits to explore our platform's features.
-              </p>
+              <div className="mt-3 pt-4 border-t border-gray-800">
+                <p className="text-xs text-gray-400 text-center">
+                  By proceeding, you'll receive 100 Credits to explore our
+                  platform's features.
+                </p>
+              </div>
             </div>
           </div>
         </div>
