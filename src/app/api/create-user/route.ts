@@ -3,7 +3,7 @@ import dbConnect from "src/utils/dbConnect";
 
 export async function POST(request: Request): Promise<Response> {
   try {
-    const { walletAddress, telegramId, credits } = await request.json();
+    const { walletAddress, telegramId, chatId, credits } = await request.json();
 
     // Validate required fields
     if (!walletAddress || !telegramId) {
@@ -37,6 +37,7 @@ export async function POST(request: Request): Promise<Response> {
     const newUser = {
       walletAddress,
       telegramId,
+      chatId,
       credits,
       subscribedAccounts: [],
       createdAt: now,
