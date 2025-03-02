@@ -56,7 +56,9 @@ export async function POST(request: Request) {
         );
       }
 
+      console.log("chattttttttt", userUpdate)
       const chatId = userUpdate.message.chat.id;
+      const telegramId = userUpdate.message.from.id; // Get the Telegram user ID
 
       // Send the OTP message
       const message = `Your OTP for AI Trading Platform verification is: ${otp}`;
@@ -83,7 +85,11 @@ export async function POST(request: Request) {
         );
       }
 
-      return NextResponse.json({ message: 'OTP sent successfully' });
+      return NextResponse.json({ 
+        message: 'OTP sent successfully',
+        chatId: chatId,
+        telegramId: telegramId
+      });
     } catch (error) {
       console.error('Error sending Telegram message:', error);
       return NextResponse.json(

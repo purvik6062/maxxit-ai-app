@@ -14,6 +14,7 @@ const Header = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false);
   const [telegramUsername, setTelegramUsername] = useState("");
+  const [chatId, setChatId] = useState(0);
   const [showTokens, setShowTokens] = useState(false);
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -107,6 +108,9 @@ const Header = () => {
       });
 
       const data = await response.json();
+      if (data) {
+        setChatId(data.telegramId)
+      }
 
       if (!response.ok) {
         throw new Error(data.message || "Failed to send OTP");
@@ -194,6 +198,7 @@ const Header = () => {
           body: JSON.stringify({
             walletAddress: address,
             telegramId: telegramUsername,
+            chatId: chatId,
             credits: 100,
           }),
         });
