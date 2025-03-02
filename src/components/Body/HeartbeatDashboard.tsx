@@ -80,7 +80,7 @@ const HeartbeatDashboard = () => {
     return (
       <div className="grid gap-8">
         <HeartbeatStats agents={agents} />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
           <HeartbeatChart agents={agents} />
           <HeartbeatComparison agents={agents} />
         </div>
@@ -127,7 +127,7 @@ const HeartbeatDashboard = () => {
                   >
                     <FaCrown color="yellow" />
                     <span className="text-sm font-medium text-white group-hover:text-blue-200 transition-colors duration-300">
-                      Subscribe Agent
+                      Subscribe
                     </span>
                   </button>
                 </div>
@@ -144,7 +144,7 @@ const HeartbeatDashboard = () => {
       <div ref={container}>
         {/* Upper content section with fixed height and heartbeat animation */}
         <div className="relative h-[60vh]">
-          <HeartbeatBackground />
+          {/* <HeartbeatBackground /> */}
           <div className="relative h-full flex flex-col items-center justify-center">
             <div className="text-center space-y-6">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/15 backdrop-blur-sm">
@@ -207,7 +207,7 @@ const HeartbeatDashboard = () => {
           </div>
         </div>
       )}
-      <Footer />
+      {/* <Footer /> */}
     </div>
   )
 }

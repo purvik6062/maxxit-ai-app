@@ -254,7 +254,7 @@ const ImpactLeaderboard = () => {
   return (
     <div className="techwave_fn_content">
       <div className="relative min-h-screen" ref={container}>
-        <ImpactGrid />
+        {/* <ImpactGrid /> */}
         <div className="mx-auto py-16">
           <div className="relative p-[2rem]">
             {/* Decorative elements */}
@@ -340,7 +340,7 @@ const ImpactLeaderboard = () => {
           </div>
         </div>
       )}
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 };

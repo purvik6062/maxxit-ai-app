@@ -423,7 +423,6 @@ frenify_typing span {
 
 .techwave_fn_content {
   position: relative;
-  margin-left: var(--techwave-left-panel-width);
   margin-top: var(--techwave-header-height);
   min-height: calc(100vh - var(--techwave-header-height));
   transition: 0.2s;
@@ -907,7 +906,7 @@ frenify_typing span {
 .techwave_fn_header {
   position: fixed;
   top: 0;
-  left: var(--techwave-left-panel-width);
+  left: 0;
   right: 0;
   background-color: var(--techwave-header-bg-color);
   display: flex;
@@ -949,7 +948,7 @@ frenify_typing span {
 .techwave_fn_fixedsub,
 .techwave_fn_searchbar {
   position: fixed;
-  left: var(--techwave-left-panel-width);
+  left: 0;
 }
 
 .fn__token_info:hover .token__popup {

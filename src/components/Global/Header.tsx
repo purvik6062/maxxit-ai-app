@@ -9,7 +9,7 @@ import "../../app/css/input.css";
 import { useAccount } from "wagmi";
 import { useCredits } from "@/context/CreditsContext";
 
-const Header = ({ networkName, setActiveComponent }: any) => {
+const Header = () => {
   const [view, setView] = useState("overview");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false);
@@ -40,6 +40,7 @@ const Header = ({ networkName, setActiveComponent }: any) => {
   useEffect(() => {
     const fetchUserData = async () => {
       if (!address) return;
+      setShowTokens(true);
 
       try {
         const response = await fetch(`/api/get-user?walletAddress=${address}`);
@@ -128,8 +129,22 @@ const Header = ({ networkName, setActiveComponent }: any) => {
     }
   };
 
+  const handleTelemodal = () => {
+    if (address) {
+      setIsTelegramModalOpen(true);
+    } else {
+      toast.error("please connect to your wallet first");
+    }
+  };
+
   const handleLater = () => {
     setIsTelegramModalOpen(false);
+    // Reset all form data
+    setTelegramUsername("");
+    setOtp(["", "", "", "", "", ""]);
+    setShowOtpInput(false);
+    setGeneratedOtp("");
+    setIsVerifying(false);
   };
 
   const handleOtpChange = (index: number, value: string) => {
@@ -193,6 +208,11 @@ const Header = ({ networkName, setActiveComponent }: any) => {
         localStorage.setItem("telegramUsername", telegramUsername);
         setIsTelegramModalOpen(false);
         setShowTokens(true);
+        setTelegramUsername("");
+        setOtp(["", "", "", "", "", ""]);
+        setShowOtpInput(false);
+        setGeneratedOtp("");
+        setIsVerifying(false);
         toast.success(
           "Successfully registered! 100 Credits credited to your account!",
           {
@@ -222,6 +242,36 @@ const Header = ({ networkName, setActiveComponent }: any) => {
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex justify-between h-16">
               <div className="flex items-center">
+                <a className="fn_logo">
+                  <span className="full_logo">
+                    <img
+                      src="img/new_name_logo.svg"
+                      className="desktop_logo"
+                      alt=""
+                    />
+                    {/* above is the logo of cryptobot for big screen  */}
+                    <img
+                      src="img/new_name_logo.svg"
+                      className="retina_logo"
+                      alt=""
+                    />
+                    {/* above is the logo of cryptobot for small screen */}
+                  </span>
+                  <span className="short_logo">
+                    <img
+                      src="img/new_logo.svg"
+                      className="desktop_logo"
+                      alt=""
+                    />
+                    {/* the above logo is the logo of T for the big screen */}
+                    <img
+                      src="img/new_logo.svg"
+                      className="retina_logo w-[45px] h-[40px]"
+                      alt=""
+                    />
+                    {/* the above logo is the logo of T for the smaller screen */}
+                  </span>
+                </a>
                 <h1 className="text-xl font-bold">AI</h1>
                 <div className="ml-5 flex">
                   {["Predictions", "AI Insights"].map((item) => (
@@ -237,7 +287,7 @@ const Header = ({ networkName, setActiveComponent }: any) => {
                       {item}
                     </button>
                   ))}
-                  {showTokens && (
+                  {/* {showTokens && (
                     <div className="ml-4 flex items-center px-3 py-1 rounded-full bg-gradient-to-r from-blue-500/20 to-blue-700/20 border border-blue-500/50">
                       <span className="text-blue-400 font-medium mr-1 text-sm">
                         {credits !== null ? (
@@ -245,15 +295,31 @@ const Header = ({ networkName, setActiveComponent }: any) => {
                         ) : (
                           <div
                             className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-blue-400 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
-                            role="status"
-                          >
-                            <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">
-                              Loading...
-                            </span>
+                            role="status">
                           </div>
                         )}
                       </span>
                       <span className="text-gray-300 text-sm">Credits</span>
+                    </div>
+                  )} */}
+
+                  {showTokens && (
+                    <div className="ml-4 flex items-center px-3 py-1 rounded-full bg-gradient-to-r from-blue-500/20 to-blue-700/20 border border-blue-500/50">
+                      {credits !== null ? (
+                        <span className="text-blue-400 font-bold mr-1 text-md">
+                          {credits}{" "}
+                          <span className="text-white font-normal">
+                            Credits
+                          </span>
+                        </span>
+                      ) : (
+                        <button
+                          className="px-3 py-1 bg-blue-500 text-white text-sm rounded-full hover:bg-blue-600 transition"
+                          onClick={handleTelemodal}
+                        >
+                          Get Credits
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -502,7 +568,7 @@ const Header = ({ networkName, setActiveComponent }: any) => {
                     </div>
 
                     <p className="text-sm text-gray-400 text-center mb-4">
-                      We've sent a 6-digit OTP to your Telegram account
+                      We have sent a 6-digit OTP to your Telegram account
                     </p>
 
                     {/* OTP input */}
@@ -583,9 +649,26 @@ const Header = ({ networkName, setActiveComponent }: any) => {
               )}
 
               <div className="mt-3 pt-4 border-t border-gray-800">
-                <p className="text-xs text-gray-400 text-center">
-                  By proceeding, you'll receive 100 Credits to explore our
-                  platform's features.
+                <div className="flex items-center justify-center mb-2">
+                  <span className="inline-flex h-5 w-5 text-red-500 animate-pulse drop-shadow-lg">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    </svg>
+                  </span>
+                  <p className="text-sm font-bold text-red-500 drop-shadow-md ml-2 uppercase tracking-wide animate-pulse">
+                    Important
+                  </p>
+                </div>
+                <p className="text-sm text-center text-gray-300 before:content-['➜'] before:text-red-500 before:mr-2">
+                  <span className="bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent font-semibold drop-shadow-md">
+                    You must complete this step
+                  </span>
+                  &nbsp;to access our platform&apos;s features, including
+                  subscribing to an influencer.
                 </p>
               </div>
             </div>
