@@ -91,46 +91,44 @@ const HeartbeatDashboard = () => {
             className="rankings-card group relative bg-blue-900/20 backdrop-blur-sm border border-blue-500/20 rounded-xl overflow-hidden transition-all duration-300"
           >
             <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <div className="relative p-6 flex items-center justify-between">
-              <div className="flex items-center space-x-6">
-                <div className="flex items-center justify-center w-[41px]">
+            <div className="relative p-6 px-3 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center justify-center w-[50px]">
                   {agent.id === 1 && (
-                    <FaTrophy className="w-6 h-6 text-yellow-300" />
+                    <FaTrophy className="w-5 h-5 text-yellow-300" />
                   )}
                   {agent.id === 2 && (
-                    <FaTrophy className="w-6 h-6 text-gray-400" />
+                    <FaTrophy className="w-5 h-5 text-gray-400" />
                   )}
                   {agent.id === 3 && (
-                    <FaTrophy className="w-6 h-6 text-amber-700" />
+                    <FaTrophy className="w-5 h-5 text-amber-700" />
                   )}
                   {agent.id > 3 && (
-                    <span className="text-2xl font-bold text-slate-400">
+                    <span className="text-xl font-bold text-slate-400">
                       #{agent.id}
                     </span>
                   )}
                 </div>
-                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-400 flex items-center justify-center text-white font-bold text-lg">
-                  {agent.name.charAt(0)}
-                </div>
-                <div className="-mt-[4.5px]">
-                  <h3 className="text-xl font-bold text-white">{agent.name}</h3>
+
+                <div>
+                  <h3 className="text-lg font-bold text-white">{agent.name}</h3>
                   <p className="text-slate-400">{agent.handle}</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-8">
+              <div className="flex items-center space-x-6">
                 <div className="text-right">
                   <div className="text-sm text-slate-400">Heartbeat</div>
-                  <div className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-blue-200 bg-clip-text text-transparent">
+                  <div className="text-xl font-bold bg-gradient-to-r from-blue-400 to-blue-200 bg-clip-text text-transparent">
                     {agent.heartbeat}
                   </div>
                 </div>
-                <div className="w-32 h-2 bg-white/70 rounded-full overflow-hidden">
+                <div className="w-[5rem] h-2 bg-white/70 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-blue-400 to-gray-500 rounded-full"
                     style={{ width: `${agent.heartbeat}%` }}
                   />
                 </div>
-                <div className="ml-6">
+                <div>
                   <button
                     className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 group bg-gradient-to-r from-blue-500/20 hover:from-blue-500/60 border border-blue-500/30 hover:border-blue-500/100"
                     onClick={() => setIsModalOpen(true)}
@@ -157,7 +155,7 @@ const HeartbeatDashboard = () => {
           {/* <HeartbeatBackground /> */}
           <div className="relative h-full flex flex-col items-center justify-center">
             <div className="text-center space-y-6">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/15 backdrop-blur-sm">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500/15 backdrop-blur-sm">
                 <span className="animate-pulse text-2xl">💓</span>
                 <span className="text-base font-medium text-blue-400">
                   Real-time Analytics
@@ -178,18 +176,18 @@ const HeartbeatDashboard = () => {
                   Analysts
                 </p>
                 <div className="flex items-center gap-4 text-white">
-                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 backdrop-blur-sm border border-blue-500/20">
-                    <Award className="h-4 w-4 text-blue-400" />
+                  <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-500/10 backdrop-blur-sm border border-blue-500/20">
+                    <Award className="h-5 w-5 text-blue-400" />
                     <span className="text-sm">Precision</span>
                   </div>
 
-                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 backdrop-blur-sm border border-purple-500/20">
-                    <TrendingUp className="h-4 w-4 text-purple-400" />
+                  <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-purple-500/10 backdrop-blur-sm border border-purple-500/20">
+                    <TrendingUp className="h-5 w-5 text-purple-400" />
                     <span className="text-sm">Performance</span>
                   </div>
 
-                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 backdrop-blur-sm border border-cyan-500/20">
-                    <BarChart2 className="h-4 w-4 text-cyan-400" />
+                  <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-cyan-500/10 backdrop-blur-sm border border-cyan-500/20">
+                    <BarChart2 className="h-5 w-5 text-cyan-400" />
                     <span className="text-sm">Reliability</span>
                   </div>
                 </div>
@@ -200,7 +198,7 @@ const HeartbeatDashboard = () => {
 
         {/* Lower section for agent listings */}
         <div className="relative bg-gray-900/80 min-h-[50vh] pb-12">
-          <div className="max-w-7xl mx-auto px-[2rem] pb-12">
+          <div className="max-w-7xl mx-auto px-[1rem] pb-12">
             {renderAgentsList()}
           </div>
         </div>

@@ -1,51 +1,30 @@
 import { NextResponse } from "next/server";
 import dbConnect from "src/utils/dbConnect";
 
-export async function GET(request: Request): Promise<Response> {
+export async function GET(): Promise<Response> {
   try {
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const skip = (page - 1) * limit;
-
     const client = await dbConnect();
-    const db = client.db("leaderboard-data");
+    const db = client.db("ctxbt-signal-flow");
 
-    const leaderboard = await db
-      .collection("heartbeat")
-      .find({})
-      .skip(skip)
-      .limit(limit)
-      .toArray();
-
-    const total = await db.collection("heartbeat").countDocuments();
+    // Fetch all accounts from the influencers collection
+    const influencers = await db.collection("influencers_account").find().sort({ createdAt: 1 }).toArray();
 
     return NextResponse.json({
       success: true,
-      data: {
-        leaderboard: leaderboard.map((entry) => ({
-          _id: entry._id,
-          id: entry.id,
-          handle: entry.handle,
-          name: entry.name,
-          score: entry.heartbeat,
-        })),
-        pagination: {
-          total,
-          page,
-          pages: Math.ceil(total / limit),
-        },
-      },
+      data: influencers.map((influencer, index) => ({
+        id: index + 1,
+        _id: influencer._id,
+        name: influencer.name, // fallback to handle if name isn't set
+        handle: influencer.handle, // add @ prefix for display
+        heartbeat: influencer.heartbeat,
+      })),
     });
   } catch (error) {
     return NextResponse.json(
       {
         success: false,
         error: {
-          message:
-            error instanceof Error
-              ? error.message
-              : "An unexpected error occurred",
+          message: error instanceof Error ? error.message : "An unexpected error occurred",
         },
       },
       { status: 500 }

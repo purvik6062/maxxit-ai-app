@@ -19,12 +19,12 @@ const HomePage: React.FC = () => {
           {/* Flex layout for dashboard components with customizable widths */}
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Left component - ImpactLeaderboard with customizable width */}
-            <div className="lg:w-[42%] bg-gray-800/50 rounded-xl backdrop-blur-sm border border-gray-700/50 shadow-lg h-fit">
+            <div className="lg:w-[50%] bg-gray-800/50 rounded-xl backdrop-blur-sm border border-gray-700/50 shadow-lg h-fit">
               <ImpactLeaderboard />
             </div>
             
             {/* Right component - HeartbeatDashboard with customizable width */}
-            <div className="lg:w-[58%] bg-gray-800/50 rounded-xl backdrop-blur-sm border border-gray-700/50 shadow-lg h-fit">
+            <div className="lg:w-[50%] bg-gray-800/50 rounded-xl backdrop-blur-sm border border-gray-700/50 shadow-lg h-fit">
               <HeartbeatDashboard />
             </div>
           </div>
