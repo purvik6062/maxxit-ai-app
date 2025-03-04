@@ -1,35 +1,39 @@
-import React, { useRef } from "react"
-import { useState, useEffect } from "react"
-import { FaRegCopy, FaTrophy, FaStar, FaArrowUp, FaArrowDown, FaCrown } from "react-icons/fa"
-import { Footer } from "../index"
-import "../../app/css/heartbeat.css"
-import HeartbeatBackground from "./HeartbeatBackground"
-import gsap from "gsap"
-import { useGSAP } from "@gsap/react"
-import { useHeartbeatLeaderboard } from "@/hooks/useHeartbeatLeaderboard"
-import { HeartbeatChart } from "./HeartbeatChart"
-import { HeartbeatStats } from "./HeartbeatStats"
-import { HeartbeatComparison } from "./HeartbeatComparison"
-import { HeartbeatTrend } from "./HeartbeatTrend"
+import React, { useRef } from "react";
+import { useState, useEffect } from "react";
+import {
+  FaRegCopy,
+  FaTrophy,
+  FaStar,
+  FaArrowUp,
+  FaArrowDown,
+  FaCrown,
+} from "react-icons/fa";
+import { Footer } from "../index";
+import "../../app/css/heartbeat.css";
+import { X, Zap, TrendingUp, Award, BarChart2 } from "lucide-react";
+import HeartbeatBackground from "./HeartbeatBackground";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { useHeartbeatLeaderboard } from "@/hooks/useHeartbeatLeaderboard";
 
 const HeartbeatDashboard = () => {
-  const container = useRef(null)
-  gsap.registerPlugin(useGSAP)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const { agents, loading, error } = useHeartbeatLeaderboard()
+  const container = useRef(null);
+  gsap.registerPlugin(useGSAP);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { agents, loading, error } = useHeartbeatLeaderboard();
 
   useEffect(() => {
     if (isModalOpen) {
-      document.body.style.overflow = "hidden"
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = "unset"
+      document.body.style.overflow = "unset";
     }
-  }, [isModalOpen])
+  }, [isModalOpen]);
 
   useGSAP(
     () => {
       if (!loading && agents.length > 0) {
-        const tl = gsap.timeline({ defaults: { ease: "power2.inOut" } })
+        const tl = gsap.timeline({ defaults: { ease: "power2.inOut" } });
         tl.fromTo(
           ".rankings-card",
           {
@@ -41,12 +45,12 @@ const HeartbeatDashboard = () => {
             opacity: 1,
             duration: 0.8,
             stagger: 0.1,
-          },
-        )
+          }
+        );
       }
     },
-    { scope: container, dependencies: [loading, agents] },
-  )
+    { scope: container, dependencies: [loading, agents] }
+  );
 
   const renderAgentsList = () => {
     if (loading) {
@@ -65,44 +69,50 @@ const HeartbeatDashboard = () => {
             <p className="text-slate-400">Fetching market pulse data...</p>
           </div>
         </div>
-      )
+      );
     }
 
     if (error) {
       return (
         <div className="text-center p-8 rounded-xl border border-red-500/20 bg-gradient-to-b from-red-500/10 to-transparent backdrop-blur-sm">
-          <div className="text-red-400 text-2xl font-bold mb-4">Error Loading Heartbeat Data</div>
+          <div className="text-red-400 text-2xl font-bold mb-4">
+            Error Loading Heartbeat Data
+          </div>
           <div className="text-red-300/80 max-w-md mx-auto">{error}</div>
         </div>
-      )
+      );
     }
 
     return (
-      <div className="grid gap-8">
-        <HeartbeatStats agents={agents} />
-        <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
-          <HeartbeatChart agents={agents} />
-          <HeartbeatComparison agents={agents} />
-        </div>
-        <HeartbeatTrend agents={agents} />
+      <div className="grid gap-4">
         {agents.map((agent, index) => (
           <div
             key={index}
-            className="rankings-card group relative bg-blue-900/20 backdrop-blur-sm border border-blue-500/20 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-500/40"
+            className="rankings-card group relative bg-blue-900/20 backdrop-blur-sm border border-blue-500/20 rounded-xl overflow-hidden transition-all duration-300"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-green-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative p-6 flex items-center justify-between">
               <div className="flex items-center space-x-6">
                 <div className="flex items-center justify-center w-[41px]">
-                  {agent.id === 1 && <FaTrophy className="w-6 h-6 text-yellow-300" />}
-                  {agent.id === 2 && <FaTrophy className="w-6 h-6 text-gray-400" />}
-                  {agent.id === 3 && <FaTrophy className="w-6 h-6 text-amber-700" />}
-                  {agent.id > 3 && <span className="text-2xl font-bold text-slate-400">#{agent.id}</span>}
+                  {agent.id === 1 && (
+                    <FaTrophy className="w-6 h-6 text-yellow-300" />
+                  )}
+                  {agent.id === 2 && (
+                    <FaTrophy className="w-6 h-6 text-gray-400" />
+                  )}
+                  {agent.id === 3 && (
+                    <FaTrophy className="w-6 h-6 text-amber-700" />
+                  )}
+                  {agent.id > 3 && (
+                    <span className="text-2xl font-bold text-slate-400">
+                      #{agent.id}
+                    </span>
+                  )}
                 </div>
                 <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-400 flex items-center justify-center text-white font-bold text-lg">
                   {agent.name.charAt(0)}
                 </div>
-                <div>
+                <div className="-mt-[4.5px]">
                   <h3 className="text-xl font-bold text-white">{agent.name}</h3>
                   <p className="text-slate-400">{agent.handle}</p>
                 </div>
@@ -122,7 +132,7 @@ const HeartbeatDashboard = () => {
                 </div>
                 <div className="ml-6">
                   <button
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500/20 hover:from-blue-500/30 border border-blue-500/30 hover:border-blue-500/50 transition-all duration-300 group"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 group bg-gradient-to-r from-blue-500/20 hover:from-blue-500/60 border border-blue-500/30 hover:border-blue-500/100"
                     onClick={() => setIsModalOpen(true)}
                   >
                     <FaCrown color="yellow" />
@@ -136,23 +146,25 @@ const HeartbeatDashboard = () => {
           </div>
         ))}
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <div className="techwave_fn_content">
       <div ref={container}>
         {/* Upper content section with fixed height and heartbeat animation */}
-        <div className="relative h-[60vh]">
+        <div className="relative h-[50vh]">
           {/* <HeartbeatBackground /> */}
           <div className="relative h-full flex flex-col items-center justify-center">
             <div className="text-center space-y-6">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/15 backdrop-blur-sm">
                 <span className="animate-pulse text-2xl">💓</span>
-                <span className="text-base font-medium text-blue-400">Real-time Analytics</span>
+                <span className="text-base font-medium text-blue-400">
+                  Real-time Analytics
+                </span>
               </div>
 
-              <h1 className="relative text-3xl md:text-4xl font-bold">
+              <h1 className="relative text-2xl md:text-3xl font-bold">
                 <span className="">🌟</span>
                 <span className="bg-gradient-to-r from-white via-blue-200 to-blue-400 bg-clip-text text-transparent">
                   Heartbeat Rankings
@@ -161,15 +173,25 @@ const HeartbeatDashboard = () => {
               </h1>
 
               <div className="flex flex-col items-center gap-4">
-                <p className="text-xl text-slate-300/90 max-w-2xl">
-                  Discover the Pulse of Crypto Markets through our Elite Analysts
+                <p className="text-lg text-slate-300/90 max-w-2xl">
+                  Discover the Pulse of Crypto Markets through our Elite
+                  Analysts
                 </p>
-                <div className="flex items-center gap-2 text-white">
-                  <span>🎯 Precision</span>
-                  <span className="text-slate-300">•</span>
-                  <span>🚀 Performance</span>
-                  <span className="text-slate-300">•</span>
-                  <span>💎 Reliability</span>
+                <div className="flex items-center gap-4 text-white">
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 backdrop-blur-sm border border-blue-500/20">
+                    <Award className="h-4 w-4 text-blue-400" />
+                    <span className="text-sm">Precision</span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 backdrop-blur-sm border border-purple-500/20">
+                    <TrendingUp className="h-4 w-4 text-purple-400" />
+                    <span className="text-sm">Performance</span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 backdrop-blur-sm border border-cyan-500/20">
+                    <BarChart2 className="h-4 w-4 text-cyan-400" />
+                    <span className="text-sm">Reliability</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -177,15 +199,26 @@ const HeartbeatDashboard = () => {
         </div>
 
         {/* Lower section for agent listings */}
-        <div className="relative bg-gray-900/80 min-h-[50vh] pb-12 pt-[1rem]">
-          <div className="max-w-7xl mx-auto px-[2rem] pb-12">{renderAgentsList()}</div>
+        <div className="relative bg-gray-900/80 min-h-[50vh] pb-12">
+          <div className="max-w-7xl mx-auto px-[2rem] pb-12">
+            {renderAgentsList()}
+          </div>
         </div>
       </div>
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setIsModalOpen(false)}
+          />
           <div className="relative z-50 w-full max-w-lg overflow-hidden rounded-xl bg-gray-900 p-6 shadow-2xl">
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-2 right-3 text-white text-xl font-bold hover:text-gray-300 p-2 bg-gray-700 rounded-full"
+            >
+              <X size={20} className="hover:text-cyan-400 hover:scale-110" />
+            </button>
             <div className="mx-auto flex max-w-sm flex-col items-center">
               <div className="flex items-center mt-6 gap-1">
                 <h3 className="bg-gradient-to-r from-blue-400 to-white bg-clip-text text-center text-2xl font-semibold text-transparent">
@@ -194,8 +227,9 @@ const HeartbeatDashboard = () => {
                 <div>🚀✨</div>
               </div>
               <p className="mt-2 text-center text-gray-300">
-                Exciting developments are underway! Our team is working hard to bring you cutting-edge AI-powered
-                trading features. Stay tuned for updates! 🛠️💡
+                Exciting developments are underway! Our team is working hard to
+                bring you cutting-edge AI-powered trading features. Stay tuned
+                for updates! 🛠️💡
               </p>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -207,10 +241,8 @@ const HeartbeatDashboard = () => {
           </div>
         </div>
       )}
-      {/* <Footer /> */}
     </div>
-  )
-}
+  );
+};
 
-export default HeartbeatDashboard
-
+export default HeartbeatDashboard;

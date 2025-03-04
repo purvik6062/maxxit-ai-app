@@ -8,7 +8,7 @@ import {
   FaArrowDown,
   FaCrown,
 } from "react-icons/fa";
-import { X } from "lucide-react";
+import { X, Zap, TrendingUp, Award, BarChart2 } from "lucide-react";
 import { LuWandSparkles } from "react-icons/lu";
 import ImpactGrid from "./ImpactGrid";
 import { Footer } from "../index";
@@ -118,7 +118,6 @@ const ImpactLeaderboard = () => {
       });
 
       await updateCredits();
-
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to subscribe",
@@ -126,7 +125,7 @@ const ImpactLeaderboard = () => {
           position: "top-center",
         }
       );
-    } finally { 
+    } finally {
       setSubscribingHandle(null);
     }
   };
@@ -134,15 +133,11 @@ const ImpactLeaderboard = () => {
   const renderContent = () => {
     if (loading) {
       return (
-        <div className="flex flex-col items-center justify-center ">
+        <div className="flex flex-col items-center justify-center min-h-[200px]">
           <div className="relative w-24 h-24">
-            {/* Outer ring */}
             <div className="absolute inset-0 rounded-full border-4 border-blue-500/20"></div>
-            {/* Spinning ring */}
             <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-500 animate-spin"></div>
-            {/* Inner pulsing circle */}
             <div className="absolute inset-4 rounded-full bg-blue-500/20 animate-pulse"></div>
-            {/* Center dot */}
             <div className="absolute inset-[42%] rounded-full bg-blue-400"></div>
           </div>
           <div className="text-center space-y-2">
@@ -231,7 +226,9 @@ const ImpactLeaderboard = () => {
                             ? "green"
                             : "yellow"
                         }
-                        className={isCurrentlySubscribing ? "animate-pulse" : ""}
+                        className={
+                          isCurrentlySubscribing ? "animate-pulse" : ""
+                        }
                       />
                       <span className="text-sm font-medium text-white group-hover:text-blue-200 transition-colors duration-300">
                         {isCurrentlySubscribing
@@ -255,52 +252,54 @@ const ImpactLeaderboard = () => {
     <div className="techwave_fn_content">
       <div className="relative min-h-screen" ref={container}>
         {/* <ImpactGrid /> */}
-        <div className="mx-auto py-16">
-          <div className="relative p-[2rem]">
-            {/* Decorative elements */}
-            <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute -left-1/4 top-0 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl"></div>
-              <div className="absolute -right-1/4 bottom-0 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl"></div>
-            </div>
+        <div className="relative h-[50vh]">
+          <div className="relative h-full flex flex-col items-center justify-center">
+            <div className="text-center space-y-6">
+              <div className="inline-flex items-center gap-2 px-4 pt-[11px] pb-[11px] rounded-full bg-blue-500/15 backdrop-blur-sm">
+                <span className="animate-pulse text-2xl">
+                  <LuWandSparkles size={24} color="white" />
+                </span>
+                <span className="text-base font-medium text-blue-400">
+                  Impact Leaderboard
+                </span>
+              </div>
 
-            <div className="relative space-y-6">
-              <div className="text-center mb-16 relative">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-blue-500/20 rounded-full blur-3xl"></div>
+              <h1 className="relative text-2xl md:text-3xl font-bold">
+                <span className="">🌟</span>
+                <span className="bg-gradient-to-r from-white via-blue-200 to-blue-400 bg-clip-text text-transparent">
+                  Impact Factor Rankings
+                </span>
+                <span className="">📊</span>
+              </h1>
 
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/15 backdrop-blur-sm mb-6">
-                  <span className="animate-pulse text-3xl">
-                    <LuWandSparkles size={25} color="white" />
-                  </span>
-                  <span className="text-base font-medium text-blue-400">
-                    Impact Leaderboard
-                  </span>
-                </div>
+              <div className="flex flex-col items-center gap-4">
+                <p className="text-lg text-slate-300/90 max-w-2xl">
+                  Discover the Pulse of Crypto Markets through our Elite
+                  Analysts
+                </p>
+                <div className="flex items-center gap-4 text-white">
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 backdrop-blur-sm border border-blue-500/20">
+                    <Award className="h-4 w-4 text-blue-400" />
+                    <span className="text-sm">Precision</span>
+                  </div>
 
-                <h1 className="relative text-3xl md:text-4xl font-bold mb-6">
-                  <span className="">🌟</span>
-                  <span className="bg-gradient-to-r from-white via-blue-200 to-blue-400 bg-clip-text text-transparent">
-                    Impact Factor Rankings
-                  </span>
-                  <span className="">📊</span>
-                </h1>
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 backdrop-blur-sm border border-purple-500/20">
+                    <TrendingUp className="h-4 w-4 text-purple-400" />
+                    <span className="text-sm">Performance</span>
+                  </div>
 
-                <div className="flex flex-col items-center gap-4">
-                  <p className="text-xl text-slate-300/90 max-w-2xl">
-                    Discover the Pulse of Crypto Markets through our Elite
-                    Analysts
-                  </p>
-                  <div className="flex items-center gap-2 text-white">
-                    <span>🎯 Precision</span>
-                    <span className="text-slate-300">•</span>
-                    <span>🚀 Performance</span>
-                    <span className="text-slate-300">•</span>
-                    <span>💎 Reliability</span>
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 backdrop-blur-sm border border-cyan-500/20">
+                    <BarChart2 className="h-4 w-4 text-cyan-400" />
+                    <span className="text-sm">Reliability</span>
                   </div>
                 </div>
               </div>
-
-              {renderContent()}
             </div>
+          </div>
+        </div>
+        <div className="relative bg-gray-900/80 min-h-[50vh] pb-12">
+          <div className="max-w-7xl mx-auto px-[2rem] pb-12">
+            {renderContent()}
           </div>
         </div>
       </div>
@@ -340,7 +339,6 @@ const ImpactLeaderboard = () => {
           </div>
         </div>
       )}
-      {/* <Footer /> */}
     </div>
   );
 };

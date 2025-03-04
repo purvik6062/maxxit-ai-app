@@ -243,83 +243,43 @@ const Header = () => {
     <div className="techwave_fn_header">
       <ToastContainer />
       <div className="flex w-full justify-between items-center border border-gray-700">
-        <nav>
+        <nav className="flex-1 min-w-0">
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex justify-between h-16">
-              <div className="flex items-center">
-                <a className="fn_logo">
+              <div className="flex items-center min-w-0 space-x-2">
+                <a className="fn_logo flex-shrink-0">
                   <span className="full_logo">
-                    <img
-                      src="img/new_name_logo.svg"
-                      className="desktop_logo"
-                      alt=""
-                    />
-                    {/* above is the logo of cryptobot for big screen  */}
-                    <img
-                      src="img/new_name_logo.svg"
-                      className="retina_logo"
-                      alt=""
-                    />
-                    {/* above is the logo of cryptobot for small screen */}
+                    <img src="img/new_name_logo.svg" className="desktop_logo" alt="" />
+                    <img src="img/new_name_logo.svg" className="retina_logo" alt="" />
                   </span>
                   <span className="short_logo">
-                    <img
-                      src="img/new_logo.svg"
-                      className="desktop_logo"
-                      alt=""
-                    />
-                    {/* the above logo is the logo of T for the big screen */}
-                    <img
-                      src="img/new_logo.svg"
-                      className="retina_logo w-[45px] h-[40px]"
-                      alt=""
-                    />
-                    {/* the above logo is the logo of T for the smaller screen */}
+                    <img src="img/new_logo.svg" className="desktop_logo" alt="" />
+                    <img src="img/new_logo.svg" className="retina_logo w-[45px] h-[40px]" alt="" />
                   </span>
                 </a>
-                <h1 className="text-xl font-bold">AI</h1>
-                <div className="ml-5 flex">
+                <h1 className="text-xl font-bold flex-shrink-0">AI</h1>
+                <div className="flex flex-shrink-0 overflow-hidden">
                   {["Predictions", "AI Insights"].map((item) => (
                     <button
                       key={item}
                       onClick={() => setIsModalOpen(true)}
-                      className={`px-3 py-2 rounded-md text-sm font-medium ${
-                        view === item.toLowerCase()
-                          ? "bg-gray-700 text-white"
-                          : "text-gray-300 hover:bg-gray-600"
+                      className={`px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap ${
+                        view === item.toLowerCase() ? "bg-gray-700 text-white" : "text-gray-300 hover:bg-gray-600"
                       }`}
                     >
                       {item}
                     </button>
                   ))}
-                  {/* {showTokens && (
-                    <div className="ml-4 flex items-center px-3 py-1 rounded-full bg-gradient-to-r from-blue-500/20 to-blue-700/20 border border-blue-500/50">
-                      <span className="text-blue-400 font-medium mr-1 text-sm">
-                        {credits !== null ? (
-                          credits
-                        ) : (
-                          <div
-                            className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-blue-400 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
-                            role="status">
-                          </div>
-                        )}
-                      </span>
-                      <span className="text-gray-300 text-sm">Credits</span>
-                    </div>
-                  )} */}
 
                   {showTokens && (
-                    <div className="ml-4 flex items-center px-3 py-1 rounded-full bg-gradient-to-r from-blue-500/20 to-blue-700/20 border border-blue-500/50">
+                    <div className="ml-4 flex items-center px-3 py-1 rounded-full bg-gradient-to-r from-blue-500/20 to-blue-700/20 border border-blue-500/50 flex-shrink-0">
                       {credits !== null ? (
-                        <span className="text-blue-400 font-bold mr-1 text-md">
-                          {credits}{" "}
-                          <span className="text-white font-normal">
-                            Credits
-                          </span>
+                        <span className="text-blue-400 font-bold mr-1 text-md whitespace-nowrap">
+                          {credits} <span className="text-white font-normal">Credits</span>
                         </span>
                       ) : (
                         <button
-                          className="px-3 py-1 bg-blue-500 text-white text-sm rounded-full hover:bg-blue-600 transition"
+                          className="px-3 py-1 bg-blue-500 text-white text-sm rounded-full hover:bg-blue-600 transition whitespace-nowrap"
                           onClick={handleTelemodal}
                         >
                           Get Credits
@@ -329,12 +289,12 @@ const Header = () => {
                   )}
                 </div>
               </div>
-              <div className="flex items-center">
+              <div className="flex items-center flex-shrink-0">
                 <div className="relative mx-4">
                   <input
                     type="text"
                     placeholder="Search predictions..."
-                    className="w-12 px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500"
+                    className="w-12 min-w-[12rem] px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500"
                   />
                   <Search className="absolute right-3 top-2.5 text-gray-400 w-5 h-5" />
                 </div>
@@ -343,7 +303,7 @@ const Header = () => {
           </div>
         </nav>
 
-        <div className="flex items-center">
+        <div className="flex items-center flex-shrink-0">
           <ConnectButton />
         </div>
       </div>
