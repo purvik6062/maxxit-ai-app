@@ -14,7 +14,6 @@ const HomePage: React.FC = () => {
       <Header />
       
       <main className="flex-grow px-6 py-8 max-w-screen-2xl mx-auto w-full">
-        {/* Main content container */}
         <div className="flex flex-col gap-8">
           
           {/* Flex layout for dashboard components with customizable widths */}
