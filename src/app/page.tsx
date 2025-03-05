@@ -21,7 +21,6 @@ const HomePage: React.FC = () => {
               <ImpactLeaderboard />
             </div>
 
-            {/* Right component - HeartbeatDashboard with customizable width */}
             <div className="lg:w-[50%] bg-gray-800/50 rounded-xl backdrop-blur-sm border border-gray-700/50 shadow-lg h-fit">
               <HeartbeatDashboard />
             </div>
