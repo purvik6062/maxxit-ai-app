@@ -1,0 +1,8 @@
+.borderUsers {
+    border-bottom: 0.2px solid rgb(221, 206, 206, 0.6);
+}
+
+.borderContainer {
+    border: 1px solid cyan;
+    border-radius: 10px;
+}

@@ -12,6 +12,7 @@ import useTimeout from "./Global/useTimeout";
 
 //BODY COMPONENTS
 import Home from "./Body/Home";
+import Mindshare from "./Body/Mindshare";
 import ImpactLeaderboard from "./Body/ImpactLeaderboard";
 import HeartbeatDashboard from "./Body/HeartbeatDashboard";
 import Networks from "./Body/Networks";
@@ -44,4 +45,5 @@ export {
   AddTokenPair,
   Trading,
   Loader,
+  Mindshare
 };
