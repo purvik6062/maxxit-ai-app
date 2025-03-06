@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "@rainbow-me/rainbowkit/styles.css";
 import "../../app/css/input.css";
 import { useAccount } from "wagmi";
+import { X } from "lucide-react";
 import { useCredits } from "@/context/CreditsContext";
 
 const Header = () => {
@@ -32,13 +33,35 @@ const Header = () => {
       "Complete Step 1 & 2: Start the bot and send /start",
   };
 
+  // useEffect(() => {
+  //   if (isModalOpen || isTelegramModalOpen) {
+  //     document.body.style.overflow = "hidden";
+  //   } else {
+  //     document.body.style.overflow = "unset";
+  //   }
+  // }, [isModalOpen, isTelegramModalOpen]);
+
   useEffect(() => {
-    if (isModalOpen || isTelegramModalOpen) {
+    if (isModalOpen) {
+      // Prevent scrolling when modal is open
       document.body.style.overflow = "hidden";
+      // Also prevent touchmove on mobile devices
+      document.body.style.position = "fixed";
+      document.body.style.width = "100%";
     } else {
+      // Re-enable scrolling when modal is closed
       document.body.style.overflow = "unset";
+      document.body.style.position = "static";
+      document.body.style.width = "auto";
     }
-  }, [isModalOpen, isTelegramModalOpen]);
+  
+    // Cleanup function to ensure we reset the styles when component unmounts
+    return () => {
+      document.body.style.overflow = "unset";
+      document.body.style.position = "static";
+      document.body.style.width = "auto";
+    };
+  }, [isModalOpen]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -234,12 +257,18 @@ const Header = () => {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
             className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setIsModalOpen(false)}
+            // Removed onClick handler to prevent closing when clicking outside
           />
-          <div className="relative z-50 w-full max-w-lg overflow-hidden rounded-xl bg-gray-900 p-6 shadow-2xl">
+          <div className="z-50 w-full max-w-lg bg-gray-900 rounded-xl shadow-2xl p-6 mx-4 transform -translate-y-1/2 top-1/2 left-1/2 -translate-x-1/2 fixed">
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="absolute right-4 top-4 text-gray-400 hover:text-white"
+            >
+              <X size={20} />
+            </button>
             <div className="mx-auto flex max-w-sm flex-col items-center">
               <div className="flex items-center mt-6 gap-1">
                 <h3 className="bg-gradient-to-r from-blue-400 to-white bg-clip-text text-center text-2xl font-semibold text-transparent">

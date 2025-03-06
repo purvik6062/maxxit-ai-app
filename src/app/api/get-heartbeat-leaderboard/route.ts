@@ -7,7 +7,7 @@ export async function GET(): Promise<Response> {
     const db = client.db("ctxbt-signal-flow");
 
     // Fetch all accounts from the influencers collection
-    const influencers = await db.collection("influencers_account").find().sort({ createdAt: 1 }).toArray();
+    const influencers = await db.collection("influencers_account").find().toArray();
 
     return NextResponse.json({
       success: true,

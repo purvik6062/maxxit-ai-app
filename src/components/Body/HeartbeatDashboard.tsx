@@ -205,17 +205,17 @@ const HeartbeatDashboard = () => {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
             className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setIsModalOpen(false)}
+            // Removed onClick handler to prevent closing when clicking outside
           />
-          <div className="relative z-50 w-full max-w-lg overflow-hidden rounded-xl bg-gray-900 p-6 shadow-2xl">
+          <div className="z-50 w-full max-w-lg bg-gray-900 rounded-xl shadow-2xl p-6 mx-4 transform -translate-y-1/2 top-1/2 left-1/2 -translate-x-1/2 fixed">
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-2 right-3 text-white text-xl font-bold hover:text-gray-300 p-2 bg-gray-700 rounded-full"
+              className="absolute right-4 top-4 text-gray-400 hover:text-white"
             >
-              <X size={20} className="hover:text-cyan-400 hover:scale-110" />
+              <X size={20} />
             </button>
             <div className="mx-auto flex max-w-sm flex-col items-center">
               <div className="flex items-center mt-6 gap-1">
