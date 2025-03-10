@@ -7,16 +7,16 @@ export async function GET(): Promise<Response> {
     const db = client.db("ctxbt-signal-flow");
 
     // Fetch all accounts from the influencers collection
-    const influencers = await db.collection("influencers").find({}).toArray();
+    const influencers = await db.collection("influencers_account").find().sort({ createdAt: 1 }).toArray();
 
     return NextResponse.json({
       success: true,
       data: influencers.map((influencer, index) => ({
         id: index + 1,
         _id: influencer._id,
-        name: influencer.name || influencer.twitterHandle, // fallback to handle if name isn't set
-        handle: '@' + influencer.twitterHandle, // add @ prefix for display
-        subscriberCount: influencer.subscribers?.length || 0
+        name: influencer.name, // fallback to handle if name isn't set
+        handle: influencer.handle, // add @ prefix for display
+        impactFactor: influencer.impactFactor,
       })),
     });
   } catch (error) {

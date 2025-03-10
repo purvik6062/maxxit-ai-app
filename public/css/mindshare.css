@@ -1,0 +1,28 @@
+.borderUsers {
+    border-bottom: 0.2px solid rgb(221, 206, 206, 0.6);
+}
+
+.borderContainer {
+    border: 1px solid cyan;
+    border-radius: 10px;
+}
+
+/* Add this to your mindshare.css file */
+.overflow-x-auto {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(59, 199, 246, 0.8) rgba(17, 24, 39, 0.8);
+  }
+  
+  .overflow-x-auto::-webkit-scrollbar {
+    height: 5px;
+  }
+  
+  .overflow-x-auto::-webkit-scrollbar-track {
+    background: rgba(17, 24, 39, 0.3);
+    border-radius: 4px;
+  }
+  
+  .overflow-x-auto::-webkit-scrollbar-thumb {
+    background-color: rgba(59, 130, 246, 0.5);
+    border-radius: 4px;
+  }

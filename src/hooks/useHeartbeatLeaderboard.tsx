@@ -2,12 +2,11 @@
 import { useEffect, useState } from "react";
 
 interface CryptoAgent {
-  _id: {
-    $oid: string;
-  };
+  _id: string;
   id: number;
   handle: string;
   name: string;
+  impactFactor: number;
   heartbeat: number;
 }
 
@@ -29,19 +28,13 @@ export const useHeartbeatLeaderboard = () => {
         const data = await response.json();
 
         // Check if the response has the expected structure
-        if (data.success && Array.isArray(data.data?.leaderboard)) {
-          // Transform the data to match the CryptoAgent interface
-          const transformedAgents = data.data.leaderboard.map((entry: any) => ({
-            _id: entry._id,
-            id: entry.id,
-            handle: entry.handle,
-            name: entry.name,
-            heartbeat: entry.score, // Note: changed from heartbeat to score to match API
-          }));
-          setAgents(transformedAgents);
-        } else {
-          throw new Error("Invalid data structure received from API");
+        if (!data.success && data.error) {
+          throw new Error(
+            data.error.message || "Failed to fetch leaderboard data"
+          );
         }
+
+        setAgents(data.data || []);
       } catch (err: any) {
         setError(err.message);
       } finally {

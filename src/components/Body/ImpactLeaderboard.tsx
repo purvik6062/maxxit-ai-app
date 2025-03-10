@@ -8,7 +8,7 @@ import {
   FaArrowDown,
   FaCrown,
 } from "react-icons/fa";
-import { X } from "lucide-react";
+import { X, Zap, TrendingUp, Award, BarChart2 } from "lucide-react";
 import { LuWandSparkles } from "react-icons/lu";
 import ImpactGrid from "./ImpactGrid";
 import { Footer } from "../index";
@@ -118,7 +118,6 @@ const ImpactLeaderboard = () => {
       });
 
       await updateCredits();
-
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to subscribe",
@@ -126,7 +125,7 @@ const ImpactLeaderboard = () => {
           position: "top-center",
         }
       );
-    } finally { 
+    } finally {
       setSubscribingHandle(null);
     }
   };
@@ -134,15 +133,11 @@ const ImpactLeaderboard = () => {
   const renderContent = () => {
     if (loading) {
       return (
-        <div className="flex flex-col items-center justify-center ">
+        <div className="flex flex-col items-center justify-center min-h-[200px]">
           <div className="relative w-24 h-24">
-            {/* Outer ring */}
             <div className="absolute inset-0 rounded-full border-4 border-blue-500/20"></div>
-            {/* Spinning ring */}
             <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-500 animate-spin"></div>
-            {/* Inner pulsing circle */}
             <div className="absolute inset-4 rounded-full bg-blue-500/20 animate-pulse"></div>
-            {/* Center dot */}
             <div className="absolute inset-[42%] rounded-full bg-blue-400"></div>
           </div>
           <div className="text-center space-y-2">
@@ -179,68 +174,80 @@ const ImpactLeaderboard = () => {
               className="rankings-card group relative bg-blue-900/20 backdrop-blur-sm border border-blue-500/20 rounded-xl overflow-hidden transition-all duration-300"
             >
               <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div className="relative p-6 flex items-center justify-between">
-                <div className="flex items-center space-x-6">
-                  <div className="flex items-center justify-center w-[41px]">
+              <div className="relative p-6 px-3 flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center justify-center w-[50px]">
                     {agent.id === 1 && (
-                      <FaTrophy className="w-6 h-6 text-yellow-300" />
+                      <FaTrophy className="w-5 h-5 text-yellow-300" />
                     )}
                     {agent.id === 2 && (
-                      <FaTrophy className="w-6 h-6 text-gray-400" />
+                      <FaTrophy className="w-5 h-5 text-gray-400" />
                     )}
                     {agent.id === 3 && (
-                      <FaTrophy className="w-6 h-6 text-amber-700" />
+                      <FaTrophy className="w-5 h-5 text-amber-700" />
                     )}
                     {agent.id > 3 && (
-                      <span className="text-2xl font-bold text-slate-400">
+                      <span className="text-xl font-bold text-slate-400">
                         #{agent.id}
                       </span>
                     )}
                   </div>
-                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-400 flex items-center justify-center text-white font-bold text-lg">
-                    {agent.name.charAt(0)}
-                  </div>
+
                   <div>
-                    <h3 className="text-xl font-bold text-white">
+                    <h3 className="text-lg font-bold text-white">
                       {agent.name}
                     </h3>
                     <p className="text-slate-400">{agent.handle}</p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-8">
-                  <div className="ml-6">
-                    <button
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg
+                <div className="flex items-center space-x-6">
+                  <div className="text-right">
+                    <div className="text-sm text-slate-400">Impact Factor</div>
+                    <div className="text-xl font-bold bg-gradient-to-r from-blue-400 to-blue-200 bg-clip-text text-transparent">
+                      {agent.impactFactor}
+                    </div>
+                  </div>
+                  <div className="w-[5rem] h-2 bg-white/70 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-blue-400 to-gray-500 rounded-full"
+                      style={{ width: `${agent.impactFactor}%` }}
+                    />
+                  </div>
+                  <div className="flex items-center space-x-8">
+                      <button
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg
         ${
           isSubscribed || isCurrentlySubscribing
             ? "bg-green-500/20 border-green-500/30 cursor-default"
             : "bg-gradient-to-r from-blue-500/20 hover:from-blue-500/60 border border-blue-500/30 hover:border-blue-500/100"
-        }
+        }x
         transition-all duration-300 group
         ${isCurrentlySubscribing ? "animate-pulse" : ""}`}
-                      onClick={() =>
-                        !isSubscribed &&
-                        !isCurrentlySubscribing &&
-                        handleSubscribe(agent.handle)
-                      }
-                      disabled={isSubscribed || isCurrentlySubscribing}
-                    >
-                      <FaCrown
-                        color={
-                          isSubscribed || isCurrentlySubscribing
-                            ? "green"
-                            : "yellow"
+                        onClick={() =>
+                          !isSubscribed &&
+                          !isCurrentlySubscribing &&
+                          handleSubscribe(agent.handle)
                         }
-                        className={isCurrentlySubscribing ? "animate-pulse" : ""}
-                      />
-                      <span className="text-sm font-medium text-white group-hover:text-blue-200 transition-colors duration-300">
-                        {isCurrentlySubscribing
-                          ? "Subscribing..."
-                          : isSubscribed
-                          ? "Subscribed"
-                          : "Subscribe"}
-                      </span>
-                    </button>
+                        disabled={isSubscribed || isCurrentlySubscribing}
+                      >
+                        <FaCrown
+                          color={
+                            isSubscribed || isCurrentlySubscribing
+                              ? "green"
+                              : "yellow"
+                          }
+                          className={
+                            isCurrentlySubscribing ? "animate-pulse" : ""
+                          }
+                        />
+                        <span className="text-sm font-medium text-white group-hover:text-blue-200 transition-colors duration-300">
+                          {isCurrentlySubscribing
+                            ? "Subscribing..."
+                            : isSubscribed
+                            ? "Subscribed"
+                            : "Subscribe"}
+                        </span>
+                      </button>
                   </div>
                 </div>
               </div>
@@ -255,52 +262,54 @@ const ImpactLeaderboard = () => {
     <div className="techwave_fn_content">
       <div className="relative min-h-screen" ref={container}>
         {/* <ImpactGrid /> */}
-        <div className="mx-auto py-16">
-          <div className="relative p-[2rem]">
-            {/* Decorative elements */}
-            <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute -left-1/4 top-0 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl"></div>
-              <div className="absolute -right-1/4 bottom-0 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl"></div>
-            </div>
+        <div className="relative h-[50vh]">
+          <div className="relative h-full flex flex-col items-center justify-center">
+            <div className="text-center space-y-6">
+              <div className="inline-flex items-center gap-2 px-4 pt-[11px] pb-[11px] rounded-xl bg-blue-500/15 backdrop-blur-sm">
+                <span className="animate-pulse text-2xl">
+                  <LuWandSparkles size={24} color="white" />
+                </span>
+                <span className="text-base font-medium text-blue-400">
+                  Impact Leaderboard
+                </span>
+              </div>
 
-            <div className="relative space-y-6">
-              <div className="text-center mb-16 relative">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-blue-500/20 rounded-full blur-3xl"></div>
+              <h1 className="relative text-2xl md:text-3xl font-bold">
+                <span className="">🌟</span>
+                <span className="bg-gradient-to-r from-white via-blue-200 to-blue-400 bg-clip-text text-transparent">
+                  Impact Factor Rankings
+                </span>
+                <span className="">📊</span>
+              </h1>
 
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/15 backdrop-blur-sm mb-6">
-                  <span className="animate-pulse text-3xl">
-                    <LuWandSparkles size={25} color="white" />
-                  </span>
-                  <span className="text-base font-medium text-blue-400">
-                    Impact Leaderboard
-                  </span>
-                </div>
+              <div className="flex flex-col items-center gap-4">
+                <p className="text-lg text-slate-300/90 max-w-2xl">
+                  Discover the Pulse of Crypto Markets through our Elite
+                  Analysts
+                </p>
+                <div className="flex items-center gap-4 text-white">
+                  <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-500/10 backdrop-blur-sm border border-blue-500/20">
+                    <Award className="h-5 w-5 text-blue-400" />
+                    <span className="text-sm">Precision</span>
+                  </div>
 
-                <h1 className="relative text-3xl md:text-4xl font-bold mb-6">
-                  <span className="">🌟</span>
-                  <span className="bg-gradient-to-r from-white via-blue-200 to-blue-400 bg-clip-text text-transparent">
-                    Impact Factor Rankings
-                  </span>
-                  <span className="">📊</span>
-                </h1>
+                  <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-purple-500/10 backdrop-blur-sm border border-purple-500/20">
+                    <TrendingUp className="h-5 w-5 text-purple-400" />
+                    <span className="text-sm">Performance</span>
+                  </div>
 
-                <div className="flex flex-col items-center gap-4">
-                  <p className="text-xl text-slate-300/90 max-w-2xl">
-                    Discover the Pulse of Crypto Markets through our Elite
-                    Analysts
-                  </p>
-                  <div className="flex items-center gap-2 text-white">
-                    <span>🎯 Precision</span>
-                    <span className="text-slate-300">•</span>
-                    <span>🚀 Performance</span>
-                    <span className="text-slate-300">•</span>
-                    <span>💎 Reliability</span>
+                  <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-cyan-500/10 backdrop-blur-sm border border-cyan-500/20">
+                    <BarChart2 className="h-5 w-5 text-cyan-400" />
+                    <span className="text-sm">Reliability</span>
                   </div>
                 </div>
               </div>
-
-              {renderContent()}
             </div>
+          </div>
+        </div>
+        <div className="relative bg-gray-900/80 min-h-[50vh] pb-12">
+          <div className="max-w-7xl mx-auto px-[1rem] pb-12">
+            {renderContent()}
           </div>
         </div>
       </div>
@@ -340,7 +349,6 @@ const ImpactLeaderboard = () => {
           </div>
         </div>
       )}
-      {/* <Footer /> */}
     </div>
   );
 };

@@ -289,7 +289,6 @@ export default function PredictionDashboard() {
     },
   ];
 
-  // Generate sample price data for the chart
   const generatePriceData = (
     initialPrice: number,
     trend: "up" | "down" = "up"

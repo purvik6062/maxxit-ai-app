@@ -6,7 +6,8 @@ interface CryptoAgent {
   id: number;
   handle: string;
   name: string;
-  subscriberCount: number;
+  impactFactor: number;
+  heartbeat: number;
 }
 
 export const useImpactLeaderboard = () => {
@@ -32,12 +33,7 @@ export const useImpactLeaderboard = () => {
           );
         }
 
-        // Sort by subscriber count in descending order
-        const sortedData = data.data.sort((a: CryptoAgent, b: CryptoAgent) => 
-          b.subscriberCount - a.subscriberCount
-        );
-
-        setAgents(sortedData || []);
+        setAgents(data.data || []);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "An unexpected error occurred"
