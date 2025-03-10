@@ -2,6 +2,7 @@
 import { Providers } from "./providers";
 import { CreditsProvider } from "@/context/CreditsContext";
 import "./globals.css";
+import Head from "next/head";
 
 export default function RootLayout({
   children,
@@ -10,6 +11,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <title>CTxbt | App</title>
+      <meta name="description" content="AI-Powered Signals Generator Platform" />
+      <link rel="icon" type="image/svg+xml" href="/img/new_logo.svg" />
       <body>
         <Providers>
           <div className="techwave_fn_wrapper">
