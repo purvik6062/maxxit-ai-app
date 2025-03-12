@@ -9,6 +9,12 @@ import { useImpactLeaderboard } from "@/hooks/useImpactLeaderboard";
 import { useAccount } from "wagmi";
 import { toast } from "react-toastify";
 import { useCredits } from "@/context/CreditsContext";
+
+interface Subscription {
+  twitterHandle: string;
+  subscriptionDate: string;
+  expiryDate: string;
+}
 import { FaUserPlus } from "react-icons/fa";
 import AddInfluencerModal from "./AddInfluencerModal";
 
@@ -161,10 +167,23 @@ const ImpactLeaderboard = () => {
     return (
       <div className="grid gap-4">
         {agents.map((agent, index) => {
-          const cleanHandle = agent.handle.replace("@", "");
-          const isSubscribed = subscribedHandles.includes(cleanHandle);
-          const isCurrentlySubscribing = subscribingHandle === cleanHandle;
+          const typedSubscribedHandles = subscribedHandles as unknown as Subscription[];
 
+          const cleanHandle = agent.handle.replace("@", "");
+          console.log(cleanHandle);
+
+          const subscribedUser = typedSubscribedHandles.find(
+            user => user.twitterHandle === cleanHandle
+          );
+
+          const isSubscribed = subscribedUser &&
+            new Date(subscribedUser.expiryDate) > new Date();
+
+          console.log("Subscription data:", subscribedUser);
+          console.log("Is subscribed:", isSubscribed);
+
+          const isCurrentlySubscribing = subscribingHandle === cleanHandle;
+          
           return (
             <div
               key={index}
@@ -214,11 +233,10 @@ const ImpactLeaderboard = () => {
                   <div className="flex items-center space-x-8">
                     <button
                       className={`flex items-center gap-2 px-4 py-2 rounded-lg
-        ${
-          isSubscribed || isCurrentlySubscribing
-            ? "bg-green-500/20 border-green-500/30 cursor-default"
-            : "bg-gradient-to-r from-blue-500/20 hover:from-blue-500/60 border border-blue-500/30 hover:border-blue-500/100"
-        }x
+        ${isSubscribed || isCurrentlySubscribing
+                          ? "bg-green-500/20 border-green-500/30 cursor-default"
+                          : "bg-gradient-to-r from-blue-500/20 hover:from-blue-500/60 border border-blue-500/30 hover:border-blue-500/100"
+                        }x
         transition-all duration-300 group
         ${isCurrentlySubscribing ? "animate-pulse" : ""}`}
                       onClick={() =>
@@ -242,8 +260,8 @@ const ImpactLeaderboard = () => {
                         {isCurrentlySubscribing
                           ? "Subscribing..."
                           : isSubscribed
-                          ? "Subscribed"
-                          : "Subscribe"}
+                            ? "Subscribed"
+                            : "Subscribe"}
                       </span>
                     </button>
                   </div>
