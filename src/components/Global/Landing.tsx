@@ -500,9 +500,7 @@ export default function PredictionDashboard() {
           ))}
         </div>
 
-        {/* Main Content Grid */}
         <div className="grid grid-cols-12 gap-6">
-          {/* Prediction Chart */}
           <div className="col-span-12 lg:col-span-8 bg-gray-800 rounded-xl p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
