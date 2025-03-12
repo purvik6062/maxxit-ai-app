@@ -1,26 +1,29 @@
 import React, { useRef } from "react";
 import { useState, useEffect } from "react";
 import {
-  FaRegCopy,
   FaTrophy,
-  FaStar,
-  FaArrowUp,
-  FaArrowDown,
   FaCrown,
 } from "react-icons/fa";
-import { Footer } from "../index";
 import "../../app/css/heartbeat.css";
-import { X, Zap, TrendingUp, Award, BarChart2 } from "lucide-react";
-import HeartbeatBackground from "./HeartbeatBackground";
+import { X, TrendingUp, Award, BarChart2 } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { useHeartbeatLeaderboard } from "@/hooks/useHeartbeatLeaderboard";
+import { useAccount } from "wagmi";
+import { useCredits } from "@/context/CreditsContext";
+import { toast } from "react-toastify";
 
 const HeartbeatDashboard = () => {
   const container = useRef(null);
   gsap.registerPlugin(useGSAP);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { agents, loading, error } = useHeartbeatLeaderboard();
+  const [subscribingHandle, setSubscribingHandle] = useState<string | null>(
+    null
+  );
+  const [subscribedHandles, setSubscribedHandles] = useState<string[]>([]);
+  const { updateCredits } = useCredits();
+  const { address } = useAccount();
 
   useEffect(() => {
     if (isModalOpen) {
@@ -51,6 +54,55 @@ const HeartbeatDashboard = () => {
     },
     { scope: container, dependencies: [loading, agents] }
   );
+
+  const handleSubscribe = async (handle: string) => {
+    if (!address) {
+      toast.error("Please connect your wallet first", {
+        position: "top-center",
+      });
+      return;
+    }
+
+    const cleanHandle = handle.replace("@", "");
+
+    setSubscribingHandle(cleanHandle);
+
+    try {
+      const response = await fetch("/api/subscribe-influencer", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          walletAddress: address,
+          influencerHandle: cleanHandle,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error?.message || "Failed to subscribe");
+      }
+
+      setSubscribedHandles((prev) => [...prev, cleanHandle]);
+
+      toast.success("Successfully subscribed to influencer!", {
+        position: "top-center",
+      });
+
+      await updateCredits();
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to subscribe",
+        {
+          position: "top-center",
+        }
+      );
+    } finally {
+      setSubscribingHandle(null);
+    }
+  };
 
   const renderAgentsList = () => {
     if (loading) {
@@ -85,64 +137,97 @@ const HeartbeatDashboard = () => {
 
     return (
       <div className="grid gap-4">
-        {agents.map((agent, index) => (
-          <div
-            key={index}
-            className="rankings-card group relative bg-blue-900/20 backdrop-blur-sm border border-blue-500/20 rounded-xl overflow-hidden transition-all duration-300"
-          >
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <div className="relative p-6 px-3 flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center justify-center w-[50px]">
-                  {agent.id === 1 && (
-                    <FaTrophy className="w-5 h-5 text-yellow-300" />
-                  )}
-                  {agent.id === 2 && (
-                    <FaTrophy className="w-5 h-5 text-gray-400" />
-                  )}
-                  {agent.id === 3 && (
-                    <FaTrophy className="w-5 h-5 text-amber-700" />
-                  )}
-                  {agent.id > 3 && (
-                    <span className="text-xl font-bold text-slate-400">
-                      #{agent.id}
-                    </span>
-                  )}
-                </div>
+        {agents.map((agent, index) => {
+          const cleanHandle = agent.handle.replace("@", "");
+          const isSubscribed = subscribedHandles.includes(cleanHandle);
+          const isCurrentlySubscribing = subscribingHandle === cleanHandle;
+          return (
+            <div
+              key={index}
+              className="rankings-card group relative bg-blue-900/20 backdrop-blur-sm border border-blue-500/20 rounded-xl overflow-hidden transition-all duration-300"
+            >
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="relative p-6 px-3 flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center justify-center w-[50px]">
+                    {agent.id === 1 && (
+                      <FaTrophy className="w-5 h-5 text-yellow-300" />
+                    )}
+                    {agent.id === 2 && (
+                      <FaTrophy className="w-5 h-5 text-gray-400" />
+                    )}
+                    {agent.id === 3 && (
+                      <FaTrophy className="w-5 h-5 text-amber-700" />
+                    )}
+                    {agent.id > 3 && (
+                      <span className="text-xl font-bold text-slate-400">
+                        #{agent.id}
+                      </span>
+                    )}
+                  </div>
 
-                <div>
-                  <h3 className="text-lg font-bold text-white">{agent.name}</h3>
-                  <p className="text-slate-400">{agent.handle}</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-6">
-                <div className="text-right">
-                  <div className="text-sm text-slate-400">Heartbeat</div>
-                  <div className="text-xl font-bold bg-gradient-to-r from-blue-400 to-blue-200 bg-clip-text text-transparent">
-                    {agent.heartbeat}
+                  <div>
+                    <h3 className="text-lg font-bold text-white">
+                      {agent.name}
+                    </h3>
+                    <p className="text-slate-400">{agent.handle}</p>
                   </div>
                 </div>
-                <div className="w-[5rem] h-2 bg-white/70 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-blue-400 to-gray-500 rounded-full"
-                    style={{ width: `${agent.heartbeat}%` }}
-                  />
-                </div>
-                <div>
-                  <button
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 group bg-gradient-to-r from-blue-500/20 hover:from-blue-500/60 border border-blue-500/30 hover:border-blue-500/100"
-                    onClick={() => setIsModalOpen(true)}
-                  >
-                    <FaCrown color="yellow" />
-                    <span className="text-sm font-medium text-white group-hover:text-blue-200 transition-colors duration-300">
-                      Subscribe
-                    </span>
-                  </button>
+                <div className="flex items-center space-x-6">
+                  <div className="text-right">
+                    <div className="text-sm text-slate-400">Heartbeat</div>
+                    <div className="text-xl font-bold bg-gradient-to-r from-blue-400 to-blue-200 bg-clip-text text-transparent">
+                      {agent.heartbeat}
+                    </div>
+                  </div>
+                  <div className="w-[5rem] h-2 bg-white/70 rounded-full">
+                    <div
+                      className="h-full bg-gradient-to-r from-blue-400 to-gray-500 rounded-full"
+                      style={{ width: `${agent.heartbeat}%` }}
+                    />
+                  </div>
+
+                  <div className="flex items-center space-x-8">
+                    <button
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg
+                        ${
+                          isSubscribed || isCurrentlySubscribing
+                            ? "bg-green-500/20 border-green-500/30 cursor-default"
+                            : "bg-gradient-to-r from-blue-500/20 hover:from-blue-500/60 border border-blue-500/30 hover:border-blue-500/100"
+                        }x
+                        transition-all duration-300 group
+                        ${isCurrentlySubscribing ? "animate-pulse" : ""}`}
+                      onClick={() =>
+                        !isSubscribed &&
+                        !isCurrentlySubscribing &&
+                        handleSubscribe(agent.handle)
+                      }
+                      disabled={isSubscribed || isCurrentlySubscribing}
+                    >
+                      <FaCrown
+                        color={
+                          isSubscribed || isCurrentlySubscribing
+                            ? "green"
+                            : "yellow"
+                        }
+                        className={
+                          isCurrentlySubscribing ? "animate-pulse" : ""
+                        }
+                      />
+                      <span className="text-sm font-medium text-white group-hover:text-blue-200 transition-colors duration-300">
+                        {isCurrentlySubscribing
+                          ? "Subscribing..."
+                          : isSubscribed
+                          ? "Subscribed"
+                          : "Subscribe"}
+                      </span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   };

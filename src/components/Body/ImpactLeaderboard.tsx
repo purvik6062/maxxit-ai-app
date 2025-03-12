@@ -1,23 +1,16 @@
 import React, { useRef } from "react";
 import { useState, useEffect } from "react";
-import {
-  FaRegCopy,
-  FaTrophy,
-  FaStar,
-  FaArrowUp,
-  FaArrowDown,
-  FaCrown,
-} from "react-icons/fa";
-import { X, Zap, TrendingUp, Award, BarChart2 } from "lucide-react";
+import { FaTrophy, FaCrown } from "react-icons/fa";
+import { TrendingUp, Award, BarChart2 } from "lucide-react";
 import { LuWandSparkles } from "react-icons/lu";
-import ImpactGrid from "./ImpactGrid";
-import { Footer } from "../index";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { useImpactLeaderboard } from "@/hooks/useImpactLeaderboard";
 import { useAccount } from "wagmi";
 import { toast } from "react-toastify";
 import { useCredits } from "@/context/CreditsContext";
+import { FaUserPlus } from "react-icons/fa";
+import AddInfluencerModal from "./AddInfluencerModal";
 
 const ImpactLeaderboard = () => {
   const container = useRef(null);
@@ -25,11 +18,11 @@ const ImpactLeaderboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { address } = useAccount();
   const [subscribedHandles, setSubscribedHandles] = useState<string[]>([]);
-  const { agents, loading, error } = useImpactLeaderboard();
+  const { agents, loading, error, refreshData } = useImpactLeaderboard();
   const [subscribingHandle, setSubscribingHandle] = useState<string | null>(
     null
   );
-  const { credits, updateCredits } = useCredits();
+  const { updateCredits } = useCredits();
 
   useEffect(() => {
     if (isModalOpen) {
@@ -37,6 +30,10 @@ const ImpactLeaderboard = () => {
     } else {
       document.body.style.overflow = "unset";
     }
+
+    return () => {
+      document.body.style.overflow = "unset";
+    };
   }, [isModalOpen]);
 
   useGSAP(
@@ -207,15 +204,16 @@ const ImpactLeaderboard = () => {
                       {agent.impactFactor}
                     </div>
                   </div>
-                  <div className="w-[5rem] h-2 bg-white/70 rounded-full overflow-hidden">
+                  <div className="w-[5rem] h-2 bg-white/70 rounded-full">
                     <div
                       className="h-full bg-gradient-to-r from-blue-400 to-gray-500 rounded-full"
                       style={{ width: `${agent.impactFactor}%` }}
                     />
                   </div>
+
                   <div className="flex items-center space-x-8">
-                      <button
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg
+                    <button
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg
         ${
           isSubscribed || isCurrentlySubscribing
             ? "bg-green-500/20 border-green-500/30 cursor-default"
@@ -223,37 +221,50 @@ const ImpactLeaderboard = () => {
         }x
         transition-all duration-300 group
         ${isCurrentlySubscribing ? "animate-pulse" : ""}`}
-                        onClick={() =>
-                          !isSubscribed &&
-                          !isCurrentlySubscribing &&
-                          handleSubscribe(agent.handle)
+                      onClick={() =>
+                        !isSubscribed &&
+                        !isCurrentlySubscribing &&
+                        handleSubscribe(agent.handle)
+                      }
+                      disabled={isSubscribed || isCurrentlySubscribing}
+                    >
+                      <FaCrown
+                        color={
+                          isSubscribed || isCurrentlySubscribing
+                            ? "green"
+                            : "yellow"
                         }
-                        disabled={isSubscribed || isCurrentlySubscribing}
-                      >
-                        <FaCrown
-                          color={
-                            isSubscribed || isCurrentlySubscribing
-                              ? "green"
-                              : "yellow"
-                          }
-                          className={
-                            isCurrentlySubscribing ? "animate-pulse" : ""
-                          }
-                        />
-                        <span className="text-sm font-medium text-white group-hover:text-blue-200 transition-colors duration-300">
-                          {isCurrentlySubscribing
-                            ? "Subscribing..."
-                            : isSubscribed
-                            ? "Subscribed"
-                            : "Subscribe"}
-                        </span>
-                      </button>
+                        className={
+                          isCurrentlySubscribing ? "animate-pulse" : ""
+                        }
+                      />
+                      <span className="text-sm font-medium text-white group-hover:text-blue-200 transition-colors duration-300">
+                        {isCurrentlySubscribing
+                          ? "Subscribing..."
+                          : isSubscribed
+                          ? "Subscribed"
+                          : "Subscribe"}
+                      </span>
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
           );
         })}
+
+        {/* Add New Influencer Button */}
+        <div className="rankings-card group relative bg-gradient-to-r from-blue-600/30 to-purple-600/30 backdrop-blur-sm border border-blue-500/20 rounded-xl overflow-hidden transition-all duration-300 mt-6">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="w-full relative p-6 flex items-center justify-center gap-3 hover:bg-blue-500/20 transition-all duration-300"
+          >
+            <FaUserPlus className="w-5 h-5 text-blue-400" />
+            <span className="text-lg font-bold text-white">
+              Add New Influencer
+            </span>
+          </button>
+        </div>
       </div>
     );
   };
@@ -314,41 +325,11 @@ const ImpactLeaderboard = () => {
         </div>
       </div>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setIsModalOpen(false)}
-          />
-          <div className="relative z-50 w-full max-w-lg overflow-hidden rounded-xl bg-gray-900 p-6 shadow-2xl">
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="absolute top-2 right-3 text-white text-xl font-bold hover:text-gray-300 p-2 bg-gray-700 rounded-full"
-            >
-              <X size={20} className="hover:text-cyan-400 hover:scale-110" />
-            </button>
-            <div className="mx-auto flex max-w-sm flex-col items-center">
-              <div className="flex items-center mt-6 gap-1">
-                <h3 className="bg-gradient-to-r from-blue-400 to-white bg-clip-text text-center text-2xl font-semibold text-transparent">
-                  Coming Soon!
-                </h3>
-                <div>🚀✨</div>
-              </div>
-              <p className="mt-2 text-center text-gray-300">
-                Exciting developments are underway! Our team is working hard to
-                bring you cutting-edge AI-powered trading features. Stay tuned
-                for updates! 🛠️💡
-              </p>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="mt-6 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-2 text-sm font-medium text-white hover:from-blue-600 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
-              >
-                Got it, thanks!
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AddInfluencerModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={refreshData}
+      />
     </div>
   );
 };

@@ -3,6 +3,11 @@ import React, { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { ToastContainer, toast } from "react-toastify";
+import { OctagonAlert } from "lucide-react";
+import { IoShieldCheckmark } from "react-icons/io5";
+import { MdCancel } from "react-icons/md";
+import { GiConfirmed } from "react-icons/gi";
+import { FaLongArrowAltLeft } from "react-icons/fa";
 import "react-toastify/dist/ReactToastify.css";
 import "@rainbow-me/rainbowkit/styles.css";
 import "../../app/css/input.css";
@@ -19,7 +24,7 @@ const Header = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [telegramStep, setTelegramStep] = useState(1);
   const { address, isConnected } = useAccount();
-  const { credits } = useCredits();
+  const { credits, updateCredits } = useCredits();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const ERROR_MAPPING: { [key: string]: string } = {
@@ -33,16 +38,8 @@ const Header = () => {
       "Complete Step 1 & 2: Start the bot and send /start",
   };
 
-  // useEffect(() => {
-  //   if (isModalOpen || isTelegramModalOpen) {
-  //     document.body.style.overflow = "hidden";
-  //   } else {
-  //     document.body.style.overflow = "unset";
-  //   }
-  // }, [isModalOpen, isTelegramModalOpen]);
-
   useEffect(() => {
-    if (isModalOpen) {
+    if (isModalOpen || isTelegramModalOpen) {
       // Prevent scrolling when modal is open
       document.body.style.overflow = "hidden";
       // Also prevent touchmove on mobile devices
@@ -54,14 +51,14 @@ const Header = () => {
       document.body.style.position = "static";
       document.body.style.width = "auto";
     }
-  
+
     // Cleanup function to ensure we reset the styles when component unmounts
     return () => {
       document.body.style.overflow = "unset";
       document.body.style.position = "static";
       document.body.style.width = "auto";
     };
-  }, [isModalOpen]);
+  }, [isModalOpen, isTelegramModalOpen]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -81,10 +78,6 @@ const Header = () => {
         const data = await response.json();
         if (data.success) {
           setShowTokens(true);
-          if (data.data.telegramId) {
-            localStorage.setItem("hasSeenTelegramPrompt", "true");
-            localStorage.setItem("telegramUsername", data.data.telegramId);
-          }
         }
       } catch (error) {
         console.error("Failed to fetch user data:", error);
@@ -111,7 +104,11 @@ const Header = () => {
       setIsTelegramModalOpen(true);
       setTelegramStep(1);
     } else {
-      toast.error("Please connect to your wallet first");
+      toast.error("Please connect to your wallet first", {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+      });
     }
   };
 
@@ -144,12 +141,12 @@ const Header = () => {
       }
 
       // Success handling
-      localStorage.setItem("hasSeenTelegramPrompt", "true");
       setIsTelegramModalOpen(false);
       toast.success("Success! 100 Credits added to your account", {
         position: "top-center",
-        autoClose: 5000,
+        autoClose: 4000,
       });
+      await updateCredits(); // Update credits after successful registration 
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Registration failed";
@@ -241,7 +238,7 @@ const Header = () => {
                 <div className="relative mx-4">
                   <input
                     type="text"
-                    placeholder="Search predictions..."
+                    placeholder="Search accounts..."
                     className="w-12 min-w-[12rem] px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500"
                   />
                   <Search className="absolute right-3 top-2.5 text-gray-400 w-5 h-5" />
@@ -301,50 +298,104 @@ const Header = () => {
               // Step 1: Instructions
               <div className="space-y-5">
                 <div className="text-center">
+                  <div className="inline-flex items-center justify-center p-3 bg-blue-500/15 rounded-full mb-3">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-blue-400"
+                    >
+                      <path d="M18 8l-1-4-1 1-2 1-3-1h-2L7 6 6 5 5 8l-1 3v2l1 3 3 3 2 1h2l3-1 2-2 1-2 1-5z"></path>
+                      <path d="M11 8h.01"></path>
+                      <path d="M13 12h.01"></path>
+                      <path d="M9 12h.01"></path>
+                      <path d="M7 16h.01"></path>
+                      <path d="M13 16h.01"></path>
+                    </svg>
+                  </div>
                   <h3 className="text-2xl font-bold text-white mb-1">
-                    Connect Your Telegram
+                    Welcome to CTxbt - The Signal Generator Platform
                   </h3>
-                  <div className="h-1 w-24 bg-gradient-to-r from-blue-500 to-blue-700 mx-auto my-3 rounded-full" />
-                  <p className="text-gray-300 mb-4">
-                    Complete these steps to verify your Telegram account
+                  <div className="h-1 w-24 bg-gradient-to-r from-blue-500 to-blue-700 mx-auto my-3 rounded-full"></div>
+                  <p className="text-gray-300 mb-6">
+                    To claim your{" "}
+                    <span className="text-blue-400 font-semibold">
+                      100 FREE Credits
+                    </span>
+                    , please Complete these below mentioned steps
                   </p>
                 </div>
 
                 <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50">
-                  <ol className="space-y-4 text-sm text-gray-300">
+                  <h4 className="text-sm font-medium text-blue-400 mb-3 flex items-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="mr-2"
+                    >
+                      <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+                      <path d="M12 8v4"></path>
+                      <path d="M12 16h.01"></path>
+                    </svg>
+                    Important Steps
+                  </h4>
+                  <ol className="space-y-2 text-sm text-gray-300">
                     <li className="flex items-start">
-                      <span className="flex items-center justify-center w-6 h-6 bg-blue-500/20 text-blue-400 rounded-full mr-3 text-xs font-bold flex-shrink-0">
+                      <span className="flex items-center justify-center w-5 h-5 bg-blue-500/20 text-blue-400 rounded-full mr-2 text-xs font-bold flex-shrink-0">
                         1
                       </span>
-                      <div>
-                        <p className="font-medium">Start the Bot</p>
-                        <p className="text-gray-400 mt-1">
-                          Open Telegram and search for{" "}
-                          <a
-                            href="https://t.me/Tst01ccxt_testing_bot"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-400 hover:underline"
+                      <span>
+                        Start a chat with{" "}
+                        <a
+                          href="https://t.me/Tst01ccxt_testing_bot"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-400 hover:underline inline-flex items-center"
+                        >
+                          @Tst01ccxt_testing_bot
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="ml-1"
                           >
-                            @Tst01ccxt_testing_bot
-                          </a>
-                        </p>
-                      </div>
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                            <polyline points="15 3 21 3 21 9"></polyline>
+                            <line x1="10" y1="14" x2="21" y2="3"></line>
+                          </svg>
+                        </a>
+                      </span>
                     </li>
                     <li className="flex items-start">
-                      <span className="flex items-center justify-center w-6 h-6 bg-blue-500/20 text-blue-400 rounded-full mr-3 text-xs font-bold flex-shrink-0">
+                      <span className="flex items-center justify-center w-5 h-5 bg-blue-500/20 text-blue-400 rounded-full mr-2 text-xs font-bold flex-shrink-0">
                         2
                       </span>
-                      <div>
-                        <p className="font-medium">Send Start Command</p>
-                        <p className="text-gray-400 mt-1">
-                          Type{" "}
-                          <code className="px-2 py-1 bg-gray-700 rounded mx-1">
-                            /start
-                          </code>
-                          in the chat
-                        </p>
-                      </div>
+                      <span>
+                        Send the message{" "}
+                        <code className="px-1.5 py-0.5 bg-gray-700 rounded text-gray-200">
+                          "start"
+                        </code>{" "}
+                        to the bot
+                      </span>
                     </li>
                   </ol>
                 </div>
@@ -352,16 +403,40 @@ const Header = () => {
                 <div className="flex gap-3 mt-6">
                   <button
                     onClick={handleLater}
-                    className="flex-1 rounded-lg border border-gray-600 px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-800"
+                    className="flex-1 flex items-center justify-center gap-1 rounded-lg border border-gray-600 px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-800"
                   >
-                    Cancel
+                    <span>Cancel</span> <MdCancel color="rgb(250, 109, 109)" size={15} />
                   </button>
                   <button
                     onClick={() => setTelegramStep(2)}
-                    className="flex-1 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-3 text-sm font-medium text-white hover:from-blue-600 hover:to-blue-800"
+                    className="flex-1 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-3 text-sm font-medium text-white hover:from-blue-600 hover:to-blue-800 flex items-center justify-center gap-1"
                   >
-                    I've Done This
+                    <span>I've Done This</span> <GiConfirmed color="rgb(135, 255, 135)" size={15} />
                   </button>
+                </div>
+
+                <div className="mt-2 border-t border-gray-800">
+                  <div className="flex items-center justify-center mb-2">
+                    <span className="inline-flex h-5 w-5 text-red-500 animate-pulse drop-shadow-lg">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                      </svg>
+                    </span>
+                    <p className="text-sm font-bold text-red-500 drop-shadow-md ml-2 uppercase tracking-wide animate-pulse">
+                      Important
+                    </p>
+                  </div>
+                  <p className="text-sm text-center text-gray-300 before:content-['➜'] before:text-red-500 before:mr-2">
+                    <span className="bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent font-semibold drop-shadow-md">
+                      You must complete this step
+                    </span>
+                    &nbsp;to access our platform&apos;s features, including
+                    subscribing to an influencer.
+                  </p>
                 </div>
               </div>
             ) : (
@@ -389,9 +464,10 @@ const Header = () => {
                       className="w-full px-2 py-3 rounded-lg bg-gray-800 text-white focus:outline-none"
                     />
                   </div>
-                  <p className="text-sm text-gray-400 mt-2">
-                    Must match your exact Telegram username
-                  </p>
+                  <div className="text-sm text-gray-400 mt-2 flex items-center gap-1">
+                    <OctagonAlert size={15} color="red" />{" "}
+                    <span>Must match exactly with your Telegram username</span>
+                  </div>
                 </div>
 
                 {errorMessage && (
@@ -403,9 +479,9 @@ const Header = () => {
                 <div className="flex gap-3 mt-6">
                   <button
                     onClick={() => setTelegramStep(1)}
-                    className="flex-1 rounded-lg border border-gray-600 px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-800"
+                    className="flex items-center justify-center gap-1 flex-1 rounded-lg border border-gray-600 px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-800"
                   >
-                    Back
+                    <FaLongArrowAltLeft size={15} /> <span>Back</span>
                   </button>
                   <button
                     onClick={handleSubmit}
@@ -438,9 +514,9 @@ const Header = () => {
                         </div>
                       </div>
                     )}
-                    <span className={isSubmitting ? "invisible" : ""}>
-                      Verify & Continue
-                    </span>
+                    <div className={isSubmitting ? "invisible" : "flex items-center justify-center gap-1"}>
+                      <span>Verify & Continue</span> <IoShieldCheckmark size={15} color="rgb(135, 255, 135)" />
+                    </div>
                   </button>
                 </div>
               </div>

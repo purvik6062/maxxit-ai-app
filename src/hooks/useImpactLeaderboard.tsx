@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 interface CryptoAgent {
   _id: string;
@@ -15,36 +15,41 @@ export const useImpactLeaderboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchLeaderboard = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch("/api/get-impact-leaderboard");
+  const fetchLeaderboard = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/get-impact-leaderboard");
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (!data.success && data.error) {
-          throw new Error(
-            data.error.message || "Failed to fetch leaderboard data"
-          );
-        }
-
-        setAgents(data.data || []);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "An unexpected error occurred"
-        );
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    };
 
-    fetchLeaderboard();
+      const data = await response.json();
+
+      if (!data.success && data.error) {
+        throw new Error(
+          data.error.message || "Failed to fetch leaderboard data"
+        );
+      }
+
+      setAgents(data.data || []);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "An unexpected error occurred"
+      );
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return { agents, loading, error };
+  // Add this refreshData function to refetch data
+  const refreshData = () => {
+    fetchLeaderboard();
+  };
+
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [fetchLeaderboard]);
+
+  return { agents, loading, error, refreshData };
 };
