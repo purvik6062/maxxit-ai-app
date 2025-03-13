@@ -18,38 +18,38 @@ export const useImpactLeaderboard = () => {
   const fetchLeaderboard = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/get-impact-leaderboard");
-
+      const response = await fetch("/api/get-impact-leaderboard", {
+        cache: "no-store",
+      });
+  
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
+  
       const data = await response.json();
-
+      console.log("ImpactLeaderboard API response:", data);
+  
       if (!data.success && data.error) {
-        throw new Error(
-          data.error.message || "Failed to fetch leaderboard data"
-        );
+        throw new Error(data.error.message || "Failed to fetch leaderboard data");
       }
-
+  
       setAgents(data.data || []);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An unexpected error occurred"
-      );
+      console.error("ImpactLeaderboard fetch error:", err);
+      setError(err instanceof Error ? err.message : "An unexpected error occurred");
+      throw err; // Re-throw to catch in handleInfluencerAdded
     } finally {
       setLoading(false);
     }
   }, []);
-
-  // Add this refreshData function to refetch data
-  const refreshData = () => {
-    fetchLeaderboard();
-  };
+  
+  const refreshData = useCallback(async () => {
+    await fetchLeaderboard();
+  }, [fetchLeaderboard]);
 
   useEffect(() => {
     fetchLeaderboard();
-  }, [fetchLeaderboard]);
+  }, []);
 
   return { agents, loading, error, refreshData };
 };

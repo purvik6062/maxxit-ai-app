@@ -28,9 +28,6 @@ export async function POST(request: Request) {
         error: { message: 'Influencer with this handle already exists' } 
       }, { status: 400 });
     }
-
-    // Get the current count to determine the next ID
-    const count = await collection.countDocuments();
     
     // Create new influencer
     const newInfluencer = {
