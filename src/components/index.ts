@@ -24,6 +24,9 @@ import Setting from "./Body/Setting";
 import AddTokenPair from "./Body/AddTokenPair";
 import Trading from "./Body/Trading";
 
+import MainHeader from "./Header/MainHeader";
+import UserProfile from "./UserProfile/UserProfile";
+
 export {
   Header,
   Footer,
@@ -45,5 +48,7 @@ export {
   AddTokenPair,
   Trading,
   Loader,
-  Mindshare
+  Mindshare,
+  MainHeader,
+  UserProfile,
 };
