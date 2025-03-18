@@ -113,13 +113,13 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                   <div className="text-right">
                     <div className="text-sm text-slate-400">Heartbeat</div>
                     <div className="text-xl font-bold bg-gradient-to-r from-blue-400 to-blue-200 bg-clip-text text-transparent">
-                      {agent.heartbeat}
+                      {agent.heartbeat ?? "--"}
                     </div>
                   </div>
                   <div className="w-[5rem] h-2 bg-white/70 rounded-full">
                     <div
-                      className="h-full bg-gradient-to-r from-blue-400 to-gray-500 rounded-full"
-                      style={{ width: `${agent.heartbeat}%` }}
+                      className="h-full bg-gradient-to-r from-blue-400 to-cyan-500 rounded-full"
+                      style={{ width: agent.heartbeat ? `${agent.heartbeat}%` : '0%' }}
                     />
                   </div>
                   <button

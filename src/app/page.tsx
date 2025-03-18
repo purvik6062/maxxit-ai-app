@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "react-toastify";
 import { useAccount } from "wagmi";
 import { useCredits } from "@/context/CreditsContext";
@@ -23,6 +23,7 @@ const HomePage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [impactRefreshData, setImpactRefreshData] = useState<(() => void) | null>(null);
   const [heartbeatRefreshData, setHeartbeatRefreshData] = useState<(() => void) | null>(null);
+  const addInfluencerButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const fetchSubscribedHandles = async () => {
@@ -89,27 +90,15 @@ const HomePage: React.FC = () => {
     }
   }, [address, updateCredits]);
 
-  useEffect(() => {
-    if (isModalOpen) {
-      // Prevent scrolling when modal is open
-      document.body.style.overflow = "hidden";
-      document.body.style.width = "100%";
-    } else {
-      // Re-enable scrolling when modal is closed
-      document.body.style.overflow = "unset";
-      document.body.style.width = "auto";
-    }
-
-    // Cleanup function to ensure we reset the styles when component unmounts
-    return () => {
-      document.body.style.overflow = "unset";
-      document.body.style.width = "auto";
-    };
-  }, [isModalOpen]);
-
   const handleInfluencerAdded = useCallback(async () => {
     console.log("handleInfluencerAdded called", { impactRefreshData, heartbeatRefreshData });
     setIsModalOpen(false);
+    
+    // Scroll back to Add Influencer button
+    if (addInfluencerButtonRef.current) {
+      addInfluencerButtonRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    
     try {
       const impactPromise = typeof impactRefreshData === "function" ? impactRefreshData() : Promise.resolve();
       const heartbeatPromise = typeof heartbeatRefreshData === "function" ? heartbeatRefreshData() : Promise.resolve();
@@ -161,6 +150,7 @@ const HomePage: React.FC = () => {
           </div>
           <div className="mt-6 flex justify-center">
             <button
+              ref={addInfluencerButtonRef}
               onClick={() => setIsModalOpen(true)}
               className="group relative bg-gradient-to-r from-blue-600/50 to-blue-600/30 backdrop-blur-sm border border-blue-400/30 rounded-xl overflow-hidden transition-all duration-300 px-6 py-3"
             >

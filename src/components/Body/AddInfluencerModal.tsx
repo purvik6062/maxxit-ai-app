@@ -3,6 +3,7 @@ import { X, User, MessageSquare, Loader2 } from "lucide-react";
 import { FaTelegram, FaUserPlus } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { useAccount } from "wagmi";
+import { useCredits } from "@/context/CreditsContext";
 import "../../app/css/add_influencer.css";
 
 interface AddInfluencerModalProps {
@@ -23,6 +24,8 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
   const [handleError, setHandleError] = useState<string | null>(null); // New state for validation error
   const { address } = useAccount();
 
+  const { updateCredits } = useCredits();
+
    useEffect(() => {
       if (isOpen) {
         // Prevent scrolling when modal is open
@@ -41,37 +44,46 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
       };
     }, [isOpen]);
 
-  const validateTwitterHandle = async (twitterHandle: string) => {
-    setIsValidating(true);
-    setHandleError(null);
-    try {
-      const response = await fetch("/api/validate-twitter-handle", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ handle: twitterHandle }),
-        cache: "no-store",
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.exists) {
-        throw new Error("Twitter handle does not exist or is invalid");
+    const validateTwitterHandle = async (twitterHandle: string) => {
+      setIsValidating(true);
+      setHandleError(null);
+      try {
+        const response = await fetch("/api/validate-twitter-handle", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ handle: twitterHandle, walletAddress: address }),
+          cache: "no-store",
+        });
+    
+        const data = await response.json();
+    
+        if (!data.success) {
+          // Display specific error message from the API
+          toast.error(data.error || "Failed to validate Twitter handle", {
+            position: "top-center",
+          });
+          return false;
+        }
+    
+        if (!data.exists) {
+          toast.error("Twitter handle does not exist or is invalid", {
+            position: "top-center",
+          });
+          return false;
+        }
+    
+        return true;
+      } catch (error) {
+        toast.error("An unexpected error occurred while validating the handle", {
+          position: "top-center",
+        });
+        return false;
+      } finally {
+        setIsValidating(false);
       }
-
-      return true;
-    } catch (error) {
-      setHandleError(
-        error instanceof Error
-          ? error.message
-          : "Failed to validate Twitter handle"
-      );
-      return false;
-    } finally {
-      setIsValidating(false);
-    }
-  };
+    };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,19 +125,23 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
           impactFactor: null,
           heartbeat: null,
           createdAt: new Date().toISOString(),
+          walletAddress: address,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error?.message || "Failed to add influencer");
+        toast.error(data.error || "Failed to validate Twitter handle", {
+          position: "top-center",
+        });
       }
 
       toast.success("Influencer added successfully!", {
         position: "top-center",
       });
 
+      await updateCredits();
       setName("");
       setHandle("");
       onSuccess();

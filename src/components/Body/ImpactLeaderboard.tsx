@@ -114,12 +114,12 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                   <div className="text-right">
                     <div className="text-sm text-slate-400">Impact Factor</div>
                     <div className="text-xl font-bold bg-gradient-to-r from-blue-400 to-blue-200 bg-clip-text text-transparent">
-                      {agent.impactFactor}
+                    {agent.impactFactor ?? "--"}
                     </div>
                   </div>
                   <div className="w-[5rem] h-2 bg-white/70 rounded-full">
                     <div
-                      className="h-full bg-gradient-to-r from-blue-400 to-gray-500 rounded-full"
+                      className="h-full bg-gradient-to-r from-blue-400 to-cyan-500 rounded-full"
                       style={{ width: agent.impactFactor ? `${agent.impactFactor}%` : '0%' }}
                     />
                   </div>
