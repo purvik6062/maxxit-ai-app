@@ -3,6 +3,7 @@ import { FaTrophy, FaCrown } from "react-icons/fa";
 import { TrendingUp, Award, BarChart2 } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import { Loader2, Clock, AlertCircle, AlertTriangle, SearchX, Info } from "lucide-react";
 import { useHeartbeatLeaderboard } from "@/hooks/useHeartbeatLeaderboard";
 
 interface HeartbeatDashboardProps {
@@ -10,6 +11,7 @@ interface HeartbeatDashboardProps {
   subscribingHandle: string | null;
   onSubscribe: (handle: string) => void;
   setRefreshData: (refresh: () => void) => void;
+  searchText: string; // Add searchText to props
 }
 
 const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
@@ -17,6 +19,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
   subscribingHandle,
   onSubscribe,
   setRefreshData,
+  searchText,
 }) => {
   const container = useRef(null);
   gsap.registerPlugin(useGSAP);
@@ -51,40 +54,83 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
     { scope: container, dependencies: [loading, agents] }
   );
 
-  const renderAgentsList = () => {
-    if (loading) {
-      return (
-        <div className="flex flex-col items-center justify-center min-h-[200px]">
-          <div className="relative w-24 h-24">
-            <div className="absolute inset-0 rounded-full border-4 border-blue-500/20"></div>
-            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-500 animate-spin"></div>
-            <div className="absolute inset-4 rounded-full bg-blue-500/20 animate-pulse"></div>
-            <div className="absolute inset-[42%] rounded-full bg-blue-400"></div>
-          </div>
-          <div className="text-center space-y-2">
-            <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-white bg-clip-text text-transparent">
-              Loading Heartbeats
-            </h3>
-            <p className="text-slate-400">Fetching market pulse data...</p>
-          </div>
-        </div>
-      );
-    }
+    // Filter agents based on searchText
+    const filteredAgents = searchText
+    ? agents.filter(
+        (agent) =>
+          agent.name.toLowerCase().includes(searchText.toLowerCase()) ||
+          agent.handle.toLowerCase().includes(searchText.toLowerCase())
+      )
+    : agents;
 
-    if (error) {
-      return (
-        <div className="text-center p-8 rounded-xl border border-red-500/20 bg-gradient-to-b from-red-500/10 to-transparent backdrop-blur-sm">
-          <div className="text-red-400 text-2xl font-bold mb-4">
-            Error Loading Heartbeat Data
+  const renderAgentsList = () => {
+    // Consistent dimensions and styling
+  const cardStyles = "flex flex-col items-center justify-center min-h-[300px] w-full max-w-2xl mx-auto p-8 rounded-2xl shadow-xl border border-gray-800/50 backdrop-blur-lg";
+
+  if (loading) {
+    return (
+      <div className={`${cardStyles} bg-gradient-to-br from-gray-900 to-blue-900/30`}>
+        <div className="relative w-16 h-16 mb-6">
+          <div className="absolute inset-0 rounded-full border-4 border-blue-500/30 animate-spin"></div>
+          <div className="absolute inset-2 rounded-full border-2 border-transparent border-t-cyan-400 animate-spin [animation-delay:-0.2s]"></div>
+          <div className="absolute inset-4 flex items-center justify-center">
+            <Loader2 className="w-6 h-6 text-blue-400 animate-spin" />
           </div>
-          <div className="text-red-300/80 max-w-md mx-auto">{error}</div>
         </div>
-      );
-    }
+        <div className="text-center space-y-3">
+          <h3 className="text-2xl font-semibold tracking-tight bg-gradient-to-r from-blue-300 via-cyan-200 to-white bg-clip-text text-transparent">
+            Loading Heartbeats
+          </h3>
+          <p className="text-gray-400 text-sm flex items-center justify-center gap-2">
+            <Clock className="w-4 h-4 text-cyan-400" />
+            Fetching market pulse data...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={`${cardStyles} bg-gradient-to-br from-gray-900 to-red-900/20`}>
+        <div className="mb-6">
+          <AlertCircle className="w-16 h-16 text-red-400 animate-pulse" />
+        </div>
+        <div className="text-center space-y-3">
+          <h3 className="text-2xl font-semibold tracking-tight text-red-300">
+            Error Loading Heartbeat Data
+          </h3>
+          <p className="text-red-400/80 text-sm max-w-md flex items-center justify-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-red-400" />
+            {error}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (filteredAgents.length === 0 && searchText) {
+    return (
+      <div className={`${cardStyles} bg-gradient-to-br from-gray-900 to-gray-800/50`}>
+        <div className="mb-6">
+          <SearchX className="w-12 h-12 text-gray-400 animate-bounce [animation-duration:1.5s]" />
+        </div>
+        <div className="text-center space-y-3">
+          <h3 className="text-2xl font-semibold tracking-tight text-gray-300">
+            No Matching Agents Found
+          </h3>
+          <p className="text-gray-400 text-sm flex items-center justify-center gap-2">
+            <Info className="w-4 h-4 text-gray-400" />
+            Try adjusting your search term
+          </p>
+        </div>
+      </div>
+    );
+  }
 
     return (
       <div className="grid gap-4">
-        {agents.map((agent, index) => {
+        {filteredAgents.map((agent, index) => {
           const cleanHandle = agent.handle.replace("@", "");
           const isSubscribed = subscribedHandles.includes(cleanHandle);
           const isCurrentlySubscribing = subscribingHandle === cleanHandle;
@@ -205,8 +251,8 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
             </div>
           </div>
         </div>
-        <div className="relative bg-gray-900/80 min-h-[50vh] pb-12">
-          <div className="max-w-7xl mx-auto px-[1rem] pb-12">{renderAgentsList()}</div>
+        <div className="relative bg-gray-900/80 pb-12">
+          <div className="max-w-7xl mx-auto px-[1rem]">{renderAgentsList()}</div>
         </div>
       </div>
     </div>

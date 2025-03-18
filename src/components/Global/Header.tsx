@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Search } from "lucide-react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { ToastContainer, toast } from "react-toastify";
 import { OctagonAlert } from "lucide-react";
@@ -9,13 +8,18 @@ import { MdCancel } from "react-icons/md";
 import { GiConfirmed } from "react-icons/gi";
 import { FaLongArrowAltLeft } from "react-icons/fa";
 import "react-toastify/dist/ReactToastify.css";
+import { Search, X } from "lucide-react"; // or whatever icon library you're using
 import "@rainbow-me/rainbowkit/styles.css";
 import "../../app/css/input.css";
 import { useAccount } from "wagmi";
-import { X } from "lucide-react";
 import { useCredits } from "@/context/CreditsContext";
 
-const Header = () => {
+interface HeaderProps {
+  searchText: string;
+  setSearchText: (text: string) => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
   const [view, setView] = useState("overview");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false);
@@ -146,7 +150,7 @@ const Header = () => {
         position: "top-center",
         autoClose: 4000,
       });
-      await updateCredits(); // Update credits after successful registration 
+      await updateCredits(); // Update credits after successful registration
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Registration failed";
@@ -167,10 +171,10 @@ const Header = () => {
     <div className="techwave_fn_header">
       <ToastContainer />
       <div className="flex w-full justify-between items-center border border-gray-700">
-        <nav className="flex-1 min-w-0">
+        <nav className="flex-1">
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex justify-between h-16">
-              <div className="flex items-center min-w-0 space-x-2">
+              <div className="flex items-center space-x-2">
                 <a className="fn_logo flex-shrink-0">
                   <span className="full_logo">
                     <img
@@ -234,14 +238,31 @@ const Header = () => {
                   )}
                 </div>
               </div>
+
               <div className="flex items-center flex-shrink-0">
-                <div className="relative mx-4">
+                <div className="relative mx-4 w-full max-w-md flex items-center overflow-hidden">
                   <input
                     type="text"
                     placeholder="Search accounts..."
-                    className="w-12 min-w-[12rem] px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500"
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    className="w-full px-4 py-2 rounded-l-full bg-gray-900 text-white border border-blue-500/50 focus:outline-none focus:border-blue-600 transition-all duration-300 overflow-x-auto whitespace-nowrap"
+                    style={{ minWidth: "0" }}
                   />
-                  <Search className="absolute right-3 top-2.5 text-gray-400 w-5 h-5" />
+                  <div className="flex items-center bg-gray-900 border border-l-0 border-blue-500/50 rounded-r-full px-3 py-2 transition-all duration-300">
+                    {searchText ? (
+                      <button
+                        onClick={() => setSearchText("")}
+                        className="flex items-center justify-center w-8 h-8 bg-blue-900/50 rounded-full p-1 text-gray-400 hover:text-red-400 transition-colors duration-200"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    ) : (
+                      <div className="flex items-center justify-center w-8 h-8 bg-blue-900/50 rounded-full p-1">
+                        <Search className="text-gray-400 hover:text-blue-400 transition-colors duration-200 w-5 h-5" />
+                      </div>
+                    )} 
+                  </div>
                 </div>
               </div>
             </div>
@@ -405,13 +426,15 @@ const Header = () => {
                     onClick={handleLater}
                     className="flex-1 flex items-center justify-center gap-1 rounded-lg border border-gray-600 px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-800"
                   >
-                    <span>Cancel</span> <MdCancel color="rgb(250, 109, 109)" size={15} />
+                    <span>Cancel</span>{" "}
+                    <MdCancel color="rgb(250, 109, 109)" size={15} />
                   </button>
                   <button
                     onClick={() => setTelegramStep(2)}
                     className="flex-1 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-3 text-sm font-medium text-white hover:from-blue-600 hover:to-blue-800 flex items-center justify-center gap-1"
                   >
-                    <span>I've Done This</span> <GiConfirmed color="rgb(135, 255, 135)" size={15} />
+                    <span>I've Done This</span>{" "}
+                    <GiConfirmed color="rgb(135, 255, 135)" size={15} />
                   </button>
                 </div>
 
@@ -514,8 +537,15 @@ const Header = () => {
                         </div>
                       </div>
                     )}
-                    <div className={isSubmitting ? "invisible" : "flex items-center justify-center gap-1"}>
-                      <span>Verify & Continue</span> <IoShieldCheckmark size={15} color="rgb(135, 255, 135)" />
+                    <div
+                      className={
+                        isSubmitting
+                          ? "invisible"
+                          : "flex items-center justify-center gap-1"
+                      }
+                    >
+                      <span>Verify & Continue</span>{" "}
+                      <IoShieldCheckmark size={15} color="rgb(135, 255, 135)" />
                     </div>
                   </button>
                 </div>

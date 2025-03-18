@@ -1,3 +1,4 @@
+// pages/HomePage.tsx
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -24,6 +25,7 @@ const HomePage: React.FC = () => {
   const [impactRefreshData, setImpactRefreshData] = useState<(() => void) | null>(null);
   const [heartbeatRefreshData, setHeartbeatRefreshData] = useState<(() => void) | null>(null);
   const addInfluencerButtonRef = useRef<HTMLButtonElement>(null);
+  const [searchText, setSearchText] = useState("");
 
   useEffect(() => {
     const fetchSubscribedHandles = async () => {
@@ -44,61 +46,63 @@ const HomePage: React.FC = () => {
     fetchSubscribedHandles();
   }, [address]);
 
-  const handleSubscribe = useCallback(async (handle: string) => {
-    if (!address) {
-      toast.error("Please connect your wallet first", {
-        position: "top-center",
-      });
-      return;
-    }
-
-    const cleanHandle = handle.replace("@", "");
-    setSubscribingHandle(cleanHandle);
-
-    try {
-      const response = await fetch("/api/subscribe-influencer", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          walletAddress: address,
-          influencerHandle: cleanHandle,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error?.message || "Failed to subscribe");
+  const handleSubscribe = useCallback(
+    async (handle: string) => {
+      if (!address) {
+        toast.error("Please connect your wallet first", {
+          position: "top-center",
+        });
+        return;
       }
 
-      setSubscribedHandles((prev) => [...prev, cleanHandle]);
-      toast.success("Successfully subscribed to influencer!", {
-        position: "top-center",
-      });
-      await updateCredits();
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to subscribe",
-        {
-          position: "top-center",
+      const cleanHandle = handle.replace("@", "");
+      setSubscribingHandle(cleanHandle);
+
+      try {
+        const response = await fetch("/api/subscribe-influencer", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            walletAddress: address,
+            influencerHandle: cleanHandle,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error?.message || "Failed to subscribe");
         }
-      );
-    } finally {
-      setSubscribingHandle(null);
-    }
-  }, [address, updateCredits]);
+
+        setSubscribedHandles((prev) => [...prev, cleanHandle]);
+        toast.success("Successfully subscribed to influencer!", {
+          position: "top-center",
+        });
+        await updateCredits();
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : "Failed to subscribe",
+          {
+            position: "top-center",
+          }
+        );
+      } finally {
+        setSubscribingHandle(null);
+      }
+    },
+    [address, updateCredits]
+  );
 
   const handleInfluencerAdded = useCallback(async () => {
     console.log("handleInfluencerAdded called", { impactRefreshData, heartbeatRefreshData });
     setIsModalOpen(false);
-    
-    // Scroll back to Add Influencer button
+
     if (addInfluencerButtonRef.current) {
-      addInfluencerButtonRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      addInfluencerButtonRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
     }
-    
+
     try {
       const impactPromise = typeof impactRefreshData === "function" ? impactRefreshData() : Promise.resolve();
       const heartbeatPromise = typeof heartbeatRefreshData === "function" ? heartbeatRefreshData() : Promise.resolve();
@@ -127,7 +131,7 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#020617]">
-      <Header />
+      <Header searchText={searchText} setSearchText={setSearchText} />
       <main className="flex-grow px-6 py-8 max-w-screen-2xl mx-auto w-full">
         <div className="flex flex-col gap-8">
           <div className="flex flex-col lg:flex-row gap-6">
@@ -137,6 +141,7 @@ const HomePage: React.FC = () => {
                 subscribingHandle={subscribingHandle}
                 onSubscribe={handleSubscribe}
                 setRefreshData={setImpactRefreshData}
+                searchText={searchText} // Pass searchText to ImpactLeaderboard
               />
             </div>
             <div className="lg:w-[50%] bg-gray-800/50 rounded-xl backdrop-blur-sm border border-gray-700/50 shadow-lg h-fit">
@@ -145,6 +150,7 @@ const HomePage: React.FC = () => {
                 subscribingHandle={subscribingHandle}
                 onSubscribe={handleSubscribe}
                 setRefreshData={setHeartbeatRefreshData}
+                searchText={searchText} // Pass searchText to ImpactLeaderboard
               />
             </div>
           </div>
@@ -155,7 +161,7 @@ const HomePage: React.FC = () => {
               className="group relative bg-gradient-to-r from-blue-600/50 to-blue-600/30 backdrop-blur-sm border border-blue-400/30 rounded-xl overflow-hidden transition-all duration-300 px-6 py-3"
             >
               <div className="flex items-center gap-3">
-                <IoPersonAdd color="rgb(73, 175, 243)"/>
+                <IoPersonAdd color="rgb(73, 175, 243)" />
                 <span className="text-lg font-bold text-white group-hover:text-blue-200 transition-colors duration-300">
                   Add New Influencer
                 </span>
