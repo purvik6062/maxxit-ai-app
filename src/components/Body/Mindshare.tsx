@@ -8,6 +8,7 @@ import {
   FaCheck,
   FaRobot,
 } from "react-icons/fa";
+import { Loader2 } from "lucide-react";
 import "../../../public/css/mindshare.css";
 import { motion } from "framer-motion";
 import { Tooltip } from "react-tooltip";
@@ -149,17 +150,23 @@ export default function UserMetricsDashboard() {
     );
   };
 
+  const cardStyles =
+    "flex flex-col items-center justify-center min-h-[300px] w-[95vw] mx-auto p-8 rounded-2xl shadow-xl border border-gray-800/50 backdrop-blur-lg gap-5";
+
   if (loading) {
     return (
-        <div className="flex flex-col items-center justify-center min-h-[400px]">
-        <div className="relative w-24 h-24">
-          <div className="absolute inset-0 rounded-full border-4 border-blue-500/20"></div>
-          <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-500 animate-spin"></div>
-          <div className="absolute inset-4 rounded-full bg-blue-500/20 animate-pulse"></div>
-          <div className="absolute inset-[42%] rounded-full bg-blue-400"></div>
+      <div
+        className={`${cardStyles} bg-gradient-to-br from-gray-900 to-blue-900/30`}
+      >
+        <div className="relative w-full mb-6">
+          <div className="absolute inset-0 rounded-full border-4 border-blue-500/30 animate-spin"></div>
+          <div className="absolute inset-2 rounded-full border-2 border-transparent border-t-cyan-400 animate-spin [animation-delay:-0.2s]"></div>
+          <div className="absolute inset-4 flex items-center justify-center">
+            <Loader2 className="w-6 h-6 text-blue-400 animate-spin" />
+          </div>
         </div>
-        <div className="text-center space-y-2">
-          <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-white bg-clip-text text-transparent">
+        <div className="text-center space-y-3">
+          <h3 className="text-2xl font-semibold tracking-tight bg-gradient-to-r from-blue-300 via-cyan-200 to-white bg-clip-text text-transparent">
             Loading Mindful Mindshares...
           </h3>
         </div>

@@ -23,7 +23,7 @@ export default function RootLayout({
           <div className="techwave_fn_wrapper">
             <div className="techwave_fn_wrap">
               <CreditsProvider>
-                <MainHeader />
+                {/* <MainHeader /> */}
                 {children}
               </CreditsProvider>
             </div>
