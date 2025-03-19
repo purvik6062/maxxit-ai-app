@@ -177,7 +177,7 @@ const HomePage: React.FC = () => {
                 subscribingHandle={subscribingHandle}
                 onSubscribe={handleSubscribe}
                 setRefreshData={setImpactRefreshData}
-                searchText={searchText} // Pass searchText to ImpactLeaderboard
+                searchText={searchText} 
               />
             </div>
             <div className="lg:w-[50%] bg-gray-800/50 rounded-xl backdrop-blur-sm border border-gray-700/50 shadow-lg h-fit">
@@ -186,7 +186,7 @@ const HomePage: React.FC = () => {
                 subscribingHandle={subscribingHandle}
                 onSubscribe={handleSubscribe}
                 setRefreshData={setHeartbeatRefreshData}
-                searchText={searchText} // Pass searchText to ImpactLeaderboard
+                searchText={searchText} 
               />
             </div>
           </div>
