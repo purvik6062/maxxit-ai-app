@@ -1,17 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
 import { User, Wallet } from "lucide-react";
 import type { UserProfile } from "./types";
 import { useAccount } from "wagmi";
 import { FaTelegramPlane } from "react-icons/fa";
+import { CopyCheckIcon, CheckCircle } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 interface ProfileHeaderProps {
   profile: UserProfile;
 }
 
 export function ProfileHeader({ profile }: ProfileHeaderProps) {
+  const [copied, setCopied] = useState(false);
   const { address } = useAccount();
   return (
-    <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl shadow-lg p-8 mb-8">
+    <div className="bg-gradient-to-br from-cyan-600 to-blue-700 rounded-xl shadow-lg p-8 mb-8">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-6">
           <div className="bg-white/10 backdrop-blur-sm p-4 rounded-full">
@@ -20,8 +23,8 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
           <div className="flex space-x-8">
             <div>
               <div className="flex items-center space-x-2">
-                <FaTelegramPlane className="w-5 h-5 text-indigo-200" />
-                <span className="text-sm font-medium text-indigo-200">
+                <FaTelegramPlane className="w-5 h-5 text-indigo-100" />
+                <span className="text-sm font-medium text-indigo-100">
                   Telegram ID
                 </span>
               </div>
@@ -31,20 +34,38 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
             </div>
             {profile.walletAddress && (
               <div>
-                <div className="flex items-center space-x-2 text-indigo-200">
+                <div className="flex items-center space-x-2 text-indigo-100">
                   <Wallet className="w-5 h-5" />
                   <span className="font-medium">Wallet</span>
                 </div>
-                <span className="font-mono text-lg bg-black/20 px-4 py-1 rounded-full text-white">
-                  {profile.walletAddress.slice(0, 6)}...
-                  {profile.walletAddress.slice(-4)}
-                </span>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="font-mono text-lg bg-black/20 px-4 py-1 rounded-full text-white">
+                    {profile.walletAddress.slice(0, 6)}...
+                    {profile.walletAddress.slice(-4)}
+                  </span>
+                  {/* Copy to Clipboard Icon */}
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(profile.walletAddress);
+                      setCopied(true);
+                      toast.success("Address copied!");
+                      setTimeout(() => setCopied(false), 2000); // Revert icon after 2s
+                    }}
+                    className="cursor-pointer"
+                  >
+                    {copied ? (
+                      <CheckCircle size={16} color="rgb(38, 250, 84)" />
+                    ) : (
+                      <CopyCheckIcon size={16} color="#ffffff" />
+                    )}
+                  </button>
+                </div>
               </div>
             )}
           </div>
         </div>
-        <div className="bg-indigo-500/30 px-6 py-3 rounded-xl">
-          <div className="text-sm text-indigo-200">Credits</div>
+        <div className="bg-blue-500/30 px-6 py-3 rounded-xl">
+          <div className="text-sm text-indigo-100">Credits</div>
           <div className="text-2xl font-bold text-white">{profile.credits}</div>
         </div>
       </div>

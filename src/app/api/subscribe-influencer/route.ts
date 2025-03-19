@@ -42,7 +42,7 @@ export async function POST(request: Request): Promise<Response> {
         const cleanTelegramId = user.telegramId.replace('@', '');
 
         // Check if user is already subscribed
-        if (user.subscribedAccounts?.includes(cleanHandle)) {
+        if (user.subscribedAccounts?.some((account: { twitterHandle: any; }) => account.twitterHandle === cleanHandle)) {
           throw new Error("Already subscribed to this influencer");
         }
 
@@ -73,11 +73,21 @@ export async function POST(request: Request): Promise<Response> {
         }
 
         // 3. Update user document
+        const subscriptionDate = new Date();
+        const expiryDate = new Date(subscriptionDate);
+        expiryDate.setMonth(expiryDate.getMonth() + 1); // Add one month to the subscription date
+        
         await usersCollection.updateOne(
           { walletAddress },
           {
             $inc: { credits: -SUBSCRIPTION_COST },
-            $addToSet: { subscribedAccounts: cleanHandle },
+            $addToSet: { 
+              subscribedAccounts: {
+                twitterHandle: cleanHandle,
+                subscriptionDate: subscriptionDate,
+                expiryDate: expiryDate
+              } 
+            },
             $set: { updatedAt: new Date() }
           },
           { session }

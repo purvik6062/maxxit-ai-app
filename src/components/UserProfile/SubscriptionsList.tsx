@@ -25,8 +25,8 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
         </div>
         <div className="flex items-center space-x-8">
           <div className="flex items-center space-x-4">
-            <div className="bg-indigo-900/50 p-3 rounded-xl">
-              <Users className="w-6 h-6 text-indigo-400" />
+            <div className="bg-blue-900/50 p-3 rounded-xl">
+              <Users className="w-6 h-6 text-blue-400" />
             </div>
             <div>
               <p className="text-sm text-gray-400">Active Subscriptions</p>
@@ -36,8 +36,8 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <div className="bg-indigo-900/50 p-3 rounded-xl">
-              <BarChart2 className="w-6 h-6 text-indigo-400" />
+            <div className="bg-blue-900/50 p-3 rounded-xl">
+              <BarChart2 className="w-6 h-6 text-blue-400" />
             </div>
             <div>
               <p className="text-sm text-gray-400">Total Leads</p>
@@ -55,8 +55,8 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center space-x-3">
-                <div className="bg-indigo-900/50 p-2 rounded-lg">
-                  <TrendingUp className="w-6 h-6 text-indigo-400" />
+                <div className="bg-blue-900/50 p-2 rounded-lg">
+                  <TrendingUp className="w-6 h-6 text-blue-400" />
                 </div>
                 <div>
                   <h4 className="text-lg font-semibold text-gray-100">

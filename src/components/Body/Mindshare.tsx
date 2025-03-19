@@ -150,25 +150,12 @@ export default function UserMetricsDashboard() {
     );
   };
 
-  const cardStyles =
-    "flex flex-col items-center justify-center min-h-[300px] w-[95vw] mx-auto p-8 rounded-2xl shadow-xl border border-gray-800/50 backdrop-blur-lg gap-5";
-
   if (loading) {
     return (
-      <div
-        className={`${cardStyles} bg-gradient-to-br from-gray-900 to-blue-900/30`}
-      >
-        <div className="relative w-full mb-6">
-          <div className="absolute inset-0 rounded-full border-4 border-blue-500/30 animate-spin"></div>
-          <div className="absolute inset-2 rounded-full border-2 border-transparent border-t-cyan-400 animate-spin [animation-delay:-0.2s]"></div>
-          <div className="absolute inset-4 flex items-center justify-center">
-            <Loader2 className="w-6 h-6 text-blue-400 animate-spin" />
-          </div>
-        </div>
-        <div className="text-center space-y-3">
-          <h3 className="text-2xl font-semibold tracking-tight bg-gradient-to-r from-blue-300 via-cyan-200 to-white bg-clip-text text-transparent">
-            Loading Mindful Mindshares...
-          </h3>
+      <div className="min-h-[50vh] flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
+          <p className="text-gray-300">Loading Mindful Mindshares...</p>
         </div>
       </div>
     );

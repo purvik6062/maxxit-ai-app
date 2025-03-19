@@ -10,7 +10,7 @@ import { useAccount } from "wagmi";
 const LoadingState = () => (
   <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
     <div className="text-center">
-      <Loader2 className="w-12 h-12 text-indigo-500 animate-spin mx-auto mb-4" />
+      <Loader2 className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
       <p className="text-gray-300">Loading profile...</p>
     </div>
   </div>
@@ -27,8 +27,8 @@ const ErrorState = ({ message }: { message: string }) => (
 
 const EmptyState = ({ title, message }: { title: string; message: string }) => (
   <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
-    <div className="bg-yellow-900/50 text-yellow-100 p-6 rounded-lg max-w-md text-center">
-      <h2 className="text-xl font-bold mb-2">{title}</h2>
+    <div className="bg-blue-900/50 text-yellow-100 p-6 rounded-lg max-w-md text-center">
+      <h2 className="text-xl font-bold mb-2 text-white">{title}</h2>
       <p>{message}</p>
     </div>
   </div>
@@ -100,7 +100,7 @@ const UserProfile = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
-      <div className="max-w-5xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto py-12 px-4 sm:px-6 lg:px-8 mt-[8rem] profileCss">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-gray-100">Your Dashboard</h1>
         </div>
