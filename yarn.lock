@@ -6309,6 +6309,11 @@ viem@^2.1.1, viem@^2.21.0:
     webauthn-p256 "0.0.10"
     ws "8.18.0"
 
+vis-network@^9.1.9:
+  version "9.1.9"
+  resolved "https://registry.yarnpkg.com/vis-network/-/vis-network-9.1.9.tgz#8159b34e7c1570150fcc9296213d2b88ed169394"
+  integrity sha512-Ft+hLBVyiLstVYSb69Q1OIQeh3FeUxHJn0WdFcq+BFPqs+Vq1ibMi2sb//cxgq1CP7PH4yOXnHxEH/B2VzpZYA==
+
 wagmi@^2.12.8:
   version "2.14.8"
   resolved "https://registry.yarnpkg.com/wagmi/-/wagmi-2.14.8.tgz#581e66b1eb82bf4e8a5d8661818ed5c8b9331942"

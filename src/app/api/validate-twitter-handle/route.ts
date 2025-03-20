@@ -15,6 +15,8 @@ export async function POST(request: Request) {
 
     const client = await dbConnect();
     const db = client.db("ctxbt-signal-flow");
+    const db2 = client.db("test_analysis");
+    const influencer_Test_Collection = db2.collection("influencers_testing");
     const usersCollection = db.collection("users");
     const collection = db.collection("influencers_account");
 
@@ -111,14 +113,26 @@ export async function POST(request: Request) {
         '[data-testid="error-detail"]',
         '[data-testid="emptyState"]',
         'div[aria-label="Account suspended"]',
-        'div:has-text("This account doesn\'t exist")',
-        'div:has-text("User not found")',
+        // 'div:has-text("This account doesn\'t exist")',
+        // 'div:has-text("User not found")',
       ];
 
       let hasError = false;
       for (const selector of errorSelectors) {
         const element = await page.$(selector);
         if (element) {
+          hasError = true;
+          break;
+        }
+      }
+
+      const errorTexts = ["This account doesn't exist", "User not found"];
+      for (const errorText of errorTexts) {
+        const hasErrorText = await page.evaluate((text) => {
+          return document.body.innerText.includes(text);
+        }, errorText);
+
+        if (hasErrorText) {
           hasError = true;
           break;
         }
@@ -138,6 +152,8 @@ export async function POST(request: Request) {
       ];
 
       let accountExists = false;
+      let userProfileUrl: string = "";
+
       for (const selector of accountIndicators) {
         const element = await page.$(selector);
         if (element) {
@@ -148,6 +164,46 @@ export async function POST(request: Request) {
 
       // If we found positive indicators, the account exists
       if (accountExists) {
+        // Scrape the profile image URL
+        try {
+          // Try multiple selectors for the profile image
+          const profileImageSelectors = [
+            'img[data-testid="UserAvatar-Container-img"]',
+            'img[alt*="profile photo"]',
+            '.css-9pa8cd[src*="profile_images"]',
+            'a[href*="photo"] img',
+          ];
+
+          for (const imgSelector of profileImageSelectors) {
+            await page
+              .waitForSelector(imgSelector, { timeout: 2000 })
+              .catch(() => {});
+
+            const imgUrl = await page.evaluate((selector) => {
+              const img = document.querySelector(selector);
+              return img ? img.getAttribute("src") || "" : "";
+            }, imgSelector);
+
+            if (imgUrl) {
+              userProfileUrl = imgUrl;
+              break;
+            }
+          }
+
+          console.log("img url from scrapping", userProfileUrl);
+          // Store the handle and profile URL in the database
+          if (userProfileUrl) {
+            await influencer_Test_Collection.insertOne({
+              handle: username,
+              userData: {
+                userProfileUrl,
+              },
+            });
+          }
+        } catch (profileError) {
+          console.error("Error scraping profile image:", profileError);
+        }
+
         await browser.close();
         return NextResponse.json({ success: true, exists: true });
       }

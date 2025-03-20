@@ -88,12 +88,22 @@ export async function POST(request: Request) {
           }
 
           // 3. Update user document
+          const subscriptionDate = new Date();
+          const expiryDate = new Date(subscriptionDate);
+          expiryDate.setMonth(expiryDate.getMonth() + 1); // Add one month to the subscription date
+          
           await usersCollection.updateOne(
             { walletAddress },
             {
               $inc: { credits: -SUBSCRIPTION_COST },
-              $addToSet: { subscribedAccounts: cleanHandle },
-              $set: { updatedAt: new Date() },
+              $addToSet: { 
+                subscribedAccounts: {
+                  twitterHandle: cleanHandle,
+                  subscriptionDate: subscriptionDate,
+                  expiryDate: expiryDate
+                } 
+              },
+              $set: { updatedAt: new Date() }
             },
             { session }
           );

@@ -14,6 +14,7 @@ import {
   Mindshare,
   MainHeader,
 } from "../components/index";
+import SocialGraph from "@/components/Body/SocialGraph";
 import AddInfluencerModal from "../components/Body/AddInfluencerModal";
 
 const HomePage: React.FC = () => {
@@ -206,9 +207,15 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       </main>
+
+      <div className="px-6 py-8">
+        <SocialGraph />
+      </div>
+      
       <div className="px-6 py-8">
         <Mindshare />
       </div>
+
       <Footer />
       <AddInfluencerModal
         isOpen={isModalOpen}
