@@ -8,7 +8,6 @@ interface SubscriptionsListProps {
 }
 
 export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
-  // Calculate total leads across all subscriptions
   const totalLeads = subscriptions.reduce(
     (acc, sub) => acc + (sub.leadsCount || 0),
     0
