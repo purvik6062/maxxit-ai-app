@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { Network, DataSet } from "vis-network/standalone";
 import { Tooltip } from "react-tooltip";
 import { useAccount } from "wagmi";
+import { useCredits } from "@/context/CreditsContext";
 import { hover } from "framer-motion";
 
 type SubscribedAccount = {
@@ -43,13 +44,14 @@ export default function SubscribedAccountsPage() {
     nodes: [],
     edges: [],
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const networkRef = useRef<HTMLDivElement>(null);
   const networkInstance = useRef<Network | null>(null);
   const nodesDataSet = useRef<DataSet<any> | null>(null);
   const edgesDataSet = useRef<DataSet<any> | null>(null);
+  const { credits } = useCredits();
 
   // Generate a hash color from string
   const stringToColor = (str: string) => {
@@ -71,8 +73,20 @@ export default function SubscribedAccountsPage() {
   // Fetch subscribed accounts and prepare graph data
   useEffect(() => {
     const fetchSubscribedAccounts = async () => {
+      if (!address) {
+        setError("Please connect your wallet to view your subscriptions.");
+        setGraphData({ nodes: [], edges: [] }); // Clear previous data
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
       try {
         setLoading(true);
+        setError(null); // Clear any previous errors
+
         const response = await fetch(
           `/api/get-subscribed-accounts?walletAddress=${address}`
         );
@@ -148,7 +162,7 @@ export default function SubscribedAccountsPage() {
       }
     };
     fetchSubscribedAccounts();
-  }, []);
+  }, [address, credits]);
 
   // Initialize the Vis.js network graph
   useEffect(() => {
@@ -378,34 +392,6 @@ export default function SubscribedAccountsPage() {
             )}
         </div>
       )}
-
-      {/* <style jsx>{`
-        .custom-tooltip {
-          background-color: rgba(18, 24, 38, 0.95);
-          border-radius: 8px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-          overflow: hidden;
-          font-family: "Inter", sans-serif;
-          width: 250px;
-        }
-        .tooltip-header {
-          background-color: #1c2e4a;
-          padding: 8px 12px;
-          font-weight: bold;
-          font-size: 14px;
-          color: #fff;
-          border-bottom: 1px solid #2a3f5f;
-        }
-        .tooltip-content {
-          padding: 12px;
-          color: #e6e6e6;
-          font-size: 13px;
-        }
-        .tooltip-content p {
-          margin: 6px 0;
-          line-height: 1.4;
-        }
-      `}</style> */}
     </div>
   );
 }
