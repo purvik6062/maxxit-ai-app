@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { Network, DataSet } from "vis-network/standalone";
-import { Tooltip } from 'react-tooltip';
+import { Tooltip } from "react-tooltip";
 import { useAccount } from "wagmi";
 import { hover } from "framer-motion";
 
@@ -53,15 +53,18 @@ export default function SubscribedAccountsPage() {
 
   // Generate a hash color from string
   const stringToColor = (str: string) => {
-    let hash = 0;
+    let hash = 2166136261; // FNV-1a 32-bit prime offset
     for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      hash ^= str.charCodeAt(i);
+      hash *= 16777619; // FNV prime
     }
+
     let color = "#";
     for (let i = 0; i < 3; i++) {
       const value = (hash >> (i * 8)) & 0xff;
-      color += ("00" + value.toString(16)).substr(-2);
+      color += value.toString(16).padStart(2, "0");
     }
+
     return color;
   };
 
@@ -88,12 +91,8 @@ export default function SubscribedAccountsPage() {
             id: address || "current-user",
             label: "You",
             group: 1,
-            title: `<div style="background-color: #1c2e4a; padding: 8px 12px; font-weight: bold; font-size: 14px; color: #fff; border-bottom: 1px solid #2a3f5f;">Your Account</div>
-        <div style="padding: 12px; color: #e6e6e6; font-size: 13px;">
-          <p>${address}</p>
-          <p>Connected to ${subscribedAccounts.length} accounts</p>
-        </div>`,
-            size: 30,
+        title: `Your Account 🌟\nWallet: ${address}\nConnections: ${subscribedAccounts.length} accounts`,
+            size: 40,
             shape: "circle",
             image: "/img/new_logo.svg", // Default image for the user
           },
@@ -114,24 +113,13 @@ export default function SubscribedAccountsPage() {
 
             // Check if we have a valid image URL
             const hasImage =
-              account.userProfileUrl &&
-              account.userProfileUrl.trim() !== "";
+              account.userProfileUrl && account.userProfileUrl.trim() !== "";
 
             nodes.push({
               id: account.twitterHandle,
               label: account.twitterHandle,
               group: 2,
-              title: `<div style="background-color: #1c2e4a; padding: 8px 12px; font-weight: bold; font-size: 14px; color: #fff; border-bottom: 1px solid #2a3f5f;">@${
-                account.twitterHandle
-              }</div>
-        <div style="padding: 12px; color: #e6e6e6; font-size: 13px;">
-          <p>Subscribed since: ${new Date(
-            account.subscriptionDate
-          ).toLocaleDateString()}</p>
-          <p>Expires in: ${daysUntilExpiry} days</p>
-          <p>Click to view profile</p>
-          <p>Name: ${account.twitterHandle}</p>
-        </div>`,
+              title: `@${account.twitterHandle} 🐦\nSubscribed: ${new Date(account.subscriptionDate).toLocaleDateString()}\nExpires in: ${daysUntilExpiry} days\nClick to view profile`,
               size: 20 + Math.random() * 10,
               shape: hasImage ? "circularImage" : "circle", // Use circularImage only if we have an image
               ...(hasImage && { image: account.userProfileUrl }), // Only add image property if we have an image
@@ -142,12 +130,12 @@ export default function SubscribedAccountsPage() {
               to: account.twitterHandle,
               width: 2 + Math.random() * 2,
               color: {
-                color: "#00ff00",
-                // color: nodeColor,
+                // color: "#00ff00",
+                color: nodeColor,
                 highlight: "#ffffff",
                 opacity: 0.8,
               },
-              length: 200 + Math.random() * 100,
+              length: 200 + Math.random() * 10,
             });
           }
         );
@@ -159,20 +147,13 @@ export default function SubscribedAccountsPage() {
         setLoading(false);
       }
     };
-
-    if (address) {
-      fetchSubscribedAccounts();
-    }
-  }, [address]);
+    fetchSubscribedAccounts();
+  }, []);
 
   // Initialize the Vis.js network graph
   useEffect(() => {
     if (networkRef.current && graphData.nodes.length > 0) {
-      // Create datasets to enable dynamic updates
-    nodesDataSet.current = new DataSet(graphData.nodes.map(node => ({
-      ...node,
-      title: node.id // Just store the ID in the title for reference
-    })));
+      nodesDataSet.current = new DataSet(graphData.nodes);
       edgesDataSet.current = new DataSet(graphData.edges);
 
       const data = {
@@ -293,83 +274,12 @@ export default function SubscribedAccountsPage() {
         }
       });
 
-      networkInstance.current.on("hoverNode", function (params) {
-        networkRef.current?.style.setProperty("cursor", "pointer");
-        const nodeId = params.node;
-        const node = nodesDataSet.current?.get(nodeId);
-        
-        // Hide any existing tooltip
-        const existingTooltip = document.getElementById('custom-network-tooltip');
-        if (existingTooltip) {
-          existingTooltip.remove();
-        }
-        
-        // Create a new tooltip
-        const tooltip = document.createElement('div');
-        tooltip.id = 'custom-network-tooltip';
-        tooltip.className = 'custom-tooltip';
-        
-        // Position calculation
-        const position = networkInstance.current?.canvasToDOM(params.pointer.canvas);
-        
-        // Fill content based on node type
-        if (nodeId === address || nodeId === "current-user") {
-          // Your account tooltip
-          tooltip.innerHTML = `
-            <div class="tooltip-header">Your Account</div>
-            <div class="tooltip-content">
-              <p>${address}</p>
-              <p>Connected to ${graphData.nodes.length - 1} accounts</p>
-            </div>
-          `;
-        } else {
-          // Find the corresponding account data
-          const accountNode = graphData.nodes.find(n => n.id === nodeId);
-          
-          // Twitter account tooltip
-          tooltip.innerHTML = `
-            <div class="tooltip-header">@${nodeId}</div>
-            <div class="tooltip-content">
-              <p><span class="tooltip-label">Subscribed since:</span> ${new Date(accountNode?.title?.match(/Subscribed since: (.*?)</)?.[1] || new Date()).toLocaleDateString()}</p>
-              <p><span class="tooltip-label">Expires in:</span> ${accountNode?.title?.match(/Expires in: (.*?) days/)?.[1] || '0'} days</p>
-              <p><span class="tooltip-label">Click to view profile</span></p>
-            </div>
-          `;
-        }
-        
-        // Set tooltip position (offset to not cover the node)
-        tooltip.style.position = 'absolute';
-        tooltip.style.left = `${position!.x + 10}px`;
-        tooltip.style.top = `${position!.y + 10}px`;
-        tooltip.style.zIndex = '1000';
-        
-        // Add to DOM
-        document.body.appendChild(tooltip);
-      });
-  
-      // Remove tooltip on blur
-      networkInstance.current.on("blurNode", function () {
-        networkRef.current?.style.setProperty("cursor", "default");
-        const tooltip = document.getElementById('custom-network-tooltip');
-        if (tooltip) {
-          tooltip.remove();
-        }
-      });
-  
-      // Also remove tooltip on drag start
-      networkInstance.current.on("dragStart", function () {
-        const tooltip = document.getElementById('custom-network-tooltip');
-        if (tooltip) {
-          tooltip.remove();
-        }
-      });
-  
       // Original click event handler
       networkInstance.current.on("click", function (params) {
         if (params.nodes.length > 0) {
           const nodeId = params.nodes[0];
           setSelectedNode(nodeId);
-  
+
           // If node is a Twitter handle, redirect to Twitter profile
           if (nodeId !== address && nodeId !== "current-user") {
             window.open(`https://twitter.com/${nodeId}`, "_blank");
@@ -377,14 +287,7 @@ export default function SubscribedAccountsPage() {
         } else {
           setSelectedNode(null);
         }
-        
-        // Remove any tooltip when clicking
-        const tooltip = document.getElementById('custom-network-tooltip');
-        if (tooltip) {
-          tooltip.remove();
-        }
       });
-  
 
       networkInstance.current.on("hoverNode", function (params) {
         networkRef.current?.style.setProperty("cursor", "pointer");
@@ -406,23 +309,11 @@ export default function SubscribedAccountsPage() {
       });
     }
 
-    // // Cleanup on unmount
-    // return () => {
-    //   if (networkInstance.current) {
-    //     networkInstance.current.destroy();
-    //     networkInstance.current = null;
-    //   }
-    // };
-
+    // Cleanup on unmount
     return () => {
       if (networkInstance.current) {
         networkInstance.current.destroy();
         networkInstance.current = null;
-      }
-      // Clean up any tooltips
-      const tooltip = document.getElementById('custom-network-tooltip');
-      if (tooltip) {
-        tooltip.remove();
       }
     };
   }, [graphData]);
@@ -443,7 +334,6 @@ export default function SubscribedAccountsPage() {
         </div>
       ) : error ? (
         <div className="text-center bg-red-500 bg-opacity-20 p-6 rounded-lg border border-red-500">
-          <p className="text-2xl font-bold mb-2">Error</p>
           <p>{error}</p>
         </div>
       ) : (
@@ -516,64 +406,6 @@ export default function SubscribedAccountsPage() {
           line-height: 1.4;
         }
       `}</style> */}
-
-<style jsx global>{`
-  .custom-tooltip {
-    background-color: rgba(30, 41, 59, 0.95);
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-    overflow: hidden;
-    font-family: "Inter", sans-serif;
-    width: 250px;
-    border: 1px solid rgba(148, 163, 184, 0.2);
-    animation: fadeIn 0.2s ease-out;
-    backdrop-filter: blur(8px);
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  .tooltip-header {
-    background: linear-gradient(90deg, #1e40af 0%, #1e3a8a 100%);
-    padding: 10px 14px;
-    font-weight: bold;
-    font-size: 14px;
-    color: #fff;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.3);
-  }
-  
-  .tooltip-content {
-    padding: 12px 14px;
-    color: #e2e8f0;
-    font-size: 13px;
-  }
-  
-  .tooltip-content p {
-    margin: 8px 0;
-    line-height: 1.5;
-    display: flex;
-    align-items: center;
-  }
-  
-  .tooltip-label {
-    color: #94a3b8;
-    margin-right: 4px;
-  }
-  
-  .custom-tooltip::after {
-    content: '';
-    position: absolute;
-    top: -8px;
-    left: 20px;
-    width: 0;
-    height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-bottom: 8px solid rgba(30, 41, 59, 0.95);
-  }
-`}</style>
     </div>
   );
 }

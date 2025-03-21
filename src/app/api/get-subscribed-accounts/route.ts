@@ -5,10 +5,16 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const walletAddress = searchParams.get("walletAddress");
+    console.log("walletAddress", walletAddress);
 
-    if (!walletAddress) {
+    if (walletAddress == "" || walletAddress == null || walletAddress ==undefined) { 
       return NextResponse.json(
-        { success: false, message: "Please connect with your wallet first" },
+        {
+          success: false,
+          error: {
+            message: "Please connect with your wallet first!",
+          },
+        },
         { status: 400 }
       );
     }
@@ -27,7 +33,12 @@ export async function GET(req: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { success: false, error: "User not found" },
+        {
+          success: false,
+          error: {
+            message: "Please register yourself first to receive 100 free credits!",
+          },
+        },
         { status: 404 }
       );
     }
