@@ -41,7 +41,7 @@ const UserProfile = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isConnected) return; // Prevent unnecessary API calls
+    if (!isConnected) return; 
 
     const fetchUserData = async () => {
       try {
