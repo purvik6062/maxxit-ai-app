@@ -1,23 +1,31 @@
 "use client";
 import React, { useState } from "react";
-import { Eye, EyeOff, Copy, Key } from "lucide-react";
+import { Eye, EyeOff, Copy, Key, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { UserProfile } from "./types";
+import { useCredits } from "@/context/CreditsContext";
 
 const ApiCredentialsSection = ({
   apiKey,
   endpoint,
   walletAddress,
   onGenerateNewKey,
+  onApiKeyUpdate,
+  profile,
 }: {
   apiKey: string | null;
   endpoint: string;
   walletAddress: string;
   onGenerateNewKey: (newKey: string) => void;
+  onApiKeyUpdate: (newKey: string) => void;
+  profile: UserProfile;
 }) => {
   const [showApiKey, setShowApiKey] = useState(false);
   const [activeTab, setActiveTab] = useState<"JavaScript" | "cURL" | "Python">(
     "JavaScript"
   );
+  const [loading, setLoading] = useState(false);
+  const { updateCredits } = useCredits();
 
   const exampleResponse = {
     success: true,
@@ -59,7 +67,14 @@ const ApiCredentialsSection = ({
   };
 
   const handleGenerateKey = async () => {
+    if (!profile || profile.credits < 50) {
+      toast.error(
+        "Insufficient credits. You need at least 50 credits to generate an API key."
+      );
+      return;
+    }
     try {
+      setLoading(true); // Start loading
       const response = await fetch("/api/generate-api-key", {
         method: "POST",
         headers: {
@@ -73,12 +88,27 @@ const ApiCredentialsSection = ({
       if (!response.ok)
         throw new Error(data.error || "Failed to generate API key");
 
+      // Call the callback to update the parent (UserProfile) state
       onGenerateNewKey(data.apiKey);
+
+      // Refetch the API key to ensure we have the latest value
+      const apiKeyResponse = await fetch(
+        `/api/get-api-key?walletAddress=${walletAddress}`
+      );
+      const apiKeyResult = await apiKeyResponse.json();
+
+      if (apiKeyResponse.ok && apiKeyResult.success) {
+        // Update the apiKey in the parent component via a new callback or state
+        onApiKeyUpdate(apiKeyResult.apiKey); // We'll add this prop to ApiCredentialsSection
+      }
+      await updateCredits();
       toast.success("API key generated successfully!");
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Failed to generate API key"
       );
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -116,10 +146,22 @@ print(response.json())`,
         {!apiKey && (
           <button
             onClick={handleGenerateKey}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors flex items-center gap-2"
+            disabled={loading} // Disable button while loading
+            className={`bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors flex items-center gap-2 ${
+              loading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           >
-            <Key className="w-4 h-4" />
-            Generate API Key
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Key className="w-4 h-4" />
+                Generate API Key
+              </>
+            )}
           </button>
         )}
       </div>
@@ -142,7 +184,12 @@ print(response.json())`,
             </div>
           </div>
           <button
-            onClick={() => copyToClipboard(endpoint, "Endpoint copied!")}
+            onClick={() =>
+              copyToClipboard(
+                endpoint + "/api/get-my-signals",
+                "Endpoint copied!"
+              )
+            }
             className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors"
           >
             <Copy className="w-4 h-4" />

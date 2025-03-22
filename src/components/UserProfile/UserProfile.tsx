@@ -7,6 +7,7 @@ import { Loader2, Eye, EyeOff, Copy, Key } from "lucide-react";
 import { useAccount } from "wagmi";
 import toast from "react-hot-toast";
 import ApiCredentialsSection from "./ApiCredentialSection";
+import { useCredits } from "@/context/CreditsContext";
 
 // Reusable UI components for different states
 const LoadingState = () => (
@@ -46,6 +47,22 @@ const UserProfile = () => {
   const [activeSection, setActiveSection] = useState<"subscriptions" | "api">(
     "subscriptions"
   );
+  const { credits, updateCredits } = useCredits();
+
+  const handleApiKeyUpdate = (newKey: string) => {
+    setApiKey(newKey);
+  };
+
+  const handleNewKeyGenerated = async (newKey: any) => {
+    setApiKey(newKey);
+    await updateCredits(); // Refresh credits after generating new key
+    if (profile) {
+      setProfile({
+        ...profile,
+        credits: credits !== null ? credits - 50 : profile.credits - 50,
+      }); // Update local profile credits
+    }
+  };
 
   useEffect(() => {
     if (!isConnected || !address) return;
@@ -70,7 +87,7 @@ const UserProfile = () => {
         );
         const apiKeyResult = await apiKeyResponse.json();
 
-        setProfile({
+        const newProfile = {
           ...profileResult.data,
           subscribedAccounts: profileResult.data.subscribedAccounts.map(
             (sub: any) => ({
@@ -81,8 +98,10 @@ const UserProfile = () => {
           ),
           createdAt: new Date(profileResult.data.createdAt),
           updatedAt: new Date(profileResult.data.updatedAt),
-        });
+          credits: credits !== null ? credits : profileResult.data.credits, // Use context credits if available
+        };
 
+        setProfile(newProfile);
         setApiKey(apiKeyResult.success ? apiKeyResult.apiKey : null);
       } catch (err) {
         setError(
@@ -97,10 +116,6 @@ const UserProfile = () => {
 
     fetchData();
   }, [address, isConnected]);
-
-  const handleNewKeyGenerated = (newKey: string) => {
-    setApiKey(newKey);
-  };
 
   // Early returns for different states
   if (!isConnected)
@@ -167,6 +182,8 @@ const UserProfile = () => {
             }
             walletAddress={address!}
             onGenerateNewKey={handleNewKeyGenerated}
+            onApiKeyUpdate={handleApiKeyUpdate}
+            profile={profile}
           />
         )}
       </div>

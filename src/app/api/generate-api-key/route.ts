@@ -21,6 +21,21 @@ export async function POST(req: NextRequest) {
     const db = client.db(DB_NAME);
     const collection = db.collection("api-keys");
 
+    // **Added: Check user's credits**
+    const usersCollection = db.collection("users");
+    const user = await usersCollection.findOne({ walletAddress: address });
+    if (!user) {
+      await client.close();
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+    if (user.credits < 50) {
+      await client.close();
+      return NextResponse.json(
+        { error: "Insufficient credits. Need at least 50 credits." },
+        { status: 403 }
+      );
+    }
+
     // Generate unique API key
     const timestamp = Date.now();
     const hash = crypto
@@ -44,6 +59,14 @@ export async function POST(req: NextRequest) {
       },
       { upsert: true, returnDocument: "after" }
     );
+    console.log("API key generated:", result);
+    // **Added: Deduct 50 credits after successful API key generation**
+    if (result?.apiKey) {
+      await usersCollection.updateOne(
+        { walletAddress: address },
+        { $inc: { credits: -50 } }
+      );
+    }
 
     await client.close();
     if (!result) {

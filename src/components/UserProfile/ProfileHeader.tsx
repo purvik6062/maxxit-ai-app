@@ -5,6 +5,7 @@ import { useAccount } from "wagmi";
 import { FaTelegramPlane } from "react-icons/fa";
 import { CopyCheckIcon, CheckCircle } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { useCredits } from "@/context/CreditsContext";
 
 interface ProfileHeaderProps {
   profile: UserProfile;
@@ -13,6 +14,7 @@ interface ProfileHeaderProps {
 export function ProfileHeader({ profile }: ProfileHeaderProps) {
   const [copied, setCopied] = useState(false);
   const { address } = useAccount();
+  const { credits } = useCredits();
   return (
     <div className="bg-gradient-to-br from-cyan-600 to-blue-700 rounded-xl shadow-lg p-8 mb-8">
       <div className="flex items-center justify-between">
@@ -66,7 +68,9 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
         </div>
         <div className="bg-blue-500/30 px-6 py-3 rounded-xl">
           <div className="text-sm text-indigo-100">Credits</div>
-          <div className="text-2xl font-bold text-white">{profile.credits}</div>
+          <div className="text-2xl font-bold text-white">
+            {credits !== null ? credits : profile.credits}
+          </div>
         </div>
       </div>
     </div>
