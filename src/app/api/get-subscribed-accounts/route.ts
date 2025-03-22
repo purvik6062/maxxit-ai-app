@@ -5,7 +5,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const walletAddress = searchParams.get("walletAddress");
-    console.log("wa", walletAddress);
+    // console.log("wa", walletAddress);
 
     if (!walletAddress || walletAddress === "undefined") {
       return NextResponse.json(
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     }
 
     const normalizedWalletAddress = walletAddress.toLowerCase();
-    console.log("Searching for wallet:", normalizedWalletAddress);
+    // console.log("Searching for wallet:", normalizedWalletAddress);
 
     const client = await dbConnect();
     const db = client.db("ctxbt-signal-flow");
@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
         { walletAddress: walletAddress },
       ],
     });
-    console.log("User found:", user);
+    // console.log("User found:", user);
 
     if (!user) {
       return NextResponse.json(

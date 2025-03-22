@@ -14,4 +14,6 @@ export interface UserProfile {
   subscribedAccounts: Subscription[];
   createdAt: Date;
   updatedAt: Date;
+  apiKey?: string;
+  apiEndpoint?: string;
 }
