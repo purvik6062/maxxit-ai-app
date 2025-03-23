@@ -159,7 +159,7 @@ print(response.json())`,
             ) : (
               <>
                 <Key className="w-4 h-4" />
-                Generate API Key
+                Generate API Key (50 credits)
               </>
             )}
           </button>
