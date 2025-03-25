@@ -4,8 +4,8 @@ import { MongoClient } from "mongodb";
 export async function GET(request: Request) {
   try {
     const client = await MongoClient.connect(process.env.MONGODB_URI!);
-    const db = client.db("test_analysis");
-    const collection = db.collection("user_profile_twitter_data_new");
+    const db = client.db("ctxbt-signal-flow");
+    const collection = db.collection("influencers_new");
 
     const users = await collection.find({}).toArray();
 
