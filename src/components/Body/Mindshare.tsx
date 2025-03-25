@@ -65,20 +65,9 @@ export default function UserMetricsDashboard() {
     async function fetchUserData() {
       try {
         const response = await fetch("/api/get-user-profile-data");
-        // Simulate data with comparison metrics since the API doesn't provide them
-        let data: UserResponse[] = await response.json();
+        const data: UserResponse[] = await response.json();
 
-        // Add the comparison metrics to each user
-        data = data.map((user) => ({
-          ...user,
-          userData: {
-            ...user.userData,
-            herdedVsHidden: Math.floor(Math.random() * 101), // Random value between 0-100
-            convictionVsHype: Math.floor(Math.random() * 101),
-            memeVsInstitutional: Math.floor(Math.random() * 101),
-          },
-        }));
-
+        console.log("response", response, data)
         setUsers(data);
         setLoading(false);
       } catch (error) {
