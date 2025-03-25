@@ -5,7 +5,7 @@ export async function GET(request: Request) {
   try {
     const client = await MongoClient.connect(process.env.MONGODB_URI!);
     const db = client.db("ctxbt-signal-flow");
-    const collection = db.collection("influencers_new");
+    const collection = db.collection("influencers");
 
     const users = await collection.find({}).toArray();
 
