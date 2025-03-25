@@ -65,20 +65,9 @@ export default function UserMetricsDashboard() {
     async function fetchUserData() {
       try {
         const response = await fetch("/api/get-user-profile-data");
-        // Simulate data with comparison metrics since the API doesn't provide them
-        let data: UserResponse[] = await response.json();
+        const data: UserResponse[] = await response.json();
 
-        // Add the comparison metrics to each user
-        data = data.map((user) => ({
-          ...user,
-          userData: {
-            ...user.userData,
-            herdedVsHidden: Math.floor(Math.random() * 101), // Random value between 0-100
-            convictionVsHype: Math.floor(Math.random() * 101),
-            memeVsInstitutional: Math.floor(Math.random() * 101),
-          },
-        }));
-
+        console.log("response", response, data)
         setUsers(data);
         setLoading(false);
       } catch (error) {
@@ -163,16 +152,15 @@ export default function UserMetricsDashboard() {
 
   const sortedUsers = getSortedUsers();
 
-  // Function to render comparison bar - update this function
+  // Function to render comparison bar - updated to handle -50 to +50 scale
   const renderComparisonBar = (
     value: number,
     leftLabel: string,
     rightLabel: string,
     field: SortField
   ) => {
-    // Define specific colors for each comparison type
     let leftColor, rightColor;
-
+  
     if (field === "herdedVsHidden") {
       leftColor = "bg-teal-400";
       rightColor = "bg-blue-500";
@@ -180,31 +168,34 @@ export default function UserMetricsDashboard() {
       leftColor = "bg-amber-500";
       rightColor = "bg-purple-500";
     } else {
-      // memeVsInstitutional
       leftColor = "bg-cyan-400";
       rightColor = "bg-pink-500";
     }
-
+  
+    // Normalize value between -50 and +50
+    const normalizedValue = Math.max(-50, Math.min(50, value));
+  
+    // Adjust the logic: positive value increases left, negative increases right
+    const leftPercentage = ((normalizedValue + 50) / 100) * 100;
+    const rightPercentage = 100 - leftPercentage;
+  
     return (
-      <div className="w-full flex flex-col gap-1">
-        <div className="h-2 bg-gray-800 rounded-full overflow-hidden relative">
-          {/* Left side with its own color */}
-          <div
-            className={`h-full ${leftColor} absolute left-0 top-0`}
-            style={{ width: `${value}%` }}
-          />
-
-          {/* Right side with its own color */}
-          <div
-            className={`h-full ${rightColor} absolute top-0 right-0`}
-            style={{ width: `${100 - value}%` }}
-          />
-
-          {/* Divider line at the value point */}
-          <div
-            className="absolute top-0 bottom-0 w-1 bg-white"
-            style={{ left: `${value}%` }}
-          />
+      <div className="w-full flex flex-col gap-1 group relative">
+        <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+          {/* Two-color bar with dynamic widths */}
+          <div className="flex h-full w-full">
+            {/* Left side */}
+            <div
+              className={`${leftColor} h-full transition-all duration-300`}
+              style={{ width: `${leftPercentage}%` }}
+            ></div>
+            
+            {/* Right side */}
+            <div
+              className={`${rightColor} h-full transition-all duration-300`}
+              style={{ width: `${rightPercentage}%` }}
+            ></div>
+          </div>
         </div>
       </div>
     );
@@ -425,7 +416,7 @@ export default function UserMetricsDashboard() {
                     </div>
 
                     {/* Engagement Bar */}
-                    <div className="w-48">
+                    <div className="w-48 group relative">
                       <div className="w-48">
                         <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
                           <div
@@ -441,7 +432,7 @@ export default function UserMetricsDashboard() {
                       </div>
                     </div>
 
-                    {/* Herded vs Hidden Bar */}
+                    {/* Comparison Bars */}
                     <div className="w-56 ml-8">
                       {renderComparisonBar(
                         user.userData.herdedVsHidden,
@@ -451,7 +442,6 @@ export default function UserMetricsDashboard() {
                       )}
                     </div>
 
-                    {/* Conviction vs Hype Bar */}
                     <div className="w-56 ml-8">
                       {renderComparisonBar(
                         user.userData.convictionVsHype,
@@ -461,7 +451,6 @@ export default function UserMetricsDashboard() {
                       )}
                     </div>
 
-                    {/* Meme vs Institutional Bar */}
                     <div className="w-56 ml-8">
                       {renderComparisonBar(
                         user.userData.memeVsInstitutional,
