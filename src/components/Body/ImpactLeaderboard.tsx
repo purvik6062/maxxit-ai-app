@@ -5,7 +5,14 @@ import { FaTrophy, FaCrown } from "react-icons/fa";
 import { TrendingUp, Award, BarChart2 } from "lucide-react";
 import { LuWandSparkles } from "react-icons/lu";
 import gsap from "gsap";
-import { Loader2, Clock, AlertCircle, AlertTriangle, SearchX, Info } from "lucide-react";
+import {
+  Loader2,
+  Clock,
+  AlertCircle,
+  AlertTriangle,
+  SearchX,
+  Info,
+} from "lucide-react";
 import { useGSAP } from "@gsap/react";
 import { useImpactLeaderboard } from "@/hooks/useImpactLeaderboard";
 
@@ -67,34 +74,40 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
     : agents;
 
   const renderContent = () => {
-      const cardStyles = "flex flex-col items-center justify-center min-h-[300px] w-full max-w-2xl mx-auto p-8 rounded-2xl shadow-xl border border-gray-800/50 backdrop-blur-lg";
-    
-      if (loading) {
-        return (
-          <div className={`${cardStyles} bg-gradient-to-br from-gray-900 to-blue-900/30`}>
-            <div className="relative w-16 h-16 mb-6">
-              <div className="absolute inset-0 rounded-full border-4 border-blue-500/30 animate-spin"></div>
-              <div className="absolute inset-2 rounded-full border-2 border-transparent border-t-cyan-400 animate-spin [animation-delay:-0.2s]"></div>
-              <div className="absolute inset-4 flex items-center justify-center">
-                <Loader2 className="w-6 h-6 text-blue-400 animate-spin" />
-              </div>
-            </div>
-            <div className="text-center space-y-3">
-              <h3 className="text-2xl font-semibold tracking-tight bg-gradient-to-r from-blue-300 via-cyan-200 to-white bg-clip-text text-transparent">
-              Loading Rankings
-              </h3>
-              <p className="text-gray-400 text-sm flex items-center justify-center gap-2">
-                <Clock className="w-4 h-4 text-cyan-400" />
-                Fetching latest impact data...
-              </p>
+    const cardStyles =
+      "flex flex-col items-center justify-center min-h-[300px] w-full max-w-2xl mx-auto p-8 rounded-2xl shadow-xl border border-gray-800/50 backdrop-blur-lg";
+
+    if (loading) {
+      return (
+        <div
+          className={`${cardStyles} bg-gradient-to-br from-gray-900 to-blue-900/30`}
+        >
+          <div className="relative w-16 h-16 mb-6">
+            <div className="absolute inset-0 rounded-full border-4 border-blue-500/30 animate-spin"></div>
+            <div className="absolute inset-2 rounded-full border-2 border-transparent border-t-cyan-400 animate-spin [animation-delay:-0.2s]"></div>
+            <div className="absolute inset-4 flex items-center justify-center">
+              <Loader2 className="w-6 h-6 text-blue-400 animate-spin" />
             </div>
           </div>
-        );
-      }
+          <div className="text-center space-y-3">
+            <h3 className="text-2xl font-semibold tracking-tight bg-gradient-to-r from-blue-300 via-cyan-200 to-white bg-clip-text text-transparent">
+              Loading Rankings
+            </h3>
+            <p className="text-gray-400 text-sm flex items-center justify-center gap-2">
+              <Clock className="w-4 h-4 text-cyan-400" />
+              Fetching latest impact data...
+            </p>
+          </div>
+        </div>
+      );
+    }
 
     if (error) {
+      // Existing error state code remains unchanged
       return (
-        <div className={`${cardStyles} bg-gradient-to-br from-gray-900 to-red-900/20`}>
+        <div
+          className={`${cardStyles} bg-gradient-to-br from-gray-900 to-red-900/20`}
+        >
           <div className="mb-6">
             <AlertCircle className="w-16 h-16 text-red-400 animate-pulse" />
           </div>
@@ -112,8 +125,11 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
     }
 
     if (filteredAgents.length === 0 && searchText) {
+      // Existing empty search state code remains unchanged
       return (
-        <div className={`${cardStyles} bg-gradient-to-br from-gray-900 to-gray-800/50`}>
+        <div
+          className={`${cardStyles} bg-gradient-to-br from-gray-900 to-gray-800/50`}
+        >
           <div className="mb-6">
             <SearchX className="w-12 h-12 text-gray-400 animate-bounce [animation-duration:1.5s]" />
           </div>
@@ -130,30 +146,48 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
       );
     }
 
+    // Sort filteredAgents by impactFactor in descending order
+    const sortedAgents = [...filteredAgents].sort((a, b) => {
+      const aValue = a.impactFactor || 0; // Treat null/undefined as 0
+      const bValue = b.impactFactor || 0;
+      return bValue - aValue; // Descending order
+    });
+
     return (
       <div className="grid gap-4">
-        {filteredAgents.map((agent, index) => {
+        {sortedAgents.map((agent, index) => {
+          const rank = index + 1; // Rank starts from 1
           const cleanHandle = agent.handle.replace("@", "");
           const isSubscribed = subscribedHandles.includes(cleanHandle);
           const isCurrentlySubscribing = subscribingHandle === cleanHandle;
 
           return (
             <div
-              key={index}
+              key={agent.handle} // Use handle as unique key
               className="rankings-card group relative bg-blue-900/20 backdrop-blur-sm border border-blue-500/20 rounded-xl overflow-hidden transition-all duration-300"
             >
               <div className="relative p-6 px-3 flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center justify-center w-[50px]">
-                    {agent.id === 1 && <FaTrophy className="w-5 h-5 text-yellow-300" />}
-                    {agent.id === 2 && <FaTrophy className="w-5 h-5 text-gray-400" />}
-                    {agent.id === 3 && <FaTrophy className="w-5 h-5 text-amber-700" />}
-                    {agent.id > 3 && (
-                      <span className="text-xl font-bold text-slate-400">#{agent.id}</span>
+                    {rank === 1 && (
+                      <FaTrophy className="w-5 h-5 text-yellow-300" />
+                    )}
+                    {rank === 2 && (
+                      <FaTrophy className="w-5 h-5 text-gray-400" />
+                    )}
+                    {rank === 3 && (
+                      <FaTrophy className="w-5 h-5 text-amber-700" />
+                    )}
+                    {rank > 3 && (
+                      <span className="text-xl font-bold text-slate-400">
+                        #{rank}
+                      </span>
                     )}
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-white">{agent.name}</h3>
+                    <h3 className="text-lg font-bold text-white">
+                      {agent.name}
+                    </h3>
                     <p className="text-slate-400">{agent.handle}</p>
                   </div>
                 </div>
@@ -167,7 +201,11 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                   <div className="w-[5rem] h-2 bg-white/70 rounded-full">
                     <div
                       className="h-full bg-gradient-to-r from-blue-400 to-cyan-500 rounded-full"
-                      style={{ width: agent.impactFactor ? `${agent.impactFactor}%` : "0%" }}
+                      style={{
+                        width: agent.impactFactor
+                          ? `${agent.impactFactor}%`
+                          : "0%",
+                      }}
                     />
                   </div>
                   <button
@@ -179,12 +217,18 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                       isCurrentlySubscribing ? "animate-pulse" : ""
                     }`}
                     onClick={() =>
-                      !isSubscribed && !isCurrentlySubscribing && onSubscribe(agent.handle)
+                      !isSubscribed &&
+                      !isCurrentlySubscribing &&
+                      onSubscribe(agent.handle)
                     }
                     disabled={isSubscribed || isCurrentlySubscribing}
                   >
                     <FaCrown
-                      color={isSubscribed || isCurrentlySubscribing ? "green" : "yellow"}
+                      color={
+                        isSubscribed || isCurrentlySubscribing
+                          ? "green"
+                          : "yellow"
+                      }
                       className={isCurrentlySubscribing ? "animate-pulse" : ""}
                     />
                     <span className="text-sm font-medium text-white group-hover:text-blue-200 transition-colors duration-300">
@@ -207,7 +251,9 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
               <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-blue-400 animate-spin"></div>
               <div className="absolute inset-2 rounded-full bg-blue-500/10 animate-pulse"></div>
             </div>
-            <span className="ml-2 text-slate-400">Loading new influencer...</span>
+            <span className="ml-2 text-slate-400">
+              Loading new influencer...
+            </span>
           </div>
         )}
       </div>
@@ -224,7 +270,9 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                 <span className="animate-pulse text-2xl">
                   <LuWandSparkles size={24} color="white" />
                 </span>
-                <span className="text-base font-medium text-blue-400">Impact Leaderboard</span>
+                <span className="text-base font-medium text-blue-400">
+                  Impact Leaderboard
+                </span>
               </div>
               <h1 className="relative text-2xl md:text-3xl font-bold">
                 <span>🌟</span>
@@ -235,7 +283,8 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
               </h1>
               <div className="flex flex-col items-center gap-4">
                 <p className="text-lg text-slate-400 max-w-2xl">
-                  Discover the Pulse of Crypto Markets through our Elite Analysts
+                  Discover the Pulse of Crypto Markets through our Elite
+                  Analysts
                 </p>
                 <div className="flex items-center gap-4 text-white">
                   <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-500/10 backdrop-blur-sm border border-blue-500/20">
