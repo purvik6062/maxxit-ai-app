@@ -30,7 +30,7 @@ const MessagePlayground = () => {
     });
 
     try {
-      const response = await fetch("http://localhost:3001/infer", {
+      const response = await fetch("https://ogxbt.xmutant.xyz/infer", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
