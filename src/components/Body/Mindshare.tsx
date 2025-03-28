@@ -96,34 +96,34 @@ export default function UserMetricsDashboard() {
 
       switch (sortField) {
         case "mindshare":
-          valueA = a.userData.mindshare;
-          valueB = b.userData.mindshare;
+          valueA = a.userData?.mindshare;
+          valueB = b.userData?.mindshare;
           break;
         case "followers":
-          valueA = a.userData.publicMetrics.followers_count;
-          valueB = b.userData.publicMetrics.followers_count;
+          valueA = a.userData.publicMetrics?.followers_count;
+          valueB = b.userData.publicMetrics?.followers_count;
           break;
         case "username":
-          valueA = a.userData.username.toLowerCase();
-          valueB = b.userData.username.toLowerCase();
+          valueA = a.userData?.username.toLowerCase();
+          valueB = b.userData?.username.toLowerCase();
           return sortDirection === "asc"
             ? valueA.localeCompare(valueB)
             : valueB.localeCompare(valueA);
         case "herdedVsHidden":
-          valueA = a.userData.herdedVsHidden;
-          valueB = b.userData.herdedVsHidden;
+          valueA = a.userData?.herdedVsHidden;
+          valueB = b.userData?.herdedVsHidden;
           break;
         case "convictionVsHype":
-          valueA = a.userData.convictionVsHype;
-          valueB = b.userData.convictionVsHype;
+          valueA = a.userData?.convictionVsHype;
+          valueB = b.userData?.convictionVsHype;
           break;
         case "memeVsInstitutional":
-          valueA = a.userData.memeVsInstitutional;
-          valueB = b.userData.memeVsInstitutional;
+          valueA = a.userData?.memeVsInstitutional;
+          valueB = b.userData?.memeVsInstitutional;
           break;
         default:
-          valueA = a.userData.mindshare;
-          valueB = b.userData.mindshare;
+          valueA = a.userData?.mindshare;
+          valueB = b.userData?.mindshare;
       }
 
       return sortDirection === "asc" ? valueA - valueB : valueB - valueA;
