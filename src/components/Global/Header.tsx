@@ -227,6 +227,30 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
                       Profile
                     </button>
                   </Link>
+                  <Link href="/pricing">
+                    <button
+                      className={`px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap ${
+                        view === "pricing"
+                          ? "bg-gray-700 text-white"
+                          : "text-gray-300 hover:bg-gray-600"
+                      }`}
+                      //   onClick={() => setView("pricing")} // Optional: Update view state
+                    >
+                      Pricing
+                    </button>
+                  </Link>
+                  <Link href="/playground">
+                    <button
+                      className={`px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap ${
+                        view === "playground"
+                          ? "bg-gray-700 text-white"
+                          : "text-gray-300 hover:bg-gray-600"
+                      }`}
+                      //   onClick={() => setView("playground")} // Optional: Update view state
+                    >
+                      Playground
+                    </button>
+                  </Link>
 
                   {showTokens && (
                     <div className="ml-4 flex items-center px-3 py-1 rounded-full bg-gradient-to-r from-blue-500/20 to-blue-700/20 border border-blue-500/50 flex-shrink-0">
