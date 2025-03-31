@@ -35,7 +35,10 @@ export async function POST(request: Request) {
     }
 
     // Check if influencer already exists in influencers_account collection
-    const existingInfluencerAccount = await collection.findOne({ handle });
+    const existingInfluencerAccount = await collection.findOne({ 
+      handle: { $regex: `^${handle}$`, $options: "i" } 
+  });
+
     if (existingInfluencerAccount) {
       return NextResponse.json(
         { success: false, error: "Influencer with this handle already exists" },

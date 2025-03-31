@@ -7,7 +7,7 @@ const SUBSCRIPTION_COST = 30;
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, handle, impactFactor, heartbeat, createdAt, walletAddress } =
+    const { name, handle, impactFactor, heartbeat, createdAt, walletAddress, sessionUserhandle } =
       body;
 
     const cleanHandle = handle.replace("@", "");
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     await collection.insertOne(newInfluencer);
 
     // If walletAddress is provided, process subscription
-    if (walletAddress) {
+    if (walletAddress && sessionUserhandle === null) {
       // Start a session for transaction
       const session = client.startSession();
 
@@ -74,14 +74,45 @@ export async function POST(request: Request) {
               { session }
             );
           } else {
-            // Create new influencer
+            // Generate random metrics with safe number generation
+            const publicMetrics = {
+              followers_count: Math.floor(Math.random() * 100000), // Random followers between 0-100k
+              following_count: Math.floor(Math.random() * 1000), // Random following between 0-1000
+              tweet_count: Math.floor(Math.random() * 5000), // Random tweet count between 0-5000
+              listed_count: Math.floor(Math.random() * 50), // Random listed count
+              like_count: Math.floor(Math.random() * 10000), // Random likes
+              media_count: Math.floor(Math.random() * 1000), // Random media count
+            };
+
+            // Generate a safe profile image URL with constrained number
+            const randomImageId = Math.floor(
+              Math.random() * 1000
+            ).toString();
+            const userProfileUrl = `https://picsum.photos/50/50?random=${randomImageId}`;
+
+            // Create user data object with safe user ID
+            const userData = {
+              userId: Math.floor(Math.random() * 1000000000000).toString(), // Smaller, safe number
+              username: cleanHandle,
+              verified: false,
+              publicMetrics,
+              userProfileUrl,
+              mindshare: Number((Math.random() * 1).toFixed(2)), // Random mindshare between 0-1
+              herdedVsHidden: Math.floor(Math.random() * 10), // Random herded vs hidden
+              convictionVsHype: Math.floor(Math.random() * 20), // Random conviction vs hype
+              memeVsInstitutional: Math.floor(Math.random() * 20), // Random meme vs institutional
+            };
+
             await influencersCollection.insertOne(
               {
                 twitterHandle: cleanHandle,
                 subscribers: [cleanTelegramId],
-                tweets: [],
+                tweets: [], // You might want to fetch actual tweets later
                 processedTweetIds: [],
                 updatedAt: new Date(),
+                isProcessing: false,
+                lastProcessed: new Date(),
+                userData,
               },
               { session }
             );
@@ -91,19 +122,19 @@ export async function POST(request: Request) {
           const subscriptionDate = new Date();
           const expiryDate = new Date(subscriptionDate);
           expiryDate.setMonth(expiryDate.getMonth() + 1); // Add one month to the subscription date
-          
+
           await usersCollection.updateOne(
             { walletAddress },
             {
               $inc: { credits: -SUBSCRIPTION_COST },
-              $addToSet: { 
+              $addToSet: {
                 subscribedAccounts: {
                   twitterHandle: cleanHandle,
                   subscriptionDate: subscriptionDate,
-                  expiryDate: expiryDate
-                } 
+                  expiryDate: expiryDate,
+                },
               },
-              $set: { updatedAt: new Date() }
+              $set: { updatedAt: new Date() },
             },
             { session }
           );

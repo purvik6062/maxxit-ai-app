@@ -10,12 +10,16 @@ interface AddInfluencerModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  sessionUsername?: string | undefined | null;
+  sessionUserhandle?: string | undefined | null;
 }
 
 const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
+  sessionUsername,
+  sessionUserhandle,
 }) => {
   const [name, setName] = useState("");
   const [handle, setHandle] = useState("");
@@ -26,64 +30,80 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
 
   const { updateCredits } = useCredits();
 
-   useEffect(() => {
-      if (isOpen) {
-        // Prevent scrolling when modal is open
-        document.body.style.overflow = "hidden";
-        document.body.style.width = "100%";
-      } else {
-        // Re-enable scrolling when modal is closed
-        document.body.style.overflow = "unset";
-        document.body.style.width = "auto";
-      }
-  
-      // Cleanup function to ensure we reset the styles when component unmounts
-      return () => {
-        document.body.style.overflow = "unset";
-        document.body.style.width = "auto";
-      };
-    }, [isOpen]);
+  // Check if sessionUsername exists (not null or undefined)
+  const isSessionUsernamePresent =
+    sessionUsername !== undefined && sessionUsername !== null;
+  const isSessionUserhandlePresent =
+    sessionUserhandle !== undefined && sessionUserhandle !== null;
 
-    const validateTwitterHandle = async (twitterHandle: string) => {
-      setIsValidating(true);
-      setHandleError(null);
-      try {
-        const response = await fetch("/api/validate-twitter-handle", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ handle: twitterHandle, walletAddress: address }),
-          cache: "no-store",
-        });
-    
-        const data = await response.json();
-    
-        if (!data.success) {
-          // Display specific error message from the API
-          toast.error(data.error || "Failed to validate Twitter handle", {
-            position: "top-center",
-          });
-          return false;
-        }
-    
-        if (!data.exists) {
-          toast.error("Twitter handle does not exist or is invalid", {
-            position: "top-center",
-          });
-          return false;
-        }
-    
-        return true;
-      } catch (error) {
-        toast.error("An unexpected error occurred while validating the handle", {
+  useEffect(() => {
+    if (isSessionUsernamePresent) {
+      setName(sessionUsername);
+    }
+    if (isSessionUserhandlePresent) {
+      const cleanHandle = sessionUserhandle.replace(/^@/, "");
+      setHandle(`@${cleanHandle}`);
+    }
+  }, [sessionUsername, sessionUserhandle]);
+
+  useEffect(() => {
+    if (isOpen) {
+      // Prevent scrolling when modal is open
+      document.body.style.overflow = "hidden";
+      document.body.style.width = "100%";
+    } else {
+      // Re-enable scrolling when modal is closed
+      document.body.style.overflow = "unset";
+      document.body.style.width = "auto";
+    }
+
+    // Cleanup function to ensure we reset the styles when component unmounts
+    return () => {
+      document.body.style.overflow = "unset";
+      document.body.style.width = "auto";
+    };
+  }, [isOpen]);
+
+  const validateTwitterHandle = async (twitterHandle: string) => {
+    setIsValidating(true);
+    setHandleError(null);
+    try {
+      const response = await fetch("/api/validate-twitter-handle", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ handle: twitterHandle, walletAddress: address }),
+        cache: "no-store",
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        // Display specific error message from the API
+        toast.error(data.error || "Failed to validate Twitter handle", {
           position: "top-center",
         });
         return false;
-      } finally {
-        setIsValidating(false);
       }
-    };
+
+      if (!data.exists) {
+        toast.error("Twitter handle does not exist or is invalid", {
+          position: "top-center",
+        });
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      toast.error("An unexpected error occurred while validating the handle", {
+        position: "top-center",
+      });
+      return false;
+    } finally {
+      setIsValidating(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,10 +125,11 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
     // Format handle to ensure it starts with @
     const formattedHandle = handle.startsWith("@") ? handle : `@${handle}`;
 
-    // Validate Twitter handle
-    const isHandleValid = await validateTwitterHandle(formattedHandle);
-    if (!isHandleValid) {
-      return; // Stop submission if handle is invalid
+    if (!isSessionUserhandlePresent) {
+      const isHandleValid = await validateTwitterHandle(formattedHandle);
+      if (!isHandleValid) {
+        return; // Stop submission if handle is invalid
+      }
     }
 
     setIsSubmitting(true);
@@ -126,6 +147,7 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
           heartbeat: null,
           createdAt: new Date().toISOString(),
           walletAddress: address,
+          sessionUserhandle: isSessionUserhandlePresent ? sessionUserhandle : null,
         }),
       });
 
@@ -162,9 +184,7 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-      />
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
 
       <div className="relative z-10 w-full max-w-md p-6 rounded-2xl bg-gradient-to-b from-blue-900/80 to-gray-900/90 border border-blue-500/30 shadow-xl animate-fadeIn">
         <div className="absolute -top-3 -right-3">
@@ -203,7 +223,12 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter full name"
-                className="w-full plClass pr-4 py-3 rounded-lg bg-blue-900/20 border border-blue-500/30 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 text-white placeholder-slate-500 outline-none transition-all duration-300"
+                disabled={isSessionUsernamePresent}
+                className={`w-full plClass pr-4 py-3 rounded-lg bg-blue-900/20 border borderCss focus:border-blue-400 focus:ring-1 focus:ring-blue-400 text-white placeholder-slate-500 outline-none transition-all duration-300 ${
+                  isSessionUsernamePresent
+                    ? "cursor-not-allowed opacity-80"
+                    : ""
+                }`}
               />
             </div>
           </div>
@@ -219,17 +244,20 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
                 value={handle}
                 onChange={(e) => setHandle(e.target.value)}
                 placeholder="@username"
-                className={`w-full plClass pr-4 py-3 rounded-lg bg-blue-900/20 border ${
-                  handleError ? "border-red-500/30" : "border-blue-500/30"
-                } focus:border-blue-400 focus:ring-1 focus:ring-blue-400 text-white placeholder-slate-500 outline-none transition-all duration-300`}
+                disabled={isSessionUserhandlePresent}
+                className={`w-full plClass pr-4 py-3 rounded-lg bg-blue-900/20 border borderCss focus:border-blue-400 focus:ring-1 focus:ring-blue-400 text-white placeholder-slate-500 outline-none transition-all duration-300 ${
+                  isSessionUserhandlePresent
+                    ? "cursor-not-allowed opacity-80"
+                    : ""
+                }`}
               />
-              {isValidating && (
+              {isValidating && !isSessionUserhandlePresent && (
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                   <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
                 </div>
               )}
             </div>
-            {handleError && (
+            {handleError && !isSessionUserhandlePresent && (
               <p className="text-red-400 text-sm">{handleError}</p>
             )}
           </div>

@@ -42,7 +42,13 @@ export async function POST(request: Request): Promise<Response> {
         const cleanTelegramId = user.telegramId.replace('@', '');
 
         // Check if user is already subscribed
-        if (user.subscribedAccounts?.some((account: { twitterHandle: any; }) => account.twitterHandle === cleanHandle)) {
+        // if (user.subscribedAccounts?.some((account: { twitterHandle: string; }) => account.twitterHandle === cleanHandle)) {
+        //   throw new Error("Already subscribed to this influencer");
+        // }
+
+        // Check if user is already subscribed (case-insensitive)
+        if (user.subscribedAccounts?.some((account: { twitterHandle: string }) => 
+          new RegExp(`^${cleanHandle}$`, "i").test(account.twitterHandle))) {
           throw new Error("Already subscribed to this influencer");
         }
 

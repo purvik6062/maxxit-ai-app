@@ -8,7 +8,7 @@ import { MdCancel } from "react-icons/md";
 import { GiConfirmed } from "react-icons/gi";
 import { FaLongArrowAltLeft } from "react-icons/fa";
 import "react-toastify/dist/ReactToastify.css";
-import { Search, X, CopyCheckIcon } from "lucide-react"; 
+import { Search, X, CopyCheckIcon } from "lucide-react";
 import "@rainbow-me/rainbowkit/styles.css";
 import "../../app/css/input.css";
 import Link from "next/link";
@@ -203,19 +203,18 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
                   </span>
                 </a>
                 <div className="flex flex-shrink-0 overflow-hidden">
-                  {["Predictions", "AI Insights"].map((item) => (
+
+                  <Link href="/influencer">
                     <button
-                      key={item}
-                      onClick={() => setIsModalOpen(true)}
                       className={`px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap ${
-                        view === item.toLowerCase()
+                        view === "profile"
                           ? "bg-gray-700 text-white"
                           : "text-gray-300 hover:bg-gray-600"
                       }`}
                     >
-                      {item}
+                      Influencer
                     </button>
-                  ))}
+                  </Link>
 
                   <Link href="/profile">
                     <button
@@ -224,7 +223,6 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
                           ? "bg-gray-700 text-white"
                           : "text-gray-300 hover:bg-gray-600"
                       }`}
-                      //   onClick={() => setView("profile")} // Optional: Update view state
                     >
                       Profile
                     </button>

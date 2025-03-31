@@ -136,8 +136,8 @@ const UserProfile = () => {
     );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
-      <div className="max-w-5xl mt-[6.3rem] mx-auto py-12 px-4 sm:px-6 lg:px-8 profileCss">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 py-[4rem]">
+      <div className="max-w-5xl mx-auto py-12 px-4 sm:px-6 lg:px-8 profileCss">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-gray-100">Your Dashboard</h1>
         </div>

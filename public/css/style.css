@@ -58,7 +58,7 @@ a.fn__like {
   --techwave-some-r-bg-color: #17151b;
   --techwave-some-a-bg-color: #2b2830;
   --techwave-heading-color: #c0bcca;
-  --techwave-body-color: #7e7a86;
+  --techwave-body-color: rgb(145, 145, 145);
   --techwave-border-color: #312e37;
   --techwave-button-bg-color: #1c1925;
   --techwave-hover-color: #fff;
@@ -75,7 +75,7 @@ a.fn__like {
   --techwave-some-r-bg-color: #f5f5f5;
   --techwave-some-a-bg-color: #e7e7e7;
   --techwave-heading-color: #333;
-  --techwave-body-color: #444;
+  --techwave-body-color: rgb(145, 145, 145);
   --techwave-border-color: #ddd;
   --techwave-button-bg-color: #f5f5f5;
   --techwave-hover-color: #000;
@@ -474,11 +474,6 @@ frenify_typing span {
   font-size: 18px;
 }
 
-.fn__token_info,
-.techwave_fn_header {
-  height: var(--techwave-header-height);
-}
-
 .techwave_fn_button.medium:after,
 .techwave_fn_button.medium:before {
   border-radius: 30px;
@@ -621,16 +616,6 @@ frenify_typing span {
 .desktop_logo2 {
   width: 100px;
   height: 100px;
-}
-
-.techwave_fn_header,
-.techwave_fn_leftpanel,
-.techwave_fn_leftpanel .group__list a,
-.techwave_fn_leftpanel .leftpanel_logo {
-  display: -webkit-flex;
-  display: -moz-flex;
-  display: -ms-flex;
-  display: -o-flex;
 }
 
 .techwave_fn_leftpanel {
@@ -903,6 +888,11 @@ frenify_typing span {
   }
 }
 
+.fn__token_info,
+.techwave_fn_header {
+  height: var(--techwave-header-height);
+}
+
 .techwave_fn_header {
   position: fixed;
   top: 0;
@@ -910,12 +900,28 @@ frenify_typing span {
   right: 0;
   background-color: var(--techwave-header-bg-color);
   display: flex;
-  /* justify-content: center; */
-  /* -ms-align-items: center; */
+  justify-content: center;
+  -ms-align-items: center;
   align-items: center;
   padding: 0 40px;
   z-index: 100;
   transition: 0.2s;
+}
+
+.techwave_fn_header:after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  z-index: 1;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: rgb(145, 145, 145);
+}
+
+.main-content {
+  padding-top: var(--techwave-header-height);
 }
 
 .fn__token_info,
@@ -925,18 +931,6 @@ frenify_typing span {
   display: -moz-flex;
   display: -ms-flex;
   display: -o-flex;
-}
-
-.techwave_fn_header:after {
-  content: "";
-  pointer-events: none;
-  position: absolute;
-  bottom: 0;
-  z-index: 1;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background-color: var(--techwave-border-color);
 }
 
 .fn__token_info {
@@ -1494,7 +1488,7 @@ a.fn__like.has__like .full__like {
   margin-top: auto;
   min-height: 71px;
   padding: 18px 40px;
-  border-top: 1px solid var(--techwave-border-color);
+  border-top: 2px solid rgb(145, 145, 145);
 }
 
 .techwave_fn_footer_content {
