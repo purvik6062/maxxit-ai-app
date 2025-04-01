@@ -1,7 +1,6 @@
 //GLOBAL COMPONENTS
 import Header from "./Global/Header";
 import Footer from "./Global/Footer";
-import SideBar from "./Global/SideBar";
 
 //BODY COMPONENTS
 import Home from "./Body/Home";
@@ -14,7 +13,6 @@ import UserProfile from "./UserProfile/UserProfile";
 export {
   Header,
   Footer,
-  SideBar,
   Home,
   ImpactLeaderboard,
   HeartbeatDashboard,
