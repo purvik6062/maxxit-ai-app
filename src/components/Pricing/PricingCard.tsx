@@ -36,7 +36,7 @@ export default function PricingCard({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
         className={`relative rounded-2xl overflow-hidden ${
-          popular ? "md:-mt-4 md:mb-4" : ""
+          popular ? "border-4 border-cyan-400 border-solid shadow-[0_4px_20px_rgba(6,182,212,0.8)]" : ""
         }`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -77,7 +77,7 @@ export default function PricingCard({
                   {feature.included ? (
                     <CheckIcon className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
                   ) : (
-                    <XIcon className="h-5 w-5 text-gray-300 mr-3 flex-shrink-0" />
+                    <XIcon className="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
                   )}
                   <span
                     className={

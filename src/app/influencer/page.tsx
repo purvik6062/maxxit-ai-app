@@ -1,5 +1,4 @@
 "use client";
-import { Footer, Header } from "@/components";
 import { useState, useEffect } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import {
@@ -9,6 +8,7 @@ import {
   InfoIcon,
   TrendingUp,
   Wallet2,
+  Loader2,
 } from "lucide-react";
 import { FaXTwitter, FaUserCheck } from "react-icons/fa6";
 import AddInfluencerModal from "@/components/Body/AddInfluencerModal";
@@ -16,7 +16,6 @@ import { toast } from "react-toastify";
 import "../css/input.css";
 
 export default function Influencer() {
-  const [searchText, setSearchText] = useState("");
   const { data: session } = useSession();
   const [userExists, setUserExists] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -115,8 +114,7 @@ export default function Influencer() {
 
   return (
     <>
-      <Header searchText={searchText} setSearchText={setSearchText} />
-      <div className="min-h-screen max-w-5xl mx-auto py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+      <div className="min-h-screen max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center items-center">
         {session ? (
           <div className="w-full max-w-md backdrop-blur-xl bg-white/10 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] p-8 border border-white/20">
             <div className="flex flex-col items-center relative">
@@ -141,9 +139,9 @@ export default function Influencer() {
 
               {/* User Existence Status */}
               {loading === true ? (
-                <div className="flex items-center gap-2 mt-4 text-white/80">
-                  <div className="w-5 h-5 border-2 border-gray-400 border-t-2 border-t-white rounded-full animate-spin"></div>
-                  <p>Checking your status...</p>
+                <div className="flex items-center gap-1 mt-4 text-white/80">
+                    <Loader2 className="w-6 h-6 text-cyan-500 animate-spin mx-auto" />
+                    <p className="text-gray-300">Checking your status...</p>
                 </div>
               ) : userExists ? (
                 <div className="mt-6 w-full">
@@ -317,7 +315,6 @@ export default function Influencer() {
           </div>
         )}
       </div>
-      <Footer />
       <AddInfluencerModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

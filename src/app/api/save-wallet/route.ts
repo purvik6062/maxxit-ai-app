@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
           (existingUser.subscribers || []).map(async (subscriber: any) => {
             // Find the subscription document for this subscriber (e.g., telegramId: "meet4436")
             const subscriptionDoc = await database
-              .collection("user_subscriptions")
+              .collection("users")
               .findOne({ telegramId: subscriber });
             if (subscriptionDoc) {
               // Find the subscribed account matching existingUser.twitterHandle

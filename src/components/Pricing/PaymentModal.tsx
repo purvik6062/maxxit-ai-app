@@ -45,7 +45,7 @@ export default function PaymentModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm pt-[100px]"
       onClick={onClose}
     >
       <motion.div
@@ -59,7 +59,7 @@ export default function PaymentModal({
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors"
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
         >
           <X className="w-6 h-6" />
         </button>
@@ -149,7 +149,7 @@ export default function PaymentModal({
 
         {/* Right Side - Payment Methods */}
         <div className="w-1/2 p-12 flex flex-col justify-center">
-          <h3 className="text-2xl font-bold mb-6 text-center">
+          <h3 className="text-2xl font-bold mb-6 text-center text-black">
             Choose Payment Method
           </h3>
 

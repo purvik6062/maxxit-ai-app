@@ -179,24 +179,24 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
                 <a href="/" className="fn_logo flex-shrink-0">
                   <span className="full_logo">
                     <img
-                      src="img/new_name_logo.svg"
+                      src="/img/new_name_logo.svg"
                       className="desktop_logo"
                       alt=""
                     />
                     <img
-                      src="img/new_name_logo.svg"
+                      src="/img/new_name_logo.svg"
                       className="retina_logo"
                       alt=""
                     />
                   </span>
                   <span className="short_logo">
                     <img
-                      src="img/new_logo.svg"
+                      src="/img/new_logo.svg"
                       className="desktop_logo"
                       alt=""
                     />
                     <img
-                      src="img/new_logo.svg"
+                      src="/img/new_logo.svg"
                       className="retina_logo w-[45px] h-[40px]"
                       alt=""
                     />

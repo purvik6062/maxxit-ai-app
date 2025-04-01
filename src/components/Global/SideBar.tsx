@@ -87,13 +87,13 @@ const SideBar: React.FC<SideBarProps> = ({ setActiveComponent }) => {
           </span>
           <span className="short_logo">
             <img
-              src="img/new_logo.svg"
+              src="/img/new_logo.svg"
               className="desktop_logo"
               alt=""
             />
             {/* the above logo is the logo of T for the big screen */}
             <img
-              src="img/new_logo.svg"
+              src="/img/new_logo.svg"
               className="retina_logo w-[45px] h-[40px]"
               alt=""
             />

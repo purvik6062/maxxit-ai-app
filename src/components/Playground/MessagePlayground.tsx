@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { MessageSquare, Play, InfoIcon, Info } from "lucide-react";
@@ -69,10 +68,10 @@ const MessagePlayground = () => {
 
       if (
         parsedResult?.tokenSymbol &&
-        parsedResult.signal &&
-        parsedResult.tp1 &&
-        parsedResult.tp2 &&
-        parsedResult.sl
+        parsedResult?.signal &&
+        parsedResult?.tp1 &&
+        parsedResult?.tp2 &&
+        parsedResult?.sl
       ) {
         const tokenSymbolLower = parsedResult.tokenSymbol.toLowerCase();
         const coinId = getCoinIdFromJson(tokenSymbolLower);
@@ -114,18 +113,22 @@ const MessagePlayground = () => {
           autoClose: 3000,
         });
       } else {
-        toast.error("Invalid response format. Please try again.");
+        toast.error("Invalid response format. Please try again.", {
+          position: "top-center",
+        });
       }
     } catch (error) {
       console.error("Error during inference:", error);
-      toast.error(`Failed to perform inference: ${error}`);
+      toast.error(`Failed to perform inference: ${error}`, {
+        position: "top-center",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto px-4 mt-[7rem] min-h-screen">
+    <div className="space-y-8 max-w-4xl mx-auto px-4 min-h-screen border border-white border-solid rounded-lg py-4 my-12">
       <div className="space-y-4">
         <div className="flex items-center gap-2 mb-6">
           <MessageSquare className="w-6 h-6 text-blue-400" />
@@ -140,8 +143,8 @@ const MessagePlayground = () => {
             value={telegramMessage}
             onChange={(e) => setTelegramMessage(e.target.value)}
             placeholder="Paste your signal message here..."
-            className="w-full h-40 p-4 bg-gray-900/80 backdrop-blur-sm text-gray-200 border-2 border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none 
-                      ring-offset-2 ring-offset-gray-900 transition-all duration-200 placeholder-gray-500
+            className="w-full h-40 p-4 bg-gray-900/80 backdrop-blur-sm text-gray-200 border border-solid border-gray-400 rounded-xl focus:ring-1 focus:ring-blue-400 focus:border-transparent resize-none 
+                      ring-offset-1 ring-offset-gray-900 transition-all duration-200 placeholder-gray-500
                       hover:border-gray-600 focus:shadow-[0_0_20px_-5px_rgba(59,130,246,0.3)]"
           />
           <div className="absolute bottom-3 right-4 text-xs text-gray-500">
@@ -149,16 +152,16 @@ const MessagePlayground = () => {
           </div>
         </div>
 
-        <div className="flex gap-4 p-4 bg-gray-800/50 border border-gray-700 rounded-xl text-amber-100 text-sm backdrop-blur-sm">
-          <Info className="w-5 h-5 mt-0.5 flex-shrink-0 text-amber-400/80" />
+        <div className="flex gap-4 p-4 bg-gray-800/50 border border-solid border-gray-400 rounded-xl text-yellow-100 text-sm backdrop-blur-sm">
+          <Info className="w-5 h-5 mt-0.5 flex-shrink-0 text-yellow-400" />
           <div>
-            <p className="font-medium text-amber-300/90 mb-1">Pro Tip</p>
-            <p className="text-amber-100/80">
+            <p className="font-medium text-yellow-300 mb-1">Pro Tip</p>
+            <p className="text-yellow-100/95">
               Paste a message containing trading signals with Target Prices
               (TP), Stop Loss (SL), and other relevant data. Ensure the message
               includes:
             </p>
-            <ul className="list-disc list-inside mt-2 space-y-1 text-amber-100/70">
+            <ul className="list-disc list-inside mt-2 space-y-1 text-yellow-100/90">
               <li>Clear token/crypto symbol (e.g., BTC, ETH)</li>
               <li>Price targets and stop loss levels</li>
               <li>Directional bias (Long/Short)</li>
@@ -176,8 +179,8 @@ const MessagePlayground = () => {
           className={`w-full group relative overflow-hidden rounded-xl p-px transition-all duration-300 
             ${
               telegramMessage && !isLoading
-                ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-[0_0_30px_-5px_rgba(59,130,246,0.5)]"
-                : "bg-gray-800 cursor-not-allowed"
+                ? "bg-gradient-to-r from-blue-300 to-cyan-400 hover:shadow-[0_0_30px_-5px_rgba(59,130,246,0.5)]"
+                : "bg-gray-800 cursor-not-allowed opacity-75"
             }`}
         >
           <div
@@ -195,8 +198,8 @@ const MessagePlayground = () => {
               </>
             ) : (
               <>
-                <Play className="w-4 h-4 text-blue-400" />
-                <span className="font-medium bg-gradient-to-r from-blue-400 to-indigo-300 bg-clip-text text-transparent">
+                <Play className="w-4 h-4 text-cyan-400" />
+                <span className="font-medium bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent">
                   Analyze Message
                 </span>
               </>

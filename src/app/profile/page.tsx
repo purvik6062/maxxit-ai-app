@@ -1,14 +1,10 @@
 "use client";
-import { Footer, Header, UserProfile } from "@/components";
-import { useState } from "react";
+import { UserProfile } from "@/components";
 
 export default function page() {
-  const [searchText, setSearchText] = useState("");
   return (
     <>
-      <Header searchText={searchText} setSearchText={setSearchText} />
       <UserProfile />
-      <Footer />
     </>
   );
 }

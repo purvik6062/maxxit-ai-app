@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     await collection.insertOne(newInfluencer);
 
     // If walletAddress is provided, process subscription
-    if (walletAddress && sessionUserhandle === null) {
+    if (walletAddress) {
       // Start a session for transaction
       const session = client.startSession();
 
@@ -50,11 +50,20 @@ export async function POST(request: Request) {
           // 1. Check and update user's credits
           const user = await usersCollection.findOne({ walletAddress });
 
+          if (!user) {
+            throw new Error("Register yourself first to receive 100 free credits!");
+          }
+  
+          if (user.credits < SUBSCRIPTION_COST) {
+            throw new Error("Insufficient credits");
+          }
+
           // Get user's telegram ID and clean it (remove @ if exists)
           const cleanTelegramId = user?.telegramId.replace("@", "");
 
-          // Check if user is already subscribed
-          if (user?.subscribedAccounts?.includes(cleanHandle)) {
+           // Check if user is already subscribed (case-insensitive)
+          if (user.subscribedAccounts?.some((account: { twitterHandle: string }) => 
+            new RegExp(`^${cleanHandle}$`, "i").test(account.twitterHandle))) {
             throw new Error("Already subscribed to this influencer");
           }
 
@@ -98,9 +107,9 @@ export async function POST(request: Request) {
               publicMetrics,
               userProfileUrl,
               mindshare: Number((Math.random() * 1).toFixed(2)), // Random mindshare between 0-1
-              herdedVsHidden: Math.floor(Math.random() * 10), // Random herded vs hidden
-              convictionVsHype: Math.floor(Math.random() * 20), // Random conviction vs hype
-              memeVsInstitutional: Math.floor(Math.random() * 20), // Random meme vs institutional
+              herdedVsHidden: 1,
+              convictionVsHype: 1,
+              memeVsInstitutional: 1
             };
 
             await influencersCollection.insertOne(

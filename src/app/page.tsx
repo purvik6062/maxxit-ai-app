@@ -12,7 +12,6 @@ import {
   HeartbeatDashboard,
   Footer,
   Mindshare,
-  MainHeader,
 } from "../components/index";
 import SocialGraph from "@/components/Body/SocialGraph";
 import AddInfluencerModal from "../components/Body/AddInfluencerModal";
@@ -168,7 +167,7 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#020617]">
-      <Header searchText={searchText} setSearchText={setSearchText} />
+      {/* <Header searchText={searchText} setSearchText={setSearchText} /> */}
       <main className="flex-grow px-6 py-8 max-w-screen-2xl mx-auto w-full">
         <div className="flex flex-col gap-8">
           <div className="flex flex-col lg:flex-row gap-6">
@@ -216,7 +215,7 @@ const HomePage: React.FC = () => {
         <Mindshare />
       </div>
 
-      <Footer />
+      {/* <Footer /> */}
       <AddInfluencerModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

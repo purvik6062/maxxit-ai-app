@@ -29,21 +29,12 @@ export default function RootLayout({
             refetchOnWindowFocus={false}
           >
             <CreditsProvider>
-            {/* <Header searchText={searchText} setSearchText={setSearchText} /> */}
+            <Header searchText={searchText} setSearchText={setSearchText} />
             <main className="main-content">
               {children}
               </main>
-              {/* <Footer /> */}
+              <Footer />
             </CreditsProvider>
-            <script
-              type="text/javascript"
-              src="js/jquery.js?ver=1.0.0"
-            ></script>
-            <script
-              type="text/javascript"
-              src="js/plugins.js?ver=1.0.0"
-            ></script>
-            <script type="text/javascript" src="js/init.js?ver=1.0.0"></script>
           </SessionProvider>
         </Providers>
       </body>
