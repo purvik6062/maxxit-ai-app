@@ -175,34 +175,34 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
         <nav className="flex-1">
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex justify-between h-16">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-6">
                 <a href="/" className="fn_logo flex-shrink-0">
                   <span className="full_logo">
                     <img
-                      src="/img/new_name_logo.svg"
+                      src="/img/maxxit.svg"
                       className="desktop_logo"
                       alt=""
                     />
                     <img
-                      src="/img/new_name_logo.svg"
+                      src="/img/maxxit.svg"
                       className="retina_logo"
                       alt=""
                     />
                   </span>
                   <span className="short_logo">
                     <img
-                      src="/img/new_logo.svg"
+                      src="/img/maxxit_icon.svg"
                       className="desktop_logo"
                       alt=""
                     />
                     <img
-                      src="/img/new_logo.svg"
+                      src="/img/maxxit_icon.svg"
                       className="retina_logo w-[45px] h-[40px]"
                       alt=""
                     />
                   </span>
                 </a>
-                <div className="flex flex-shrink-0 overflow-hidden">
+                <div className="flex flex-shrink-0 overflow-hidden mt-[3px]">
 
                   <Link href="/influencer">
                     <button
@@ -376,7 +376,7 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
                     </svg>
                   </div>
                   <h3 className="text-2xl font-bold text-white mb-1">
-                    Welcome to CTxbt - The Signal Generator Platform
+                    Welcome to Maxxit - The Signal Generator Platform
                   </h3>
                   <div className="h-1 w-24 bg-gradient-to-r from-blue-500 to-blue-700 mx-auto my-3 rounded-full"></div>
                   <p className="text-gray-300 mb-6">

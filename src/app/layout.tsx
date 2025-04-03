@@ -16,12 +16,12 @@ export default function RootLayout({
   const [searchText, setSearchText] = useState("");
   return (
     <html lang="en">
-      <title>CTxbt | App</title>
+      <title>Maxxit | App</title>
       <meta
         name="description"
         content="AI-Powered Signals Generator Platform"
       />
-      <link rel="icon" type="image/svg+xml" href="/img/new_logo.svg" />
+      <link rel="icon" type="image/svg+xml" href="/img/maxxit_icon.svg" />
       <body>
         <Providers>
           <SessionProvider

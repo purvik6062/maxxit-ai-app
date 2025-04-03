@@ -177,8 +177,8 @@ const UserProfile = () => {
             apiKey={apiKey}
             endpoint={
               process.env.NODE_ENV === "production"
-                ? "https://app.ctxbt.com"
-                : "https://app.ctxbt.com"
+                ? "https://app.maxxit.ai"
+                : "https://app.maxxit.ai"
             }
             walletAddress={address!}
             onGenerateNewKey={handleNewKeyGenerated}
