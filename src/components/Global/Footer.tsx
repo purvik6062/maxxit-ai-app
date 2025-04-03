@@ -5,7 +5,7 @@ const Footer = () => {
     <footer className="techwave_fn_footer">
       <div className="techwave_fn_footer_content">
         <div className="copyright">
-          <p>2025 @CTxbt | All Rights Reserved</p>
+          <p>2025 @Maxxit | All Rights Reserved</p>
         </div>
         <div className="menu_items">
           <ul>

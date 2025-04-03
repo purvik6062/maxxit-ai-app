@@ -108,7 +108,7 @@ export default function SubscribedAccountsPage() {
         title: `Your Account 🌟\nWallet: ${address}\nConnections: ${subscribedAccounts.length} accounts`,
             size: 40,
             shape: "circle",
-            image: "/img/new_logo.svg", // Default image for the user
+            image: "/img/maxxit_icon.svg", // Default image for the user
           },
         ];
 

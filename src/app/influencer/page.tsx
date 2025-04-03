@@ -159,7 +159,7 @@ export default function Influencer() {
                             </span>
                           </p>
                           <p className="text-yellow-400 mt-2">
-                            Note: You haven’t mentioned "CTxbt" or our
+                            Note: You haven’t mentioned "Maxxit" or our
                             platform-related keywords in your tweets yet. Please
                             do so to earn a portion of the amount from your
                             subscribers at regular intervals.
@@ -197,7 +197,7 @@ export default function Influencer() {
                       </h2>
                       <p className="text-white/80 mb-4">
                         Enter a wallet address to receive your earnings from
-                        CTxbt. Ensure it’s correct, as this is where your
+                        Maxxit. Ensure it’s correct, as this is where your
                         payments will be sent!
                       </p>
                       <input
@@ -223,7 +223,7 @@ export default function Influencer() {
                   <div className="flex items-start gap-1 p-3 bg-blue-500/30 border-2 border-blue-500/80 rounded-lg text-blue-200 text-base">
                     <InfoIcon className="w-5 h-5 mt-0.5 flex-shrink-0" />
                     <span>
-                      You are not yet registered with CTxbt. This is a necessary
+                      You are not yet registered with "Maxxit". This is a necessary
                       step, as once you have registered on our platform, you
                       will be eligible to receive a portion of payments from
                       your subscribed users
@@ -268,7 +268,7 @@ export default function Influencer() {
               {/* Disclaimer Section */}
               <div className="mt-8">
                 <h3 className="text-xl font-semibold mb-4 text-white">
-                  How to Earn with CTxbt
+                  How to Earn with Maxxit
                 </h3>
                 <div className="space-y-4 text-white/80">
                   <div className="flex items-start gap-2">
@@ -276,7 +276,7 @@ export default function Influencer() {
                     <p>
                       Earn amounts by mentioning{" "}
                       <span className="text-emerald-400 font-semibold">
-                        "CTxbt"
+                        "Maxxit"
                       </span>{" "}
                       or our platform link in your tweets
                     </p>
@@ -304,7 +304,7 @@ export default function Influencer() {
                     <p>
                       Mention{" "}
                       <span className="text-emerald-400 font-semibold">
-                        "CTxbt"
+                        "Maxxit"
                       </span>{" "}
                       more in your tweets to earn more
                     </p>

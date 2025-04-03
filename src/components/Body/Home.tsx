@@ -80,14 +80,14 @@ const Home = () => {
             <div className="section_right">
               <div className="company_info">
                 <h1 className="mt-1 font-bold text-3xl text-balance bg-gradient-to-r from-white to-blue-600 bg-clip-text text-left text-transparent">
-                  CTxbt
+                Maxxit
                 </h1>
                 <p
                   className={`fn__animated_text text-gray-300 ${
                     isReady ? "ready" : ""
                   }`}
                 >
-                  CTxbt is an AI-powered platform designed to evaluate the
+                  Maxxit is an AI-powered platform designed to evaluate the
                   credibility and accuracy of trading-related Twitter accounts,
                   helping enthusiasts make informed decisions. It dynamically
                   ranks accounts on a leaderboard based on prediction accuracy,

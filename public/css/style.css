@@ -880,7 +880,7 @@ frenify_typing span {
 
   .full_logo {
     display: block;
-    width: 250px;
+    width: 180px;
   }
 
   .panel-opened .techwave_fn_leftpanel .group__list ul {
@@ -3361,7 +3361,7 @@ a.fn__like.no_border .fn__svg {
 }
 
 .techwave_fn_sign .logo {
-  /* background-image: none, url(../img/new_name_logo.svg); */
+  /* background-image: none, url(../img/maxxit.svg); */
   background-size: 141px;
   background-position: center top;
   background-repeat: no-repeat;
