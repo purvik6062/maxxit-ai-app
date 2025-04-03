@@ -8,12 +8,9 @@
 /* html, body {
   color: white !important;
 } */
- 
-
 
 .new_select {
   border: 1px solid blue;
-  
 }
 
 .new_flex {
@@ -146,14 +143,27 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(to right, rgba(110, 228, 244, 0.9), rgba(87, 235, 251, 0.9));
+  background: linear-gradient(
+    to right,
+    rgba(110, 228, 244, 0.9),
+    rgba(87, 235, 251, 0.9)
+  );
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to right, rgba(58, 170, 195, 0.8), rgba(118, 214, 245, 0.9));
+  background: linear-gradient(
+    to right,
+    rgba(58, 170, 195, 0.8),
+    rgba(118, 214, 245, 0.9)
+  );
 }
 
 body {
   @apply bg-black text-white;
+}
+
+::selection {
+  background-color: #04c3fc;
+  color: white;
 }
