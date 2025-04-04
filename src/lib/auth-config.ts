@@ -23,7 +23,7 @@ export const authOptions: NextAuthOptions = {
   providers: [
     TwitterProvider({
       clientId: process.env.API_KEY!,
-      clientSecret: process.env.API_KEY_AUTH_SECRET!,
+      clientSecret: process.env.API_KEY_SECRET!,
     }),
   ],
   secret: process.env.AUTH_SECRET,

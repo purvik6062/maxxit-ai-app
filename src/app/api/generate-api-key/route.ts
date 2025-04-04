@@ -4,7 +4,7 @@ import crypto from "crypto";
 
 const MONGODB_URI = process.env.MONGODB_URI!;
 const DB_NAME = "ctxbt-signal-flow";
-const SECRET_KEY = process.env.API_KEY_SECRET!;
+const SECRET_KEY = process.env.API_KEY_HASH_SECRET!;
 
 export async function POST(req: NextRequest) {
   try {
