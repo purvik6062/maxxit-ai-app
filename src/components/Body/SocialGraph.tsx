@@ -105,9 +105,9 @@ export default function SubscribedAccountsPage() {
             id: address || "current-user",
             label: "You",
             group: 1,
-        title: `Your Account 🌟\nWallet: ${address}\nConnections: ${subscribedAccounts.length} accounts`,
-            size: 40,
-            shape: "circle",
+            title: `Your Account 🌟\nWallet: ${address}\nConnections: ${subscribedAccounts.length} accounts`,
+            size: 35,
+            shape: "circularImage",
             image: "/img/maxxit_icon.svg", // Default image for the user
           },
         ];
@@ -134,7 +134,7 @@ export default function SubscribedAccountsPage() {
               label: account.twitterHandle,
               group: 2,
               title: `@${account.twitterHandle} 🐦\nSubscribed: ${new Date(account.subscriptionDate).toLocaleDateString()}\nExpires in: ${daysUntilExpiry} days\nClick to view profile`,
-              size: 20 + Math.random() * 10,
+              size: 25 + Math.random() * 5,
               shape: hasImage ? "circularImage" : "circle", // Use circularImage only if we have an image
               ...(hasImage && { image: account.userProfileUrl }), // Only add image property if we have an image
             });
@@ -360,7 +360,7 @@ export default function SubscribedAccountsPage() {
             <div className="absolute bottom-4 right-4 bg-gray-900 bg-opacity-80 p-3 rounded-lg shadow-lg text-sm">
               <p className="font-medium mb-1">Network Legend</p>
               <div className="flex items-center mb-1">
-                <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+                <div className="w-3 h-3 rounded-full bg-cyan-500 mr-2"></div>
                 <span>You</span>
               </div>
               <div className="flex items-center">

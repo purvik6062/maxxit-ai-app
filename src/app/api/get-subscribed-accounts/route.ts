@@ -25,10 +25,10 @@ export async function GET(req: NextRequest) {
     const client = await dbConnect();
     const db = client.db("ctxbt-signal-flow");
     const usersCollection = db.collection("users");
-    // const syncedCollection = db.collection("influencers");
+    const syncedCollection = db.collection("influencers");
 
     const db2 = client.db("test_analysis");
-    const syncedCollection = db2.collection("influencers_testing");
+    // const syncedCollection = db2.collection("influencers_testing");
 
     // Find the user by walletAddress - check both lowercase and original case
     const user = await usersCollection.findOne({
