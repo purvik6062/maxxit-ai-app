@@ -173,7 +173,7 @@ const HomePage: React.FC = () => {
 
       <div className="px-6 py-8">
         <TopInfluencersGraph />
-        <ShareButton />
+        {/* <ShareButton /> */}
       </div>
 
       <main className="flex-grow px-6 py-8 max-w-screen-2xl mx-auto w-full">
