@@ -20,10 +20,12 @@ import {
 import SocialGraph from "@/components/Body/SocialGraph";
 import TabNavigation from "@/components/Body/TabNavigation";
 import AddInfluencerModal from "../components/Body/AddInfluencerModal";
+import { useSession } from "next-auth/react";
 
 const HomePage: React.FC = () => {
   const { address } = useAccount();
   const { updateCredits } = useCredits();
+  const { data: session } = useSession();
 
   const [subscribedHandles, setSubscribedHandles] = useState<string[]>([]);
   const [subscribingHandle, setSubscribingHandle] = useState<string | null>(
@@ -42,10 +44,10 @@ const HomePage: React.FC = () => {
 
   useEffect(() => {
     const fetchSubscribedHandles = async () => {
-      if (!address) return;
+      if (!session || !session.user?.id) return;
 
       try {
-        const response = await fetch(`/api/get-user?walletAddress=${address}`);
+        const response = await fetch(`/api/get-user?twitterId=${session.user.id}`);
         const data = await response.json();
 
         if (data.success && data.data.subscribedAccounts) {
@@ -63,12 +65,12 @@ const HomePage: React.FC = () => {
     };
 
     fetchSubscribedHandles();
-  }, [address]);
+  }, [session]);
 
   const handleSubscribe = useCallback(
     async (handle: string) => {
-      if (!address) {
-        toast.error("Please connect your wallet first", {
+      if (!session || !session.user?.id) {
+        toast.error("Please login with Twitter/X first", {
           position: "top-center",
         });
         return;
@@ -84,7 +86,7 @@ const HomePage: React.FC = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            walletAddress: address,
+            twitterId: session.user.id,
             influencerHandle: cleanHandle,
           }),
         });
@@ -111,7 +113,7 @@ const HomePage: React.FC = () => {
         setSubscribingHandle(null);
       }
     },
-    [address, updateCredits]
+    [session, updateCredits]
   );
 
   const handleInfluencerAdded = useCallback(async () => {
