@@ -1,7 +1,8 @@
 "use client";
 import React, { useRef, useState } from "react";
 import { FaTrophy, FaCrown } from "react-icons/fa";
-import { TrendingUp, Award, BarChart2, Heart, Loader2, AlertCircle, SearchX } from "lucide-react";
+import { TrendingUp, Award, BarChart2, Heart, Loader2, AlertCircle, SearchX,  Shield, Users, ChevronUp} from "lucide-react";
+import { RiPulseLine } from "react-icons/ri";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { useHeartbeatLeaderboard } from "@/hooks/useHeartbeatLeaderboard";
@@ -25,6 +26,34 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
   gsap.registerPlugin(useGSAP);
   const { agents, loading, error, refreshData } = useHeartbeatLeaderboard();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  const [showStats, setShowStats] = useState<Record<string, boolean>>({});
+  
+    // Toggle detailed stats for a specific card
+    const toggleStats = (handle: string) => {
+      setShowStats((prev) => ({
+        ...prev,
+        [handle]: !prev[handle],
+      }));
+    };
+  
+    // Calculate random stats for visualization
+    const getRandomStat = (handle: string, type: string): number => {
+      const seed = handle
+        .split("")
+        .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      const baseValue = (seed % 30) + 50; // Between 50-80
+      switch (type) {
+        case "precision":
+          return (baseValue + 5) % 100;
+        case "performance":
+          return (baseValue + 10) % 100;
+        case "reliability":
+          return (baseValue + 15) % 100;
+        default:
+          return baseValue;
+      }
+    };
 
   React.useEffect(() => {
     const wrappedRefreshData = async () => {
@@ -39,15 +68,31 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
     };
     setRefreshData(() => wrappedRefreshData);
   }, [refreshData, setRefreshData]);
-
   useGSAP(
     () => {
       if (!loading && agents.length > 0) {
-        const tl = gsap.timeline({ defaults: { ease: "power2.inOut" } });
+        const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+        // Staggered entrance animation
         tl.fromTo(
-          ".heartbeat-card",
-          { y: 15, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.5, stagger: 0.03 }
+          ".top-card",
+          { y: 30, opacity: 0, scale: 0.95 },
+          { y: 0, opacity: 1, scale: 1, duration: 0.7, stagger: 0.15 }
+        );
+
+        // Animate the progress bars after cards appear
+        tl.fromTo(
+          ".progress-bar-fill",
+          { width: 0 },
+          { width: "100%", duration: 0.8, stagger: 0.05 },
+          "-=0.5"
+        );
+
+        // Animate the list items
+        tl.fromTo(
+          ".list-item",
+          { x: -20, opacity: 0 },
+          { x: 0, opacity: 1, duration: 0.4, stagger: 0.03 },
+          "-=0.7"
         );
       }
     },
@@ -106,6 +151,23 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
 
     return (
       <div>
+        <div className="flex items-center gap-2 mb-6 px-2">
+                  <div className="relative flex items-center">
+                    <div className="w-2 h-2 rounded-full bg-cyan-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-cyan-500/70 absolute animate-ping"></div>
+                  </div>
+                  <span className="text-sm text-cyan-400/80">
+                    Data updated on • {new Date().toLocaleDateString()}
+                  </span>
+        
+                  <div className="ml-auto flex items-center gap-1.5">
+                    <Users className="w-4 h-4 text-blue-400/70" />
+                    <span className="text-sm text-gray-300">
+                      {sortedAgents.length} analysts
+                    </span>
+                  </div>
+                </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {sortedAgents.slice(0, 3).map((agent, index) => {
             const rank = index + 1;
@@ -119,6 +181,11 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
               "from-amber-700 to-amber-900"   // bronze
             ];
 
+             // Generate pseudo-random metrics for visualization
+             const precision = getRandomStat(agent.handle, "precision");
+             const performance = getRandomStat(agent.handle, "performance");
+             const reliability = getRandomStat(agent.handle, "reliability");
+
             return (
               <div
                 key={agent.handle}
@@ -130,20 +197,33 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                     : "border-amber-700/30"
                 } bg-gray-900/70 backdrop-blur-sm`}
               >
+                <div className="absolute -right-6 -top-6 w-24 h-24">
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-br ${
+                      medalColors[rank - 1]
+                    } opacity-50 rotate-45`}
+                  ></div>
+                </div>
+
                 <div className="p-4">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center gap-3">
-                      <div className={`relative flex items-center justify-center h-10 w-10 rounded-full ${
-                        rank === 1 ? "bg-yellow-500/20" : 
-                        rank === 2 ? "bg-gray-400/20" : 
-                        "bg-amber-700/20"
-                      }`}>
-                        <FaTrophy className={`w-4 h-4 ${
-                          rank === 1 ? "text-yellow-300" : 
-                          rank === 2 ? "text-gray-300" : 
-                          "text-amber-700"
-                        }`} />
-                      </div>
+                       <div
+                                              className={`relative flex items-center justify-center h-12 w-12 rounded-full bg-gradient-to-br ${
+                                                medalColors[rank - 1]
+                                              } p-0.5`}
+                                            >
+                                              <div className="absolute inset-0.5 rounded-full bg-gray-900/80"></div>
+                                              <FaTrophy
+                                                className={`relative w-5 h-5 ${
+                                                  rank === 1
+                                                    ? "text-yellow-300"
+                                                    : rank === 2
+                                                    ? "text-gray-300"
+                                                    : "text-amber-700"
+                                                }`}
+                                              />
+                                            </div>
                       <div>
                         <span className="block text-xs text-blue-400 mb-0.5 font-medium">Rank #{rank}</span>
                         <h3 className="text-lg font-bold text-white">{agent.name}</h3>
@@ -152,8 +232,8 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                     </div>
                     
                     <div className="text-right">
-                      <div className="text-xs uppercase tracking-wider text-gray-500 mb-1">Heartbeat</div>
-                      <div className="text-xl font-bold text-blue-400">
+                      <div className="text-xs uppercase font-extrabold tracking-wider text-white mb-1">Beat</div>
+                      <div className="text-xl font-bold text-white">
                         {agent.heartbeat ?? "--"}
                       </div>
                     </div>
@@ -166,22 +246,147 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                       style={{ width: `${agent.heartbeat || 0}%` }}
                     ></div>
                   </div>
+
+                  {/* Detailed stats with hover interaction */}
+                                    <div
+                                      className={`transition-all duration-300 overflow-hidden ${
+                                        showStats[agent.handle]
+                                          ? "max-h-40 opacity-100 mb-4"
+                                          : "max-h-0 opacity-0"
+                                      }`}
+                                    >
+                                      <div className="grid grid-cols-3 gap-2 mb-3">
+                                        <div className="flex flex-col items-center justify-center bg-blue-900/20 rounded-lg p-2.5 border border-blue-700/20">
+                                          <div className="relative mb-1">
+                                            <Shield className="h-4 w-4 text-blue-400" />
+                                            <div
+                                              className="absolute inset-0 bg-blue-400/20 rounded-full animate-ping"
+                                              style={{ animationDuration: "3s" }}
+                                            ></div>
+                                          </div>
+                                          <span className="text-xs text-blue-400 mb-0.5">
+                                            Precision
+                                          </span>
+                                          <span className="text-xs font-semibold text-white">
+                                            {precision}%
+                                          </span>
+                                        </div>
+                                        <div className="flex flex-col items-center justify-center bg-cyan-900/20 rounded-lg p-2.5 border border-cyan-700/20">
+                                          <TrendingUp className="h-4 w-4 text-cyan-400 mb-1" />
+                                          <span className="text-xs text-cyan-400 mb-0.5">
+                                            Performance
+                                          </span>
+                                          <span className="text-xs font-semibold text-white">
+                                            {performance}%
+                                          </span>
+                                        </div>
+                                        <div className="flex flex-col items-center justify-center bg-blue-800/20 rounded-lg p-2.5 border border-blue-700/20">
+                                          <BarChart2 className="h-4 w-4 text-blue-300 mb-1" />
+                                          <span className="text-xs text-blue-300 mb-0.5">
+                                            Reliability
+                                          </span>
+                                          <span className="text-xs font-semibold text-white">
+                                            {reliability}%
+                                          </span>
+                                        </div>
+                                      </div>
                   
-                  {/* Stats */}
-                  <div className="grid grid-cols-3 gap-2 mb-4">
-                    <div className="bg-gray-800/50 rounded-lg p-2 text-center">
-                      <Award className="h-4 w-4 text-blue-400 mx-auto mb-1" />
-                      <span className="text-xs text-gray-400">Precision</span>
-                    </div>
-                    <div className="bg-gray-800/50 rounded-lg p-2 text-center">
-                      <TrendingUp className="h-4 w-4 text-blue-400 mx-auto mb-1" />
-                      <span className="text-xs text-gray-400">Performance</span>
-                    </div>
-                    <div className="bg-gray-800/50 rounded-lg p-2 text-center">
-                      <BarChart2 className="h-4 w-4 text-blue-400 mx-auto mb-1" />
-                      <span className="text-xs text-gray-400">Reliability</span>
-                    </div>
-                  </div>
+                                      {/* Radar chart visualization (simple CSS-based) */}
+                                      <div className="relative h-24 mb-4 hidden md:block">
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                          <div className="w-full h-full max-w-[120px] max-h-[120px] relative">
+                                            {/* Background hexagon */}
+                                            <div className="absolute inset-0 border-2 border-blue-800/30 rounded-full"></div>
+                                            <div className="absolute inset-[20%] border-2 border-blue-800/20 rounded-full"></div>
+                                            <div className="absolute inset-[40%] border-2 border-blue-800/10 rounded-full"></div>
+                  
+                                            {/* Stat lines */}
+                                            <div className="absolute top-0 left-1/2 h-1/2 w-0.5 bg-blue-800/20 -translate-x-1/2"></div>
+                                            <div className="absolute top-1/2 left-0 h-0.5 w-1/2 bg-blue-800/20"></div>
+                                            <div className="absolute bottom-0 left-1/2 h-1/2 w-0.5 bg-blue-800/20 -translate-x-1/2"></div>
+                                            <div className="absolute top-1/2 right-0 h-0.5 w-1/2 bg-blue-800/20"></div>
+                  
+                                            {/* Data points */}
+                                            <div
+                                              className="absolute rounded-full w-2 h-2 bg-blue-400"
+                                              style={{
+                                                top: `${(100 - precision) / 2}%`,
+                                                left: "50%",
+                                                transform: "translate(-50%, -50%)",
+                                                boxShadow: "0 0 5px rgba(96, 165, 250, 0.7)",
+                                              }}
+                                            ></div>
+                                            <div
+                                              className="absolute rounded-full w-2 h-2 bg-cyan-400"
+                                              style={{
+                                                top: "50%",
+                                                left: `${performance / 2}%`,
+                                                transform: "translate(-50%, -50%)",
+                                                boxShadow: "0 0 5px rgba(34, 211, 238, 0.7)",
+                                              }}
+                                            ></div>
+                                            <div
+                                              className="absolute rounded-full w-2 h-2 bg-blue-300"
+                                              style={{
+                                                bottom: `${(100 - reliability) / 2}%`,
+                                                left: "50%",
+                                                transform: "translate(-50%, 50%)",
+                                                boxShadow: "0 0 5px rgba(147, 197, 253, 0.7)",
+                                              }}
+                                            ></div>
+                                            <div
+                                              className="absolute rounded-full w-2 h-2 bg-blue-500"
+                                              style={{
+                                                top: "50%",
+                                                right: `${100 - (agent.impactFactor || 0)}%`,
+                                                transform: "translate(50%, -50%)",
+                                                boxShadow: "0 0 5px rgba(59, 130, 246, 0.7)",
+                                              }}
+                                            ></div>
+                  
+                                            {/* Connecting lines */}
+                                            <svg className="absolute inset-0 w-full h-full">
+                                              <polygon
+                                                points={`50,${(100 - precision) / 2} 
+                                                                    ${performance / 2},50 
+                                                                    50,${
+                                                                      100 -
+                                                                      (100 - reliability) / 2
+                                                                    } 
+                                                                    ${
+                                                                      100 -
+                                                                      (100 -
+                                                                        (agent.impactFactor || 0))
+                                                                    },50
+                                                                  `}
+                                                fill="rgba(59, 130, 246, 0.2)"
+                                                stroke="rgba(59, 130, 246, 0.6)"
+                                                strokeWidth="1"
+                                              />
+                                            </svg>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                  
+                                    {/* Toggle stats button */}
+                                    <button
+                                      className="w-full flex items-center justify-center gap-1 py-1 mb-3 rounded-lg text-sm font-medium 
+                                      text-blue-300 hover:text-blue-200 bg-blue-900/30 hover:bg-blue-800/40 transition-all duration-200"
+                                      onClick={() => toggleStats(agent.handle)}
+                                    >
+                                      {showStats[agent.handle] ? (
+                                        <>
+                                          <ChevronUp className="w-3 h-3" />
+                                          <span>Hide Details</span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <RiPulseLine className="w-3 h-3" />
+                                          <span>View Performance Metrics</span>
+                                        </>
+                                      )}
+                                    </button>
                   
                   {/* Subscribe button */}
                   <button
