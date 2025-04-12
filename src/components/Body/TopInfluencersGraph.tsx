@@ -1,532 +1,817 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { Network, DataSet } from "vis-network/standalone";
+import React, { useEffect, useRef, useState } from "react";
+import * as d3 from "d3";
 
-type GraphNode = {
+type Influencer = {
   id: string;
-  label: string;
+  name: string;
+  profit: number;
+  followers: number;
+  accuracy: number;
+  recentPredictions: number;
+  avatar: string;
+  specialties: string[];
+};
+
+type PlatformNode = {
+  id: string;
+  name: string;
+  radius: number;
+  avatar: string;
+  fx: number;
+  fy: number;
+  group?: number;
+};
+
+type InfluencerNode = {
+  id: string;
+  name: string;
+  radius: number;
+  avatar: string;
+  data: Influencer;
   group: number;
-  title?: string;
-  size?: number;
-  image?: string;
-  shape?: string;
-  color?: string | object;
+  fx?: number;
+  fy?: number;
 };
 
-type GraphEdge = {
-  id?: string;
-  from: string;
-  to: string;
-  width?: number;
-  color?: string | object;
-  dashes?: boolean | number[];
-  length?: number;
-  title?: string;
+type GraphNode = PlatformNode | InfluencerNode;
+
+type GraphLink = {
+  source: string;
+  target: string;
+  value: number;
+  specialty?: string;
 };
 
-type GraphData = {
-  nodes: GraphNode[];
-  edges: GraphEdge[];
-};
+export default function CosmicWebInfluencerGraph() {
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const tooltipRef = useRef<HTMLDivElement | null>(null);
+  const [selectedInfluencer, setSelectedInfluencer] =
+    useState<Influencer | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [zoomLevel, setZoomLevel] = useState(1); // New state for zoom level
 
-// Define position interface for type safety
-interface NodePosition {
-  x: number;
-  y: number;
-}
+  // Sample data - replace with your actual data
+  const influencerData: Influencer[] = [
+    {
+      id: "inf1",
+      name: "CryptoMaster",
+      profit: 18320,
+      followers: 245000,
+      accuracy: 92,
+      recentPredictions: 24,
+      avatar: "https://picsum.photos/id/300/200",
+      specialties: ["Bitcoin", "Ethereum", "Altcoins"],
+    },
+    {
+      id: "inf2",
+      name: "TokenWhisperer",
+      profit: 15100,
+      followers: 198000,
+      accuracy: 89,
+      recentPredictions: 31,
+      avatar: "https://picsum.photos/id/600/200",
+      specialties: ["DeFi", "NFTs", "Solana"],
+    },
+    {
+      id: "inf3",
+      name: "BlockchainOracle",
+      profit: 12750,
+      followers: 173000,
+      accuracy: 87,
+      recentPredictions: 19,
+      avatar: "https://picsum.photos/id/400/200",
+      specialties: ["Technical Analysis", "Long-term Holds", "Market Cycles"],
+    },
+    {
+      id: "inf4",
+      name: "CoinVoyager",
+      profit: 10820,
+      followers: 156000,
+      accuracy: 84,
+      recentPredictions: 27,
+      avatar: "https://picsum.photos/id/300/300",
+      specialties: ["Emerging Markets", "Layer 2", "Gaming Tokens"],
+    },
+    {
+      id: "inf5",
+      name: "SatoshiDisciple",
+      profit: 9650,
+      followers: 132000,
+      accuracy: 83,
+      recentPredictions: 22,
+      avatar: "https://picsum.photos/id/300/400",
+      specialties: ["Bitcoin", "Mining", "On-chain Analysis"],
+    },
+    {
+      id: "inf6",
+      name: "AltcoinArchitect",
+      profit: 8340,
+      followers: 118000,
+      accuracy: 81,
+      recentPredictions: 29,
+      avatar: "https://picsum.photos/id/500/300",
+      specialties: ["Altcoins", "ICOs", "New Listings"],
+    },
+  ];
 
-// Define positions type to allow indexing by string
-interface NodePositions {
-  [key: string]: NodePosition;
-}
-
-export default function TopInfluencersGraph() {
-  const [selectedNode, setSelectedNode] = useState<string | null>(null);
-  const networkRef = useRef<HTMLDivElement>(null);
-  const networkInstance = useRef<Network | null>(null);
-  const nodesDataSet = useRef<DataSet<any> | null>(null);
-  const edgesDataSet = useRef<DataSet<any> | null>(null);
-  const animationRef = useRef<number | null>(null);
-
-  // Generate a hash color from string
-  const stringToColor = (str: string) => {
-    let hash = 2166136261; // FNV-1a 32-bit prime offset
-    for (let i = 0; i < str.length; i++) {
-      hash ^= str.charCodeAt(i);
-      hash *= 16777619; // FNV prime
-    }
-
-    let color = "#";
-    for (let i = 0; i < 3; i++) {
-      const value = (hash >> (i * 8)) & 0xff;
-      color += value.toString(16).padStart(2, "0");
-    }
-
-    return color;
-  };
-
-  const nodeNames = ["Alice", "Bob", "Charlie", "Diana", "Ethan", "Fiona"];
-
-  // Create graph data with hexagonal layout
-  const createHexagonalGraph = () => {
+  // Define nodes for cosmic web layout
+  const createNodesAndLinks = () => {
+    // Create center platform node
     const nodes: GraphNode[] = [
       {
-        id: "central",
-        label: "Maxxit Leaderboard",
-        group: 1,
-        title: `Top Weekly Influencer Leaderboard
-        Period: Last 7 days
-        Total Influencers: 6
-        Metric: Profit (USD)`,
-        size: 40,
-        shape: "circularImage",
-        image: "/img/maxxit_icon.svg",
-        color: {
-          background: "#f7f7f7",
-          color: "#ffffff",
-        },
+        id: "platform",
+        name: "Maxxit",
+        radius: 60,
+        avatar: "/img/maxxit_icon.svg",
+        fx: dimensions.width / 2,
+        fy: dimensions.height / 2,
       },
     ];
 
-    const influencerData = [
-      { name: "Alice", profit: 12345, trades: 120, roi: 15.2 },
-      { name: "Bob", profit: 9540, trades: 98, roi: 12.8 },
-      { name: "Charlie", profit: 8200, trades: 110, roi: 10.4 },
-      { name: "Diana", profit: 7750, trades: 85, roi: 9.7 },
-      { name: "Ethan", profit: 6300, trades: 72, roi: 8.1 },
-      { name: "Fiona", profit: 5100, trades: 65, roi: 7.5 },
-    ];
+    // Create influencer nodes
+    influencerData.forEach((inf, i) => {
+      // Calculate profit scale - larger profit = larger node
+      const profitScale = d3
+        .scaleLinear()
+        .domain([8000, 20000])
+        .range([35, 50]);
 
-    const hexNodes: GraphNode[] = influencerData.map((inf, i) => ({
-      id: `node-${i}`,
-      label: inf.name,
-      group: 2,
-      title: `${inf.name}
-      Total P/L: $${inf.profit.toLocaleString()}
-      Trades: ${inf.trades}
-      ROI: ${inf.roi}%`,
-      size: 30,
-      shape: "circularImage",
-      image: `https://picsum.photos/id/${(i + 10) * 5}/200`,
+      nodes.push({
+        id: inf.id,
+        name: inf.name,
+        data: inf,
+        radius: profitScale(inf.profit),
+        avatar: inf.avatar || `https://picsum.photos/id/${(i + 10) * 5}/200`,
+        group: i + 1,
+      });
+    });
+
+    // Create links - connect platform to each influencer
+    const links: GraphLink[] = influencerData.map((inf) => ({
+      source: "platform",
+      target: inf.id,
+      value: inf.profit / 1000, // Link strength based on profit
     }));
 
-    nodes.push(...hexNodes);
+    // Add links between influencers based on shared specialties
+    for (let i = 0; i < influencerData.length; i++) {
+      for (let j = i + 1; j < influencerData.length; j++) {
+        const inf1 = influencerData[i];
+        const inf2 = influencerData[j];
 
-    // Create edges connecting:
-    // 1. Central node to each hex node
-    // 2. Each hex node to its neighbors in the hexagon
-    const edges: GraphEdge[] = [];
+        // Find common specialties
+        const commonSpecialties = inf1.specialties.filter((spec) =>
+          inf2.specialties.includes(spec)
+        );
 
-    // Connect central to all influencers
-    for (let i = 0; i < 6; i++) {
-      edges.push({
-        id: `central:node-${i}`,
-        from: "central",
-        to: `node-${i}`,
-        width: 3,
-        color: {
-          color: stringToColor(influencerData[i].name),
-          opacity: 0.8,
-        },
-        title: "Performance Link",
-      });
+        if (commonSpecialties.length > 0) {
+          links.push({
+            source: inf1.id,
+            target: inf2.id,
+            value: commonSpecialties.length * 1.5,
+            // specialty: commonSpecialties[0]
+          });
+        }
+      }
     }
 
-    // Connect each influencer to its neighbor
-    for (let i = 0; i < 6; i++) {
-      const nextNode = (i + 1) % 6;
-      edges.push({
-        id: `node-${i}:node-${nextNode}`,
-        from: `node-${i}`,
-        to: `node-${nextNode}`,
-        width: 3,
-        color: {
-          color: "#ffffff",
-          opacity: 0.7,
-        },
-        title: "Peer Comparison",
-      });
-    }
-
-    return { nodes, edges };
+    return { nodes, links };
   };
 
-  // Initialize the graph
+  // Initialize the visualization
   useEffect(() => {
-    const graphData = createHexagonalGraph();
+    // Set container dimensions
+    if (containerRef.current) {
+      const { width, height } = containerRef.current.getBoundingClientRect();
+      setDimensions({ width, height });
+    }
+  }, []);
 
-    if (networkRef.current) {
-      nodesDataSet.current = new DataSet(graphData.nodes);
-      edgesDataSet.current = new DataSet(graphData.edges);
+  // Create and render visualization when dimensions are available
+  useEffect(() => {
+    if (dimensions.width === 0 || !svgRef.current || !tooltipRef.current)
+      return;
 
-      const data = {
-        nodes: nodesDataSet.current,
-        edges: edgesDataSet.current,
-      };
+    setIsLoading(true);
 
-      const options = {
-        nodes: {
-          font: {
-            size: 16,
-            face: "Inter, system-ui, sans-serif",
-            color: "#ffffff",
-            strokeWidth: 1,
-            strokeColor: "#000000",
-          },
-          borderWidth: 2,
-          borderWidthSelected: 4,
-          shadow: {
-            enabled: true,
-            color: "rgba(0,0,0,0.5)",
-            size: 10,
-            x: 0,
-            y: 0,
-          },
-          shapeProperties: {
-            useBorderWithImage: true,
-          },
-        },
-        edges: {
-          smooth: false, // Changed to straight lines for signal animation
-          selectionWidth: 3,
-          shadow: {
-            enabled: true,
-            color: "rgba(0,0,0,0.3)",
-            size: 5,
-            x: 0,
-            y: 0,
-          },
-        },
-        groups: {
-          1: {
-            color: {
-              background: "#ff4d4f",
-              border: "#ffffff",
-              highlight: { background: "#ff7875", border: "#ffffff" },
-            },
-            fontColor: "#ffffff",
-            borderWidth: 3,
-          },
-          2: {
-            color: {
-              border: "#ffffff",
-              highlight: { background: "#91d5ff", border: "#ffffff" },
-            },
-            fontColor: "#ffffff",
-            borderWidth: 2,
-          },
-        },
-        layout: {
-          improvedLayout: true,
-          hierarchical: false,
-        },
-        physics: {
-          // enabled: true,
-          stabilization: {
-            enabled: true,
-            iterations: 100,
-            updateInterval: 25,
-            fit: true,
-          },
-          barnesHut: {
-            gravitationalConstant: -4000,
-            centralGravity: 0.3,
-            springLength: 150,
-            springConstant: 0.04,
-            damping: 0.09,
-            avoidOverlap: 0.1,
-          },
-          maxVelocity: 50,
-          minVelocity: 0.1,
-          solver: "barnesHut",
-          timestep: 0.3,
-        },
-        interaction: {
-          hover: true,
-          hoverConnectedEdges: true,
-          tooltipDelay: 200,
-          hideEdgesOnDrag: false,
-          navigationButtons: false,
-          keyboard: {
-            enabled: true,
-            bindToWindow: false,
-          },
-          zoomView: false,
-          dragView: false,
-          dragNodes: false,
-        },
-        height: "580px",
-        width: "100%",
-      };
+    // Clear previous svg content
+    d3.select(svgRef.current).selectAll("*").remove();
 
-      networkInstance.current = new Network(networkRef.current, data, options);
+    // Create SVG container
+    const svg = d3
+      .select(svgRef.current)
+      .attr("width", dimensions.width)
+      .attr("height", dimensions.height)
+      .attr("viewBox", `0 0 ${dimensions.width} ${dimensions.height}`)
+      .style("background", "transparent");
 
-      // Event listeners
-      networkInstance.current.on("click", function (params) {
-        if (params.nodes.length > 0) {
-          const nodeId = params.nodes[0];
-          setSelectedNode(nodeId);
+    // Create defs for patterns (avatars)
+    const defs = svg.append("defs");
+
+    // Create cosmic background
+    const cosmicGradient = defs
+      .append("radialGradient")
+      .attr("id", "cosmicGradient")
+      .attr("cx", "50%")
+      .attr("cy", "50%")
+      .attr("r", "50%");
+
+    cosmicGradient
+      .append("stop")
+      .attr("offset", "0%")
+      .attr("stop-color", "rgba(30, 64, 175, 0.6)");
+
+    cosmicGradient
+      .append("stop")
+      .attr("offset", "100%")
+      .attr("stop-color", "rgba(15, 23, 42, 0.1)");
+
+    // Background glow
+    svg
+      .append("circle")
+      .attr("cx", dimensions.width / 2)
+      .attr("cy", dimensions.height / 2)
+      .attr("r", Math.min(dimensions.width, dimensions.height) * 0.45)
+      .attr("fill", "url(#cosmicGradient)")
+      .attr("filter", "blur(30px)");
+
+    // Generate data
+    const { nodes, links } = createNodesAndLinks();
+
+    // Create tooltip
+    const tooltip = d3
+      .select(tooltipRef.current)
+      .style("position", "absolute")
+      .style("visibility", "hidden")
+      .style("background-color", "rgba(15, 23, 42, 0.95)")
+      .style("color", "white")
+      .style("border", "1px solid rgba(71, 85, 105, 0.5)")
+      .style("border-radius", "8px")
+      .style("padding", "12px")
+      .style("box-shadow", "0 10px 25px rgba(0, 0, 0, 0.5)")
+      .style("z-index", "10");
+
+    // Inside useEffect, after svg setup but before simulation
+    // Add zoom buttons
+    const zoomInButton = document.createElement("button");
+    zoomInButton.textContent = "+";
+    zoomInButton.className =
+      "zoom-button bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md absolute top-4 right-16 z-20 transition-colors mr-2"; // Adjusted positioning and added margin
+    containerRef.current.appendChild(zoomInButton);
+    const zoomOutButton = document.createElement("button");
+    zoomOutButton.textContent = "-";
+    zoomOutButton.className =
+      "zoom-button bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md absolute top-4 right-4 z-20 transition-colors"; // Adjusted positioning
+    containerRef.current.appendChild(zoomOutButton);
+
+    // Define zoom behavior
+    const zoom = d3
+      .zoom()
+      .scaleExtent([0.5, 2]) // Min 50%, max 200%
+      .on("zoom", (event) => {
+        svg.attr("transform", event.transform);
+        setZoomLevel(event.transform.k);
+      });
+
+    svg.call(zoom);
+
+    // Button event listeners
+    zoomInButton.addEventListener("click", () => {
+      svg.transition().duration(300).call(zoom.scaleBy, 1.2);
+    });
+
+    zoomOutButton.addEventListener("click", () => {
+      svg.transition().duration(300).call(zoom.scaleBy, 0.8);
+    });
+
+    // Setup force simulation
+    const simulation = d3
+      .forceSimulation(nodes)
+      .force(
+        "link",
+        d3
+          .forceLink(links)
+          .id((d: any) => d.id)
+          .distance(200)
+      )
+      .force("charge", d3.forceManyBody().strength(-300))
+      .force(
+        "center",
+        d3.forceCenter(dimensions.width / 2, dimensions.height / 2)
+      )
+      .force(
+        "collide",
+        d3.forceCollide().radius((d: any) => (d.radius || 40) + 10)
+      );
+
+    // Create pattern for each node's avatar
+    nodes.forEach((node: any) => {
+      defs
+        .append("pattern")
+        .attr("id", `avatar-${node.id}`)
+        .attr("width", 1)
+        .attr("height", 1)
+        .attr("patternUnits", "objectBoundingBox")
+        .append("image")
+        .attr(
+          "href",
+          node.avatar || `https://picsum.photos/seed/${node.id}/200`
+        )
+        .attr("width", node.radius * 2 || 80)
+        .attr("height", node.radius * 2 || 80)
+        .attr("x", 0)
+        .attr("y", 0);
+    });
+
+    // Create cosmos-themed link aesthetics
+    const linkGradients = defs
+      .selectAll(".link-gradient")
+      .data(links)
+      .enter()
+      .append("linearGradient")
+      .attr("id", (d, i) => `link-gradient-${i}`)
+      .attr("gradientUnits", "userSpaceOnUse");
+
+    linkGradients
+      .append("stop")
+      .attr("offset", "0%")
+      .attr("stop-color", (d, i) => {
+        return d.source === "platform" ? "#3b82f6" : "#06b6d4";
+      });
+
+    linkGradients
+      .append("stop")
+      .attr("offset", "100%")
+      .attr("stop-color", (d, i) => {
+        return d.target === "platform" ? "#3b82f6" : "#22d3ee";
+      });
+
+    // Create web-like links
+    const link = svg
+      .append("g")
+      .selectAll("line")
+      .data(links)
+      .enter()
+      .append("line")
+      .attr("stroke", (d, i) => `url(#link-gradient-${i})`)
+      .attr("stroke-opacity", 0.7)
+      .attr("stroke-width", (d: any) => d.value * 0.8)
+      .style("filter", "drop-shadow(0 0 2px rgba(6, 182, 212, 0.5))");
+
+    // Create node halos
+    const nodeHalos = svg
+      .append("g")
+      .selectAll("circle")
+      .data(nodes)
+      .enter()
+      .append("circle")
+      .attr("r", (d: any) => (d.radius || 40) + 10)
+      .attr("fill", "transparent")
+      .attr("stroke", (d: any) => {
+        if (d.id === "platform") return "#1e40af";
+        return ["#0891b2", "#06b6d4", "#22d3ee", "#3b82f6", "#60a5fa", "#0ea5e9"][d.group % 6];
+      })
+      .attr("stroke-width", 2)
+      .attr("opacity", 0.5)
+      .attr("filter", "blur(6px)");
+
+    // Create outer glow halos
+    const nodeOuterHalos = svg
+      .append("g")
+      .selectAll("circle")
+      .data(nodes)
+      .enter()
+      .append("circle")
+      .attr("r", (d: any) => (d.radius || 40) + 15)
+      .attr("fill", "transparent")
+      .attr("stroke", (d: any) => {
+        if (d.id === "platform") return "#1e40af";
+        return ["#0891b2", "#06b6d4", "#22d3ee", "#3b82f6", "#60a5fa", "#0ea5e9"][d.group % 6];
+      })
+      .attr("stroke-width", 1)
+      .attr("opacity", 0.3)
+      .attr("filter", "blur(12px)");
+
+    // Create nodes
+    const node = svg
+      .append("g")
+      .selectAll("circle")
+      .data(nodes)
+      .enter()
+      .append("circle")
+      .attr("r", (d: any) => d.radius || 40)
+      .attr("fill", (d: any) => `url(#avatar-${d.id})`)
+      .attr("stroke", (d: any) => {
+        if (d.id === "platform") return "#1e40af";
+        return ["#0891b2", "#06b6d4", "#22d3ee", "#3b82f6", "#60a5fa", "#0ea5e9"][d.group % 6];
+      })
+      .attr("stroke-width", 3)
+      .style("cursor", "pointer")
+      .on("mouseover", function (event, d: any) {
+        // Highlight on hover
+        d3.select(this)
+          .attr("stroke-width", 5)
+          .attr("filter", "drop-shadow(0 0 8px rgba(255, 255, 255, 0.5))");
+
+        // Show tooltip
+        if (d.id !== "platform") {
+          const inf = d.data;
+          tooltip.html(`
+            <div class="font-bold text-lg mb-1">${d.name}</div>
+            <div class="text-emerald-400 font-medium">$${inf.profit.toLocaleString()} Profit Generated</div>
+            <div class="text-blue-300">${inf.followers.toLocaleString()} Followers</div>
+            <div class="text-amber-300">${inf.accuracy}% Accuracy</div>
+            <div class="text-cyan-300">${
+              inf.recentPredictions
+            } Recent Predictions</div>
+            <div class="mt-2 text-xs text-gray-300">Specialties: ${inf.specialties.join(
+              ", "
+            )}</div>
+          `);
         } else {
-          setSelectedNode(null);
-        }
-      });
-
-      networkInstance.current.on("hoverNode", function (params) {
-        networkRef.current?.style.setProperty("cursor", "pointer");
-      });
-
-      networkInstance.current.on("blurNode", function (params) {
-        networkRef.current?.style.setProperty("cursor", "default");
-      });
-
-      // Position nodes in a hexagonal shape
-      networkInstance.current.once("stabilizationIterationsDone", function () {
-        // Calculate positions in a hexagon
-        const radius = 250; // Radius of the hexagon
-        const positions: NodePositions = {}; // Use the properly typed interface
-
-        // Position the central node
-        positions["central"] = { x: 0, y: 0 };
-
-        // Position the other nodes in a hexagon
-        for (let i = 0; i < 6; i++) {
-          const angle = i * ((2 * Math.PI) / 6); // Divide circle into 6 parts
-          const x = radius * Math.cos(angle);
-          const y = radius * Math.sin(angle);
-          positions[`node-${i}`] = { x, y };
+          tooltip.html(`
+            <div class="font-bold text-lg mb-1">Maxxit Platform</div>
+            <div class="text-blue-300">Top 6 Daily Influencers</div>
+            <div class="text-gray-300 text-sm mt-1">Click on influencers to view details</div>
+          `);
         }
 
-        // Set the calculated positions
-        networkInstance.current?.setOptions({
-          physics: false, // Disable physics once positions are set
-        });
+        // New tooltip positioning logic to keep it within container
+        let tooltipX = d.x + (d.radius || 40) + 15; // Position to the right of the node
+        let tooltipY = d.y - 20; // Slightly above the node center
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const tooltipRect = tooltipRef.current.getBoundingClientRect();
 
-        // Use moveNode instead of setPositions since setPositions doesn't exist
-        Object.keys(positions).forEach((nodeId) => {
-          const pos = positions[nodeId];
-          if (networkInstance.current) {
-            networkInstance.current.moveNode(nodeId, pos.x, pos.y);
-          }
-        });
+        // Adjust if tooltip exceeds right boundary
+        if (tooltipX + tooltipRect.width > containerRect.width) {
+          tooltipX = d.x - tooltipRect.width - 15; // Move to the left of the node
+        }
+        // Adjust if tooltip exceeds bottom boundary
+        if (tooltipY + tooltipRect.height > containerRect.height) {
+          tooltipY = d.y - tooltipRect.height - 20;
+        }
+        // Ensure tooltip doesn't go off the top or left
+        tooltipX = Math.max(0, tooltipX);
+        tooltipY = Math.max(0, tooltipY);
 
-        // Start the pulse animation after positions are set
-        startPulseAnimation();
+        tooltip
+          .style("visibility", "visible")
+          .style("left", `${tooltipX}px`)
+          .style("top", `${tooltipY}px`);
+      })
+      .on("mouseout", function (event, d) {
+        d3.select(this).attr("stroke-width", 3).attr("filter", null);
 
-        // right after startPulseAnimation();
-        startCentralPulse();
+        tooltip.style("visibility", "hidden");
+      })
+      .on("click", (event, d: any) => {
+        if (d.id !== "platform" && d.data) {
+          setSelectedInfluencer(d.data);
+        } else {
+          setSelectedInfluencer(null);
+        }
+      })
+      .call(
+        d3
+          .drag()
+          .on("start", dragstarted)
+          .on("drag", dragged)
+          .on("end", dragended)
+      );
 
-        // Fit the view
-        setTimeout(() => {
-          networkInstance.current?.fit({
-            animation: {
-              duration: 1000,
-              easingFunction: "easeInOutQuad",
-            },
-          });
-        }, 100);
+    // Add influencer name labels
+    const nameLabels = svg
+      .append("g")
+      .selectAll("text")
+      .data(nodes)
+      .enter()
+      .append("text")
+      .attr("text-anchor", "middle")
+      .attr("font-family", "Inter, system-ui, sans-serif")
+      .attr("font-weight", "bold")
+      .attr("font-size", (d: any) => (d.id === "platform" ? "16px" : "14px"))
+      .attr("fill", "white")
+      .attr("filter", "drop-shadow(0 2px 3px rgba(0, 0, 0, 0.8))")
+      .text((d: any) => d.name)
+      .attr("dy", (d: any) => (d.radius || 40) + 20);
+
+    // Add profit labels (only for influencers)
+    const profitLabels = svg
+      .append("g")
+      .selectAll("text")
+      .data(nodes.filter((d: any) => d.id !== "platform"))
+      .enter()
+      .append("text")
+      .attr("text-anchor", "middle")
+      .attr("font-family", "Inter, system-ui, sans-serif")
+      .attr("font-size", "12px")
+      .attr("fill", "#4ade80")
+      .attr("filter", "drop-shadow(0 2px 2px rgba(0, 0, 0, 0.8))")
+      .text((d: any) => `$${d.data.profit.toLocaleString()}`)
+      .attr("dy", (d: any) => (d.radius || 40) + 36);
+
+    // Create cosmic particles around the visualization
+    const particleCount = 60;
+    const particles = [];
+
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * dimensions.width,
+        y: Math.random() * dimensions.height,
+        radius: Math.random() * 3 + 1,
+        color: d3.interpolateInferno(Math.random()),
+        speed: Math.random() * 0.5 + 0.2,
       });
     }
+
+    const particlesGroup = svg.append("g").attr("class", "particles");
+
+    particles.forEach((particle) => {
+      particlesGroup
+        .append("circle")
+        .attr("cx", particle.x)
+        .attr("cy", particle.y)
+        .attr("r", particle.radius)
+        .attr("fill", particle.color)
+        .attr("opacity", Math.random() * 0.5 + 0.3)
+        .attr("filter", "blur(1px)");
+    });
+
+    // Add pulsing effect to the central node
+    function pulseAnimation() {
+      const centralHalo = svg
+        .append("circle")
+        .attr("cx", dimensions.width / 2)
+        .attr("cy", dimensions.height / 2)
+        .attr("r", 60)
+        .attr("fill", "transparent")
+        .attr("stroke", "#4f46e5")
+        .attr("stroke-width", 2)
+        .attr("opacity", 0.8);
+
+      centralHalo
+        .transition()
+        .duration(2000)
+        .attr("r", 120)
+        .attr("opacity", 0)
+        .on("end", function () {
+          d3.select(this).remove();
+          if (svgRef.current) pulseAnimation();
+        });
+    }
+
+    // Start pulse animation
+    pulseAnimation();
+
+    // Signal stream animations
+    function createSignalStream() {
+      // Find a random influencer node
+      const randomIndex = Math.floor(Math.random() * influencerData.length);
+      const targetId = influencerData[randomIndex].id;
+      const targetNode = nodes.find((n: any) => n.id === targetId);
+      const centralNode = nodes.find((n: any) => n.id === "platform");
+
+      if (!targetNode || !centralNode) return;
+
+      // Create signal particle
+      const signal = svg
+        .append("circle")
+        .attr("r", 4)
+        .attr("fill", "#4ade80")
+        .attr("cx", (centralNode as any).x)
+        .attr("cy", (centralNode as any).y)
+        .attr("opacity", 0.9)
+        .attr("filter", "drop-shadow(0 0 2px rgb(74, 222, 128))");
+
+      // Animate signal moving from central node to influencer
+      signal
+        .transition()
+        .duration(1200)
+        .attr("cx", (targetNode as any).x)
+        .attr("cy", (targetNode as any).y)
+        .on("end", function () {
+          // Flash target node
+          const targetNodeElem = node.filter((d: any) => d.id === targetId);
+
+          targetNodeElem
+            .transition()
+            .duration(300)
+            .attr("filter", "drop-shadow(0 0 12px rgba(74, 222, 128, 0.8))")
+            .transition()
+            .duration(300)
+            .attr("filter", null);
+
+          // Remove signal
+          d3.select(this).remove();
+        });
+    }
+
+    // Start signal stream animations at intervals
+    const signalInterval = setInterval(() => {
+      if (svgRef.current) createSignalStream();
+    }, 3000);
+
+    // Update node and link positions on each simulation tick
+    simulation.on("tick", () => {
+      // Update link positions
+      link
+        .attr("x1", (d: any) => d.source.x)
+        .attr("y1", (d: any) => d.source.y)
+        .attr("x2", (d: any) => d.target.x)
+        .attr("y2", (d: any) => d.target.y);
+
+      // Update link gradients
+      linkGradients
+        .attr("x1", (d: any) => d.source.x)
+        .attr("y1", (d: any) => d.source.y)
+        .attr("x2", (d: any) => d.target.x)
+        .attr("y2", (d: any) => d.target.y);
+
+      // Update node positions
+      node.attr("cx", (d: any) => d.x).attr("cy", (d: any) => d.y);
+
+      // Update halo positions
+      nodeHalos.attr("cx", (d: any) => d.x).attr("cy", (d: any) => d.y);
+
+      // Update nodeHalos
+      nodeHalos.attr("stroke", (d: any) => {
+        if (d.id === "platform") return "#1e40af"; // Dark blue
+        return ["#0891b2", "#06b6d4", "#22d3ee"][d.group % 3]; // Cyan and blue shades
+      });
+
+      // Update nodeOuterHalos
+      nodeOuterHalos.attr("stroke", (d: any) => {
+        if (d.id === "platform") return "#1e40af"; // Dark blue
+        return ["#0891b2", "#06b6d4", "#22d3ee"][d.group % 3]; // Cyan and blue shades
+      });
+
+      // Update node
+      node.attr("stroke", (d: any) => {
+        if (d.id === "platform") return "#1e40af"; // Dark blue
+        return ["#0891b2", "#06b6d4", "#22d3ee"][d.group % 3]; // Cyan and blue shades
+      });
+
+      nodeOuterHalos.attr("cx", (d: any) => d.x).attr("cy", (d: any) => d.y);
+
+      // Update label positions
+      nameLabels.attr("x", (d: any) => d.x).attr("y", (d: any) => d.y);
+
+      profitLabels.attr("x", (d: any) => d.x).attr("y", (d: any) => d.y);
+    });
+
+    // Drag functions
+    function dragstarted(event: any, d: any) {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+    }
+
+    function dragged(event: any, d: any) {
+      d.fx = event.x;
+      d.fy = event.y;
+    }
+
+    function dragended(event: any, d: any) {
+      if (!event.active) simulation.alphaTarget(0);
+      if (d.id !== "platform") {
+        // Keep platform node fixed
+        d.fx = null;
+        d.fy = null;
+      }
+    }
+
+    // Set the central node to be fixed at the center
+    nodes.find((n: any) => n.id === "platform")!.fx = dimensions.width / 2;
+    nodes.find((n: any) => n.id === "platform")!.fy = dimensions.height / 2;
+
+    // Stop loading after setup
+    setIsLoading(false);
 
     // Cleanup on unmount
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
+      simulation.stop();
+      clearInterval(signalInterval);
+    };
+  }, [dimensions]);
 
-      if (networkInstance.current) {
-        networkInstance.current.destroy();
-        networkInstance.current = null;
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (containerRef.current) {
+        const { width, height } = containerRef.current.getBoundingClientRect();
+        setDimensions({ width, height });
       }
     };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  // Pulse animation function with signal effect
-  const startPulseAnimation = () => {
-    const positions = networkInstance.current!.getPositions();
-    const centralPos = positions["central"];
-    const hexPositions: { [key: string]: NodePosition } = {};
-    for (let i = 0; i < 6; i++) {
-      hexPositions[`node-${i}`] = positions[`node-${i}`];
-    }
-
-    // Create temporary nodes for the signals
-    const tempNodeIds: string[] = [];
-    for (let i = 0; i < 6; i++) {
-      const tempNodeId = `temp-${i}`;
-      tempNodeIds.push(tempNodeId);
-      nodesDataSet.current!.add({
-        id: tempNodeId,
-        x: centralPos.x,
-        y: centralPos.y,
-        label: "",
-        size: 5,
-        color: stringToColor(nodeNames[i]),
-        shape: "dot",
-        fixed: { x: true, y: true }, // Prevent physics interference
-        shadow: {
-          enabled: true,
-          color: stringToColor(nodeNames[i]),
-          size: 20,
-          x: 0,
-          y: 0,
-        },
-      });
-    }
-
-    const animationDuration = 2000; // 2 seconds for signal travel
-    let startTime = Date.now();
-
-    const animate = () => {
-      const currentTime = Date.now();
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / animationDuration, 1);
-
-      // Update temporary node positions to simulate signal movement
-      for (let i = 0; i < 6; i++) {
-        const targetPos = hexPositions[`node-${i}`];
-        const newX = centralPos.x + (targetPos.x - centralPos.x) * progress;
-        const newY = centralPos.y + (targetPos.y - centralPos.y) * progress;
-        nodesDataSet.current!.update({
-          id: tempNodeIds[i],
-          x: newX,
-          y: newY,
-        });
-      }
-
-      if (progress < 1) {
-        // Continue animation
-        animationRef.current = requestAnimationFrame(animate);
-      } else {
-        for (let i = 0; i < 6; i++) {
-          nodesDataSet.current!.update({
-            id: tempNodeIds[i],
-            hidden: true,
-          });
-        }
-        // Signal has reached all nodes, trigger glow effect
-        for (let i = 0; i < 6; i++) {
-          nodesDataSet.current!.update({
-            id: `node-${i}`,
-            shadow: {
-              enabled: true,
-              color: stringToColor(nodeNames[i]),
-              size: 50,
-              x: 0,
-              y: 0,
-            },
-          });
-        }
-
-        // After a short delay, reset glow and restart animation
-        setTimeout(() => {
-          // Reset hexagon nodes' shadows
-          for (let i = 0; i < 6; i++) {
-            nodesDataSet.current!.update({
-              id: `node-${i}`,
-              shadow: {
-                enabled: true,
-                color: "rgba(0,0,0,0.5)",
-                size: 10,
-                x: 0,
-                y: 0,
-              },
-            });
-          }
-
-          // Reset temporary nodes to central position
-          for (let i = 0; i < 6; i++) {
-            nodesDataSet.current!.update({
-              id: tempNodeIds[i],
-              x: centralPos.x,
-              y: centralPos.y,
-              hidden: false,
-            });
-          }
-
-          // Restart animation
-          startTime = Date.now();
-          animationRef.current = requestAnimationFrame(animate);
-        }, 1000); // 0.5-second glow duration
-      }
-    };
-
-    animationRef.current = requestAnimationFrame(animate);
-  };
-
-  // Animate only the central node to 'breathe' its shadow & border
-  const startCentralPulse = () => {
-    let start = Date.now();
-    const duration = 2000; // one full breath cycle in ms
-
-    const animate = () => {
-      const elapsed = Date.now() - start;
-      // sine wave: sin(0→2π) maps to –1→1; normalize to 0→1
-      const t = (Math.sin((elapsed / duration) * 2 * Math.PI) + 1) / 2;
-
-      // Map t to shadow size (e.g. 10px → 60px) and borderWidth (2px → 6px)
-      const shadowSize = 10 + t * 50;
-      const borderWidth = 2 + t * 4;
-
-      nodesDataSet.current!.update({
-        id: "central",
-        shadow: {
-          enabled: true,
-          color: stringToColor("Central"), // or stringToColor("Central") if you like
-          size: shadowSize,
-          x: 0,
-          y: 0,
-        },
-        borderWidth,
-      });
-
-      requestAnimationFrame(animate);
-    };
-
-    requestAnimationFrame(animate);
-  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4">
-      <h1 className="text-4xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-500">
-        Top Weekly Influencers
+      <h1 className="text-4xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-cyan-500">
+        Crypto Influencer Constellation
       </h1>
-      <p className="text-gray-300 mb-8">
-        Visualizing top influencers by profit in the past week
+      <p className="text-gray-300 mb-8 text-center max-w-2xl">
+        Visualizing our top 6 influencers by profit generated for our users
+        through their crypto predictions
       </p>
 
-      <div className="w-full flex flex-col items-center">
-        <div className="w-full max-w-6xl relative">
-          <div
-            ref={networkRef}
-            className="w-full h-[600px] border border-gray-700 rounded-xl overflow-hidden bg-gray-800 bg-opacity-50 shadow-2xl"
-          />
-          <div className="absolute bottom-4 right-4 bg-gray-900 bg-opacity-80 p-3 rounded-lg shadow-lg text-sm">
-            <p className="font-medium mb-1">Network Legend</p>
-            <div className="flex items-center mb-1">
-              <div className="w-3 h-3 rounded-full bg-cyan-400 mr-2"></div>
-              <span>Maxxit Leaderboard</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-yellow-400 mr-2"></div>
-              <span>Influencers</span>
-            </div>
-          </div>
-        </div>
-
-        {selectedNode && (
-          <div className="mt-6 bg-gray-800 p-4 rounded-lg border border-gray-700">
-            <p>
-              Selected:{" "}
-              <span className="font-bold text-blue-400">
-                {selectedNode === "central"
-                  ? "Maxxit Leaderboard"
-                  : selectedNode.replace("node-", "Node ")}
-              </span>
-            </p>
+      <div
+        ref={containerRef}
+        className="w-full max-w-6xl h-[600px] relative bg-gradient-to-b from-gray-900 to-gray-950 rounded-xl border border-gray-800 shadow-2xl overflow-hidden"
+      >
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-12 h-12 border-4 border-t-blue-500 border-b-cyan-500 border-gray-800 rounded-full animate-spin"></div>
           </div>
         )}
+
+        <svg ref={svgRef} className="w-full h-full"></svg>
+        <div ref={tooltipRef}></div>
+
+        {/* Legend */}
+        <div className="absolute bottom-4 right-4 bg-gray-900 bg-opacity-80 p-4 rounded-lg border border-gray-700 shadow-lg text-sm z-10">
+          <h3 className="font-bold mb-2 text-white">Constellation Legend</h3>
+          <div className="flex items-center mb-2">
+            <div className="w-4 h-4 rounded-full bg-indigo-600 mr-2"></div>
+            <span>Maxxit Platform</span>
+          </div>
+          <div className="flex items-center mb-2">
+            <div className="w-4 h-4 rounded-full bg-gradient-to-r from-cyan-500 to-cyan-500 mr-2"></div>
+            <span>Top Influencers</span>
+          </div>
+          <div className="flex items-center">
+            <div className="h-2 w-12 bg-gradient-to-r from-blue-500 to-cyan-500 mr-2 rounded-full"></div>
+            <span>Connection Strength</span>
+          </div>
+        </div>
       </div>
+
+      {/* Selected influencer details card */}
+      {selectedInfluencer && (
+        <div className="mt-6 w-full max-w-lg bg-gray-800 rounded-xl border border-gray-700 p-6 shadow-lg">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-16 h-16 rounded-full bg-gray-700 overflow-hidden">
+              <img
+                src={
+                  selectedInfluencer.avatar ||
+                  `https://picsum.photos/seed/${selectedInfluencer.id}/200`
+                }
+                alt={selectedInfluencer.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold">{selectedInfluencer.name}</h3>
+              <p className="text-emerald-400 font-semibold">
+                ${selectedInfluencer.profit.toLocaleString()} Total Profit
+              </p>
+            </div>
+            <div className="ml-auto text-right">
+              <div className="text-blue-300 font-medium">
+                {selectedInfluencer.followers.toLocaleString()} Followers
+              </div>
+              <div className="text-amber-300">
+                {selectedInfluencer.accuracy}% Accuracy
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-gray-700 bg-opacity-50 rounded-lg p-3">
+              <div className="text-sm text-gray-400">Recent Predictions</div>
+              <div className="text-xl font-bold">
+                {selectedInfluencer.recentPredictions}
+              </div>
+            </div>
+            <div className="bg-gray-700 bg-opacity-50 rounded-lg p-3">
+              <div className="text-sm text-gray-400">Specialties</div>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {selectedInfluencer.specialties.map((specialty, i) => (
+                  <span
+                    key={i}
+                    className="text-xs bg-gray-600 px-2 py-1 rounded-full"
+                  >
+                    {specialty}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setSelectedInfluencer(null)}
+            className="mt-4 w-full py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition-colors"
+          >
+            Close Details
+          </button>
+        </div>
+      )}
     </div>
   );
 }
