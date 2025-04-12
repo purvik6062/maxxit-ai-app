@@ -52,7 +52,7 @@ export default function UserMetricsDashboard() {
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [showTooltip, setShowTooltip] = useState<string | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
-
+  
   useEffect(() => {
     async function fetchUserData() {
       try {

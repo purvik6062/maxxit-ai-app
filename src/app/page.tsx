@@ -197,7 +197,7 @@ const HomePage: React.FC = () => {
 
         <div className="p-[1px] bg-gradient-to-r from-cyan-900 to-blue-900 rounded-xl mt-[2rem]">
           {/* Add Influencer Button - Floating */}
-          <div className="fixed bottom-6 right-6 z-10">
+          <div className="fixed bottom-[0.9rem] right-3 z-10">
             <button
               ref={addInfluencerButtonRef}
               onClick={() => setIsModalOpen(true)}
@@ -239,9 +239,9 @@ const HomePage: React.FC = () => {
         <SocialGraph />
       </div>
 
-      <div className="px-6 py-8 flex justify-center">
+      {/* <div className="px-6 py-8 flex justify-center">
         <Mindshare />
-      </div>
+      </div> */}
 
       <AddInfluencerModal
         isOpen={isModalOpen}

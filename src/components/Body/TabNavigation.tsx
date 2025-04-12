@@ -55,7 +55,7 @@ export default function TabNavigation({ activeTab, setActiveTab }) {
         <div
           className={`relative w-20 h-20 rounded-full bg-gray-900 p-1 border transition-all duration-300 ${
             centerGlow
-              ? "border-cyan-400 shadow-[0_0_25px_10px_rgba(255,204,0,0.6)] animate-flip-loop animate-fire-glow"
+              ? "border-cyan-400 animate-flip-loop animate-fire-glow"
               : "border-gray-800 shadow-lg shadow-blue-900/20"
           }`}
         >
@@ -106,7 +106,7 @@ export default function TabNavigation({ activeTab, setActiveTab }) {
             className={`relative w-full flex items-center justify-between gap-3 px-5 py-3 rounded-lg transition-all duration-300 ${
               activeTab === "impact"
                 ? "bg-gradient-to-r from-blue-600/90 to-cyan-600/90 shadow-lg shadow-blue-900/30"
-                : "bg-gray-900/70 hover:bg-gray-800/90 border border-gray-800/50"
+                : "bg-[#102037] hover:bg-gray-900/70 border border-gray-800/50"
             }`}
           >
             <div className="flex items-center gap-2">
@@ -161,7 +161,7 @@ export default function TabNavigation({ activeTab, setActiveTab }) {
             className={`relative w-full flex items-center justify-between gap-3 px-5 py-3 rounded-lg transition-all duration-300 ${
               activeTab === "heartbeat"
                 ? "bg-gradient-to-r from-cyan-600/90 to-purple-600/90 shadow-lg shadow-cyan-900/30"
-                : "bg-gray-900/70 hover:bg-gray-800/90 border border-gray-800/50"
+                : "bg-[#102037] hover:bg-gray-900/70 border border-gray-800/50"
             }`}
           >
             <div className="flex items-center gap-2">
