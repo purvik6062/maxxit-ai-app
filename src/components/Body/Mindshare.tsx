@@ -1,17 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
-import {
-  FaTrophy,
-  FaSort,
-  FaSortUp,
-  FaSortDown,
-  FaCheck,
-  FaRobot,
-} from "react-icons/fa";
-import { Loader2 } from "lucide-react";
+import { FaTrophy, FaCheck, FaRobot, FaExternalLinkAlt, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { Loader2, InfoIcon, TrendingUp, ArrowUpDown } from "lucide-react";
 import "../../../public/css/mindshare.css";
-import { motion } from "framer-motion";
-import { Tooltip } from "react-tooltip";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
 // Define TypeScript interface for user data
@@ -57,17 +49,15 @@ export default function UserMetricsDashboard() {
   const [loading, setLoading] = useState(true);
   const [sortField, setSortField] = useState<SortField>("mindshare");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
-  const [hoveredUser, setHoveredUser] = useState<string | null>(null);
+  const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [showTooltip, setShowTooltip] = useState<string | null>(null);
-  const [tooltipId] = useState("herdedVsHidden");
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     async function fetchUserData() {
       try {
         const response = await fetch("/api/get-user-profile-data");
         const data: UserResponse[] = await response.json();
-
-        console.log("response", response, data)
         setUsers(data);
         setLoading(false);
       } catch (error) {
@@ -81,10 +71,8 @@ export default function UserMetricsDashboard() {
 
   const sortUsers = (field: SortField) => {
     if (sortField === field) {
-      // Toggle direction if same field
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
-      // Set new field and default to descending
       setSortField(field);
       setSortDirection("desc");
     }
@@ -130,58 +118,18 @@ export default function UserMetricsDashboard() {
     });
   };
 
-  const getSortIcon = (field: SortField) => {
-    if (sortField !== field) return <FaSort className="ml-2 text-gray-200" />;
-    return sortDirection === "asc" ? (
-      <FaSortUp className="ml-2 text-blue-400" />
-    ) : (
-      <FaSortDown className="ml-2 text-blue-400" />
-    );
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-[50vh] flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
-          <p className="text-gray-300">Loading Mindful Mindshares...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const sortedUsers = getSortedUsers();
-
-  // Function to render comparison bar - updated to handle -50 to +50 scale
-  const renderComparisonBar = (
-    value: number,
-    leftLabel: string,
-    rightLabel: string,
-    field: SortField
-  ) => {
-    let leftColor, rightColor;
-  
-    if (field === "herdedVsHidden") {
-      leftColor = "bg-teal-400";
-      rightColor = "bg-blue-500";
-    } else if (field === "convictionVsHype") {
-      leftColor = "bg-amber-500";
-      rightColor = "bg-purple-500";
-    } else {
-      leftColor = "bg-cyan-400";
-      rightColor = "bg-pink-500";
-    }
-  
+  // Function to render the metric indicator on a scale from -50 to 50
+  const renderMetricIndicator = (value: number, leftColor: string, rightColor: string) => {
     // Normalize value between -50 and +50
     const normalizedValue = Math.max(-50, Math.min(50, value));
-  
+    
     // Adjust the logic: positive value increases left, negative increases right
     const leftPercentage = ((normalizedValue + 50) / 100) * 100;
     const rightPercentage = 100 - leftPercentage;
-  
+    
     return (
-      <div className="w-full flex flex-col gap-1 group relative">
-        <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+      <div className="w-full flex flex-col gap-1">
+        <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
           {/* Two-color bar with dynamic widths */}
           <div className="flex h-full w-full">
             {/* Left side */}
@@ -201,271 +149,409 @@ export default function UserMetricsDashboard() {
     );
   };
 
-  return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-gray-900 via-[#121212] to-black p-4 md:p-6 text-white">
-      <div className="max-w-full">
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-cyan-500 to-blue-500">
-            Mindful Mindshare
-          </h1>
-          <p className="text-gray-200 mt-2 text-center">
-            Track performance and engagement metrics across users
-          </p>
+  if (loading) {
+    return (
+      <div className="bg-gray-900 rounded-xl border border-gray-800/30 shadow-lg p-8 min-h-[30vh] flex items-center justify-center">
+        <div className="text-center">
+          <div className="relative w-14 h-14 mb-4 mx-auto">
+            <div className="absolute inset-0 rounded-full border-2 border-blue-500/30 animate-ping"></div>
+            <Loader2 className="w-14 h-14 text-blue-500/70 animate-spin absolute inset-0" />
+          </div>
+          <h3 className="text-xl font-medium text-gray-200 mb-1">Loading Mindshare Data</h3>
+          <p className="text-gray-400 text-sm">Analyzing crypto market influence...</p>
         </div>
+      </div>
+    );
+  }
 
-        {/* Scrollable container */}
-        <div className="overflow-x-auto pb-4 max-w-full">
-          <div className="min-w-[1300px] w-max mx-auto borderContainer">
-            {/* Header with sorting options */}
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-t-xl p-4 borderUsers">
-              <div className="flex items-center text-sm font-medium text-gray-200">
-                <div className="w-16 text-center">#</div>
-                <div
-                  className="w-[18rem] flex-1 flex items-center cursor-pointer hover:text-white transition-colors"
-                  onClick={() => sortUsers("username")}
-                >
-                  Profile {getSortIcon("username")}
-                </div>
-                <div
-                  className="w-28 flex items-center cursor-pointer hover:text-white transition-colors"
-                  onClick={() => sortUsers("mindshare")}
-                >
-                  Mindshare {getSortIcon("mindshare")}
-                </div>
-                <div
-                  className="w-28 flex items-center cursor-pointer hover:text-white transition-colors"
-                  onClick={() => sortUsers("followers")}
-                >
-                  Followers {getSortIcon("followers")}
-                </div>
-                <div className="w-48 text-center">Engagement</div>
+  const sortedUsers = getSortedUsers();
+  const topUsers = sortedUsers.slice(0, 3);
+  const remainingUsers = sortedUsers.slice(3);
 
-                {/* Vs Metrics Headers */}
-                <div
-                  className="relative w-56 flex items-center justify-center cursor-pointer hover:text-white transition-colors ml-8"
-                  onClick={() => sortUsers("herdedVsHidden")}
-                >
-                  <div className="flex items-center">
-                    <span className="px-2 py-1 rounded mr-1 bg-teal-400 text-gray-900">
-                      Herded
-                    </span>
-                    <span className="text-gray-200">Vs</span>
-                    <span className="px-2 py-1 rounded ml-1 bg-blue-500 text-white">
-                      Hidden
-                    </span>
-                    {getSortIcon("herdedVsHidden")}
-                  </div>
-                  <div className="relative ml-1">
-                    <FaRobot
-                      className="text-blue-400 hover:text-blue-300 cursor-help transition-colors"
-                      onMouseEnter={() => setShowTooltip("herdedVsHidden")}
-                      onMouseLeave={() => setShowTooltip(null)}
-                    />
-                    {showTooltip === "herdedVsHidden" && (
-                      <div className="absolute left-0 top-4 z-50 w-max p-2 bg-gray-800 rounded-md shadow-lg text-xs text-white">
-                        Powered by AI
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div
-                  className="w-56 flex items-center justify-center cursor-pointer hover:text-white transition-colors ml-8"
-                  onClick={() => sortUsers("convictionVsHype")}
-                >
-                  <div className="flex items-center">
-                    <span className="px-2 py-1 rounded mr-1 bg-amber-500 text-gray-900">
-                      Conviction
-                    </span>
-                    <span className="text-gray-200">Vs</span>
-                    <span className="px-2 py-1 rounded ml-1 bg-purple-500 text-white">
-                      Hype
-                    </span>
-                    {getSortIcon("convictionVsHype")}
-                  </div>
-                  <div className="relative ml-1">
-                    <FaRobot
-                      className="text-blue-400 hover:text-blue-300 cursor-help transition-colors"
-                      onMouseEnter={() => setShowTooltip("convictionVsHype")}
-                      onMouseLeave={() => setShowTooltip(null)}
-                    />
-                    {showTooltip === "convictionVsHype" && (
-                      <div className="absolute left-0 top-4 z-50 w-max p-2 bg-gray-800 rounded-md shadow-lg text-xs text-white">
-                        Powered by AI
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div
-                  className="w-56 flex items-center justify-center cursor-pointer hover:text-white transition-colors ml-8"
-                  onClick={() => sortUsers("memeVsInstitutional")}
-                >
-                  <div className="flex items-center">
-                    <span className="px-2 py-1 rounded mr-1 bg-cyan-400 text-gray-900">
-                      Meme
-                    </span>
-                    <span className="text-gray-200">Vs</span>
-                    <span className="px-2 py-1 rounded ml-1 bg-pink-500 text-white">
-                      Institutional
-                    </span>
-                    {getSortIcon("memeVsInstitutional")}
-                  </div>
-                  <div className="relative ml-1">
-                    <FaRobot
-                      className="text-blue-400 hover:text-blue-300 cursor-help transition-colors"
-                      onMouseEnter={() => setShowTooltip("memeVsInstitutional")}
-                      onMouseLeave={() => setShowTooltip(null)}
-                    />
-                    {showTooltip === "memeVsInstitutional" && (
-                      <div className="absolute -left-14 top-4 z-50 w-max p-2 bg-gray-800 rounded-md shadow-lg text-xs text-white">
-                        Powered by AI
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+  return (
+    <div className="bg-gray-900 rounded-xl border border-gray-800/30 shadow-lg overflow-hidden w-[75rem]">
+      {/* Header */}
+      <div className="p-5 border-b border-gray-800/50">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-xl font-bold text-white">Mindful Mindshare</h2>
+            <p className="text-gray-400 text-sm mt-1">Top analyst influence metrics in crypto markets</p>
+          </div>
+          <div className="flex gap-2">
+            <div 
+              onClick={() => sortUsers("mindshare")}
+              className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${
+                sortField === "mindshare" ? "bg-blue-900/50 text-blue-300" : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+              }`}
+            >
+              <TrendingUp size={14} />
+              <span>Mindshare</span>
+              {sortField === "mindshare" && (
+                sortDirection === "asc" ? <FaChevronUp className="ml-1" /> : <FaChevronDown className="ml-1" />
+              )}
             </div>
-
-            {/* User list */}
-            <div className="bg-gray-800/20 backdrop-blur-sm rounded-b-xl overflow-x-scroll">
-              {sortedUsers.map((user, index) => (
-                <motion.div
-                  key={user._id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                  className={`relative group border-b border-gray-800/50 last:border-0`}
-                  onMouseEnter={() => setHoveredUser(user._id)}
-                  onMouseLeave={() => setHoveredUser(null)}
-                >
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-r from-blue-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
-                  />
-
-                  <Link
-                    href={`https://x.com/${user.userData.username}`}
-                    target="_blank"
-                    className="relative flex items-center p-3 hover:bg-gray-800/30 transition-colors duration-300 borderUsers"
-                  >
-                    {/* Ranking */}
-                    <div className="w-16 flex justify-center">
-                      {index === 0 && (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-300 to-yellow-500 flex items-center justify-center shadow-lg shadow-yellow-500/20">
-                          <FaTrophy className="w-5 h-5 text-white" />
-                        </div>
-                      )}
-                      {index === 1 && (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center shadow-lg shadow-gray-400/20">
-                          <FaTrophy className="w-5 h-5 text-white" />
-                        </div>
-                      )}
-                      {index === 2 && (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-600 to-amber-700 flex items-center justify-center shadow-lg shadow-amber-700/20">
-                          <FaTrophy className="w-5 h-5 text-white" />
-                        </div>
-                      )}
-                      {index >= 3 && (
-                        <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
-                          <span className="text-lg font-bold text-gray-200">
-                            {index + 1}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Profile - Image and Name side by side with flex */}
-                    <div className="flex-1 flex items-center space-x-4">
-                      <div className="relative">
-                        <div
-                          className={`absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 to-blue-500 opacity-0 group-hover:opacity-100 scale-110 transition-all duration-300 -z-10`}
-                        ></div>
-                        <img
-                          src={
-                            user.userData.userProfileUrl || "/placeholder.svg"
-                          }
-                          alt={`${user.userData.username}'s profile`}
-                          className="w-12 h-12 rounded-full object-cover border-2 border-gray-700 group-hover:border-transparent transition-all duration-300 z-10"
-                        />
-                        {user.userData.verified && (
-                          <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1 border-2 border-gray-900 z-20">
-                            <FaCheck className="w-2 h-2 text-white" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-medium text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-blue-400 transition-all duration-300">
-                          {user.userData.username}
-                        </span>
-                        <span className="text-xs text-gray-400">
-                          @{user.userData.username}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Mindshare */}
-                    <div className="w-28">
-                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-500 font-semibold">
-                        {user.userData.mindshare.toFixed(2)}%
-                      </span>
-                    </div>
-
-                    {/* Followers */}
-                    <div className="w-28 text-gray-200">
-                      {user.userData.publicMetrics.followers_count.toLocaleString()}
-                    </div>
-
-                    {/* Engagement Bar */}
-                    <div className="w-48 group relative">
-                      <div className="w-48">
-                        <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-gradient-to-r from-blue-500 to-cyan-500"
-                            style={{
-                              width: `${Math.min(
-                                user.userData.mindshare * 100,
-                                100
-                              )}%`,
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Comparison Bars */}
-                    <div className="w-56 ml-8">
-                      {renderComparisonBar(
-                        user.userData.herdedVsHidden,
-                        "Herded",
-                        "Hidden",
-                        "herdedVsHidden"
-                      )}
-                    </div>
-
-                    <div className="w-56 ml-8">
-                      {renderComparisonBar(
-                        user.userData.convictionVsHype,
-                        "Conviction",
-                        "Hype",
-                        "convictionVsHype"
-                      )}
-                    </div>
-
-                    <div className="w-56 ml-8">
-                      {renderComparisonBar(
-                        user.userData.memeVsInstitutional,
-                        "Meme",
-                        "Institutional",
-                        "memeVsInstitutional"
-                      )}
-                    </div>
-                  </Link>
-                </motion.div>
-              ))}
+            <div 
+              onClick={() => sortUsers("followers")}
+              className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${
+                sortField === "followers" ? "bg-blue-900/50 text-blue-300" : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+              }`}
+            >
+              <span>Followers</span>
+              {sortField === "followers" && (
+                sortDirection === "asc" ? <FaChevronUp className="ml-1" /> : <FaChevronDown className="ml-1" />
+              )}
             </div>
           </div>
         </div>
       </div>
+      
+      {/* Top 3 users in cards */}
+      <div className="p-5 bg-gradient-to-b from-gray-900 to-black">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {topUsers.map((user, index) => (
+            <div 
+              key={user._id}
+              className="relative bg-gray-800/30 backdrop-blur-sm rounded-lg border border-gray-700/30 overflow-hidden transition-all hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-900/10"
+            >
+              {/* Position indicator */}
+              <div className={`absolute top-3 left-3 w-8 h-8 rounded-full flex items-center justify-center ${
+                index === 0 ? "bg-yellow-500" : 
+                index === 1 ? "bg-gray-400" : 
+                "bg-amber-700"
+              }`}>
+                <FaTrophy className="w-3.5 h-3.5 text-gray-900" />
+              </div>
+              
+              {/* User info */}
+              <div className="pt-12 pb-5 px-4 text-center">
+                <div className="relative w-16 h-16 mx-auto mb-3">
+                  <img 
+                    src={user.userData.userProfileUrl || "/placeholder.svg"} 
+                    alt={user.userData.username}
+                    className="w-full h-full object-cover rounded-full border-2 border-gray-700"
+                  />
+                  {user.userData.verified && (
+                    <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1 border border-gray-900">
+                      <FaCheck className="w-2 h-2 text-white" />
+                    </div>
+                  )}
+                </div>
+                
+                <h3 className="text-lg font-medium text-white">{user.userData.username}</h3>
+                <p className="text-xs text-gray-400 mb-3">@{user.userData.username}</p>
+                
+                <div className="flex justify-center gap-4 mb-4">
+                  <div className="text-center">
+                    <p className="text-blue-400 text-lg font-bold">{user.userData.mindshare.toFixed(1)}%</p>
+                    <p className="text-xs text-gray-500">Mindshare</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-gray-200 text-lg font-medium">{user.userData.publicMetrics.followers_count.toLocaleString()}</p>
+                    <p className="text-xs text-gray-500">Followers</p>
+                  </div>
+                </div>
+                
+                <Link 
+                  href={`https://x.com/${user.userData.username}`} 
+                  target="_blank" 
+                  className="inline-flex items-center gap-1 text-blue-400 text-xs hover:text-blue-300 transition-colors"
+                >
+                  View Profile <FaExternalLinkAlt className="text-[10px]" />
+                </Link>
+              </div>
+              
+              {/* Expand button */}
+              <div 
+                className="p-2 border-t border-gray-700/30 text-center cursor-pointer hover:bg-gray-700/20 transition-colors"
+                onClick={() => setExpandedUser(expandedUser === user._id ? null : user._id)}
+              >
+                <span className="text-xs text-gray-400 flex items-center justify-center gap-1">
+                  {expandedUser === user._id ? "Hide Details" : "View Details"}
+                  {expandedUser === user._id ? 
+                    <FaChevronUp className="text-[10px]" /> : 
+                    <FaChevronDown className="text-[10px]" />
+                  }
+                </span>
+              </div>
+              
+              {/* Expanded metrics */}
+              <AnimatePresence>
+                {expandedUser === user._id && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="bg-gray-900/50 overflow-hidden"
+                  >
+                    <div className="p-4 space-y-4">
+                      {/* Herded vs Hidden */}
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-teal-400">Herded</span>
+                            <span className="text-xs text-gray-500">vs</span>
+                            <span className="text-xs text-blue-400">Hidden</span>
+                          </div>
+                          <div className="relative">
+                            <FaRobot 
+                              className="text-gray-500 hover:text-blue-400 text-xs cursor-help" 
+                              onMouseEnter={(e) => {
+                                setTooltipPosition({ 
+                                  x: e.clientX, 
+                                  y: e.clientY 
+                                });
+                                setShowTooltip("herdedVsHidden");
+                              }}
+                              onMouseLeave={() => setShowTooltip(null)}
+                            />
+                          </div>
+                        </div>
+                        {renderMetricIndicator(
+                          user.userData.herdedVsHidden, 
+                          "bg-teal-400", 
+                          "bg-blue-500"
+                        )}
+                      </div>
+                      
+                      {/* Conviction vs Hype */}
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-amber-400">Conviction</span>
+                            <span className="text-xs text-gray-500">vs</span>
+                            <span className="text-xs text-purple-400">Hype</span>
+                          </div>
+                          <div className="relative">
+                            <FaRobot 
+                              className="text-gray-500 hover:text-blue-400 text-xs cursor-help" 
+                              onMouseEnter={(e) => {
+                                setTooltipPosition({ 
+                                  x: e.clientX, 
+                                  y: e.clientY 
+                                });
+                                setShowTooltip("convictionVsHype");
+                              }}
+                              onMouseLeave={() => setShowTooltip(null)}
+                            />
+                          </div>
+                        </div>
+                        {renderMetricIndicator(
+                          user.userData.convictionVsHype, 
+                          "bg-amber-500", 
+                          "bg-purple-500"
+                        )}
+                      </div>
+                      
+                      {/* Meme vs Institutional */}
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-cyan-400">Meme</span>
+                            <span className="text-xs text-gray-500">vs</span>
+                            <span className="text-xs text-pink-400">Institutional</span>
+                          </div>
+                          <div className="relative">
+                            <FaRobot 
+                              className="text-gray-500 hover:text-blue-400 text-xs cursor-help" 
+                              onMouseEnter={(e) => {
+                                setTooltipPosition({ 
+                                  x: e.clientX, 
+                                  y: e.clientY 
+                                });
+                                setShowTooltip("memeVsInstitutional");
+                              }}
+                              onMouseLeave={() => setShowTooltip(null)}
+                            />
+                          </div>
+                        </div>
+                        {renderMetricIndicator(
+                          user.userData.memeVsInstitutional, 
+                          "bg-cyan-400", 
+                          "bg-pink-500"
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ))}
+        </div>
+      </div>
+      
+      {/* Remaining users in a compact list */}
+      <div className="p-5 bg-black/30">
+        <h3 className="text-sm font-medium text-gray-300 mb-3 flex items-center">
+          <ArrowUpDown size={12} className="mr-1" /> 
+          All Rankings {sortField !== "mindshare" && <span className="text-xs ml-1 text-gray-500">(sorted by {sortField})</span>}
+        </h3>
+        
+        <div className="space-y-1">
+          {remainingUsers.map((user, index) => (
+            <div 
+              key={user._id}
+              className="relative bg-gray-800/20 backdrop-blur-sm rounded-lg border border-gray-800/30 transition-all hover:border-blue-500/30"
+            >
+              <div className="px-3 py-2 flex items-center">
+                {/* Left side with rank and profile */}
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-800/70 text-gray-400 text-xs font-medium mr-2">
+                    {index + 4}
+                  </div>
+                  
+                  <div className="relative w-8 h-8">
+                    <img 
+                      src={user.userData.userProfileUrl || "/placeholder.svg"} 
+                      alt={user.userData.username}
+                      className="w-full h-full object-cover rounded-full border border-gray-700/50"
+                    />
+                    {user.userData.verified && (
+                      <div className="absolute -bottom-0.5 -right-0.5 bg-blue-500 rounded-full p-0.5 border border-gray-900">
+                        <FaCheck className="w-1 h-1 text-white" />
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="ml-2">
+                    <h4 className="text-sm font-medium text-white">{user.userData.username}</h4>
+                    <p className="text-xs text-gray-500">@{user.userData.username}</p>
+                  </div>
+                </div>
+                
+                {/* Spacer */}
+                <div className="flex-grow"></div>
+                
+                {/* Right side with metrics - closer together */}
+                <div className="flex items-center">
+                  <div className="text-right mr-4">
+                    <p className="text-blue-400 text-sm font-medium">{user.userData.mindshare.toFixed(1)}%</p>
+                    <p className="text-xs text-gray-500">Mindshare</p>
+                  </div>
+                  
+                  <div className="text-right mr-4">
+                    <p className="text-gray-300 text-sm">{user.userData.publicMetrics.followers_count.toLocaleString()}</p>
+                    <p className="text-xs text-gray-500">Followers</p>
+                  </div>
+                  
+                  <button 
+                    className={`px-3 py-1 rounded text-xs transition-colors ${
+                      expandedUser === user._id 
+                        ? "bg-blue-900/40 text-blue-300" 
+                        : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+                    }`}
+                    onClick={() => setExpandedUser(expandedUser === user._id ? null : user._id)}
+                  >
+                    {expandedUser === user._id ? "Hide" : "Details"}
+                  </button>
+                </div>
+              </div>
+              
+              {/* Expandable details */}
+              <AnimatePresence>
+                {expandedUser === user._id && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="p-4 border-t border-gray-800/30 space-y-3 bg-gray-900/30">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* Herded vs Hidden */}
+                        <div>
+                          <div className="flex justify-between items-center mb-1">
+                            <div className="flex items-center gap-1">
+                              <div className="w-1.5 h-1.5 rounded-full bg-teal-400"></div>
+                              <span className="text-xs text-gray-400">Herded - Hidden</span>
+                              <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                            </div>
+                          </div>
+                          {renderMetricIndicator(
+                            user.userData.herdedVsHidden, 
+                            "bg-teal-400", 
+                            "bg-blue-500"
+                          )}
+                        </div>
+                        
+                        {/* Conviction vs Hype */}
+                        <div>
+                          <div className="flex justify-between items-center mb-1">
+                            <div className="flex items-center gap-1">
+                              <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
+                              <span className="text-xs text-gray-400">Conviction - Hype</span>
+                              <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
+                            </div>
+                          </div>
+                          {renderMetricIndicator(
+                            user.userData.convictionVsHype, 
+                            "bg-amber-500", 
+                            "bg-purple-500"
+                          )}
+                        </div>
+                        
+                        {/* Meme vs Institutional */}
+                        <div>
+                          <div className="flex justify-between items-center mb-1">
+                            <div className="flex items-center gap-1">
+                              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400"></div>
+                              <span className="text-xs text-gray-400">Meme - Institutional</span>
+                              <div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>
+                            </div>
+                          </div>
+                          {renderMetricIndicator(
+                            user.userData.memeVsInstitutional, 
+                            "bg-cyan-400", 
+                            "bg-pink-500"
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-end">
+                        <Link 
+                          href={`https://x.com/${user.userData.username}`} 
+                          target="_blank" 
+                          className="inline-flex items-center gap-1 text-blue-400 text-xs hover:text-blue-300 transition-colors"
+                        >
+                          View Profile <FaExternalLinkAlt className="text-[10px]" />
+                        </Link>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ))}
+        </div>
+        
+        {/* Empty state */}
+        {users.length === 0 && (
+          <div className="p-8 text-center bg-gray-900/20 rounded-lg border border-gray-800/30">
+            <InfoIcon className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+            <p className="text-gray-400">No influencer data available</p>
+          </div>
+        )}
+      </div>
+      
+      {/* Tooltip for AI metrics */}
+      {showTooltip && (
+        <div 
+          className="fixed z-50 bg-gray-800 rounded-md shadow-lg p-2 text-xs text-white max-w-[200px]"
+          style={{ 
+            left: `${tooltipPosition.x + 10}px`, 
+            top: `${tooltipPosition.y - 10}px` 
+          }}
+        >
+          <p className="font-medium">AI-Powered Metric</p>
+          <p className="text-gray-300 text-[10px] mt-1">
+            {showTooltip === "herdedVsHidden" && "Analyzes whether content follows crowd sentiment or provides contrarian views."}
+            {showTooltip === "convictionVsHype" && "Measures genuine belief versus promotional content based on language patterns."}
+            {showTooltip === "memeVsInstitutional" && "Evaluates content tone from casual/humorous to formal/institutional."}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
+

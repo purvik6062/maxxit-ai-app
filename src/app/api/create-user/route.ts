@@ -6,12 +6,20 @@ const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 
 export async function POST(request: Request): Promise<Response> {
   try {
-    const { walletAddress, telegramId, credits } = await request.json();
+    const { walletAddress, telegramId, credits, retweetVerified } = await request.json();
 
     // Validate required fields
     if (!walletAddress || !telegramId) {
       return NextResponse.json(
         { success: false, error: { message: "Missing required fields" } },
+        { status: 400 }
+      );
+    }
+
+    // Check if retweet is verified
+    if (!retweetVerified) {
+      return NextResponse.json(
+        { success: false, error: { message: "Twitter retweet verification is required" } },
         { status: 400 }
       );
     }
@@ -105,6 +113,7 @@ export async function POST(request: Request): Promise<Response> {
       createdAt: now,
       updatedAt: now,
       verified: true, // Mark as verified since we confirmed chat exists
+      twitterVerified: true, // Mark Twitter verification as complete
     };
 
     const result = await usersCollection.insertOne(newUser);

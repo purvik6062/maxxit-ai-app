@@ -6,6 +6,8 @@ import { toast } from "react-toastify";
 import { useAccount } from "wagmi";
 import { useCredits } from "@/context/CreditsContext";
 import { IoPersonAdd } from "react-icons/io5";
+import { LuWandSparkles } from "react-icons/lu";
+import { Heart, Sparkles } from "lucide-react";
 import {
   Header,
   ImpactLeaderboard,
@@ -23,18 +25,13 @@ const HomePage: React.FC = () => {
   const { updateCredits } = useCredits();
 
   const [subscribedHandles, setSubscribedHandles] = useState<string[]>([]);
-  const [subscribingHandle, setSubscribingHandle] = useState<string | null>(
-    null
-  );
+  const [subscribingHandle, setSubscribingHandle] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [impactRefreshData, setImpactRefreshData] = useState<
-    (() => void) | null
-  >(null);
-  const [heartbeatRefreshData, setHeartbeatRefreshData] = useState<
-    (() => void) | null
-  >(null);
+  const [impactRefreshData, setImpactRefreshData] = useState<(() => void) | null>(null);
+  const [heartbeatRefreshData, setHeartbeatRefreshData] = useState<(() => void) | null>(null);
   const addInfluencerButtonRef = useRef<HTMLButtonElement>(null);
   const [searchText, setSearchText] = useState("");
+  const [activeTab, setActiveTab] = useState<"impact" | "heartbeat">("impact");
 
   useEffect(() => {
     const fetchSubscribedHandles = async () => {
@@ -43,10 +40,6 @@ const HomePage: React.FC = () => {
       try {
         const response = await fetch(`/api/get-user?walletAddress=${address}`);
         const data = await response.json();
-
-        // if (data.success && data.data.subscribedAccounts) {
-        //   setSubscribedHandles(data.data.subscribedAccounts);
-        // }
 
         if (data.success && data.data.subscribedAccounts) {
           // Extract only twitterHandle values
@@ -176,10 +169,65 @@ const HomePage: React.FC = () => {
         <ShareButton />
       </div>
 
-      <main className="flex-grow px-6 py-8 max-w-screen-2xl mx-auto w-full">
-        <div className="flex flex-col gap-8">
-          <div className="flex flex-col lg:flex-row gap-6">
-            <div className="lg:w-[50%] bg-gray-800/50 rounded-xl backdrop-blur-sm border border-gray-700/50 shadow-lg h-fit">
+      <main className="flex-grow px-6 py-6 max-w-6xl mx-auto w-full">
+        {/* Analytics Dashboard Header */}
+        <div className="mb-6 text-center">
+          <h2 className="text-xl md:text-2xl font-bold text-white mb-2">
+            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Analyst Rankings
+            </span>
+          </h2>
+          <p className="text-gray-400 max-w-2xl mx-auto text-sm">
+            Discover and follow top crypto analysts based on their impact and market sentiment
+          </p>
+        </div>
+
+        {/* Tabbed Navigation */}
+        <div className="flex justify-center mb-4">
+          <div className="flex rounded-lg overflow-hidden backdrop-blur-sm bg-gray-800/20 border border-gray-700/30 p-1">
+            <button
+              onClick={() => setActiveTab("impact")}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-all ${
+                activeTab === "impact"
+                  ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              <Sparkles size={14} className={activeTab === "impact" ? "text-blue-200" : ""} />
+              <span className="font-medium text-sm">Impact Factor</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("heartbeat")}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-all ${
+                activeTab === "heartbeat"
+                  ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              <Heart size={14} className={activeTab === "heartbeat" ? "text-purple-200" : ""} />
+              <span className="font-medium text-sm">Heartbeat</span>
+            </button>
+          </div>
+        </div>
+        
+        {/* Add Influencer Button - Floating */}
+        <div className="fixed bottom-6 right-6 z-10">
+          <button
+            ref={addInfluencerButtonRef}
+            onClick={() => setIsModalOpen(true)}
+            className="group bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-full p-3 shadow-lg shadow-blue-900/30 transition-all duration-300"
+          >
+            <IoPersonAdd size={20} className="text-white" />
+            <span className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-xs py-1 px-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+              Add New Influencer
+            </span>
+          </button>
+        </div>
+        
+        {/* Main Content Area */}
+        <div className="bg-gradient-to-br from-gray-900/80 to-gray-950/60 backdrop-blur-sm rounded-lg border border-gray-800/30 shadow-xl overflow-hidden">
+          <div className="p-4">
+            {activeTab === "impact" ? (
               <ImpactLeaderboard
                 subscribedHandles={subscribedHandles}
                 subscribingHandle={subscribingHandle}
@@ -187,8 +235,7 @@ const HomePage: React.FC = () => {
                 setRefreshData={setImpactRefreshData}
                 searchText={searchText} 
               />
-            </div>
-            <div className="lg:w-[50%] bg-gray-800/50 rounded-xl backdrop-blur-sm border border-gray-700/50 shadow-lg h-fit">
+            ) : (
               <HeartbeatDashboard
                 subscribedHandles={subscribedHandles}
                 subscribingHandle={subscribingHandle}
@@ -196,21 +243,7 @@ const HomePage: React.FC = () => {
                 setRefreshData={setHeartbeatRefreshData}
                 searchText={searchText} 
               />
-            </div>
-          </div>
-          <div className="mt-6 flex justify-center">
-            <button
-              ref={addInfluencerButtonRef}
-              onClick={() => setIsModalOpen(true)}
-              className="group relative bg-gradient-to-r from-blue-600/50 to-blue-600/30 backdrop-blur-sm border border-blue-400/30 rounded-xl overflow-hidden transition-all duration-300 px-6 py-3"
-            >
-              <div className="flex items-center gap-3">
-                <IoPersonAdd color="rgb(73, 175, 243)" />
-                <span className="text-lg font-bold text-white group-hover:text-blue-200 transition-colors duration-300">
-                  Add New Influencer
-                </span>
-              </div>
-            </button>
+            )}
           </div>
         </div>
       </main>
@@ -219,7 +252,7 @@ const HomePage: React.FC = () => {
         <SocialGraph />
       </div>
       
-      <div className="px-6 py-8">
+      <div className="px-6 py-8 flex justify-center">
         <Mindshare />
       </div>
 
