@@ -4,11 +4,11 @@ import dbConnect from "src/utils/dbConnect";
 export async function GET(request: Request): Promise<Response> {
   try {
     const { searchParams } = new URL(request.url);
-    const walletAddress = searchParams.get('walletAddress');
+    const twitterId = searchParams.get('twitterId');
 
-    if (!walletAddress) {
+    if (!twitterId) {
       return NextResponse.json(
-        { success: false, error: { message: "Wallet address is required" } },
+        { success: false, error: { message: "Twitter ID is required" } },
         { status: 400 }
       );
     }
@@ -17,7 +17,7 @@ export async function GET(request: Request): Promise<Response> {
     const db = client.db("ctxbt-signal-flow");
     const usersCollection = db.collection("users");
 
-    const user = await usersCollection.findOne({ walletAddress });
+    const user = await usersCollection.findOne({ twitterId });
 
     if (!user) {
       return NextResponse.json(
