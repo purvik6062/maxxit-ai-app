@@ -157,7 +157,7 @@ export default function SubscribedAccountsPage() {
   useEffect(() => {
     if (networkRef.current && graphData.nodes.length > 0) {
       nodesDataSet.current = new DataSet(graphData.nodes);
-      edgesDataSet.current = new DataSet(graphData.edges);
+      edgesDataSet.current = new DataSet(graphData.edges as any);
 
       const data = {
         nodes: nodesDataSet.current,
