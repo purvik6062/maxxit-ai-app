@@ -6,18 +6,30 @@ import PricingCard from "./PricingCard";
 export default function PricingSection() {
   const pricingPlans = [
     {
-      name: "BASIC",
-      price: 20,
-      description: "Perfect for occasional users",
+      name: "Free",
+      price: 0,
+      description: "",
       features: [
-        { name: "100 Credits", included: true },
+        { name: "Upto 200 Credits Every Month", included: true },
         { name: "Access to all basic features", included: true },
         { name: "Email support", included: true },
         { name: "7-day history", included: true },
         { name: "API access", included: true },
-        { name: "Custom exports", included: false },
+      ],
+      ctaText: "Get Started",
+      popular: false,
+    },
+    {
+      name: "BASIC",
+      price: 20,
+      description: "Perfect for occasional users",
+      features: [
+        { name: "1000 Credits", included: true },
+        { name: "Access to all basic features", included: true },
+        { name: "Email support", included: true },
+        { name: "7-day history", included: true },
+        { name: "API access", included: true },
         { name: "Priority support", included: false },
-        { name: "Team collaboration", included: false },
       ],
       ctaText: "Get Started",
       popular: false,
@@ -27,30 +39,25 @@ export default function PricingSection() {
       price: 50,
       description: "Great for regular users and small teams",
       features: [
-        { name: "500 Credits", included: true },
+        { name: "5000 Credits", included: true },
         { name: "Access to all features", included: true },
         { name: "Email support", included: true },
         { name: "30-day history", included: true },
-        // { name: "Custom exports", included: true },
         { name: "Priority support", included: true },
-        // { name: "Team collaboration", included: false },
         { name: "API access", included: true },
       ],
       ctaText: "Get Started",
       popular: false,
     },
     {
-      name: "UNLIMITED",
+      name: "Premium",
       price: 100,
       description: "For power users and large organizations",
       features: [
-        { name: "Unlimited Credits", included: true },
+        { name: "15000 Credits", included: true },
         { name: "Access to all features", included: true },
         { name: "Priority email support", included: true },
-        // { name: "Unlimited history", included: true },
-        // { name: "Custom exports", included: true },
         { name: "24/7 Priority support", included: true },
-        // { name: "Team collaboration", included: true },
         { name: "Full API access", included: true },
       ],
       ctaText: "Get Started",
@@ -70,7 +77,7 @@ export default function PricingSection() {
             recurring fees.
           </p>
 
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="mt-16 grid grid-cols-1 md:grid-cols-4 gap-8">
             {pricingPlans.map((plan) => (
               <PricingCard
                 key={plan.name}
@@ -98,10 +105,12 @@ export default function PricingSection() {
               </p>
             </div>
             <div>
-              <h4 className="font-medium text-white mb-2">Never Expires</h4>
+              <h4 className="font-medium text-white mb-2">
+                One Month Validity
+              </h4>
               <p>
-                Your purchased credits don't expire. They remain in your account
-                until you use them.
+                Your purchased credits are valid for one month from the date of
+                purchase. Unused credits will expire after the validity period.
               </p>
             </div>
             <div>
