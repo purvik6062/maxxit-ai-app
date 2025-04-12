@@ -6,20 +6,12 @@ const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 
 export async function POST(request: Request): Promise<Response> {
   try {
-    const { walletAddress, telegramId, credits, retweetVerified } = await request.json();
+    const { twitterUsername, twitterId, telegramId, credits } = await request.json();
 
     // Validate required fields
-    if (!walletAddress || !telegramId) {
+    if (!twitterUsername || !telegramId || !twitterId) {
       return NextResponse.json(
         { success: false, error: { message: "Missing required fields" } },
-        { status: 400 }
-      );
-    }
-
-    // Check if retweet is verified
-    if (!retweetVerified) {
-      return NextResponse.json(
-        { success: false, error: { message: "Twitter retweet verification is required" } },
         { status: 400 }
       );
     }
@@ -84,15 +76,17 @@ export async function POST(request: Request): Promise<Response> {
 
     // Check existing users
     const existingUser = await usersCollection.findOne({
-      $or: [{ walletAddress }, { telegramId }, { chatId }],
+      $or: [{ twitterUsername }, { twitterId }, { telegramId }, { chatId }],
     });
 
     if (existingUser) {
       let errorMessage = "User already exists";
       if (existingUser.telegramId === telegramId)
         errorMessage = "Telegram username already registered";
-      if (existingUser.walletAddress === walletAddress)
-        errorMessage = "Wallet address already registered";
+      if (existingUser.twitterUsername === twitterUsername)
+        errorMessage = "Twitter username already registered";
+      if (existingUser.twitterId === twitterId)
+        errorMessage = "Twitter account already linked to another user";
       if (existingUser.chatId === chatId)
         errorMessage = "Telegram account already linked to another user";
 
@@ -105,7 +99,8 @@ export async function POST(request: Request): Promise<Response> {
     // Create new user
     const now = new Date();
     const newUser = {
-      walletAddress,
+      twitterUsername,
+      twitterId,
       telegramId,
       chatId,
       credits: credits || 100,
@@ -113,7 +108,6 @@ export async function POST(request: Request): Promise<Response> {
       createdAt: now,
       updatedAt: now,
       verified: true, // Mark as verified since we confirmed chat exists
-      twitterVerified: true, // Mark Twitter verification as complete
     };
 
     const result = await usersCollection.insertOne(newUser);

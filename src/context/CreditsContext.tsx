@@ -4,7 +4,7 @@ import React, {
     useEffect,
     useContext,
   } from 'react';
-  import { useAccount } from 'wagmi';
+  import { useSession } from 'next-auth/react';
   
   interface CreditsContextType {
     credits: number | null; // Can be number or null if not yet loaded
@@ -22,20 +22,23 @@ import React, {
   
   export const CreditsProvider: React.FC<CreditsProviderProps> = ({ children }) => {
     const [credits, setCredits] = useState<number | null>(null);
-    const { address } = useAccount();
+    const { data: session } = useSession();
   
     const updateCredits = async () => {
-      if (!address) {
-        setCredits(null); // Reset credits if no wallet connected
+      if (!session || !session.user?.id) {
+        setCredits(null); // Reset credits if no user logged in
         return;
       }
   
       try {
-        const response = await fetch(`/api/get-user?walletAddress=${address}`);
+        const response = await fetch(`/api/get-user?twitterId=${session.user.id}`);
         const data = await response.json();
   
         if (response.ok && data.data && typeof data.data.credits === 'number') {
           setCredits(data.data.credits);
+        } else if (response.status === 404) {
+          console.log("User not found, likely not registered yet.");
+          setCredits(null);
         } else {
           console.error("Failed to fetch credits or invalid format:", data);
           setCredits(null);
@@ -47,8 +50,8 @@ import React, {
     };
   
     useEffect(() => {
-      updateCredits(); // Fetch credits on initial mount and address change
-    }, [address]);
+      updateCredits(); // Fetch credits on initial mount and session change
+    }, [session]);
   
     const value: CreditsContextType = {
       credits,
