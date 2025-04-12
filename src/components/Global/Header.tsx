@@ -29,22 +29,19 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
   const [showTokens, setShowTokens] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [telegramStep, setTelegramStep] = useState(1);
-  const [retweetVerified, setRetweetVerified] = useState(false);
-  const [isCheckingRetweet, setIsCheckingRetweet] = useState(false);
-  const [tweetLink, setTweetLink] = useState("https://x.com/triggerxnetwork/status/1908126605110636929"); // Replace with your actual tweet link
-  const { address, isConnected } = useAccount();
+  const [tweetLink, setTweetLink] = useState("https://x.com/triggerxnetwork/status/1908126605110636929");
   const { credits, updateCredits } = useCredits();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { data: session } = useSession();
   const [hasRegistered, setHasRegistered] = useState(false);
 
   const ERROR_MAPPING: { [key: string]: string } = {
-    "Wallet address already registered":
-      "This wallet is already connected to another account",
+    "Twitter username already registered":
+      "This Twitter username is already connected to another account",
     "Telegram username already registered":
       "This Telegram username is already in use",
     "Telegram account already linked to another user":
-      "This Telegram account is connected to another wallet",
+      "This Telegram account is connected to another user",
     "Please start a chat with our bot first and send a message. Check step 1 & 2 in the instructions.":
       "Complete Step 1 & 2: Start the bot and send /start",
   };
@@ -72,13 +69,20 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
   }, [isModalOpen, isTelegramModalOpen]);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (!address || !session) return;
+    // Check if the user has already registered from localStorage
+    const hasRegisteredPreviously = localStorage.getItem('hasRegistered');
+    if (hasRegisteredPreviously === 'true') {
       setShowTokens(true);
+      setHasRegistered(true);
+    }
 
+    const fetchUserData = async () => {
+      if (!session || !session.user?.id) return;
+      
       try {
-        const response = await fetch(`/api/get-user?walletAddress=${address}`);
-        if (response.status === 404 && !hasRegistered) {
+        const response = await fetch(`/api/get-user?twitterId=${session.user.id}`);
+        if (response.status === 404 && !hasRegistered && hasRegisteredPreviously !== 'true') {
+          console.log("User not found, likely not registered yet.");
           setTimeout(() => {
             setTelegramStep(1);
           }, 0);
@@ -87,6 +91,7 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
         const data = await response.json();
         if (data.success) {
           setShowTokens(true);
+          localStorage.setItem('hasRegistered', 'true');
         }
         setIsTelegramModalOpen(false);
       } catch (error) {
@@ -94,7 +99,7 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
       }
     };
     fetchUserData();
-  }, [address, session]);
+  }, [session, hasRegistered]);
 
   useEffect(() => {
     // Check if we've already shown this toast by using localStorage
@@ -122,12 +127,6 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
         autoClose: 3000,
         hideProgressBar: false,
       });
-    } else if (!address) {
-      toast.error("Please connect to your wallet", {
-        position: "top-center",
-        autoClose: 3000,
-        hideProgressBar: false,
-      });
     } else {
       setIsTelegramModalOpen(true);
       setTelegramStep(1);
@@ -140,69 +139,21 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
     setTelegramStep(1);
   };
 
-  const verifyRetweet = async () => {
-    if (!session?.user?.username) {
-      setErrorMessage("Twitter username not found. Please log in again.");
-      return false;
-    }
-
-    setIsCheckingRetweet(true);
-    setErrorMessage(null);
-
-    try {
-      const response = await fetch("/api/verify-retweet", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          tweet_link: tweetLink,
-          user_handle: session.user.username,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.retweet) {
-        setRetweetVerified(true);
-        return true;
-      } else {
-        setErrorMessage("We couldn't verify your retweet. Please make sure you've retweeted the post and try again.");
-        return false;
-      }
-    } catch (error) {
-      console.error("Error verifying retweet:", error);
-      setErrorMessage("Failed to verify retweet. Please try again.");
-      return false;
-    } finally {
-      setIsCheckingRetweet(false);
-    }
-  };
-
   const handleSubmit = async () => {
     setErrorMessage(null);
     setIsSubmitting(true);
 
     try {
-      // If we're on step 3 (retweet verification) and retweet isn't verified yet, verify it first
-      if (telegramStep === 3 && !retweetVerified) {
-        const retweetSuccess = await verifyRetweet();
-        if (!retweetSuccess) {
-          setIsSubmitting(false);
-          return;
-        }
-      }
-
       const response = await fetch("/api/create-user", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          walletAddress: address,
+          twitterUsername: session?.user?.username,
+          twitterId: session?.user?.id,
           telegramId: telegramUsername,
-          credits: 100,
-          retweetVerified: true,
+          credits: 500,
         }),
       });
 
@@ -212,8 +163,10 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
       }
 
       setHasRegistered(true);
+      setShowTokens(true); // Set showTokens to true after successful submission
+      localStorage.setItem('hasRegistered', 'true'); // Persist the registration status
       
-      toast.success("Success! 100 Credits added to your account", {
+      toast.success("Success! 500 Credits added to your account", {
         position: "top-center",
         autoClose: 4000,
         hideProgressBar: false,
@@ -221,7 +174,6 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
           setIsTelegramModalOpen(false);
           setTelegramStep(1);
           setTelegramUsername("");
-          setRetweetVerified(false);
           updateCredits();
         },
       });
@@ -383,88 +335,23 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
               Login with X
             </button>
           ) : (
-            <>
-              <div className="group relative flex items-center bg-gray-800/60 px-3 py-1.5 rounded-lg border border-gray-700">
-                <img
-                  src={session.user?.image || "/default-avatar.png"}
-                  alt="Profile"
-                  className="w-7 h-7 rounded-full mr-2 border border-blue-400"
-                />
-                <span className="text-gray-200 text-sm font-medium">@{session.user?.username || session.user?.name}</span>
+            <div className="group relative flex items-center bg-gray-800/60 px-3 py-1.5 rounded-lg border border-gray-700">
+              <img
+                src={session.user?.image || "/default-avatar.png"}
+                alt="Profile"
+                className="w-7 h-7 rounded-full mr-2 border border-blue-400"
+              />
+              <span className="text-gray-200 text-sm font-medium">@{session.user?.username || session.user?.name}</span>
 
-                {/* Sign out button tooltip */}
-                <button
-                  onClick={() => signOut({ callbackUrl: '/' })}
-                  className="ml-2 p-1.5 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-full transition-colors"
-                  title="Sign out"
-                >
-                  <LogOut size={14} />
-                </button>
-              </div>
-
-              {/* Customized ConnectButton that preserves disconnect functionality */}
-              <div className="rainbowkit-wrapper">
-                <ConnectButton.Custom>
-                  {({
-                    account,
-                    chain,
-                    openAccountModal,
-                    openConnectModal,
-                    mounted,
-                  }) => {
-                    const ready = mounted;
-                    const connected = ready && account && chain;
-
-                    return (
-                      <div
-                        {...(!ready && {
-                          'aria-hidden': true,
-                          style: {
-                            opacity: 0,
-                            pointerEvents: 'none',
-                            userSelect: 'none',
-                          },
-                        })}
-                      >
-                        {(() => {
-                          if (!connected) {
-                            return (
-                              <button
-                                onClick={openConnectModal}
-                                className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-lg text-sm font-medium"
-                              >
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                                </svg>
-                                Connect Wallet
-                              </button>
-                            );
-                          }
-
-                          return (
-                            <div className="flex items-center bg-gray-800/60 px-3 py-1.5 rounded-lg border border-gray-700">
-                              <button
-                                onClick={openAccountModal}
-                                className="flex items-center text-gray-200 text-sm"
-                              >
-                                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center mr-2">
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <rect x="3" y="6" width="18" height="12" rx="2" stroke="white" strokeWidth="2" strokeLinecap="round" />
-                                    <path d="M3 10H21" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-                                    <circle cx="16" cy="15" r="1.5" fill="white" />
-                                  </svg>
-                                </div>
-                                <span className="font-medium">{account.displayName}</span>
-                              </button>
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    );
-                  }}
-                </ConnectButton.Custom>
-              </div>
-            </>
+              {/* Sign out button tooltip */}
+              <button
+                onClick={() => signOut({ callbackUrl: '/' })}
+                className="ml-2 p-1.5 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-full transition-colors"
+                title="Sign out"
+              >
+                <LogOut size={14} />
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -542,7 +429,7 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
                   <p className="text-gray-300 mb-6">
                     To claim your{" "}
                     <span className="text-blue-400 font-semibold">
-                      100 FREE Credits
+                      500 FREE Credits
                     </span>
                     , please Complete these below mentioned steps
                   </p>
@@ -658,14 +545,14 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
                 </div>
               </div>
             ) : telegramStep === 2 ? (
-              // Step 2: Telegram Username Input
+              // Step 2: Telegram Username Input (now the final step)
               <div className="space-y-5">
                 <div className="text-center">
                   <h3 className="text-2xl font-bold text-white mb-1">
                     Verify Your Telegram Account
                   </h3>
                   <div className="h-1 w-24 bg-gradient-to-r from-blue-500 to-blue-700 mx-auto my-3 rounded-full" />
-                  <p className="text-sm text-gray-300">Step 2 of 3</p>
+                  <p className="text-sm text-gray-300">Step 2 of 2</p>
                 </div>
 
                 <div className="relative">
@@ -703,23 +590,27 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
                     <span>Back</span>
                   </button>
                   <button
-                    onClick={() => {
-                      if (telegramUsername) {
-                        setTelegramStep(3);
-                        setErrorMessage(null);
-                      } else {
-                        setErrorMessage("Please enter your Telegram username");
-                      }
-                    }}
-                    disabled={!telegramUsername}
+                    onClick={handleSubmit}
+                    disabled={isSubmitting || !telegramUsername}
                     className="flex-1 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-3 text-sm font-medium text-white hover:from-blue-600 hover:to-blue-800 disabled:opacity-70 disabled:cursor-not-allowed"
                   >
-                    <span>Next</span>
+                    {isSubmitting ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                        <span>Processing...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center gap-1">
+                        <span>Complete & Get Credits</span>
+                        <IoShieldCheckmark size={15} color="rgb(135, 255, 135)" />
+                      </div>
+                    )}
                   </button>
                 </div>
               </div>
             ) : (
-              // Step 3: Retweet Verification
+              // Comment out Step 3: Retweet Verification as it's not needed for now
+              /*
               <div className="space-y-5">
                 <div className="text-center">
                   <h3 className="text-2xl font-bold text-white mb-1">
@@ -828,6 +719,19 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
                     </button>
                   )}
                 </div>
+              </div>
+              */
+              // Redirect to submit directly from step 2
+              <div className="space-y-5">
+                <div className="text-center">
+                  <h3 className="text-2xl font-bold text-white mb-1">
+                    Verify Your Telegram Account
+                  </h3>
+                  <div className="h-1 w-24 bg-gradient-to-r from-blue-500 to-blue-700 mx-auto my-3 rounded-full" />
+                  <p className="text-sm text-gray-300">Step 2 of 2</p>
+                </div>
+                {/* Placeholder for consistency, though it won't be rendered */}
+                <p className="text-sm text-gray-300">You've completed all steps. Click "Complete & Get Credits" to finish.</p>
               </div>
             )}
           </div>

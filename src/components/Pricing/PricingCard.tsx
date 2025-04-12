@@ -4,6 +4,7 @@ import { CheckIcon, XIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import PaymentModal from "./PaymentModal";
+import Link from "next/link";
 
 interface PricingCardProps {
   name: string;
@@ -36,7 +37,9 @@ export default function PricingCard({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
         className={`relative rounded-2xl overflow-hidden ${
-          popular ? "border-4 border-cyan-400 border-solid shadow-[0_4px_20px_rgba(6,182,212,0.8)]" : ""
+          popular
+            ? "border-4 border-cyan-400 border-solid shadow-[0_4px_20px_rgba(6,182,212,0.8)]"
+            : ""
         }`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -58,14 +61,18 @@ export default function PricingCard({
               <span className="text-5xl font-extrabold text-gray-900">
                 ${price}
               </span>
-              <span className="text-gray-500 ml-1">one-time</span>
+              {name != "Free" && (
+                <span className="text-gray-500 ml-1">one-time</span>
+              )}
             </div>
             <div className="mt-2 text-sm font-medium text-blue-600">
-              {name === "BASIC"
-                ? "100 Credits"
+              {name === "Free"
+                ? "Redeem Free Credits"
+                : name === "BASIC"
+                ? "1000 Credits"
                 : name === "STANDARD"
-                ? "500 Credits"
-                : "Unlimited Credits"}
+                ? "5000 Credits"
+                : "15000 Credits"}
             </div>
             <p className="mt-4 text-gray-600 text-sm">{description}</p>
           </div>
@@ -91,16 +98,24 @@ export default function PricingCard({
             </ul>
           </div>
           <div className="p-8 pt-0">
-            <button
-              onClick={handleCtaClick}
-              className={`w-full py-3 px-6 rounded-lg font-medium transition-all duration-200 ${
-                popular
-                  ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:shadow-lg hover:shadow-blue-500/30"
-                  : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-              }`}
-            >
-              {ctaText}
-            </button>
+            {name === "Free" ? (
+              <Link href="/redeem-credits">
+                <button className="w-full py-3 px-6 rounded-lg font-medium transition-all duration-200 bg-gradient-to-r from-green-500 to-green-600 text-white hover:shadow-lg hover:shadow-green-500/30">
+                  Redeem Credits
+                </button>
+              </Link>
+            ) : (
+              <button
+                onClick={handleCtaClick}
+                className={`w-full py-3 px-6 rounded-lg font-medium transition-all duration-200 ${
+                  popular
+                    ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:shadow-lg hover:shadow-blue-500/30"
+                    : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                }`}
+              >
+                {ctaText}
+              </button>
+            )}
           </div>
         </div>
       </motion.div>
@@ -110,7 +125,13 @@ export default function PricingCard({
         planName={name}
         planPrice={price}
         planCredits={
-          name === "BASIC" ? "20" : name === "STANDARD" ? "50" : "Unlimited"
+          name === "Free"
+            ? "100"
+            : name === "BASIC"
+            ? "1000"
+            : name === "STANDARD"
+            ? "5000"
+            : "15000"
         }
       />
     </>

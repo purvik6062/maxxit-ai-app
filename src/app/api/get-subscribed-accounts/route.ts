@@ -4,23 +4,19 @@ import dbConnect from "src/utils/dbConnect";
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const walletAddress = searchParams.get("walletAddress");
-    // console.log("wa", walletAddress);
+    const twitterId = searchParams.get("twitterId");
 
-    if (!walletAddress || walletAddress === "undefined") {
+    if (!twitterId || twitterId === "undefined") {
       return NextResponse.json(
         {
           success: false,
           error: {
-            message: "Please connect with your wallet first!",
+            message: "Please login with Twitter/X first!",
           },
         },
         { status: 400 }
       );
     }
-
-    const normalizedWalletAddress = walletAddress.toLowerCase();
-    // console.log("Searching for wallet:", normalizedWalletAddress);
 
     const client = await dbConnect();
     const db = client.db("ctxbt-signal-flow");
@@ -28,16 +24,9 @@ export async function GET(req: NextRequest) {
     const syncedCollection = db.collection("influencers");
 
     const db2 = client.db("test_analysis");
-    // const syncedCollection = db2.collection("influencers_testing");
 
-    // Find the user by walletAddress - check both lowercase and original case
-    const user = await usersCollection.findOne({
-      $or: [
-        { walletAddress: normalizedWalletAddress },
-        { walletAddress: walletAddress },
-      ],
-    });
-    // console.log("User found:", user);
+    // Find the user by twitterId
+    const user = await usersCollection.findOne({ twitterId });
 
     if (!user) {
       return NextResponse.json(

@@ -6,6 +6,7 @@ import { Tooltip } from "react-tooltip";
 import { useAccount } from "wagmi";
 import { useCredits } from "@/context/CreditsContext";
 import { hover } from "framer-motion";
+import { useSession } from "next-auth/react";
 
 type SubscribedAccount = {
   twitterHandle: string;
@@ -40,6 +41,7 @@ type GraphData = {
 
 export default function SubscribedAccountsPage() {
   const { address } = useAccount();
+  const { data: session } = useSession();
   const [graphData, setGraphData] = useState<GraphData>({
     nodes: [],
     edges: [],
@@ -73,102 +75,89 @@ export default function SubscribedAccountsPage() {
   // Fetch subscribed accounts and prepare graph data
   useEffect(() => {
     const fetchSubscribedAccounts = async () => {
-      if (!address) {
-        setError("Please connect your wallet to view your subscriptions.");
-        setGraphData({ nodes: [], edges: [] }); // Clear previous data
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      setError(null);
-
+      if (!session || !session.user?.id) return;
       try {
-        setLoading(true);
-        setError(null); // Clear any previous errors
-
-        const response = await fetch(
-          `/api/get-subscribed-accounts?walletAddress=${address}`
-        );
+        const response = await fetch(`/api/get-subscribed-accounts?twitterId=${session.user.id}`);
         const data = await response.json();
+        if (data.success) {
+          setGraphData({ nodes: [], edges: [] }); // Clear previous data
+          setLoading(false);
+          setError(null);
 
-        if (!response.ok || !data.success) {
-          throw new Error(
-            data.error?.message || "Failed to fetch subscribed accounts"
+          const subscribedAccounts: SubscribedAccount[] = data.data || [];
+
+          const nodes: GraphNode[] = [
+            {
+              id: address || "current-user",
+              label: "You",
+              group: 1,
+              title: `Your Account 🌟\nWallet: ${address}\nConnections: ${subscribedAccounts.length} accounts`,
+              size: 35,
+              shape: "circularImage",
+              image: "/img/maxxit_icon.svg", // Default image for the user
+            },
+          ];
+
+          const edges: GraphEdge[] = [];
+
+          subscribedAccounts.forEach(
+            (account: SubscribedAccount, index: number) => {
+              // Calculate days until expiry
+              const today = new Date();
+              const expiry = new Date(account.expiryDate);
+              const daysUntilExpiry = Math.ceil(
+                (expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+              );
+
+              const nodeColor = stringToColor(account.twitterHandle);
+
+              // Check if we have a valid image URL
+              const hasImage =
+                account.userProfileUrl && account.userProfileUrl.trim() !== "";
+
+              nodes.push({
+                id: account.twitterHandle,
+                label: account.twitterHandle,
+                group: 2,
+                title: `@${account.twitterHandle} 🐦\nSubscribed: ${new Date(account.subscriptionDate).toLocaleDateString()}\nExpires in: ${daysUntilExpiry} days\nClick to view profile`,
+                size: 25 + Math.random() * 5,
+                shape: hasImage ? "circularImage" : "circle", // Use circularImage only if we have an image
+                ...(hasImage && { image: account.userProfileUrl }), // Only add image property if we have an image
+              });
+
+              edges.push({
+                from: address || "current-user",
+                to: account.twitterHandle,
+                width: 2 + Math.random() * 2,
+                color: {
+                  // color: "#00ff00",
+                  color: nodeColor,
+                  highlight: "#ffffff",
+                  opacity: 0.8,
+                },
+                length: 200 + Math.random() * 10,
+              });
+            }
           );
+
+          setGraphData({ nodes, edges });
         }
-
-        const subscribedAccounts: SubscribedAccount[] = data.data || [];
-
-        const nodes: GraphNode[] = [
-          {
-            id: address || "current-user",
-            label: "You",
-            group: 1,
-            title: `Your Account 🌟\nWallet: ${address}\nConnections: ${subscribedAccounts.length} accounts`,
-            size: 35,
-            shape: "circularImage",
-            image: "/img/maxxit_icon.svg", // Default image for the user
-          },
-        ];
-
-        const edges: GraphEdge[] = [];
-
-        subscribedAccounts.forEach(
-          (account: SubscribedAccount, index: number) => {
-            // Calculate days until expiry
-            const today = new Date();
-            const expiry = new Date(account.expiryDate);
-            const daysUntilExpiry = Math.ceil(
-              (expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-            );
-
-            const nodeColor = stringToColor(account.twitterHandle);
-
-            // Check if we have a valid image URL
-            const hasImage =
-              account.userProfileUrl && account.userProfileUrl.trim() !== "";
-
-            nodes.push({
-              id: account.twitterHandle,
-              label: account.twitterHandle,
-              group: 2,
-              title: `@${account.twitterHandle} 🐦\nSubscribed: ${new Date(account.subscriptionDate).toLocaleDateString()}\nExpires in: ${daysUntilExpiry} days\nClick to view profile`,
-              size: 25 + Math.random() * 5,
-              shape: hasImage ? "circularImage" : "circle", // Use circularImage only if we have an image
-              ...(hasImage && { image: account.userProfileUrl }), // Only add image property if we have an image
-            });
-
-            edges.push({
-              from: address || "current-user",
-              to: account.twitterHandle,
-              width: 2 + Math.random() * 2,
-              color: {
-                // color: "#00ff00",
-                color: nodeColor,
-                highlight: "#ffffff",
-                opacity: 0.8,
-              },
-              length: 200 + Math.random() * 10,
-            });
-          }
-        );
-
-        setGraphData({ nodes, edges });
-      } catch (err: any) {
-        setError(err.message);
+      } catch (error) {
+        console.error("Error fetching subscribed accounts:", error);
+        setError("Failed to fetch subscribed accounts");
       } finally {
         setLoading(false);
       }
     };
+
     fetchSubscribedAccounts();
-  }, [address, credits]);
+  }, [session]);
 
   // Initialize the Vis.js network graph
   useEffect(() => {
     if (networkRef.current && graphData.nodes.length > 0) {
       nodesDataSet.current = new DataSet(graphData.nodes);
-      edgesDataSet.current = new DataSet(graphData.edges);
+      edgesDataSet.current = new DataSet(graphData.edges as any);
 
       const data = {
         nodes: nodesDataSet.current,
