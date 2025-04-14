@@ -1496,6 +1496,8 @@ a.fn__like.has__like .full__like {
   justify-content: space-between;
   -ms-align-items: center;
   align-items: center;
+  margin-left: 3vw;
+  margin-right: 3vw;
 }
 
 .section_home,
