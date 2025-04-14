@@ -1,37 +1,34 @@
 // app/api/get-my-signals/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { MongoClient } from "mongodb";
+import dbConnect from "src/utils/dbConnect";
 
 const MONGODB_URI = process.env.MONGODB_URI!;
 const DB_NAME = "ctxbt-signal-flow";
 
-export async function GET(req: NextRequest) {
-  // Verify API key
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return NextResponse.json(
-      { success: false, error: "Unauthorized" },
-      { status: 401 }
-    );
-  }
-
-  const apiKey = authHeader.split(" ")[1];
-  const client = new MongoClient(MONGODB_URI);
-
+export async function GET(request: Request): Promise<Response> {
+  const client = await dbConnect();
   try {
-    await client.connect();
-    const db = client.db(DB_NAME);
+    // Verify API key
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { success: false, error: { message: "Unauthorized" } },
+        { status: 401 }
+      );
+    }
 
-    // 1. Verify API key and get wallet address
-    const apiKeyCollection = db.collection("api-keys");
-    const keyData = await apiKeyCollection.findOne({
-      apiKey,
-      expiresAt: { $gt: new Date() },
-    });
+    const apiKey = authHeader.split(" ")[1];
+
+    const db = client.db("ctxbt-signal-flow");
+
+    // 1. Verify API key and get twitter ID
+    const apiKeysCollection = db.collection("apiKeys");
+    const keyData = await apiKeysCollection.findOne({ apiKey });
 
     if (!keyData) {
       return NextResponse.json(
-        { success: false, error: "Invalid or expired API key" },
+        { success: false, error: { message: "Invalid API key" } },
         { status: 401 }
       );
     }
@@ -39,19 +36,22 @@ export async function GET(req: NextRequest) {
     // 2. Get user document
     const usersCollection = db.collection("users");
     const user = await usersCollection.findOne({
-      walletAddress: keyData.walletAddress,
+      twitterId: keyData.twitterId,
     });
 
     if (!user || !user.telegramId) {
       return NextResponse.json(
-        { success: false, error: "User not found or missing Telegram ID" },
+        {
+          success: false,
+          error: { message: "User not found or missing Telegram ID" },
+        },
         { status: 404 }
       );
     }
 
     // 3. Get subscribed twitter handles
     const subscribedHandles = user.subscribedAccounts.map(
-      (acc: { twitterHandle: any }) => acc.twitterHandle
+      (acc: { twitterHandle: string }) => acc.twitterHandle
     );
 
     // 4. Get trading signals
@@ -90,9 +90,16 @@ export async function GET(req: NextRequest) {
       data: transformedSignals,
     });
   } catch (error) {
-    console.error("Error fetching signals:", error);
     return NextResponse.json(
-      { success: false, error: "Internal server error" },
+      {
+        success: false,
+        error: {
+          message:
+            error instanceof Error
+              ? error.message
+              : "An unexpected error occurred",
+        },
+      },
       { status: 500 }
     );
   } finally {

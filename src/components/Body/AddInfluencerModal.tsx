@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { X, User, MessageSquare, Loader2 } from "lucide-react";
 import { FaTelegram, FaUserPlus } from "react-icons/fa";
 import { toast } from "react-toastify";
-import { useAccount } from "wagmi";
+import { useSession } from "next-auth/react";
 import { useCredits } from "@/context/CreditsContext";
 import "../../app/css/add_influencer.css";
 
@@ -24,10 +24,9 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
   const [name, setName] = useState("");
   const [handle, setHandle] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isValidating, setIsValidating] = useState(false); // New state for validation
-  const [handleError, setHandleError] = useState<string | null>(null); // New state for validation error
-  const { address } = useAccount();
-
+  const [isValidating, setIsValidating] = useState(false);
+  const [handleError, setHandleError] = useState<string | null>(null);
+  const { data: session } = useSession();
   const { updateCredits } = useCredits();
 
   // Check if sessionUsername exists (not null or undefined)
@@ -73,14 +72,16 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ handle: twitterHandle, walletAddress: address }),
+        body: JSON.stringify({
+          handle: twitterHandle,
+          twitterId: session?.user?.id,
+        }),
         cache: "no-store",
       });
 
       const data = await response.json();
 
       if (!data.success) {
-        // Display specific error message from the API
         toast.error(data.error || "Failed to validate Twitter handle", {
           position: "top-center",
         });
@@ -115,8 +116,8 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
       return;
     }
 
-    if (!address) {
-      toast.error("Please connect your wallet first", {
+    if (!session?.user?.id) {
+      toast.error("Please login first", {
         position: "top-center",
       });
       return;
@@ -146,8 +147,10 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
           impactFactor: null,
           heartbeat: null,
           createdAt: new Date().toISOString(),
-          walletAddress: address,
-          sessionUserhandle: isSessionUserhandlePresent ? sessionUserhandle : null,
+          twitterId: session.user.id,
+          sessionUserhandle: isSessionUserhandlePresent
+            ? sessionUserhandle
+            : null,
         }),
       });
 

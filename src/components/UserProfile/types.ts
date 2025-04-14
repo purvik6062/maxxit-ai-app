@@ -7,7 +7,8 @@ export interface Subscription {
 
 export interface UserProfile {
   _id: string;
-  walletAddress: string;
+  walletAddress?: string;
+  twitterId: string;
   telegramId: string;
   chatId: number;
   credits: number;

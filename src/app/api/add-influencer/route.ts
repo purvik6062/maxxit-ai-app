@@ -7,8 +7,15 @@ const SUBSCRIPTION_COST = 30;
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, handle, impactFactor, heartbeat, createdAt, walletAddress, sessionUserhandle } =
-      body;
+    const {
+      name,
+      handle,
+      impactFactor,
+      heartbeat,
+      createdAt,
+      twitterId,
+      sessionUserhandle,
+    } = body;
 
     const cleanHandle = handle.replace("@", "");
 
@@ -40,20 +47,22 @@ export async function POST(request: Request) {
 
     await collection.insertOne(newInfluencer);
 
-    // If walletAddress is provided, process subscription
-    if (walletAddress) {
+    // If twitterId is provided, process subscription
+    if (twitterId) {
       // Start a session for transaction
       const session = client.startSession();
 
       try {
         await session.withTransaction(async () => {
           // 1. Check and update user's credits
-          const user = await usersCollection.findOne({ walletAddress });
+          const user = await usersCollection.findOne({ twitterId });
 
           if (!user) {
-            throw new Error("Register yourself first to receive 100 free credits!");
+            throw new Error(
+              "Register yourself first to receive 100 free credits!"
+            );
           }
-  
+
           if (user.credits < SUBSCRIPTION_COST) {
             throw new Error("Insufficient credits");
           }
@@ -61,9 +70,13 @@ export async function POST(request: Request) {
           // Get user's telegram ID and clean it (remove @ if exists)
           const cleanTelegramId = user?.telegramId.replace("@", "");
 
-           // Check if user is already subscribed (case-insensitive)
-          if (user.subscribedAccounts?.some((account: { twitterHandle: string }) => 
-            new RegExp(`^${cleanHandle}$`, "i").test(account.twitterHandle))) {
+          // Check if user is already subscribed (case-insensitive)
+          if (
+            user.subscribedAccounts?.some(
+              (account: { twitterHandle: string }) =>
+                new RegExp(`^${cleanHandle}$`, "i").test(account.twitterHandle)
+            )
+          ) {
             throw new Error("Already subscribed to this influencer");
           }
 
@@ -94,9 +107,7 @@ export async function POST(request: Request) {
             };
 
             // Generate a safe profile image URL with constrained number
-            const randomImageId = Math.floor(
-              Math.random() * 1000
-            ).toString();
+            const randomImageId = Math.floor(Math.random() * 1000).toString();
             const userProfileUrl = `https://picsum.photos/50/50?random=${randomImageId}`;
 
             // Create user data object with safe user ID
@@ -109,7 +120,7 @@ export async function POST(request: Request) {
               mindshare: Number((Math.random() * 1).toFixed(2)), // Random mindshare between 0-1
               herdedVsHidden: 1,
               convictionVsHype: 1,
-              memeVsInstitutional: 1
+              memeVsInstitutional: 1,
             };
 
             await influencersCollection.insertOne(
@@ -133,7 +144,7 @@ export async function POST(request: Request) {
           expiryDate.setMonth(expiryDate.getMonth() + 1); // Add one month to the subscription date
 
           await usersCollection.updateOne(
-            { walletAddress },
+            { twitterId },
             {
               $inc: { credits: -SUBSCRIPTION_COST },
               $addToSet: {
@@ -164,12 +175,13 @@ export async function POST(request: Request) {
       data: newInfluencer,
     });
   } catch (error) {
-    console.error("Error adding influencer:", error);
-
     return NextResponse.json(
       {
         success: false,
-        error: { message: "Failed to add influencer" },
+        error: {
+          message:
+            error instanceof Error ? error.message : "Failed to add influencer",
+        },
       },
       { status: 500 }
     );

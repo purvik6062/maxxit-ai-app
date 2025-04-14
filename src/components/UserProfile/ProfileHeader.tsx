@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { User, Wallet } from "lucide-react";
 import type { UserProfile } from "./types";
-import { useAccount } from "wagmi";
+import { useSession } from "next-auth/react";
 import { FaTelegramPlane } from "react-icons/fa";
 import { CopyCheckIcon, CheckCircle } from "lucide-react";
 import { toast } from "react-hot-toast";
@@ -13,7 +13,7 @@ interface ProfileHeaderProps {
 
 export function ProfileHeader({ profile }: ProfileHeaderProps) {
   const [copied, setCopied] = useState(false);
-  const { address } = useAccount();
+  const { data: session } = useSession();
   const { credits } = useCredits();
   return (
     <div className="bg-gradient-to-br from-cyan-600 to-blue-700 rounded-xl shadow-lg p-8 mb-8">
@@ -34,23 +34,22 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
                 @{profile.telegramId}
               </h2>
             </div>
-            {profile.walletAddress && (
+            {session?.user?.id && (
               <div>
                 <div className="flex items-center space-x-2 text-indigo-100">
                   <Wallet className="w-5 h-5" />
-                  <span className="font-medium">Wallet</span>
+                  <span className="font-medium">Twitter ID</span>
                 </div>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="font-mono text-lg bg-black/20 px-4 py-1 rounded-full text-white">
-                    {profile.walletAddress.slice(0, 6)}...
-                    {profile.walletAddress.slice(-4)}
+                    {session.user.id}
                   </span>
                   {/* Copy to Clipboard Icon */}
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(profile.walletAddress);
+                      navigator.clipboard.writeText(session.user.id);
                       setCopied(true);
-                      toast.success("Address copied!");
+                      toast.success("ID copied!");
                       setTimeout(() => setCopied(false), 2000); // Revert icon after 2s
                     }}
                     className="cursor-pointer"

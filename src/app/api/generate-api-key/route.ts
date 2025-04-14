@@ -1,37 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
 import { MongoClient } from "mongodb";
 import crypto from "crypto";
+import dbConnect from "src/utils/dbConnect";
 
-const MONGODB_URI = process.env.MONGODB_URI!;
-const DB_NAME = "ctxbt-signal-flow";
 const SECRET_KEY = process.env.API_KEY_HASH_SECRET!;
 
-export async function POST(req: NextRequest) {
+export async function POST(request: Request): Promise<Response> {
   try {
-    const { address } = await req.json();
-    if (!address) {
+    const { twitterId } = await request.json();
+    if (!twitterId) {
       return NextResponse.json(
-        { error: "Address is required" },
+        { success: false, error: { message: "Twitter ID is required" } },
         { status: 400 }
       );
     }
 
-    const client = new MongoClient(MONGODB_URI);
-    await client.connect();
-    const db = client.db(DB_NAME);
-    const collection = db.collection("api-keys");
-
-    // **Added: Check user's credits**
+    const client = await dbConnect();
+    const db = client.db("ctxbt-signal-flow");
+    const apiKeysCollection = db.collection("apiKeys");
     const usersCollection = db.collection("users");
-    const user = await usersCollection.findOne({ walletAddress: address });
+
+    // Check user's credits
+    const user = await usersCollection.findOne({ twitterId });
     if (!user) {
-      await client.close();
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json(
+        { success: false, error: { message: "User not found" } },
+        { status: 404 }
+      );
     }
     if (user.credits < 50) {
-      await client.close();
       return NextResponse.json(
-        { error: "Insufficient credits. Need at least 50 credits." },
+        {
+          success: false,
+          error: { message: "Insufficient credits. Need at least 50 credits." },
+        },
         { status: 403 }
       );
     }
@@ -40,49 +42,52 @@ export async function POST(req: NextRequest) {
     const timestamp = Date.now();
     const hash = crypto
       .createHmac("sha256", SECRET_KEY)
-      .update(`${address}-${timestamp}`)
+      .update(`${twitterId}-${timestamp}`)
       .digest("hex");
 
-    const apiKey = `ctxbt_${timestamp}_${hash.substring(0, 24)}`;
+    const apiKey = `maxxit_${timestamp}_${hash.substring(0, 24)}`;
+    const createdAt = new Date();
     const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year expiration
-
     // Store in MongoDB
-    const result = await collection.findOneAndUpdate(
-      { walletAddress: address },
+    const result = await apiKeysCollection.findOneAndUpdate(
+      { twitterId },
       {
         $set: {
           apiKey,
           expiresAt,
-          createdAt: new Date(),
+          createdAt,
           updatedAt: new Date(),
         },
       },
       { upsert: true, returnDocument: "after" }
     );
-    console.log("API key generated:", result);
-    // **Added: Deduct 50 credits after successful API key generation**
+
+    // Deduct 50 credits after successful API key generation
     if (result?.apiKey) {
       await usersCollection.updateOne(
-        { walletAddress: address },
+        { twitterId },
         { $inc: { credits: -50 } }
       );
     }
 
-    await client.close();
-    if (!result) {
-      return NextResponse.json(
-        { success: false, error: "Failed to generate API key" },
-        { status: 500 }
-      );
-    }
-    return NextResponse.json(
-      { success: true, apiKey: result.value?.apiKey },
-      { status: 200 }
-    );
+    return NextResponse.json({
+      success: true,
+      data: {
+        apiKey: result?.apiKey,
+        createdAt: result?.createdAt,
+      },
+    });
   } catch (error) {
-    console.error("Error generating API key:", error);
     return NextResponse.json(
-      { success: false, error: "Internal server error" },
+      {
+        success: false,
+        error: {
+          message:
+            error instanceof Error
+              ? error.message
+              : "An unexpected error occurred",
+        },
+      },
       { status: 500 }
     );
   }

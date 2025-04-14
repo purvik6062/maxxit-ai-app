@@ -4,7 +4,7 @@ import { ProfileHeader } from "./ProfileHeader";
 import { SubscriptionsList } from "./SubscriptionsList";
 import type { UserProfile as UserProfileType } from "./types";
 import { Loader2, Eye, EyeOff, Copy, Key } from "lucide-react";
-import { useAccount } from "wagmi";
+import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import ApiCredentialsSection from "./ApiCredentialSection";
 import { useCredits } from "@/context/CreditsContext";
@@ -38,12 +38,11 @@ const EmptyState = ({ title, message }: { title: string; message: string }) => (
 );
 
 const UserProfile = () => {
-  const { address, isConnected } = useAccount();
+  const { data: session } = useSession();
   const [profile, setProfile] = useState<UserProfileType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [apiKey, setApiKey] = useState<string | null>(null);
-  // New state for toggling sections
   const [activeSection, setActiveSection] = useState<"subscriptions" | "api">(
     "subscriptions"
   );
@@ -65,7 +64,7 @@ const UserProfile = () => {
   };
 
   useEffect(() => {
-    if (!isConnected || !address) return;
+    if (!session?.user?.id) return;
 
     const fetchData = async () => {
       try {
@@ -73,7 +72,7 @@ const UserProfile = () => {
 
         // Fetch user profile
         const profileResponse = await fetch(
-          `/api/get-user-profile?walletAddress=${address}`
+          `/api/get-user-profile?twitterId=${session.user.id}`
         );
         const profileResult = await profileResponse.json();
 
@@ -83,7 +82,7 @@ const UserProfile = () => {
 
         // Fetch API key separately
         const apiKeyResponse = await fetch(
-          `/api/get-api-key?walletAddress=${address}`
+          `/api/get-api-key?twitterId=${session.user.id}`
         );
         const apiKeyResult = await apiKeyResponse.json();
 
@@ -98,11 +97,11 @@ const UserProfile = () => {
           ),
           createdAt: new Date(profileResult.data.createdAt),
           updatedAt: new Date(profileResult.data.updatedAt),
-          credits: credits !== null ? credits : profileResult.data.credits, // Use context credits if available
+          credits: credits !== null ? credits : profileResult.data.credits,
         };
 
         setProfile(newProfile);
-        setApiKey(apiKeyResult.success ? apiKeyResult.apiKey : null);
+        setApiKey(apiKeyResult.success ? apiKeyResult.data.apiKey : null);
       } catch (err) {
         setError(
           err instanceof Error
@@ -115,14 +114,14 @@ const UserProfile = () => {
     };
 
     fetchData();
-  }, [address, isConnected]);
+  }, [session?.user?.id, credits]);
 
   // Early returns for different states
-  if (!isConnected)
+  if (!session?.user?.id)
     return (
       <EmptyState
-        title="Wallet Not Connected"
-        message="Please connect your wallet to view your profile."
+        title="Not Logged In"
+        message="Please login to view your profile."
       />
     );
   if (loading) return <LoadingState />;
@@ -131,7 +130,7 @@ const UserProfile = () => {
     return (
       <EmptyState
         title="No Profile Found"
-        message="Could not find a profile for the provided wallet address."
+        message="Could not find a profile for the provided Twitter ID."
       />
     );
 
@@ -180,7 +179,7 @@ const UserProfile = () => {
                 ? "https://app.maxxit.ai"
                 : "https://app.maxxit.ai"
             }
-            walletAddress={address!}
+            twitterId={session.user.id}
             onGenerateNewKey={handleNewKeyGenerated}
             onApiKeyUpdate={handleApiKeyUpdate}
             profile={profile}

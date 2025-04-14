@@ -4,7 +4,7 @@ import dbConnect from "src/utils/dbConnect";
 export async function GET(request: Request): Promise<Response> {
   try {
     const { searchParams } = new URL(request.url);
-    const twitterId = searchParams.get('twitterId');
+    const twitterId = searchParams.get("twitterId");
 
     if (!twitterId) {
       return NextResponse.json(
@@ -18,7 +18,7 @@ export async function GET(request: Request): Promise<Response> {
     const usersCollection = db.collection("users");
 
     const user = await usersCollection.findOne({ twitterId });
-
+    console.log("user:::", user);
     if (!user) {
       return NextResponse.json(
         { success: false, error: { message: "User not found" } },
@@ -30,16 +30,18 @@ export async function GET(request: Request): Promise<Response> {
       success: true,
       data: user,
     });
-
   } catch (error) {
     return NextResponse.json(
       {
         success: false,
         error: {
-          message: error instanceof Error ? error.message : "An unexpected error occurred",
+          message:
+            error instanceof Error
+              ? error.message
+              : "An unexpected error occurred",
         },
       },
       { status: 500 }
     );
   }
-} 
+}

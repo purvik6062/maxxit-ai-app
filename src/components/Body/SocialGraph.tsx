@@ -3,10 +3,9 @@
 import { useEffect, useState, useRef } from "react";
 import { Network, DataSet } from "vis-network/standalone";
 import { Tooltip } from "react-tooltip";
-import { useAccount } from "wagmi";
+import { useSession } from "next-auth/react";
 import { useCredits } from "@/context/CreditsContext";
 import { hover } from "framer-motion";
-import { useSession } from "next-auth/react";
 
 type SubscribedAccount = {
   twitterHandle: string;
@@ -40,7 +39,6 @@ type GraphData = {
 };
 
 export default function SubscribedAccountsPage() {
-  const { address } = useAccount();
   const { data: session } = useSession();
   const [graphData, setGraphData] = useState<GraphData>({
     nodes: [],
@@ -75,9 +73,11 @@ export default function SubscribedAccountsPage() {
   // Fetch subscribed accounts and prepare graph data
   useEffect(() => {
     const fetchSubscribedAccounts = async () => {
-      if (!session || !session.user?.id) return;
+      if (!session?.user?.id) return;
       try {
-        const response = await fetch(`/api/get-subscribed-accounts?twitterId=${session.user.id}`);
+        const response = await fetch(
+          `/api/get-subscribed-accounts?twitterId=${session.user.id}`
+        );
         const data = await response.json();
         if (data.success) {
           setGraphData({ nodes: [], edges: [] }); // Clear previous data
@@ -88,10 +88,10 @@ export default function SubscribedAccountsPage() {
 
           const nodes: GraphNode[] = [
             {
-              id: address || "current-user",
+              id: session.user.id,
               label: "You",
               group: 1,
-              title: `Your Account 🌟\nWallet: ${address}\nConnections: ${subscribedAccounts.length} accounts`,
+              title: `Your Account 🌟\nTwitter ID: ${session.user.id}\nConnections: ${subscribedAccounts.length} accounts`,
               size: 35,
               shape: "circularImage",
               image: "/img/maxxit_icon.svg", // Default image for the user
@@ -119,18 +119,19 @@ export default function SubscribedAccountsPage() {
                 id: account.twitterHandle,
                 label: account.twitterHandle,
                 group: 2,
-                title: `@${account.twitterHandle} 🐦\nSubscribed: ${new Date(account.subscriptionDate).toLocaleDateString()}\nExpires in: ${daysUntilExpiry} days\nClick to view profile`,
+                title: `@${account.twitterHandle} 🐦\nSubscribed: ${new Date(
+                  account.subscriptionDate
+                ).toLocaleDateString()}\nExpires in: ${daysUntilExpiry} days\nClick to view profile`,
                 size: 25 + Math.random() * 5,
                 shape: hasImage ? "circularImage" : "circle", // Use circularImage only if we have an image
                 ...(hasImage && { image: account.userProfileUrl }), // Only add image property if we have an image
               });
 
               edges.push({
-                from: address || "current-user",
+                from: session.user.id,
                 to: account.twitterHandle,
                 width: 2 + Math.random() * 2,
                 color: {
-                  // color: "#00ff00",
                   color: nodeColor,
                   highlight: "#ffffff",
                   opacity: 0.8,
@@ -151,7 +152,7 @@ export default function SubscribedAccountsPage() {
     };
 
     fetchSubscribedAccounts();
-  }, [session]);
+  }, [session?.user?.id]);
 
   // Initialize the Vis.js network graph
   useEffect(() => {
@@ -269,7 +270,7 @@ export default function SubscribedAccountsPage() {
           setSelectedNode(nodeId);
 
           // If node is a Twitter handle, redirect to Twitter profile
-          if (nodeId !== address && nodeId !== "current-user") {
+          if (nodeId !== session.user.id && nodeId !== "current-user") {
             window.open(`https://twitter.com/${nodeId}`, "_blank");
           }
         } else {
@@ -284,7 +285,7 @@ export default function SubscribedAccountsPage() {
           setSelectedNode(nodeId);
 
           // If node is a Twitter handle, redirect to Twitter profile
-          if (nodeId !== address && nodeId !== "current-user") {
+          if (nodeId !== session.user.id && nodeId !== "current-user") {
             window.open(`https://twitter.com/${nodeId}`, "_blank");
           }
         } else {
@@ -368,7 +369,7 @@ export default function SubscribedAccountsPage() {
           )}
 
           {selectedNode &&
-            selectedNode !== address &&
+            selectedNode !== session.user.id &&
             selectedNode !== "current-user" && (
               <div className="mt-6 bg-gray-800 p-4 rounded-lg border border-gray-700">
                 <p>

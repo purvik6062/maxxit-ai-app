@@ -12,7 +12,6 @@ import { Search, X, CopyCheckIcon, LogOut } from "lucide-react";
 import "@rainbow-me/rainbowkit/styles.css";
 import "../../app/css/input.css";
 import Link from "next/link";
-import { useAccount } from "wagmi";
 import { useCredits } from "@/context/CreditsContext";
 import { useSession, signIn, signOut } from "next-auth/react";
 
@@ -29,7 +28,9 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
   const [showTokens, setShowTokens] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [telegramStep, setTelegramStep] = useState(1);
-  const [tweetLink, setTweetLink] = useState("https://x.com/triggerxnetwork/status/1908126605110636929");
+  const [tweetLink, setTweetLink] = useState(
+    "https://x.com/triggerxnetwork/status/1908126605110636929"
+  );
   const { credits, updateCredits } = useCredits();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { data: session } = useSession();
@@ -70,40 +71,54 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
 
   useEffect(() => {
     // Check if the user has already registered from localStorage
-    const hasRegisteredPreviously = localStorage.getItem('hasRegistered');
-    if (hasRegisteredPreviously === 'true') {
+    const hasRegisteredPreviously = localStorage.getItem("hasRegistered");
+    if (hasRegisteredPreviously === "true") {
       setShowTokens(true);
       setHasRegistered(true);
     }
 
     const fetchUserData = async () => {
       if (!session || !session.user?.id) return;
-      
+
       try {
-        const response = await fetch(`/api/get-user?twitterId=${session.user.id}`);
-        if (response.status === 404 && !hasRegistered && hasRegisteredPreviously !== 'true') {
-          console.log("User not found, likely not registered yet.");
-          setTimeout(() => {
-            setTelegramStep(1);
-          }, 0);
+        const response = await fetch(
+          `/api/get-user?twitterId=${session.user.id}`
+        );
+
+        if (response.status === 404) {
+          // User not found, they need to register
+          setShowTokens(false);
+          setHasRegistered(false);
+          localStorage.removeItem("hasRegistered");
           return;
         }
+
         const data = await response.json();
+        console.log("data::", data);
         if (data.success) {
           setShowTokens(true);
-          localStorage.setItem('hasRegistered', 'true');
+          setHasRegistered(true);
+          localStorage.setItem("hasRegistered", "true");
+        } else {
+          setShowTokens(false);
+          setHasRegistered(false);
+          localStorage.removeItem("hasRegistered");
         }
         setIsTelegramModalOpen(false);
       } catch (error) {
         console.error("Failed to fetch user data:", error);
+        setShowTokens(false);
+        setHasRegistered(false);
+        localStorage.removeItem("hasRegistered");
       }
     };
+
     fetchUserData();
-  }, [session, hasRegistered]);
+  }, [session]);
 
   useEffect(() => {
     // Check if we've already shown this toast by using localStorage
-    const hasShownWelcomeToast = localStorage.getItem('hasShownWelcomeToast');
+    const hasShownWelcomeToast = localStorage.getItem("hasShownWelcomeToast");
 
     if (credits === 100 && !hasShownWelcomeToast) {
       toast.info(
@@ -116,7 +131,7 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
       );
 
       // Mark that we've shown the toast so it doesn't appear again
-      localStorage.setItem('hasShownWelcomeToast', 'true');
+      localStorage.setItem("hasShownWelcomeToast", "true");
     }
   }, [credits]);
 
@@ -164,8 +179,8 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
 
       setHasRegistered(true);
       setShowTokens(true); // Set showTokens to true after successful submission
-      localStorage.setItem('hasRegistered', 'true'); // Persist the registration status
-      
+      localStorage.setItem("hasRegistered", "true"); // Persist the registration status
+
       toast.success("Success! 500 Credits added to your account", {
         position: "top-center",
         autoClose: 4000,
@@ -208,11 +223,7 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
                       className="desktop_logo"
                       alt=""
                     />
-                    <img
-                      src="/img/maxxit.svg"
-                      className="retina_logo"
-                      alt=""
-                    />
+                    <img src="/img/maxxit.svg" className="retina_logo" alt="" />
                   </span>
                   <span className="short_logo">
                     <img
@@ -228,13 +239,13 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
                   </span>
                 </a>
                 <div className="flex flex-shrink-0 overflow-hidden mt-[3px]">
-
                   <Link href="/influencer">
                     <button
-                      className={`px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap ${view === "profile"
+                      className={`px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap ${
+                        view === "profile"
                           ? "bg-gray-700 text-white"
                           : "text-gray-300 hover:bg-gray-600"
-                        }`}
+                      }`}
                     >
                       Influencer
                     </button>
@@ -242,56 +253,55 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
 
                   <Link href="/profile">
                     <button
-                      className={`px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap ${view === "profile"
+                      className={`px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap ${
+                        view === "profile"
                           ? "bg-gray-700 text-white"
                           : "text-gray-300 hover:bg-gray-600"
-                        }`}
+                      }`}
                     >
                       Profile
                     </button>
                   </Link>
                   <Link href="/pricing">
                     <button
-                      className={`px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap ${view === "pricing"
+                      className={`px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap ${
+                        view === "pricing"
                           ? "bg-gray-700 text-white"
                           : "text-gray-300 hover:bg-gray-600"
-                        }`}
-                    //   onClick={() => setView("pricing")} // Optional: Update view state
+                      }`}
+                      //   onClick={() => setView("pricing")} // Optional: Update view state
                     >
                       Pricing
                     </button>
                   </Link>
                   <Link href="/playground">
                     <button
-                      className={`px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap ${view === "playground"
+                      className={`px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap ${
+                        view === "playground"
                           ? "bg-gray-700 text-white"
                           : "text-gray-300 hover:bg-gray-600"
-                        }`}
-                    //   onClick={() => setView("playground")} // Optional: Update view state
+                      }`}
+                      //   onClick={() => setView("playground")} // Optional: Update view state
                     >
                       Playground
                     </button>
                   </Link>
 
-                  {showTokens && (
-                    <div className="ml-4 flex items-center px-3 py-1 rounded-full bg-gradient-to-r from-blue-500/20 to-blue-700/20 border border-blue-500/50 flex-shrink-0">
-                      {credits !== null ? (
-                        <span className="text-blue-400 font-bold mr-1 text-md whitespace-nowrap">
-                          {credits}{" "}
-                          <span className="text-white font-normal">
-                            Credits
-                          </span>
-                        </span>
-                      ) : (
-                        <button
-                          className="px-3 py-1 bg-blue-500 text-white text-sm rounded-full hover:bg-blue-600 transition whitespace-nowrap"
-                          onClick={handleTelemodal}
-                        >
-                          Get Credits
-                        </button>
-                      )}
-                    </div>
-                  )}
+                  <div className="ml-4 flex items-center px-3 py-1 rounded-full bg-gradient-to-r from-blue-500/20 to-blue-700/20 border border-blue-500/50 flex-shrink-0">
+                    {showTokens ? (
+                      <span className="text-blue-400 font-bold mr-1 text-md whitespace-nowrap">
+                        {credits}{" "}
+                        <span className="text-white font-normal">Credits</span>
+                      </span>
+                    ) : (
+                      <button
+                        className="px-3 py-1 bg-blue-500 text-white text-sm rounded-full hover:bg-blue-600 transition whitespace-nowrap"
+                        onClick={handleTelemodal}
+                      >
+                        Get Credits
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -341,11 +351,13 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
                 alt="Profile"
                 className="w-7 h-7 rounded-full mr-2 border border-blue-400"
               />
-              <span className="text-gray-200 text-sm font-medium">@{session.user?.username || session.user?.name}</span>
+              <span className="text-gray-200 text-sm font-medium">
+                @{session.user?.username || session.user?.name}
+              </span>
 
               {/* Sign out button tooltip */}
               <button
-                onClick={() => signOut({ callbackUrl: '/' })}
+                onClick={() => signOut({ callbackUrl: "/" })}
                 className="ml-2 p-1.5 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-full transition-colors"
                 title="Sign out"
               >
@@ -360,7 +372,7 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
             className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-          // Removed onClick handler to prevent closing when clicking outside
+            // Removed onClick handler to prevent closing when clicking outside
           />
           <div className="z-50 w-full max-w-lg bg-gray-900 rounded-xl shadow-2xl p-6 mx-4 transform -translate-y-1/2 top-1/2 left-1/2 -translate-x-1/2 fixed">
             <button
@@ -602,7 +614,10 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
                     ) : (
                       <div className="flex items-center justify-center gap-1">
                         <span>Complete & Get Credits</span>
-                        <IoShieldCheckmark size={15} color="rgb(135, 255, 135)" />
+                        <IoShieldCheckmark
+                          size={15}
+                          color="rgb(135, 255, 135)"
+                        />
                       </div>
                     )}
                   </button>
@@ -731,7 +746,10 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
                   <p className="text-sm text-gray-300">Step 2 of 2</p>
                 </div>
                 {/* Placeholder for consistency, though it won't be rendered */}
-                <p className="text-sm text-gray-300">You've completed all steps. Click "Complete & Get Credits" to finish.</p>
+                <p className="text-sm text-gray-300">
+                  You've completed all steps. Click "Complete & Get Credits" to
+                  finish.
+                </p>
               </div>
             )}
           </div>

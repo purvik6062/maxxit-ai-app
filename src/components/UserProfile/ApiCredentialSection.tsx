@@ -8,14 +8,14 @@ import { useCredits } from "@/context/CreditsContext";
 const ApiCredentialsSection = ({
   apiKey,
   endpoint,
-  walletAddress,
+  twitterId,
   onGenerateNewKey,
   onApiKeyUpdate,
   profile,
 }: {
   apiKey: string | null;
   endpoint: string;
-  walletAddress: string;
+  twitterId: string;
   onGenerateNewKey: (newKey: string) => void;
   onApiKeyUpdate: (newKey: string) => void;
   profile: UserProfile;
@@ -80,7 +80,7 @@ const ApiCredentialsSection = ({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ address: walletAddress }),
+        body: JSON.stringify({ twitterId }),
       });
 
       const data = await response.json();
@@ -89,11 +89,11 @@ const ApiCredentialsSection = ({
         throw new Error(data.error || "Failed to generate API key");
 
       // Call the callback to update the parent (UserProfile) state
-      onGenerateNewKey(data.apiKey);
+      onGenerateNewKey(data.data.apiKey);
 
       // Refetch the API key to ensure we have the latest value
       const apiKeyResponse = await fetch(
-        `/api/get-api-key?walletAddress=${walletAddress}`
+        `/api/get-api-key?twitterId=${twitterId}`
       );
       const apiKeyResult = await apiKeyResponse.json();
 

@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   let browser = null;
 
   try {
-    const { handle, walletAddress } = await request.json();
+    const { handle, twitterId } = await request.json();
 
     const client = await dbConnect();
     const db = client.db("ctxbt-signal-flow");
@@ -20,38 +20,46 @@ export async function POST(request: Request) {
     const usersCollection = db.collection("users");
     const collection = db.collection("influencers_account");
 
-    if (!walletAddress) {
+    if (!twitterId) {
       return NextResponse.json(
-        { success: false, error: "Please connect your wallet first" },
+        {
+          success: false,
+          error: { message: "Please connect your Twitter account first" },
+        },
         { status: 400 }
       );
     }
 
     if (!handle) {
       return NextResponse.json(
-        { success: false, error: "Twitter handle is required" },
+        { success: false, error: { message: "Twitter handle is required" } },
         { status: 400 }
       );
     }
 
     // Check if influencer already exists in influencers_account collection
-    const existingInfluencerAccount = await collection.findOne({ 
-      handle: { $regex: `^${handle}$`, $options: "i" } 
-  });
+    const existingInfluencerAccount = await collection.findOne({
+      handle: { $regex: `^${handle}$`, $options: "i" },
+    });
 
     if (existingInfluencerAccount) {
       return NextResponse.json(
-        { success: false, error: "Influencer with this handle already exists" },
+        {
+          success: false,
+          error: { message: "Influencer with this handle already exists" },
+        },
         { status: 400 }
       );
     }
 
-    const user = await usersCollection.findOne({ walletAddress });
+    const user = await usersCollection.findOne({ twitterId });
     if (!user) {
       return NextResponse.json(
         {
           success: false,
-          error: "Register yourself first to receive 100 free credits!",
+          error: {
+            message: "Register yourself first to receive 100 free credits!",
+          },
         },
         { status: 400 }
       );
@@ -59,7 +67,7 @@ export async function POST(request: Request) {
 
     if (user.credits < SUBSCRIPTION_COST) {
       return NextResponse.json(
-        { success: false, error: "Insufficient credits" },
+        { success: false, error: { message: "Insufficient credits" } },
         { status: 400 }
       );
     }
@@ -67,7 +75,6 @@ export async function POST(request: Request) {
     const username = handle.startsWith("@") ? handle.substring(1) : handle;
 
     // Improved Twitter handle validation (fixed)
-
     browser = await puppeteer.launch({
       headless: true,
       args: [
@@ -116,8 +123,6 @@ export async function POST(request: Request) {
         '[data-testid="error-detail"]',
         '[data-testid="emptyState"]',
         'div[aria-label="Account suspended"]',
-        // 'div:has-text("This account doesn\'t exist")',
-        // 'div:has-text("User not found")',
       ];
 
       let hasError = false;
@@ -193,7 +198,6 @@ export async function POST(request: Request) {
             }
           }
 
-          console.log("img url from scrapping", userProfileUrl);
           // Store the handle and profile URL in the database
           if (userProfileUrl) {
             await influencer_Test_Collection.insertOne({
@@ -238,16 +242,21 @@ export async function POST(request: Request) {
         return NextResponse.json(
           {
             success: false,
-            error: "Could not validate Twitter handle",
+            error: { message: "Could not validate Twitter handle" },
           },
           { status: 500 }
         );
       }
     }
   } catch (error) {
-    console.error("Error validating Twitter handle:", error);
     return NextResponse.json(
-      { success: false, error: "Internal server error" },
+      {
+        success: false,
+        error: {
+          message:
+            error instanceof Error ? error.message : "Internal server error",
+        },
+      },
       { status: 500 }
     );
   } finally {

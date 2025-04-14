@@ -3,7 +3,6 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "react-toastify";
-import { useAccount } from "wagmi";
 import { useCredits } from "@/context/CreditsContext";
 import { IoPersonAdd } from "react-icons/io5";
 import { LuWandSparkles } from "react-icons/lu";
@@ -15,22 +14,27 @@ import {
   Footer,
   Mindshare,
   TopInfluencersGraph,
-  ShareButton
+  ShareButton,
 } from "../components/index";
 import SocialGraph from "@/components/Body/SocialGraph";
 import AddInfluencerModal from "../components/Body/AddInfluencerModal";
 import { useSession } from "next-auth/react";
 
 const HomePage: React.FC = () => {
-  const { address } = useAccount();
   const { updateCredits } = useCredits();
   const { data: session } = useSession();
-
+  console.log("session::::", session);
   const [subscribedHandles, setSubscribedHandles] = useState<string[]>([]);
-  const [subscribingHandle, setSubscribingHandle] = useState<string | null>(null);
+  const [subscribingHandle, setSubscribingHandle] = useState<string | null>(
+    null
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [impactRefreshData, setImpactRefreshData] = useState<(() => void) | null>(null);
-  const [heartbeatRefreshData, setHeartbeatRefreshData] = useState<(() => void) | null>(null);
+  const [impactRefreshData, setImpactRefreshData] = useState<
+    (() => void) | null
+  >(null);
+  const [heartbeatRefreshData, setHeartbeatRefreshData] = useState<
+    (() => void) | null
+  >(null);
   const addInfluencerButtonRef = useRef<HTMLButtonElement>(null);
   const [searchText, setSearchText] = useState("");
   const [activeTab, setActiveTab] = useState<"impact" | "heartbeat">("impact");
@@ -40,13 +44,17 @@ const HomePage: React.FC = () => {
       if (!session || !session.user?.id) return;
 
       try {
-        const response = await fetch(`/api/get-user?twitterId=${session.user.id}`);
+        const response = await fetch(
+          `/api/get-user?twitterId=${session.user.id}`
+        );
         const data = await response.json();
 
         if (data.success && data.data.subscribedAccounts) {
           // Extract only twitterHandle values
-          const handles = data.data.subscribedAccounts.map((account: { twitterHandle: string; }) => account.twitterHandle);
-          
+          const handles = data.data.subscribedAccounts.map(
+            (account: { twitterHandle: string }) => account.twitterHandle
+          );
+
           // Set the extracted handles
           setSubscribedHandles(handles);
         }
@@ -180,7 +188,8 @@ const HomePage: React.FC = () => {
             </span>
           </h2>
           <p className="text-gray-400 max-w-2xl mx-auto text-sm">
-            Discover and follow top crypto analysts based on their impact and market sentiment
+            Discover and follow top crypto analysts based on their impact and
+            market sentiment
           </p>
         </div>
 
@@ -195,7 +204,10 @@ const HomePage: React.FC = () => {
                   : "text-gray-400 hover:text-white"
               }`}
             >
-              <Sparkles size={14} className={activeTab === "impact" ? "text-blue-200" : ""} />
+              <Sparkles
+                size={14}
+                className={activeTab === "impact" ? "text-blue-200" : ""}
+              />
               <span className="font-medium text-sm">Impact Factor</span>
             </button>
             <button
@@ -206,12 +218,15 @@ const HomePage: React.FC = () => {
                   : "text-gray-400 hover:text-white"
               }`}
             >
-              <Heart size={14} className={activeTab === "heartbeat" ? "text-purple-200" : ""} />
+              <Heart
+                size={14}
+                className={activeTab === "heartbeat" ? "text-purple-200" : ""}
+              />
               <span className="font-medium text-sm">Heartbeat</span>
             </button>
           </div>
         </div>
-        
+
         {/* Add Influencer Button - Floating */}
         <div className="fixed bottom-6 right-6 z-10">
           <button
@@ -225,7 +240,7 @@ const HomePage: React.FC = () => {
             </span>
           </button>
         </div>
-        
+
         {/* Main Content Area */}
         <div className="bg-gradient-to-br from-gray-900/80 to-gray-950/60 backdrop-blur-sm rounded-lg border border-gray-800/30 shadow-xl overflow-hidden">
           <div className="p-4">
@@ -235,7 +250,7 @@ const HomePage: React.FC = () => {
                 subscribingHandle={subscribingHandle}
                 onSubscribe={handleSubscribe}
                 setRefreshData={setImpactRefreshData}
-                searchText={searchText} 
+                searchText={searchText}
               />
             ) : (
               <HeartbeatDashboard
@@ -243,7 +258,7 @@ const HomePage: React.FC = () => {
                 subscribingHandle={subscribingHandle}
                 onSubscribe={handleSubscribe}
                 setRefreshData={setHeartbeatRefreshData}
-                searchText={searchText} 
+                searchText={searchText}
               />
             )}
           </div>
@@ -253,7 +268,7 @@ const HomePage: React.FC = () => {
       <div className="px-6 py-8">
         <SocialGraph />
       </div>
-      
+
       <div className="px-6 py-8 flex justify-center">
         <Mindshare />
       </div>
