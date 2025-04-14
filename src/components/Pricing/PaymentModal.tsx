@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, CreditCard, Bitcoin } from "lucide-react";
-
+import { createCheckoutSession } from "@/app/actions/stripe";
+import { stripePromise } from "@/lib/stripeClient";
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -39,6 +40,32 @@ export default function PaymentModal({
   ];
 
   if (!isOpen) return null;
+
+  const handleProceed = async () => {
+    if (selectedPaymentMethod === "credit") {
+      try {
+        const checkoutSession = await createCheckoutSession(
+          planName,
+          planPrice,
+          planCredits
+        );
+        const stripe = await stripePromise;
+        const { error } = await stripe!.redirectToCheckout({
+          sessionId: checkoutSession.id,
+        });
+        if (error) {
+          console.error(error);
+          // Optionally, set an error state to display to the user
+        }
+      } catch (error) {
+        console.error("Error creating checkout session:", error);
+        // Handle error, e.g., show a user-friendly message
+      }
+    } else if (selectedPaymentMethod === "crypto") {
+      // For now, just log it (crypto payment logic can be added later)
+      console.log("Crypto payment selected for", planName);
+    }
+  };
 
   return (
     <motion.div
@@ -185,6 +212,7 @@ export default function PaymentModal({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="mt-6 w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors"
+              onClick={handleProceed}
             >
               Proceed to Payment
             </motion.button>
