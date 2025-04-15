@@ -8,6 +8,9 @@ const nextConfig = {
     // don’t fail the production build on ESLint errors
     ignoreDuringBuilds: true,
   },
+  images: {
+    remotePatterns: [{ protocol: "https", hostname: "**" }],
+  },
 };
 
 module.exports = nextConfig;
