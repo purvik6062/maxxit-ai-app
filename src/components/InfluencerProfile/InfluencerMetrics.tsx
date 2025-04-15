@@ -3,11 +3,12 @@ import React from "react";
 import Image from "next/image";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { FaRobot } from "react-icons/fa6";
 
 function InfluencerMetrics() {
   const influencer = {
     twitterHandle: "cryptostasher",
-    subscribers: ["p_99", "harvey14", "meetpaladiya44", "chain"],
+    subscribers: ["p_99", "harvey14", "meetpaladiya44", "chain"], // Still used for count
     userData: {
       userId: "1380310247575851008",
       username: "cryptostasher",
@@ -28,9 +29,9 @@ function InfluencerMetrics() {
     },
   };
 
-  const [isHovered, setIsHovered] = useState(false);
   const { userData, twitterHandle, subscribers } = influencer;
   const { publicMetrics, userProfileUrl, verified, mindshare } = userData;
+
 
   const socialMetrics = [
     { label: "Followers", value: publicMetrics.followers_count.toLocaleString() },
@@ -55,6 +56,8 @@ function InfluencerMetrics() {
       display: userData.herdedVsHidden,
       max: 10,
       isPercentage: false,
+      colors: { left: "bg-teal-400", right: "bg-blue-500" },
+      labels: { left: "Herded", right: "Hidden" },
     },
     {
       label: "Conviction vs Hype",
@@ -62,6 +65,8 @@ function InfluencerMetrics() {
       display: userData.convictionVsHype,
       max: 10,
       isPercentage: false,
+      colors: { left: "bg-amber-500", right: "bg-purple-500" },
+      labels: { left: "Conviction", right: "Hype" },
     },
     {
       label: "Meme vs Institutional",
@@ -69,8 +74,33 @@ function InfluencerMetrics() {
       display: userData.memeVsInstitutional,
       max: 10,
       isPercentage: false,
+      colors: { left: "bg-cyan-400", right: "bg-pink-500" },
+      labels: { left: "Meme", right: "Institutional" },
     },
   ];
+
+  const renderMetricIndicator = (value: number, leftColor: string, rightColor: string) => {
+    const normalizedValue = Math.max(-50, Math.min(50, value * 5));
+    const leftPercentage = ((normalizedValue + 50) / 100) * 100;
+    const rightPercentage = 100 - leftPercentage;
+
+    return (
+      <div className="w-full flex flex-col gap-1">
+        <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+          <div className="flex h-full w-full">
+            <div
+              className={`${leftColor} h-full transition-all duration-300`}
+              style={{ width: `${leftPercentage}%` }}
+            ></div>
+            <div
+              className={`${rightColor} h-full transition-all duration-300`}
+              style={{ width: `${rightPercentage}%` }}
+            ></div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <motion.div
@@ -84,15 +114,16 @@ function InfluencerMetrics() {
         <motion.div
           whileHover={{ scale: 1.1, rotate: 5 }}
           transition={{ type: "spring", stiffness: 300 }}
-          className="relative"
+          className="relative w-24 h-24"
         >
           <Image
             src={userProfileUrl}
             alt={twitterHandle}
-            width={80}
-            height={80}
+            width={500}
+            height={500}
             className="rounded-full border-2 border-gray-700 shadow-lg"
             priority
+
           />
           {verified && (
             <span className="absolute -top-2 -right-2 bg-blue-600 rounded-full p-1.5 shadow-md">
@@ -102,9 +133,19 @@ function InfluencerMetrics() {
             </span>
           )}
         </motion.div>
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">{twitterHandle}</h1>
-          <p className="text-sm text-gray-400">@{userData.username}</p>
+        <div className="flex w-full gap-4 justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-white tracking-tight">{twitterHandle}</h1>
+            <p className="text-sm text-gray-400">@{userData.username}</p>
+          </div>
+          <div className="font-medium text-gray-300 bg-gray-800 px-2 py-1 rounded-xl">
+            <div className="flex items-center justify-center text-2xl font-bold">
+              {subscribers.length}
+            </div>
+            <div className="text-sm flex items-center">
+              Subscribers
+            </div>
+          </div>
         </div>
       </div>
 
@@ -143,7 +184,6 @@ function InfluencerMetrics() {
             >
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm text-gray-300">{metric.label}</span>
-                <span className="text-sm font-medium text-white">{metric.display}</span>
               </div>
               {metric.isPercentage ? (
                 <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
@@ -155,46 +195,12 @@ function InfluencerMetrics() {
                   />
                 </div>
               ) : (
-                <div className="w-full h-2 bg-gray-800 rounded-full relative overflow-hidden">
-                  <div className="absolute left-1/2 w-px h-4 bg-gray-500 -translate-x-1/2 -translate-y-1/2" />
-                  <motion.div
-                    className={`h-2 rounded-full ${metric.value >= 0
-                        ? "bg-gradient-to-r from-blue-500 to-purple-500"
-                        : "bg-gradient-to-r from-red-500 to-pink-500"
-                      }`}
-                    initial={{ width: 0, x: 0 }}
-                    animate={{
-                      width: `${(Math.abs(metric.value) / metric.max) * 50}%`,
-                      x: metric.value >= 0 ? "0%" : "-100%",
-                    }}
-                    transition={{ delay: index * 0.1 + 0.2, duration: 0.6, ease: "easeOut" }}
-                    style={{
-                      left: metric.value >= 0 ? "50%" : "auto",
-                      right: metric.value < 0 ? "50%" : "auto",
-                    }}
-                  />
+                <div>
+
+                  {renderMetricIndicator(metric.value, metric.colors.left, metric.colors.right)}
                 </div>
               )}
             </motion.div>
-          ))}
-        </div>
-      </div>
-
-      {/* Subscribers */}
-      <div>
-        <h2 className="text-lg font-semibold text-white mb-5">Top Subscribers</h2>
-        <div className="flex flex-wrap gap-3">
-          {subscribers.map((subscriber, index) => (
-            <motion.span
-              key={subscriber}
-              className="px-3 py-1 text-sm text-blue-300 bg-blue-900/30 rounded-full hover:bg-blue-900/50 hover:text-blue-200 transition-all duration-300"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.1, duration: 0.4 }}
-              whileHover={{ scale: 1.05 }}
-            >
-              @{subscriber}
-            </motion.span>
           ))}
         </div>
       </div>
