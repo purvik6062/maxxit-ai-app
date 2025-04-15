@@ -18,7 +18,6 @@ export async function GET(request: Request): Promise<Response> {
     const usersCollection = db.collection("users");
 
     const user = await usersCollection.findOne({ twitterId });
-    console.log("user:::", user);
     if (!user) {
       return NextResponse.json(
         { success: false, error: { message: "User not found" } },

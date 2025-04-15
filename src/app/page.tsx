@@ -181,7 +181,6 @@ const HomePage: React.FC = () => {
       </div>
 
       <main className="flex-grow px-6 py-6 max-w-6xl mx-auto w-full">
-        {/* Analytics Dashboard Header */}
         <div className="mb-6 text-center">
           <h2 className="text-xl md:text-2xl font-bold text-white mb-2">
             <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
