@@ -1,45 +1,115 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { FaRobot } from "react-icons/fa6";
+import { motion } from "framer-motion";
+import { useParams, useRouter } from "next/navigation";
+
 
 function InfluencerMetrics() {
-  const influencer = {
-    twitterHandle: "cryptostasher",
-    subscribers: ["p_99", "harvey14", "meetpaladiya44", "chain"], // Still used for count
-    userData: {
-      userId: "1380310247575851008",
-      username: "cryptostasher",
-      verified: false,
-      publicMetrics: {
-        followers_count: 33810,
-        following_count: 324,
-        tweet_count: 3268,
-        listed_count: 243,
-        like_count: 2537,
-        media_count: 917,
-      },
-      userProfileUrl: "https://pbs.twimg.com/profile_images/1855572086648897536/-EjWHVds_normal.jpg",
-      mindshare: 0.69,
-      herdedVsHidden: 7,
-      convictionVsHype: 7,
-      memeVsInstitutional: 7,
-    },
-  };
+  const params = useParams();
+  const router = useRouter()
+  const id = params.id;
+  const [influencer, setInfluencer] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null); // Add error state
+
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchInfluencer = async () => {
+      try {
+        setLoading(true); // Ensure loading is true at the start
+        const response = await fetch(`/api/get-influencer-metrics/${id}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            response.status === 404
+              ? "Influencer not found"
+              : "Failed to fetch influencer data"
+          );
+        }
+
+        const data = await response.json();
+        setInfluencer(data);
+        setError(null); // Clear any previous errors
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setError(error.message); // Set error message
+      } finally {
+        setLoading(false); // Always set loading to false when done
+      }
+    };
+
+    fetchInfluencer();
+  }, [id]);
+
+  // Loading UI with skeleton placeholders
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto p-6 md:p-8">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="w-24 h-24 bg-gray-800 rounded-full animate-pulse" />
+          <div className="flex w-full gap-4 justify-between">
+            <div>
+              <div className="h-6 w-40 bg-gray-800 rounded animate-pulse mb-2" />
+              <div className="h-4 w-20 bg-gray-800 rounded animate-pulse" />
+            </div>
+            <div className="h-12 w-24 bg-gray-800 rounded-xl animate-pulse" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-10">
+          {[...Array(6)].map((_, index) => (
+            <div
+              key={index}
+              className="h-20 bg-gray-800 rounded-xl animate-pulse"
+            />
+          ))}
+        </div>
+        <div className="space-y-6">
+          {[...Array(4)].map((_, index) => (
+            <div key={index} className="flex flex-col">
+              <div className="h-4 w-32 bg-gray-800 rounded animate-pulse mb-2" />
+              <div className="h-2 w-full bg-gray-800 rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Error UI
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto p-6 md:p-8 text-center">
+        <h2 className="text-xl font-semibold text-red-500">Error</h2>
+        <p className="text-gray-400">{error}</p>
+        <button
+          onClick={() => router.refresh()} // Retry by reloading
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  // Ensure influencer data exists before destructuring
+  if (!influencer) {
+    return null; // Or a fallback UI if needed
+  }
 
   const { userData, twitterHandle, subscribers } = influencer;
   const { publicMetrics, userProfileUrl, verified, mindshare } = userData;
-
 
   const socialMetrics = [
     { label: "Followers", value: publicMetrics.followers_count.toLocaleString() },
     { label: "Following", value: publicMetrics.following_count.toLocaleString() },
     { label: "Tweets", value: publicMetrics.tweet_count.toLocaleString() },
-    { label: "Likes", value: publicMetrics.like_count.toLocaleString() },
-    { label: "Media", value: publicMetrics.media_count.toLocaleString() },
-    { label: "Lists", value: publicMetrics.listed_count.toLocaleString() },
   ];
 
   const influenceMetrics = [
@@ -79,8 +149,8 @@ function InfluencerMetrics() {
     },
   ];
 
-  const renderMetricIndicator = (value: number, leftColor: string, rightColor: string) => {
-    const normalizedValue = Math.max(-50, Math.min(50, value * 5));
+  const renderMetricIndicator = (value, leftColor, rightColor) => {
+    const normalizedValue = Math.max(-50, Math.min(50, value));
     const leftPercentage = ((normalizedValue + 50) / 100) * 100;
     const rightPercentage = 100 - leftPercentage;
 
@@ -107,7 +177,7 @@ function InfluencerMetrics() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="max-w-6xl mx-auto bg-gray-950/90 backdrop-blur-md p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-800/50"
+      className="max-w-6xl mx-auto my-6 bg-gray-950/90 backdrop-blur-md p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-800/50"
     >
       {/* Header Section */}
       <div className="flex items-center gap-4 mb-8">
@@ -123,7 +193,6 @@ function InfluencerMetrics() {
             height={500}
             className="rounded-full border-2 border-gray-700 shadow-lg"
             priority
-
           />
           {verified && (
             <span className="absolute -top-2 -right-2 bg-blue-600 rounded-full p-1.5 shadow-md">
@@ -141,10 +210,9 @@ function InfluencerMetrics() {
           <div className="font-medium text-gray-300 bg-gray-800 px-2 py-1 rounded-xl">
             <div className="flex items-center justify-center text-2xl font-bold">
               {subscribers.length}
+
             </div>
-            <div className="text-sm flex items-center">
-              Subscribers
-            </div>
+            <div className="text-sm flex items-center">Subscribers</div>
           </div>
         </div>
       </div>
@@ -196,7 +264,6 @@ function InfluencerMetrics() {
                 </div>
               ) : (
                 <div>
-
                   {renderMetricIndicator(metric.value, metric.colors.left, metric.colors.right)}
                 </div>
               )}

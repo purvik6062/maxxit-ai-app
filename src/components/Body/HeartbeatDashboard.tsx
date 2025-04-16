@@ -296,11 +296,11 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
   const getSortedAndFilteblueAgents = () => {
     const filteblue = searchText
       ? enhancedAgents.filter(
-          /* ...identical filter logic... */
-          (agent) =>
-            agent.name.toLowerCase().includes(searchText.toLowerCase()) ||
-            agent.handle.toLowerCase().includes(searchText.toLowerCase())
-        )
+        /* ...identical filter logic... */
+        (agent) =>
+          agent.name.toLowerCase().includes(searchText.toLowerCase()) ||
+          agent.handle.toLowerCase().includes(searchText.toLowerCase())
+      )
       : enhancedAgents;
 
     return [...filteblue].sort((a, b) => {
@@ -458,11 +458,10 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
             {/* Sorting Buttons - *** Use 'heartbeat' for primary sort *** */}
             <div
               onClick={() => sortAgents("heartbeat")} /* ... class logic ... */
-              className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                sortField === "heartbeat"
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800" // Adjusted color maybe
-              }`}
+              className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${sortField === "heartbeat"
+                ? "bg-blue-900/50 text-blue-300"
+                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800" // Adjusted color maybe
+                }`}
             >
               <HeartPulse size={14} /> {/* Changed Icon */}
               <span>Heartbeat</span> {/* Changed Label */}
@@ -476,11 +475,10 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
             {/* Other sort buttons (Mindshare, Followers, etc.) identical structure */}
             <div
               onClick={() => sortAgents("mindshare")} /* ... */
-              className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                sortField === "mindshare"
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-              }`}
+              className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${sortField === "mindshare"
+                ? "bg-blue-900/50 text-blue-300"
+                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+                }`}
             >
               <BarChart2 size={14} /> <span>Mindshare</span>
               {sortField === "mindshare" &&
@@ -492,11 +490,10 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
             </div>
             <div
               onClick={() => sortAgents("followers")} /* ... */
-              className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                sortField === "followers"
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-              }`}
+              className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${sortField === "followers"
+                ? "bg-blue-900/50 text-blue-300"
+                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+                }`}
             >
               <Users size={14} /> <span>Followers</span>
               {sortField === "followers" &&
@@ -509,11 +506,10 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
             {/* AI Metric Sort Buttons - identical */}
             <div
               onClick={() => sortAgents("herdedVsHidden")}
-              /* ... */ className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                sortField === "herdedVsHidden"
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-              }`}
+              /* ... */ className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${sortField === "herdedVsHidden"
+                ? "bg-blue-900/50 text-blue-300"
+                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+                }`}
             >
               <span>Herded-Hidden</span>{" "}
               {sortField === "herdedVsHidden" &&
@@ -525,11 +521,10 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
             </div>
             <div
               onClick={() => sortAgents("convictionVsHype")}
-              /* ... */ className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                sortField === "convictionVsHype"
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-              }`}
+              /* ... */ className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${sortField === "convictionVsHype"
+                ? "bg-blue-900/50 text-blue-300"
+                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+                }`}
             >
               <span>Conviction-Hype</span>{" "}
               {sortField === "convictionVsHype" &&
@@ -541,11 +536,10 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
             </div>
             <div
               onClick={() => sortAgents("memeVsInstitutional")}
-              /* ... */ className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                sortField === "memeVsInstitutional"
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-              }`}
+              /* ... */ className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${sortField === "memeVsInstitutional"
+                ? "bg-blue-900/50 text-blue-300"
+                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+                }`}
             >
               <span>Meme-Institutional</span>{" "}
               {sortField === "memeVsInstitutional" &&
@@ -578,20 +572,18 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
           return (
             <div
               key={agent.handle} /* ... identical card classes ... */
-              className={`impact-card top-card relative overflow-hidden rounded-xl border ${
-                rank === 1
-                  ? "border-yellow-500/30"
-                  : rank === 2
+              className={`impact-card top-card relative overflow-hidden rounded-xl border ${rank === 1
+                ? "border-yellow-500/30"
+                : rank === 2
                   ? "border-gray-400/30"
                   : "border-amber-700/30"
-              } bg-gradient-to-br from-gray-900/80 via-gray-900/60 to-blue-900/20 backdrop-blur-sm`} // Maybe adjust accent color
+                } bg-gradient-to-br from-gray-900/80 via-gray-900/60 to-blue-900/20 backdrop-blur-sm`} // Maybe adjust accent color
             >
               {/* ... Top Medal Badge ... */}
               <div className="absolute -right-6 -top-6 w-28 h-24">
                 <div
-                  className={`absolute inset-0 bg-gradient-to-br ${
-                    medalColors[rank - 1]
-                  } opacity-50 rotate-45`}
+                  className={`absolute inset-0 bg-gradient-to-br ${medalColors[rank - 1]
+                    } opacity-50 rotate-45`}
                 ></div>
               </div>
 
@@ -600,19 +592,17 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
                     <div
-                      className={`relative flex items-center justify-center h-12 w-12 rounded-full bg-gradient-to-br ${
-                        medalColors[rank - 1]
-                      } p-0.5`}
+                      className={`relative flex items-center justify-center h-12 w-12 rounded-full bg-gradient-to-br ${medalColors[rank - 1]
+                        } p-0.5`}
                     >
                       <div className="absolute inset-0.5 rounded-full bg-gray-900/80"></div>
                       <FaTrophy
-                        className={`relative w-5 h-5 ${
-                          rank === 1
-                            ? "text-yellow-300"
-                            : rank === 2
+                        className={`relative w-5 h-5 ${rank === 1
+                          ? "text-yellow-300"
+                          : rank === 2
                             ? "text-gray-300"
                             : "text-amber-700"
-                        }`}
+                          }`}
                       />
                     </div>
                     <div>
@@ -686,8 +676,9 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                 {agent.profileUrl /* ... identical JSX ... */ && (
                   <div className="mb-3 text-center">
                     <Link
-                      href={`https://x.com/${cleanHandle}`}
-                      target="_blank"
+                      // href={`https://x.com/${cleanHandle}`}
+                      href={`/influencer/${cleanHandle}`}
+                      // target="_blank"
                       className="inline-flex items-center gap-1 text-blue-400 text-xs hover:text-blue-300 transition-colors"
                     >
                       View Profile <FaExternalLinkAlt className="text-[10px]" />
@@ -697,11 +688,10 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
 
                 {/* Expandable Section for Stats (Identical Structure - uses random/placeholder stats) */}
                 <div
-                  className={`transition-all duration-300 overflow-hidden ${
-                    showStats[agent.handle]
-                      ? "max-h-64 opacity-100 mb-4"
-                      : "max-h-0 opacity-0"
-                  }`}
+                  className={`transition-all duration-300 overflow-hidden ${showStats[agent.handle]
+                    ? "max-h-64 opacity-100 mb-4"
+                    : "max-h-0 opacity-0"
+                    }`}
                 >
                   {/* Display Precision, Performance, Reliability - Identical structure */}
                   <div className="grid grid-cols-3 gap-2 mb-3">
@@ -798,11 +788,9 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                         <svg className="absolute inset-0 w-full h-full">
                           {" "}
                           <polygon
-                            points={`50,${(100 - precision) / 2} ${
-                              performance / 2
-                            },50 50,${100 - (100 - reliability) / 2} ${
-                              100 - (100 - (agent.heartbeat || 0))
-                            },50`}
+                            points={`50,${(100 - precision) / 2} ${performance / 2
+                              },50 50,${100 - (100 - reliability) / 2} ${100 - (100 - (agent.heartbeat || 0))
+                              },50`}
                             fill="rgba(239, 68, 68, 0.2)"
                             stroke="rgba(239, 68, 68, 0.6)"
                             strokeWidth="1"
@@ -937,13 +925,11 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                   disabled={
                     isSubscribed || isCurrentlySubscribing
                   } /* ... identical button classes/logic ... */
-                  className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium ${
-                    isSubscribed || isCurrentlySubscribing
-                      ? "bg-green-600/30 text-green-300"
-                      : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
-                  } transition-all duration-200 ${
-                    isCurrentlySubscribing ? "animate-pulse" : ""
-                  }`}
+                  className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium ${isSubscribed || isCurrentlySubscribing
+                    ? "bg-green-600/30 text-green-300"
+                    : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                    } transition-all duration-200 ${isCurrentlySubscribing ? "animate-pulse" : ""
+                    }`}
                 >
                   {isCurrentlySubscribing ? (
                     <>
@@ -1119,8 +1105,9 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                       {/* View Link (Identical) */}
                       <div className="w-8 flex justify-center">
                         <Link
-                          href={`https://x.com/${cleanHandle}`}
-                          target="_blank"
+                          // href={`https://x.com/${cleanHandle}`}
+                          href={`/influencer/${cleanHandle}`}
+                          // target="_blank"
                           className="p-1.5 rounded text-gray-400 hover:text-blue-300 hover:bg-gray-700/50 transition-colors"
                           title="View Profile"
                         >
@@ -1138,13 +1125,11 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                           disabled={
                             isSubscribed || isCurrentlySubscribing
                           } /* ... classes/content identical ... */
-                          className={`flex items-center justify-center px-2 py-1.5 rounded-md text-xs w-full ${
-                            isSubscribed || isCurrentlySubscribing
-                              ? "bg-green-500/20 text-green-300"
-                              : "bg-blue-600/80 hover:bg-blue-700 text-white"
-                          } transition-all duration-200 whitespace-nowrap ${
-                            isCurrentlySubscribing ? "animate-pulse" : ""
-                          }`}
+                          className={`flex items-center justify-center px-2 py-1.5 rounded-md text-xs w-full ${isSubscribed || isCurrentlySubscribing
+                            ? "bg-green-500/20 text-green-300"
+                            : "bg-blue-600/80 hover:bg-blue-700 text-white"
+                            } transition-all duration-200 whitespace-nowrap ${isCurrentlySubscribing ? "animate-pulse" : ""
+                            }`}
                         >
                           {isCurrentlySubscribing ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
