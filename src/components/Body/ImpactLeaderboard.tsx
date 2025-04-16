@@ -126,11 +126,11 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
       .reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const baseValue = (seed % 30) + 50; // Between 50-80
     switch (type) {
-      case "precision":
+      case "factor":
         return (baseValue + 5) % 100;
-      case "performance":
+      case "signals":
         return (baseValue + 10) % 100;
-      case "reliability":
+      case "mindshare":
         return (baseValue + 15) % 100;
       default:
         return baseValue;
@@ -261,14 +261,6 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
           ".top-card",
           { y: 30, opacity: 0, scale: 0.95 },
           { y: 0, opacity: 1, scale: 1, duration: 0.7, stagger: 0.15 }
-        );
-
-        // Animate the progress bars after cards appear
-        tl.fromTo(
-          ".progress-bar-fill",
-          { width: 0 },
-          { width: "100%", duration: 0.8, stagger: 0.05 },
-          "-=0.5"
         );
 
         // Animate the list items
@@ -548,9 +540,9 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
           const isCurrentlySubscribing = subscribingHandle === cleanHandle;
 
           // Generate pseudo-random metrics for visualization
-          const precision = getRandomStat(agent.handle, "precision");
-          const performance = getRandomStat(agent.handle, "performance");
-          const reliability = getRandomStat(agent.handle, "reliability");
+          const factor = getRandomStat(agent.handle, "factor");
+          const signals = getRandomStat(agent.handle, "signals");
+          const mindshare = getRandomStat(agent.handle, "mindshare");
 
           return (
             <div
@@ -598,10 +590,16 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
 
                       {/* Profile pic & name */}
                       <div className="flex items-center gap-2 mb-1">
-                        {agent.profileUrl && (
+                        {agent.handle && (
                           <div className="relative w-6 h-6">
                             <img
-                              src={agent.profileUrl || "/placeholder.svg"}
+                              src={
+                                agent.profileUrl?.trim().length > 0
+                                  ? agent.profileUrl
+                                  : `https://picsum.photos/seed/${encodeURIComponent(
+                                      agent.handle
+                                    )}/40/40`
+                              }
                               alt={agent.name}
                               className="w-full h-full object-cover rounded-full border border-gray-700/50"
                             />
@@ -637,160 +635,168 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                   ></div>
                 </div>
                 {/* Detailed stats with hover interaction */}
-                                  <div
-                                    className={`transition-all duration-300 overflow-hidden ${
-                                      showStats[agent.handle]
-                                        ? "max-h-40 opacity-100 mb-4"
-                                        : "max-h-0 opacity-0"
-                                    }`}
-                                  >
-                                    <div className="grid grid-cols-3 gap-2 mb-3">
-                                      <div className="flex flex-col items-center justify-center bg-blue-900/20 rounded-lg p-2.5 border border-blue-700/20">
-                                        <div className="relative mb-1">
-                                          <Shield className="h-4 w-4 text-blue-400" />
-                                          <div
-                                            className="absolute inset-0 bg-blue-400/20 rounded-full animate-ping"
-                                            style={{ animationDuration: "3s" }}
-                                          ></div>
-                                        </div>
-                                        <span className="text-xs text-blue-400 mb-0.5">
-                                          Precision
-                                        </span>
-                                        <span className="text-xs font-semibold text-white">
-                                          {precision}%
-                                        </span>
-                                      </div>
-                                      <div className="flex flex-col items-center justify-center bg-cyan-900/20 rounded-lg p-2.5 border border-cyan-700/20">
-                                        <TrendingUp className="h-4 w-4 text-cyan-400 mb-1" />
-                                        <span className="text-xs text-cyan-400 mb-0.5">
-                                          Performance
-                                        </span>
-                                        <span className="text-xs font-semibold text-white">
-                                          {performance}%
-                                        </span>
-                                      </div>
-                                      <div className="flex flex-col items-center justify-center bg-blue-800/20 rounded-lg p-2.5 border border-blue-700/20">
-                                        <BarChart2 className="h-4 w-4 text-blue-300 mb-1" />
-                                        <span className="text-xs text-blue-300 mb-0.5">
-                                          Reliability
-                                        </span>
-                                        <span className="text-xs font-semibold text-white">
-                                          {reliability}%
-                                        </span>
-                                      </div>
-                                    </div>
-                
-                                    {/* Radar chart visualization (simple CSS-based) */}
-                                    <div className="relative h-24 mb-4 hidden md:block">
-                                      <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="w-full h-full max-w-[120px] max-h-[120px] relative">
-                                          {/* Background hexagon */}
-                                          <div className="absolute inset-0 border-2 border-blue-800/30 rounded-full"></div>
-                                          <div className="absolute inset-[20%] border-2 border-blue-800/20 rounded-full"></div>
-                                          <div className="absolute inset-[40%] border-2 border-blue-800/10 rounded-full"></div>
-                
-                                          {/* Stat lines */}
-                                          <div className="absolute top-0 left-1/2 h-1/2 w-0.5 bg-blue-800/20 -translate-x-1/2"></div>
-                                          <div className="absolute top-1/2 left-0 h-0.5 w-1/2 bg-blue-800/20"></div>
-                                          <div className="absolute bottom-0 left-1/2 h-1/2 w-0.5 bg-blue-800/20 -translate-x-1/2"></div>
-                                          <div className="absolute top-1/2 right-0 h-0.5 w-1/2 bg-blue-800/20"></div>
-                
-                                          {/* Data points */}
-                                          <div
-                                            className="absolute rounded-full w-2 h-2 bg-blue-400"
-                                            style={{
-                                              top: `${(100 - precision) / 2}%`,
-                                              left: "50%",
-                                              transform: "translate(-50%, -50%)",
-                                              boxShadow: "0 0 5px rgba(96, 165, 250, 0.7)",
-                                            }}
-                                          ></div>
-                                          <div
-                                            className="absolute rounded-full w-2 h-2 bg-cyan-400"
-                                            style={{
-                                              top: "50%",
-                                              left: `${performance / 2}%`,
-                                              transform: "translate(-50%, -50%)",
-                                              boxShadow: "0 0 5px rgba(34, 211, 238, 0.7)",
-                                            }}
-                                          ></div>
-                                          <div
-                                            className="absolute rounded-full w-2 h-2 bg-blue-300"
-                                            style={{
-                                              bottom: `${(100 - reliability) / 2}%`,
-                                              left: "50%",
-                                              transform: "translate(-50%, 50%)",
-                                              boxShadow: "0 0 5px rgba(147, 197, 253, 0.7)",
-                                            }}
-                                          ></div>
-                                          <div
-                                            className="absolute rounded-full w-2 h-2 bg-blue-500"
-                                            style={{
-                                              top: "50%",
-                                              right: `${100 - (agent.impactFactor || 0)}%`,
-                                              transform: "translate(50%, -50%)",
-                                              boxShadow: "0 0 5px rgba(59, 130, 246, 0.7)",
-                                            }}
-                                          ></div>
-                
-                                          {/* Connecting lines */}
-                                          <svg className="absolute inset-0 w-full h-full">
-                                            <polygon
-                                              points={`50,${(100 - precision) / 2} 
-                                                                  ${performance / 2},50 
+                <div
+                  className={`transition-all duration-300 overflow-hidden ${
+                    showStats[agent.handle]
+                      ? "max-h-40 opacity-100 mb-4"
+                      : "max-h-0 opacity-0"
+                  }`}
+                >
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    <div className="flex flex-col items-center justify-center bg-blue-900/20 rounded-lg p-2.5 border border-blue-700/20">
+                      <div className="relative mb-1">
+                        <Shield className="h-4 w-4 text-blue-400" />
+                        <div
+                          className="absolute inset-0 bg-blue-400/20 rounded-full animate-ping"
+                          style={{ animationDuration: "3s" }}
+                        ></div>
+                      </div>
+                      <span className="text-xs text-blue-400 mb-0.5">
+                        Factor
+                      </span>
+                      <span className="text-xs font-semibold text-white">
+                        {factor}%
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-center justify-center bg-cyan-900/20 rounded-lg p-2.5 border border-cyan-700/20">
+                      <TrendingUp className="h-4 w-4 text-cyan-400 mb-1" />
+                      <span className="text-xs text-cyan-400 mb-0.5">
+                        Signals
+                      </span>
+                      <span className="text-xs font-semibold text-white">
+                        {signals}%
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-center justify-center bg-blue-800/20 rounded-lg p-2.5 border border-blue-700/20">
+                      <BarChart2 className="h-4 w-4 text-blue-300 mb-1" />
+                      <span className="text-xs text-blue-300 mb-0.5">
+                        Mindshare
+                      </span>
+                      <span className="text-xs font-semibold text-white">
+                        {mindshare}%
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Radar chart visualization (simple CSS-based) */}
+                  <div className="relative h-24 mb-4 hidden md:block">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-full h-full max-w-[120px] max-h-[120px] relative">
+                        {/* Background hexagon */}
+                        <div className="absolute inset-0 border-2 border-blue-800/30 rounded-full"></div>
+                        <div className="absolute inset-[20%] border-2 border-blue-800/20 rounded-full"></div>
+                        <div className="absolute inset-[40%] border-2 border-blue-800/10 rounded-full"></div>
+
+                        {/* Stat lines */}
+                        <div className="absolute top-0 left-1/2 h-1/2 w-0.5 bg-blue-800/20 -translate-x-1/2"></div>
+                        <div className="absolute top-1/2 left-0 h-0.5 w-1/2 bg-blue-800/20"></div>
+                        <div className="absolute bottom-0 left-1/2 h-1/2 w-0.5 bg-blue-800/20 -translate-x-1/2"></div>
+                        <div className="absolute top-1/2 right-0 h-0.5 w-1/2 bg-blue-800/20"></div>
+
+                        {/* Data points */}
+                        <div
+                          className="absolute rounded-full w-2 h-2 bg-blue-400"
+                          style={{
+                            top: `${(100 - factor) / 2}%`,
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                            boxShadow: "0 0 5px rgba(96, 165, 250, 0.7)",
+                          }}
+                        ></div>
+                        <div
+                          className="absolute rounded-full w-2 h-2 bg-cyan-400"
+                          style={{
+                            top: "50%",
+                            left: `${signals / 2}%`,
+                            transform: "translate(-50%, -50%)",
+                            boxShadow: "0 0 5px rgba(34, 211, 238, 0.7)",
+                          }}
+                        ></div>
+                        <div
+                          className="absolute rounded-full w-2 h-2 bg-blue-300"
+                          style={{
+                            bottom: `${(100 - mindshare) / 2}%`,
+                            left: "50%",
+                            transform: "translate(-50%, 50%)",
+                            boxShadow: "0 0 5px rgba(147, 197, 253, 0.7)",
+                          }}
+                        ></div>
+                        <div
+                          className="absolute rounded-full w-2 h-2 bg-blue-500"
+                          style={{
+                            top: "50%",
+                            right: `${100 - (agent.impactFactor || 0)}%`,
+                            transform: "translate(50%, -50%)",
+                            boxShadow: "0 0 5px rgba(59, 130, 246, 0.7)",
+                          }}
+                        ></div>{" "}
+
+                        {/* Connecting lines */}
+                        <svg className="absolute inset-0 w-full h-full">
+                        {" "}
+                          <polygon
+                            points={`50,${(100 - factor) / 2} 
+                                                                  ${
+                                                                    signals / 2
+                                                                  },50 
                                                                   50,${
                                                                     100 -
-                                                                    (100 - reliability) / 2
+                                                                    (100 -
+                                                                      mindshare) /
+                                                                      2
                                                                   } 
                                                                   ${
                                                                     100 -
                                                                     (100 -
-                                                                      (agent.impactFactor || 0))
+                                                                      (agent.impactFactor ||
+                                                                        0))
                                                                   },50
                                                                 `}
-                                              fill="rgba(59, 130, 246, 0.2)"
-                                              stroke="rgba(59, 130, 246, 0.6)"
-                                              strokeWidth="1"
-                                            />
-                                          </svg>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
+                            fill="rgba(59, 130, 246, 0.2)"
+                            stroke="rgba(59, 130, 246, 0.6)"
+                            strokeWidth="1"
+                          />
+                        </svg>{" "} 
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 {/* Mindshare & Followers from UMD */}
-                {agent.mindshare > 0 && (
+                {agent.mindshare >= 0 && (
                   <div className="flex justify-center gap-4 mb-4">
                     <div className="text-center">
                       <p className="text-blue-400 text-lg font-bold">
-                        {agent.mindshare?.toFixed(1)}%
+                        {agent.mindshare > 0
+                          ? `${agent.mindshare.toFixed(2)}%`
+                          : "--"}
                       </p>
                       <p className="text-xs text-gray-500">Mindshare</p>
                     </div>
                     <div className="text-center">
                       <p className="text-gray-200 text-lg font-medium">
-                        {agent.followers?.toLocaleString()}
+                        {agent.mindshare > 0
+                          ? agent.followers?.toLocaleString()
+                          : "--"}
                       </p>
                       <p className="text-xs text-gray-500">Followers</p>
                     </div>
                   </div>
                 )}
                 {/* View profile link from UMD */}
-                {agent.profileUrl && (
-                  <div className="mb-3 text-center">
-                    <Link
-                      href={`https://x.com/${cleanHandle}`}
-                      target="_blank"
-                      className="inline-flex items-center gap-1 text-blue-400 text-xs hover:text-blue-300 transition-colors"
-                    >
-                      View Profile <FaExternalLinkAlt className="text-[10px]" />
-                    </Link>
-                  </div>
-                )}
+                <div className="mb-3 text-center">
+                  <Link
+                    href={`https://x.com/${cleanHandle}`}
+                    target="_blank"
+                    className="inline-flex items-center gap-1 text-blue-400 text-xs hover:text-blue-300 transition-colors"
+                  >
+                    View Profile <FaExternalLinkAlt className="text-[10px]" />
+                  </Link>
+                </div>
                 {/* Detailed stats with hover interaction */}
                 <div
                   className={`transition-all duration-300 overflow-hidden ${
                     showStats[agent.handle]
-                      ? "max-h-64 opacity-100 mb-4"
+                      ? "max-h-[500px] opacity-100 mb-4"
                       : "max-h-0 opacity-0"
                   }`}
                 >
@@ -800,9 +806,9 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                     <div>
                       <div className="flex justify-between items-center mb-1">
                         <div className="flex items-center gap-1">
-                          <span className="text-xs text-teal-400">Herded</span>
-                          <span className="text-xs text-gray-500">vs</span>
-                          <span className="text-xs text-blue-400">Hidden</span>
+                          <span className="text-xs text-red-400">Herded</span>
+                          <span className="text-xs text-gray-300">vs</span>
+                          <span className="text-xs text-cyan-400">Hidden</span>
                         </div>
                         <div className="relative">
                           <FaRobot
@@ -820,8 +826,8 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                       </div>
                       {renderMetricIndicator(
                         agent.herdedVsHidden || 0,
-                        "bg-teal-400",
-                        "bg-blue-500"
+                        "bg-red-400",
+                        "bg-cyan-400"
                       )}
                     </div>
 
@@ -829,11 +835,11 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                     <div>
                       <div className="flex justify-between items-center mb-1">
                         <div className="flex items-center gap-1">
-                          <span className="text-xs text-amber-400">
+                          <span className="text-xs text-green-400">
                             Conviction
                           </span>
-                          <span className="text-xs text-gray-500">vs</span>
-                          <span className="text-xs text-purple-400">Hype</span>
+                          <span className="text-xs text-gray-300">vs</span>
+                          <span className="text-xs text-rose-400">Hype</span>
                         </div>
                         <div className="relative">
                           <FaRobot
@@ -851,8 +857,8 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                       </div>
                       {renderMetricIndicator(
                         agent.convictionVsHype || 0,
-                        "bg-amber-500",
-                        "bg-purple-500"
+                        "bg-green-500",
+                        "bg-rose-500"
                       )}
                     </div>
 
@@ -860,9 +866,9 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                     <div>
                       <div className="flex justify-between items-center mb-1">
                         <div className="flex items-center gap-1">
-                          <span className="text-xs text-cyan-400">Meme</span>
-                          <span className="text-xs text-gray-500">vs</span>
-                          <span className="text-xs text-pink-400">
+                          <span className="text-xs text-yellow-300">Meme</span>
+                          <span className="text-xs text-gray-300">vs</span>
+                          <span className="text-xs text-gray-100">
                             Institutional
                           </span>
                         </div>
@@ -882,13 +888,13 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                       </div>
                       {renderMetricIndicator(
                         agent.memeVsInstitutional || 0,
-                        "bg-cyan-400",
-                        "bg-pink-500"
+                        "bg-yellow-300",
+                        "bg-gray-100"
                       )}
                     </div>
                   </div>
                 </div>
-              
+
                 {/* Toggle stats button */}
                 <button
                   className="w-full flex items-center justify-center gap-1 py-1 mb-3 rounded-lg text-sm font-medium
@@ -948,185 +954,242 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
 
       {/* List view for remaining analysts (integrating UMD style) */}
       {remainingAgents.length > 0 && (
-              <div className="mt-8">
-                <h3 className="text-lg font-semibold text-gray-300 mb-4 flex items-center">
-                  <ArrowUpDown size={16} className="mr-2 text-blue-400/70" />
-                  Other Analysts
-                  {sortField !== "impactFactor" && <span className="text-xs ml-2 text-gray-500">(sorted by {sortField})</span>}
-                </h3>
-
-                 {/* Header Row - Middle Section Grows */}
-                 <div className="px-4 py-2 flex items-center gap-3 md:gap-4 text-xs text-gray-300 border-b border-gray-800/50 mb-2">
-                   {/* Left: Rank + Name Header */}
-                   <div className="flex items-center flex-shrink-0 w-[30%] sm:w-[25%] md:w-[240px]"> {/* Keep similar width */}
-                     <span className="w-6 text-center mr-3 flex-shrink-0">#</span>
-                     <span className="flex-grow truncate pr-1">Analyst</span>
-                   </div>
-
-                   {/* Middle: Inline UMD Metrics Header (Takes Remaining Space) */}
-                   <div className="flex items-center justify-between gap-2 md:gap-4 flex-grow min-w-0 px-1"> {/* ADDED flex-grow, min-w-0 */}
-                     <span className="w-1/3 text-center truncate">Herded/Hidden</span>
-                     <span className="w-1/3 text-center truncate">Conviction/Hype</span>
-                     <span className="w-1/3 text-center truncate">Meme/Inst.</span>
-                   </div>
-
-                   {/* Right: Original Metrics + Actions Header (Defined Width Again) */}
-                   <div className="flex items-center justify-end gap-2 md:gap-3 flex-shrink-0 w-auto sm:w-[300px] md:w-[385px]"> {/* REMOVED flex-grow, Adjusted width slightly */}
-                      {/* --- Widths adjusted for content --- */}
-                      <span className="w-16 text-right hidden sm:inline-block">Mindshare</span>
-                      <span className="w-20 text-right hidden lg:inline-block">Followers</span>
-                      <span className="w-14 text-right">Impact</span>
-                      <span className="w-8 text-center">View</span>
-                      <span className="w-24 text-center">Subscribe</span>
-                   </div>
-                 </div>
-                 {/* End Header Row */}
-
-                <div className="space-y-2">
-                {remainingAgents.map((agent, index) => {
-                    const rank = sortedAgents.findIndex(a => a.handle === agent.handle) + 1;
-                    const cleanHandle = agent.handle.replace("@", "");
-                    const isSubscribed = subscribedHandles.includes(cleanHandle);
-                    const isCurrentlySubscribing = subscribingHandle === cleanHandle;
-
-                    return (
-                      <div
-                        key={agent.handle}
-                        className="impact-card list-item relative bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-lg overflow-hidden transition-all hover:bg-cyan-950 duration-200"
-                      >
-                        {/* Main Row Container - Matching Header Flex Structure */}
-                        <div className="px-4 py-2 flex items-center gap-3 md:gap-4">
-
-                          {/* Left side: Rank + Profile + Name */}
-                          <div className="flex items-center flex-shrink-0 w-[30%] sm:w-[25%] md:w-[240px]"> {/* Match header width */}
-                            {/* Rank, Profile Pic, Name/Handle... (content unchanged) */}
-                            <div className="w-6 flex items-center justify-center rounded-full bg-gray-800/70 text-gray-400 text-xs font-medium mr-3 flex-shrink-0">
-                              {rank}
-                            </div>
-                            {agent.profileUrl && (
-                              <div className="relative w-8 h-8 mr-3 flex-shrink-0">
-                                <img
-                                  src={agent.profileUrl || "/placeholder.svg"}
-                                  alt={agent.name}
-                                  className="w-full h-full object-cover rounded-full border border-gray-700/50"
-                                />
-                                {agent.verified && (
-                                  <div className="absolute -bottom-0.5 -right-0.5 bg-blue-500 rounded-full p-0.5 border border-gray-900">
-                                    <FaCheck className="w-1 h-1 text-white" />
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                            <div className="flex-grow overflow-hidden">
-                              <h4 className="text-sm font-medium text-white truncate">{agent.name}</h4>
-                              <p className="text-xs text-gray-500 truncate">{agent.handle}</p>
-                            </div>
-                          </div>
-
-                          {/* Middle: Inline UMD Metrics (Takes Remaining Space) */}
-                          <div className="flex items-center justify-between gap-2 md:gap-4 flex-grow min-w-0 px-1"> {/* ADDED flex-grow, min-w-0 */}
-
-                            {/* Herded vs Hidden */}
-                            <div className="w-1/3 text-center"> {/* Use fractional width */}
-                                {renderMetricIndicator(
-                                agent.herdedVsHidden || 0,
-                                "bg-teal-400",
-                                "bg-blue-500"
-                                )}
-                            </div>
-
-                            {/* Conviction vs Hype */}
-                            <div className="w-1/3 text-center">
-                                {renderMetricIndicator(
-                                agent.convictionVsHype || 0,
-                                "bg-amber-500",
-                                "bg-purple-500"
-                                )}
-                            </div>
-
-                            {/* Meme vs Institutional */}
-                            <div className="w-1/3 text-center">
-                                {renderMetricIndicator(
-                                agent.memeVsInstitutional || 0,
-                                "bg-cyan-400",
-                                "bg-pink-500"
-                                )}
-                            </div>
-                          </div>
-
-                           {/* Right side: Original Metrics + Actions (Defined Width Again) */}
-                          <div className="flex items-center justify-end gap-2 md:gap-3 flex-shrink-0 w-auto sm:w-[300px] md:w-[385px]"> {/* REMOVED flex-grow, Matched header width */}
-                            {/* Mindshare */}
-                            <div className="w-16 text-right hidden sm:inline-block"> {/* Match header width */}
-                                {agent.mindshare > 0 ? (
-                                    <p className="text-blue-400 text-sm font-medium">{agent.mindshare?.toFixed(1)}%</p>
-                                ) : <span className="text-sm text-gray-600">--</span> }
-                            </div>
-
-                            {/* Followers */}
-                             <div className="w-20 text-right hidden lg:inline-block"> {/* Match header width */}
-                                {agent.followers > 0 ? (
-                                    <p className="text-gray-300 text-sm">{agent.followers?.toLocaleString()}</p>
-                                ) : <span className="text-sm text-gray-600">--</span>}
-                            </div>
-
-                            {/* Impact */}
-                            <div className="w-14 text-right"> {/* Match header width */}
-                               <p className="text-blue-400 text-sm font-medium">{agent.impactFactor ?? "--"}</p>
-                            </div>
-
-                            {/* View Profile Link */}
-                            <div className="w-8 flex justify-center"> {/* Match header width */}
-                                <Link
-                                href={`https://x.com/${cleanHandle}`}
-                                target="_blank"
-                                className="p-1.5 rounded text-gray-400 hover:text-blue-300 hover:bg-gray-700/50 transition-colors"
-                                title="View Profile"
-                                >
-                                <FaExternalLinkAlt className="w-3 h-3" />
-                                </Link>
-                            </div>
-
-                            {/* Subscribe Button */}
-                            <div className="w-24 flex justify-center"> {/* Match header width */}
-                                <button
-                                className={`flex items-center justify-center px-2 py-1.5 rounded-md text-xs w-full ${
-                                    isSubscribed || isCurrentlySubscribing
-                                    ? "bg-green-500/20 text-green-300"
-                                    : "bg-blue-600/80 hover:bg-blue-700 text-white"
-                                } transition-all duration-200 whitespace-nowrap ${
-                                    isCurrentlySubscribing ? "animate-pulse" : ""
-                                }`}
-                                onClick={() =>
-                                    !isSubscribed &&
-                                    !isCurrentlySubscribing &&
-                                    onSubscribe(agent.handle)
-                                }
-                                disabled={isSubscribed || isCurrentlySubscribing}
-                                >
-                                {isCurrentlySubscribing ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : isSubscribed ? (
-                                    <>
-                                        <FaCrown size={12} className="mr-1.5 flex-shrink-0"/>
-                                        <span>Subscribed</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <FaCrown size={12} className="mr-1.5 flex-shrink-0"/>
-                                        <span>Subscribe</span>
-                                    </>
-                                )}
-                                </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+        <div className="mt-8">
+          <h3 className="text-lg font-semibold text-gray-300 mb-4 flex items-center">
+            <ArrowUpDown size={16} className="mr-2 text-blue-400/70" />
+            Other Analysts
+            {sortField !== "impactFactor" && (
+              <span className="text-sm ml-2 font-extralight text-cyan-300">
+                (sorted by {sortField})
+              </span>
             )}
+          </h3>
+
+          {/* Header Row - Middle Section Grows */}
+          <div className="px-4 py-2 flex items-center gap-3 md:gap-4 text-xs text-gray-300 border-b border-gray-800/50 mb-2">
+            {/* Left: Rank + Name Header */}
+            <div className="flex items-center flex-shrink-0 w-[30%] sm:w-[25%] md:w-[240px]">
+              {" "}
+              {/* Keep similar width */}
+              <span className="w-6 text-center mr-3 flex-shrink-0">#</span>
+              <span className="flex-grow truncate pr-1">Analyst</span>
+            </div>
+
+            {/* Middle: Inline UMD Metrics Header (Takes Remaining Space) */}
+            <div className="flex items-center justify-between gap-2 md:gap-4 flex-grow min-w-0 px-1">
+              {" "}
+              {/* ADDED flex-grow, min-w-0 */}
+              <span className="w-1/3 text-center truncate">Herded/Hidden</span>
+              <span className="w-1/3 text-center truncate">
+                Conviction/Hype
+              </span>
+              <span className="w-1/3 text-center truncate">Meme/Inst.</span>
+            </div>
+
+            {/* Right: Original Metrics + Actions Header (Defined Width Again) */}
+            <div className="flex items-center justify-end gap-2 md:gap-3 flex-shrink-0 w-auto sm:w-[300px] md:w-[385px]">
+              {" "}
+              {/* REMOVED flex-grow, Adjusted width slightly */}
+              {/* --- Widths adjusted for content --- */}
+              <span className="w-16 text-right hidden sm:inline-block">
+                Mindshare
+              </span>
+              <span className="w-20 text-right hidden lg:inline-block">
+                Followers
+              </span>
+              <span className="w-14 text-right">Impact</span>
+              <span className="w-8 text-center">View</span>
+              <span className="w-24 text-center">Subscribe</span>
+            </div>
+          </div>
+          {/* End Header Row */}
+
+          <div className="space-y-2">
+            {remainingAgents.map((agent, index) => {
+              const rank =
+                sortedAgents.findIndex((a) => a.handle === agent.handle) + 1;
+              const cleanHandle = agent.handle.replace("@", "");
+              const isSubscribed = subscribedHandles.includes(cleanHandle);
+              const isCurrentlySubscribing = subscribingHandle === cleanHandle;
+
+              return (
+                <div
+                  key={agent.handle}
+                  className="impact-card list-item relative bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-lg overflow-hidden transition-all hover:bg-cyan-950 duration-200"
+                >
+                  {/* Main Row Container - Matching Header Flex Structure */}
+                  <div className="px-4 py-2 flex items-center gap-3 md:gap-4">
+                    {/* Left side: Rank + Profile + Name */}
+                    <div className="flex items-center flex-shrink-0 w-[30%] sm:w-[25%] md:w-[240px]">
+                      {" "}
+                      {/* Match header width */}
+                      {/* Rank, Profile Pic, Name/Handle... (content unchanged) */}
+                      <div className="w-6 flex items-center justify-center rounded-full bg-gray-800/70 text-gray-400 text-xs font-medium mr-3 flex-shrink-0">
+                        {rank}
+                      </div>
+                      {agent.handle && (
+                        <div className="relative w-8 h-8 mr-3 flex-shrink-0">
+                          <img
+                            src={
+                              agent.profileUrl?.trim().length > 0
+                                ? agent.profileUrl
+                                : `https://picsum.photos/seed/${encodeURIComponent(
+                                    agent.handle
+                                  )}/40/40`
+                            }
+                            alt={agent.name}
+                            className="w-full h-full object-cover rounded-full border border-gray-700/50"
+                          />
+                          {agent.verified && (
+                            <div className="absolute -bottom-0.5 -right-0.5 bg-blue-500 rounded-full p-0.5 border border-gray-900">
+                              <FaCheck className="w-1 h-1 text-white" />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      <div className="flex-grow overflow-hidden">
+                        <h4 className="text-sm font-medium text-white truncate">
+                          {agent.name}
+                        </h4>
+                        <p className="text-xs text-gray-500 truncate">
+                          {agent.handle}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Middle: Inline UMD Metrics (Takes Remaining Space) */}
+                    <div className="flex items-center justify-between gap-2 md:gap-4 flex-grow min-w-0 px-1">
+                      {" "}
+                      {/* ADDED flex-grow, min-w-0 */}
+                      {/* Herded vs Hidden */}
+                      <div className="w-1/3 text-center">
+                        {" "}
+                        {/* Use fractional width */}
+                        {renderMetricIndicator(
+                          agent.herdedVsHidden || 0,
+                          "bg-red-400",
+                          "bg-cyan-400"
+                        )}
+                      </div>
+                      {/* Conviction vs Hype */}
+                      <div className="w-1/3 text-center">
+                        {renderMetricIndicator(
+                          agent.convictionVsHype || 0,
+                          "bg-green-500",
+                          "bg-rose-500"
+                        )}
+                      </div>
+                      {/* Meme vs Institutional */}
+                      <div className="w-1/3 text-center">
+                        {renderMetricIndicator(
+                          agent.memeVsInstitutional || 0,
+                          "bg-yellow-300",
+                          "bg-gray-100"
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right side: Original Metrics + Actions (Defined Width Again) */}
+                    <div className="flex items-center justify-end gap-2 md:gap-3 flex-shrink-0 w-auto sm:w-[300px] md:w-[385px]">
+                      {" "}
+                      {/* REMOVED flex-grow, Matched header width */}
+                      {/* Mindshare */}
+                      <div className="w-16 text-right hidden sm:inline-block">
+                        {" "}
+                        {/* Match header width */}
+                        {agent.mindshare > 0 ? (
+                          <p className="text-blue-400 text-sm font-medium">
+                            {agent.mindshare != null
+                              ? `${agent.mindshare.toFixed(2)}%`
+                              : "--"}
+                          </p>
+                        ) : (
+                          <span className="text-sm text-[#5DA1F3]">--</span>
+                        )}
+                      </div>
+                      {/* Followers */}
+                      <div className="w-20 text-right hidden lg:inline-block">
+                        {" "}
+                        {/* Match header width */}
+                        {agent.followers > 0 ? (
+                          <p className="text-gray-300 text-sm">
+                            {agent.followers != null
+                              ? agent.followers.toLocaleString()
+                              : "--"}
+                          </p>
+                        ) : (
+                          <span className="text-sm text-gray-100">--</span>
+                        )}
+                      </div>
+                      {/* Impact */}
+                      <div className="w-14 text-right">
+                        {" "}
+                        {/* Match header width */}
+                        <p className="text-blue-400 text-sm font-medium">
+                          {agent.impactFactor ?? "--"}
+                        </p>
+                      </div>
+                      {/* View Profile Link */}
+                      <div className="w-8 flex justify-center">
+                        {" "}
+                        {/* Match header width */}
+                        <Link
+                          href={`https://x.com/${cleanHandle}`}
+                          target="_blank"
+                          className="p-1.5 rounded text-gray-400 hover:text-blue-300 hover:bg-gray-700/50 transition-colors"
+                          title="View Profile"
+                        >
+                          <FaExternalLinkAlt className="w-3 h-3" />
+                        </Link>
+                      </div>
+                      {/* Subscribe Button */}
+                      <div className="w-24 flex justify-center">
+                        {" "}
+                        {/* Match header width */}
+                        <button
+                          className={`flex items-center justify-center px-2 py-1.5 rounded-md text-xs w-full ${
+                            isSubscribed || isCurrentlySubscribing
+                              ? "bg-green-500/20 text-green-300"
+                              : "bg-blue-600/80 hover:bg-blue-700 text-white"
+                          } transition-all duration-200 whitespace-nowrap ${
+                            isCurrentlySubscribing ? "animate-pulse" : ""
+                          }`}
+                          onClick={() =>
+                            !isSubscribed &&
+                            !isCurrentlySubscribing &&
+                            onSubscribe(agent.handle)
+                          }
+                          disabled={isSubscribed || isCurrentlySubscribing}
+                        >
+                          {isCurrentlySubscribing ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : isSubscribed ? (
+                            <>
+                              <FaCrown
+                                size={12}
+                                className="mr-1.5 flex-shrink-0"
+                              />
+                              <span>Subscribed</span>
+                            </>
+                          ) : (
+                            <>
+                              <FaCrown
+                                size={12}
+                                className="mr-1.5 flex-shrink-0"
+                              />
+                              <span>Subscribe</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Empty state (if no agents after filtering/loading) */}
       {sortedAgents.length === 0 && !searchText && !loading && (
@@ -1144,26 +1207,26 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
       )}
 
       {/* Tooltip for AI metrics */}
-      {showTooltip && (
-        <div
-          className="fixed z-50 bg-gray-800 rounded-md shadow-lg p-2 text-xs text-white max-w-[200px]"
-          style={{
-            left: `${tooltipPosition.x + 10}px`,
-            top: `${tooltipPosition.y - 10}px`,
-            transform: "translateY(-100%)", // Position above cursor
-          }}
-        >
-          <p className="font-medium">AI-Powered Metric</p>
-          <p className="text-gray-300 text-[10px] mt-1">
-            {showTooltip === "herdedVsHidden" &&
-              "Analyzes whether content follows crowd sentiment or provides contrarian views."}
-            {showTooltip === "convictionVsHype" &&
-              "Measures genuine belief versus promotional content based on language patterns."}
-            {showTooltip === "memeVsInstitutional" &&
-              "Evaluates content tone from casual/humorous to formal/institutional."}
-          </p>
-        </div>
-      )}
+        {/* {showTooltip && (
+          <div
+            className="fixed z-50 bg-gray-800 rounded-md shadow-lg p-2 text-xs text-white max-w-[200px]"
+            style={{
+              left: `${tooltipPosition.x + 10}px`,
+              top: `${tooltipPosition.y - 10}px`,
+              transform: "translateY(-100%)", // Position above cursor
+            }}
+          >
+            <p className="font-medium">AI-Powered Metric</p>
+            <p className="text-gray-300 text-[10px] mt-1">
+              {showTooltip === "herdedVsHidden" &&
+                "Analyzes whether content follows crowd sentiment or provides contrarian views."}
+              {showTooltip === "convictionVsHype" &&
+                "Measures genuine belief versus promotional content based on language patterns."}
+              {showTooltip === "memeVsInstitutional" &&
+                "Evaluates content tone from casual/humorous to formal/institutional."}
+            </p>
+          </div>
+        )} */}
     </div> // Closing main container div
   );
 };

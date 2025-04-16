@@ -100,6 +100,7 @@ const HomePage: React.FC = () => {
         setSubscribedHandles((prev) => [...prev, cleanHandle]);
         toast.success("Successfully subscribed to influencer!", {
           position: "top-center",
+          autoClose: 3000,
         });
         await updateCredits();
       } catch (error) {
@@ -175,10 +176,10 @@ const HomePage: React.FC = () => {
     <div className="flex flex-col min-h-screen bg-[#020617]">
       <Header searchText={searchText} setSearchText={setSearchText} />
 
-      {/* <div className="px-6 py-8">
+      <div className="px-6 py-8">
         <TopInfluencersGraph />
-        <ShareButton />
-      </div> */}
+        {/* <ShareButton /> */}
+      </div>
 
       <main className="flex-grow px-6 py-6 max-w-6xl mx-auto w-full">
         {/* Analytics Dashboard Header */}
