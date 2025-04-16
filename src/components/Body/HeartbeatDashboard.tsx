@@ -64,9 +64,9 @@ interface HeartbeatAgentBase {
   handle: string;
   heartbeat?: number; // Primary metric for this dashboard
   // Add any other metrics provided by useHeartbeatData if needed for top 3 cards
-  precision?: number;
-  performance?: number;
-  reliability?: number;
+  beat?: number;
+  signals?: number;
+  mindshare?: number;
 }
 
 // Combined interface for merged data
@@ -125,7 +125,11 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showStats, setShowStats] = useState<Record<string, boolean>>({}); // For Top 3 cards
   const [showTooltip, setShowTooltip] = useState<string | null>(null);
-  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [tooltipCoords, setTooltipCoords] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
+  // const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [umdUsers, setUmdUsers] = useState<UserResponse[]>([]);
   const [enhancedAgents, setEnhancedAgents] = useState<
     EnhancedHeartbeatAgent[]
@@ -134,6 +138,9 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
   // *** Default sort field changed ***
   const [sortField, setSortField] = useState<SortField>("heartbeat");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [hoveredIconRef, setHoveredIconRef] = useState<EventTarget | null>(
+    null
+  );
 
   // --- Helper Functions (Copied, potentially adjust getRandomStat if needed) ---
 
@@ -144,15 +151,36 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
       .reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const baseValue = (seed % 30) + 50;
     switch (type) {
-      case "precision":
+      case "beat":
         return (baseValue + 5) % 100;
-      case "performance":
+      case "signals":
         return (baseValue + 10) % 100;
-      case "reliability":
+      case "mindshare":
         return (baseValue + 15) % 100;
       default:
         return baseValue;
     }
+  };
+
+  // --- Tooltip Handlers ---
+  const handleTooltipEnter = (
+    event: React.MouseEvent<SVGElement>,
+    tooltipId: string
+  ) => {
+    const iconElement = event.currentTarget;
+    const rect = iconElement.getBoundingClientRect();
+
+    // Calculate position relative to the document, not just viewport
+    const top = rect.top + window.scrollY;
+    const left = rect.left + window.scrollX + rect.width / 2; // Center horizontally
+
+    setTooltipCoords({ top, left });
+    setShowTooltip(tooltipId);
+  };
+
+  const handleTooltipLeave = () => {
+    setShowTooltip(null);
+    setTooltipCoords(null);
   };
 
   const toggleStats = (handle: string) => {
@@ -271,12 +299,6 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
           ".top-card",
           { y: 30, opacity: 0, scale: 0.95 },
           { y: 0, opacity: 1, scale: 1, duration: 0.7, stagger: 0.15 }
-        );
-        tl.fromTo(
-          ".progress-bar-fill",
-          { width: 0 },
-          { width: "100%", duration: 0.8, stagger: 0.05 },
-          "-=0.5"
         );
         tl.fromTo(
           ".list-item",
@@ -562,12 +584,11 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
           const isCurrentlySubscribing = subscribingHandle === cleanHandle;
 
           // Use actual heartbeat stats if available, else fallback to random
-          const precision =
-            agent.precision ?? getRandomStat(agent.handle, "precision");
-          const performance =
-            agent.performance ?? getRandomStat(agent.handle, "performance");
-          const reliability =
-            agent.reliability ?? getRandomStat(agent.handle, "reliability");
+          const beat = agent.beat ?? getRandomStat(agent.handle, "beat");
+          const signals =
+            agent.signals ?? getRandomStat(agent.handle, "signals");
+          const mindshare =
+            agent.mindshare ?? getRandomStat(agent.handle, "mindshare");
 
           return (
             <div
@@ -610,12 +631,18 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                         Rank #{rank}
                       </span>
                       <div className="flex items-center gap-2 mb-1">
-                        {agent.profileUrl && (
+                        {agent.handle && (
                           <div className="relative w-6 h-6">
                             {" "}
                             {/* ... img + checkmark ... */}
                             <img
-                              src={agent.profileUrl || "/placeholder.svg"}
+                              src={
+                                agent.profileUrl?.trim().length > 0
+                                  ? agent.profileUrl
+                                  : `https://picsum.photos/seed/${encodeURIComponent(
+                                      agent.handle
+                                    )}/40/40`
+                              }
                               alt={agent.name}
                               className="w-full h-full object-cover rounded-full border border-gray-700/50"
                             />
@@ -656,46 +683,49 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                 </div>
 
                 {/* Mindshare & Followers (Identical) */}
-                {agent.mindshare > 0 /* ... identical JSX ... */ && (
+                {agent.mindshare >= 0 && (
                   <div className="flex justify-center gap-4 mb-4">
                     <div className="text-center">
                       <p className="text-blue-400 text-lg font-bold">
-                        {agent.mindshare?.toFixed(1)}%
+                        {agent.mindshare > 0
+                          ? `${agent.mindshare.toFixed(2)}%`
+                          : "--"}
                       </p>
                       <p className="text-xs text-gray-500">Mindshare</p>
                     </div>
                     <div className="text-center">
                       <p className="text-gray-200 text-lg font-medium">
-                        {agent.followers?.toLocaleString()}
+                        {agent.mindshare > 0
+                          ? agent.followers?.toLocaleString()
+                          : "--"}
                       </p>
                       <p className="text-xs text-gray-500">Followers</p>
                     </div>
                   </div>
                 )}
-                {/* View Profile Link (Identical) */}
-                {agent.profileUrl /* ... identical JSX ... */ && (
-                  <div className="mb-3 text-center">
-                    <Link
-                      // href={`https://x.com/${cleanHandle}`}
-                      href={`/influencer/${cleanHandle}`}
-                      // target="_blank"
-                      className="inline-flex items-center gap-1 text-blue-400 text-xs hover:text-blue-300 transition-colors"
-                    >
-                      View Profile <FaExternalLinkAlt className="text-[10px]" />
-                    </Link>
-                  </div>
-                )}
+
+                <div className="mb-3 text-center">
+                  <Link
+                    href={`/influencer/${cleanHandle}`}
+                    // href={`https://x.com/${cleanHandle}`}
+                    // target="_blank"
+                    className="inline-flex items-center gap-1 text-blue-400 text-xs hover:text-blue-300 transition-colors"
+                  >
+                    View Profile <FaExternalLinkAlt className="text-[10px]" />
+                  </Link>
+                </div>
 
                 {/* Expandable Section for Stats (Identical Structure - uses random/placeholder stats) */}
                 <div
-                  className={`transition-all duration-300 overflow-hidden ${showStats[agent.handle]
-                    ? "max-h-64 opacity-100 mb-4"
-                    : "max-h-0 opacity-0"
-                    }`}
+                  className={`transition-all duration-300 overflow-hidden ${
+                    showStats[agent.handle]
+                      ? "max-h-[500px] opacity-100 mb-4"
+                      : "max-h-0 opacity-0"
+                  }`}
                 >
-                  {/* Display Precision, Performance, Reliability - Identical structure */}
+                  {/* Display beat, signals, mindshare - Identical structure */}
                   <div className="grid grid-cols-3 gap-2 mb-3">
-                    {/* ... Precision div ... */}
+                    {/* ... beat div ... */}
                     <div className="flex flex-col items-center justify-center bg-blue-900/20 rounded-lg p-2.5 border border-blue-700/20">
                       <div className="relative mb-1">
                         <Shield className="h-4 w-4 text-blue-400" />
@@ -704,31 +734,29 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                           style={{ animationDuration: "3s" }}
                         ></div>
                       </div>
-                      <span className="text-xs text-blue-400 mb-0.5">
-                        Precision
-                      </span>{" "}
+                      <span className="text-xs text-blue-400 mb-0.5">Beat</span>{" "}
                       <span className="text-xs font-semibold text-white">
-                        {precision}%
+                        {beat}%
                       </span>
                     </div>
-                    {/* ... Performance div ... */}
+                    {/* ... signals div ... */}
                     <div className="flex flex-col items-center justify-center bg-cyan-900/20 rounded-lg p-2.5 border border-cyan-700/20">
                       <TrendingUp className="h-4 w-4 text-cyan-400 mb-1" />{" "}
                       <span className="text-xs text-cyan-400 mb-0.5">
-                        Performance
+                        Signals
                       </span>{" "}
                       <span className="text-xs font-semibold text-white">
-                        {performance}%
+                        {signals}%
                       </span>
                     </div>
-                    {/* ... Reliability div ... */}
+                    {/* ... mindshare div ... */}
                     <div className="flex flex-col items-center justify-center bg-blue-800/20 rounded-lg p-2.5 border border-blue-700/20">
                       <BarChart2 className="h-4 w-4 text-blue-300 mb-1" />{" "}
                       <span className="text-xs text-blue-300 mb-0.5">
-                        Reliability
+                        Mindshare
                       </span>{" "}
                       <span className="text-xs font-semibold text-white">
-                        {reliability}%
+                        {mindshare}%
                       </span>
                     </div>
                   </div>
@@ -750,7 +778,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                         <div
                           className="absolute rounded-full w-2 h-2 bg-blue-400"
                           style={{
-                            top: `${(100 - precision) / 2}%`,
+                            top: `${(100 - beat) / 2}%`,
                             left: "50%",
                             transform: "translate(-50%, -50%)",
                             boxShadow: "0 0 5px rgba(96, 165, 250, 0.7)",
@@ -760,7 +788,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                           className="absolute rounded-full w-2 h-2 bg-cyan-400"
                           style={{
                             top: "50%",
-                            left: `${performance / 2}%`,
+                            left: `${signals / 2}%`,
                             transform: "translate(-50%, -50%)",
                             boxShadow: "0 0 5px rgba(34, 211, 238, 0.7)",
                           }}
@@ -768,7 +796,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                         <div
                           className="absolute rounded-full w-2 h-2 bg-blue-300"
                           style={{
-                            bottom: `${(100 - reliability) / 2}%`,
+                            bottom: `${(100 - mindshare) / 2}%`,
                             left: "50%",
                             transform: "translate(-50%, 50%)",
                             boxShadow: "0 0 5px rgba(147, 197, 253, 0.7)",
@@ -788,9 +816,11 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                         <svg className="absolute inset-0 w-full h-full">
                           {" "}
                           <polygon
-                            points={`50,${(100 - precision) / 2} ${performance / 2
-                              },50 50,${100 - (100 - reliability) / 2} ${100 - (100 - (agent.heartbeat || 0))
-                              },50`}
+                            points={`50,${(100 - beat) / 2} ${
+                              signals / 2
+                            },50 50,${100 - (100 - mindshare) / 2} ${
+                              100 - (100 - (agent.heartbeat || 0))
+                            },50`}
                             fill="rgba(239, 68, 68, 0.2)"
                             stroke="rgba(239, 68, 68, 0.6)"
                             strokeWidth="1"
@@ -809,88 +839,79 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                       {/* ... Herded/Hidden JSX ... */}
                       <div className="flex justify-between items-center mb-1">
                         <div className="flex items-center gap-1">
-                          <span className="text-xs text-teal-400">Herded</span>
-                          <span className="text-xs text-gray-500">vs</span>
-                          <span className="text-xs text-blue-400">Hidden</span>
+                          <span className="text-xs text-red-400">Herded</span>
+                          <span className="text-xs text-gray-300">vs</span>
+                          <span className="text-xs text-cyan-400">Hidden</span>
                         </div>
                         <div className="relative">
                           <FaRobot
                             className="text-gray-500 hover:text-blue-400 text-xs cursor-help"
-                            onMouseEnter={(e) => {
-                              setTooltipPosition({
-                                x: e.clientX,
-                                y: e.clientY,
-                              });
-                              setShowTooltip("herdedVsHidden");
-                            }}
-                            onMouseLeave={() => setShowTooltip(null)}
+                            // --- MODIFIED ---
+                            onMouseEnter={(e) =>
+                              handleTooltipEnter(e, "herdedVsHidden")
+                            }
+                            onMouseLeave={handleTooltipLeave}
                           />
                         </div>
                       </div>
                       {renderMetricIndicator(
                         agent.herdedVsHidden || 0,
-                        "bg-teal-400",
-                        "bg-blue-500"
+                        "bg-red-400",
+                        "bg-cyan-400"
                       )}
                     </div>
                     <div>
                       {/* ... Conviction/Hype JSX ... */}
                       <div className="flex justify-between items-center mb-1">
                         <div className="flex items-center gap-1">
-                          <span className="text-xs text-amber-400">
+                          <span className="text-xs text-green-400">
                             Conviction
                           </span>
-                          <span className="text-xs text-gray-500">vs</span>
-                          <span className="text-xs text-purple-400">Hype</span>
+                          <span className="text-xs text-gray-300">vs</span>
+                          <span className="text-xs text-rose-400">Hype</span>
                         </div>
                         <div className="relative">
                           <FaRobot
                             className="text-gray-500 hover:text-blue-400 text-xs cursor-help"
-                            onMouseEnter={(e) => {
-                              setTooltipPosition({
-                                x: e.clientX,
-                                y: e.clientY,
-                              });
-                              setShowTooltip("convictionVsHype");
-                            }}
-                            onMouseLeave={() => setShowTooltip(null)}
+                            // --- MODIFIED ---
+                            onMouseEnter={(e) =>
+                              handleTooltipEnter(e, "convictionVsHype")
+                            }
+                            onMouseLeave={handleTooltipLeave}
                           />
                         </div>
                       </div>
                       {renderMetricIndicator(
                         agent.convictionVsHype || 0,
-                        "bg-amber-500",
-                        "bg-purple-500"
+                        "bg-green-500",
+                        "bg-rose-500"
                       )}
                     </div>
                     <div>
                       {/* ... Meme/Institutional JSX ... */}
                       <div className="flex justify-between items-center mb-1">
                         <div className="flex items-center gap-1">
-                          <span className="text-xs text-cyan-400">Meme</span>
-                          <span className="text-xs text-gray-500">vs</span>
-                          <span className="text-xs text-cyan-400">
+                          <span className="text-xs text-yellow-300">Meme</span>
+                          <span className="text-xs text-gray-300">vs</span>
+                          <span className="text-xs text-gray-100">
                             Institutional
                           </span>
                         </div>
                         <div className="relative">
                           <FaRobot
                             className="text-gray-500 hover:text-blue-400 text-xs cursor-help"
-                            onMouseEnter={(e) => {
-                              setTooltipPosition({
-                                x: e.clientX,
-                                y: e.clientY,
-                              });
-                              setShowTooltip("memeVsInstitutional");
-                            }}
-                            onMouseLeave={() => setShowTooltip(null)}
+                            // --- MODIFIED ---
+                            onMouseEnter={(e) =>
+                              handleTooltipEnter(e, "memeVsInstitutional")
+                            }
+                            onMouseLeave={handleTooltipLeave}
                           />
                         </div>
                       </div>
                       {renderMetricIndicator(
                         agent.memeVsInstitutional || 0,
-                        "bg-cyan-400",
-                        "bg-cyan-500"
+                        "bg-yellow-300",
+                        "bg-gray-100"
                       )}
                     </div>
                   </div>
@@ -962,7 +983,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
             <ArrowUpDown size={16} className="mr-2 text-blue-400/70" />
             Other Analysts
             {sortField !== "heartbeat" && (
-              <span className="text-xs ml-2 text-gray-500">
+              <span className="text-sm ml-2 font-extralight text-pink-300">
                 (sorted by {sortField})
               </span>
             )}
@@ -1021,11 +1042,17 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                       <div className="w-6 flex items-center justify-center rounded-full bg-gray-800/70 text-gray-400 text-xs font-medium mr-3 flex-shrink-0">
                         {rank}
                       </div>
-                      {agent.profileUrl && (
+                      {agent.handle && (
                         <div className="relative w-8 h-8 mr-3 flex-shrink-0">
                           {/* ... img + check ... */}
                           <img
-                            src={agent.profileUrl || "/placeholder.svg"}
+                            src={
+                              agent.profileUrl?.trim().length > 0
+                                ? agent.profileUrl
+                                : `https://picsum.photos/seed/${encodeURIComponent(
+                                    agent.handle
+                                  )}/40/40`
+                            }
                             alt={agent.name}
                             className="w-full h-full object-cover rounded-full border border-gray-700/50"
                           />
@@ -1052,22 +1079,22 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                       <div className="w-1/3 text-center">
                         {renderMetricIndicator(
                           agent.herdedVsHidden || 0,
-                          "bg-teal-400",
-                          "bg-blue-500"
+                          "bg-red-400",
+                          "bg-cyan-400"
                         )}
                       </div>
                       <div className="w-1/3 text-center">
                         {renderMetricIndicator(
                           agent.convictionVsHype || 0,
-                          "bg-amber-500",
-                          "bg-purple-500"
+                          "bg-green-500",
+                          "bg-rose-500"
                         )}
                       </div>
                       <div className="w-1/3 text-center">
                         {renderMetricIndicator(
                           agent.memeVsInstitutional || 0,
-                          "bg-cyan-400",
-                          "bg-cyan-500"
+                          "bg-yellow-300",
+                          "bg-gray-100"
                         )}
                       </div>
                     </div>
@@ -1079,10 +1106,10 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                       <div className="w-16 text-right hidden sm:inline-block">
                         {agent.mindshare > 0 ? (
                           <p className="text-blue-400 text-sm font-medium">
-                            {agent.mindshare?.toFixed(1)}%
+                            {agent.mindshare?.toFixed(2)}%
                           </p>
                         ) : (
-                          <span className="text-sm text-gray-600">--</span>
+                          <span className="text-sm text-[#5DA1F3]">--</span>
                         )}
                       </div>
                       {/* Followers (Identical) */}
@@ -1092,7 +1119,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                             {agent.followers?.toLocaleString()}
                           </p>
                         ) : (
-                          <span className="text-sm text-gray-600">--</span>
+                          <span className="text-sm text-gray-100">--</span>
                         )}
                       </div>
                       {/* *** Heartbeat Score *** */}
@@ -1183,17 +1210,24 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
           {/* Adjusted text */}
         </div>
       )}
-      {/* Tooltip (Identical) */}
-      {showTooltip /* ... identical JSX ... */ && (
+      {/* Tooltip */}
+      {/* --- MODIFIED --- Check for tooltipCoords as well */}
+      {/* {showTooltip && tooltipCoords && (
         <div
-          className="fixed z-50 bg-gray-800 rounded-md shadow-lg p-2 text-xs text-white max-w-[200px]"
+          className="fixed z-50 bg-gray-800 rounded-md shadow-lg p-2 text-xs text-white max-w-[200px] pointer-events-none" // Added pointer-events-none
           style={{
-            left: `${tooltipPosition.x + 10}px`,
-            top: `${tooltipPosition.y - 10}px`,
-            transform: "translateY(-100%)",
+            // --- MODIFIED --- Use stored coordinates
+            top: `${tooltipCoords.top}px`,
+            left: `${tooltipCoords.left}px`,
+            // Transform to position correctly relative to the calculated point
+            // -50% X centers it horizontally
+            // -100% Y moves it above the point
+            // -4px Y adds a small gap
+            transform: "translate(-50%, -100%) translateY(-4px)",
+            // --- END MODIFIED ---
           }}
         >
-          <p className="font-medium">AI-Poweblue Metric</p>
+          <p className="font-medium">AI-Powered Metric</p>
           <p className="text-gray-300 text-[10px] mt-1">
             {showTooltip === "herdedVsHidden" &&
               "Analyzes whether content follows crowd sentiment or provides contrarian views."}
@@ -1203,7 +1237,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
               "Evaluates content tone from casual/humorous to formal/institutional."}
           </p>
         </div>
-      )}
+      )} */}
     </div> // Closing main container div
   );
 };

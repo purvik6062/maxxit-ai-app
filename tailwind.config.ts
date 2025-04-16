@@ -27,6 +27,9 @@ export default {
         'slow-flip': 'slowFlip 5s ease-in-out infinite',
         'bounce-subtle': 'bounceSubtle 1s ease-in-out infinite',
         'fire-glow': 'fireGlow 0.8s ease-in-out',
+        'pulse-particles': 'pulse-particles 6s ease-in-out infinite',
+        'drift': 'drift 20s linear infinite',
+        'pulse-drift': 'pulse-particles 6s ease-in-out infinite, drift 20s linear infinite',
       },
       keyframes: {
         pulseLeftToRight: {
@@ -69,6 +72,28 @@ export default {
           '100%': {
             boxShadow:
               '0 0 0px rgba(0,255,255,0), 0 0 0px rgba(0,255,255,0), 0 0 0px rgba(0,255,255,0)',
+          },
+        },
+        'pulse-particles': {
+          '0%': {
+            filter: 'blur(1px) brightness(1.4)',
+            opacity: '0.4',
+          },
+          '50%': {
+            filter: 'blur(2px) brightness(2.2)',
+            opacity: '0.7',
+          },
+          '100%': {
+            filter: 'blur(1px) brightness(1.4)',
+            opacity: '0.4',
+          },
+        },
+        drift: {
+          '0%': {
+            backgroundPosition: '0 0',
+          },
+          '100%': {
+            backgroundPosition: '60px 60px',
           },
         },
       }

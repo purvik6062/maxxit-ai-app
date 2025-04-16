@@ -1,8 +1,36 @@
-// app/api/add-influencer/route.ts
 import { NextResponse } from "next/server";
 import dbConnect from "src/utils/dbConnect";
 
 const SUBSCRIPTION_COST = 30;
+const TWEETSCOUT_API_KEY = process.env.TWEETSCOUT_API_KEY;
+
+if (!TWEETSCOUT_API_KEY) {
+  throw new Error("TWEETSCOUT_API_KEY is not set in environment variables");
+}
+
+// Function to calculate mindshare based on weighted metrics
+function calculateMindshare(
+  followers_count: number,
+  following_count: number,
+  tweet_count: number,
+  verified: boolean
+): number {
+  // Normalize metrics (assuming reasonable max values)
+  const normFollowers = Math.min(followers_count / 1000000, 1); // Max 1M followers
+  const normFollowing = Math.min(following_count / 10000, 1); // Max 10K following
+  const normTweets = Math.min(tweet_count / 100000, 1); // Max 100K tweets
+  const verifiedWeight = verified ? 1.5 : 1; // 50% bonus if verified
+
+  // Weighted sum (adjust weights as needed)
+  const weights = { followers: 0.5, following: 0.2, tweets: 0.3 };
+  const mindshare =
+    (weights.followers * normFollowers +
+      weights.following * normFollowing +
+      weights.tweets * normTweets) *
+    verifiedWeight;
+
+  return Math.min(1, parseFloat(mindshare.toFixed(2))); // Cap at 1, round to 2 decimals
+}
 
 export async function POST(request: Request) {
   try {
@@ -33,8 +61,15 @@ export async function POST(request: Request) {
     const client = await dbConnect();
     const db = client.db("ctxbt-signal-flow");
     const usersCollection = db.collection("users");
-    const collection = db.collection("influencers_account");
+    const influencersAccountCollection = db.collection("influencers_account");
     const influencersCollection = db.collection("influencers");
+
+    if (
+      !(await db.listCollections({ name: "influencer_tweetscout_data" }).hasNext())
+    ) {
+      await db.createCollection("influencer_tweetscout_data");
+    }
+    const influencerRawDataCollection = db.collection("influencer_tweetscout_data");
 
     // Create new influencer in influencers_account collection
     const newInfluencer = {
@@ -45,10 +80,51 @@ export async function POST(request: Request) {
       createdAt: new Date(createdAt),
     };
 
-    await collection.insertOne(newInfluencer);
+    await influencersAccountCollection.insertOne(newInfluencer);
 
     // If twitterId is provided, process subscription
     if (twitterId) {
+      // 1️⃣  Check once if influencer already exists
+      const existingInfluencer = await influencersCollection.findOne({
+        twitterHandle: cleanHandle,
+      });
+      
+      // Fetch data from TweetScout API outside the transaction
+      let apiData: any;
+      if (!existingInfluencer) {
+        try {
+          const url = `https://api.tweetscout.io/v2/info/${cleanHandle}`;
+          const options = {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+              ApiKey: TWEETSCOUT_API_KEY,
+            },
+          };
+
+          const response = await fetch(url, options);
+          if (!response.ok) {
+            throw new Error(
+              `API request failed with status ${response.status}`
+            );
+          }
+          apiData = await response.json();
+          console.log("got data from tweetscout");
+        } catch (error) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: {
+                message: `Failed to fetch influencer data: ${
+                  error instanceof Error ? error.message : "Unknown error"
+                }`,
+              },
+            },
+            { status: 500 }
+          );
+        }
+      }
+
       // Start a session for transaction
       const session = client.startSession();
 
@@ -67,7 +143,7 @@ export async function POST(request: Request) {
             throw new Error("Insufficient credits");
           }
 
-          // Get user's telegram ID and clean it (remove @ if exists)
+          // Get user's telegram ID and clean it
           const cleanTelegramId = user?.telegramId.replace("@", "");
 
           // Check if user is already subscribed (case-insensitive)
@@ -80,11 +156,6 @@ export async function POST(request: Request) {
             throw new Error("Already subscribed to this influencer");
           }
 
-          // 2. Check if influencer exists
-          const existingInfluencer = await influencersCollection.findOne({
-            twitterHandle: cleanHandle,
-          });
-
           if (existingInfluencer) {
             // Update existing influencer
             await influencersCollection.updateOne(
@@ -96,38 +167,72 @@ export async function POST(request: Request) {
               { session }
             );
           } else {
-            // Generate random metrics with safe number generation
+            // Store raw data in influencer_tweetscout_data collection
+            await influencerRawDataCollection.insertOne(
+              {
+                twitterHandle: cleanHandle,
+                rawData: apiData,
+                fetchedAt: new Date(),
+              },
+              { session }
+            );
+
+            console.log("data stored in raw DB");
+
+            // Fetch the stored data from the database
+            const storedData = await influencerRawDataCollection.findOne(
+              { twitterHandle: cleanHandle },
+              { session } // Include session here
+            );
+
+            if (!storedData) {
+              throw new Error("Failed to retrieve stored influencer data");
+            }
+
+            const {
+              id: userId,
+              screen_name: username,
+              verified,
+              followers_count,
+              friends_count: following_count,
+              tweets_count: tweet_count,
+              avatar: userProfileUrl,
+            } = storedData.rawData;
+
+            // Prepare publicMetrics
             const publicMetrics = {
-              followers_count: Math.floor(Math.random() * 100000), // Random followers between 0-100k
-              following_count: Math.floor(Math.random() * 1000), // Random following between 0-1000
-              tweet_count: Math.floor(Math.random() * 5000), // Random tweet count between 0-5000
-              listed_count: Math.floor(Math.random() * 50), // Random listed count
-              like_count: Math.floor(Math.random() * 10000), // Random likes
-              media_count: Math.floor(Math.random() * 1000), // Random media count
+              followers_count,
+              following_count,
+              tweet_count,
             };
 
-            // Generate a safe profile image URL with constrained number
-            const randomImageId = Math.floor(Math.random() * 1000).toString();
-            const userProfileUrl = `https://picsum.photos/50/50?random=${randomImageId}`;
+            // Calculate mindshare
+            const mindshare = calculateMindshare(
+              followers_count,
+              following_count,
+              tweet_count,
+              verified
+            );
 
-            // Create user data object with safe user ID
+            // Create userData object
             const userData = {
-              userId: Math.floor(Math.random() * 1000000000000).toString(), // Smaller, safe number
-              username: cleanHandle,
-              verified: false,
+              userId,
+              username,
+              verified,
               publicMetrics,
               userProfileUrl,
-              mindshare: Number((Math.random() * 1).toFixed(2)), // Random mindshare between 0-1
+              mindshare,
               herdedVsHidden: 1,
               convictionVsHype: 1,
               memeVsInstitutional: 1,
             };
 
+            // Insert into influencersCollection
             await influencersCollection.insertOne(
               {
                 twitterHandle: cleanHandle,
                 subscribers: [cleanTelegramId],
-                tweets: [], // You might want to fetch actual tweets later
+                tweets: [],
                 processedTweetIds: [],
                 updatedAt: new Date(),
                 isProcessing: false,
@@ -141,7 +246,7 @@ export async function POST(request: Request) {
           // 3. Update user document
           const subscriptionDate = new Date();
           const expiryDate = new Date(subscriptionDate);
-          expiryDate.setMonth(expiryDate.getMonth() + 1); // Add one month to the subscription date
+          expiryDate.setMonth(expiryDate.getMonth() + 1);
 
           await usersCollection.updateOne(
             { twitterId },
@@ -150,8 +255,8 @@ export async function POST(request: Request) {
               $addToSet: {
                 subscribedAccounts: {
                   twitterHandle: cleanHandle,
-                  subscriptionDate: subscriptionDate,
-                  expiryDate: expiryDate,
+                  subscriptionDate,
+                  expiryDate,
                 },
               },
               $set: { updatedAt: new Date() },
@@ -162,7 +267,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({
           success: true,
-          message: "Successfully added influencer",
+          message: "Successfully added influencer and processed subscription",
         });
       } finally {
         await session.endSession();
@@ -175,12 +280,12 @@ export async function POST(request: Request) {
       data: newInfluencer,
     });
   } catch (error) {
+    console.error("❌ /api/add-influencer failed:", error);
     return NextResponse.json(
       {
         success: false,
         error: {
-          message:
-            error instanceof Error ? error.message : "Failed to add influencer",
+          message: error instanceof Error ? error.message : String(error),
         },
       },
       { status: 500 }

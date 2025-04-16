@@ -100,6 +100,7 @@ const HomePage: React.FC = () => {
         setSubscribedHandles((prev) => [...prev, cleanHandle]);
         toast.success("Successfully subscribed to influencer!", {
           position: "top-center",
+          autoClose: 3000,
         });
         await updateCredits();
       } catch (error) {
