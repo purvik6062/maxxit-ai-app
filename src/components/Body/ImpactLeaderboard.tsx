@@ -169,7 +169,7 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
         // Find matching UMD user by username
         const matchingUser = umdUsers.find(
           (user) =>
-            user.userData.username.toLowerCase() ===
+            user.userData?.username.toLowerCase() ===
             agent.handle.replace("@", "").toLowerCase()
         );
 
