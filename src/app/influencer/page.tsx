@@ -140,8 +140,8 @@ export default function Influencer() {
               {/* User Existence Status */}
               {loading === true ? (
                 <div className="flex items-center gap-1 mt-4 text-white/80">
-                    <Loader2 className="w-6 h-6 text-cyan-500 animate-spin mx-auto" />
-                    <p className="text-gray-300">Checking your status...</p>
+                  <Loader2 className="w-6 h-6 text-cyan-500 animate-spin mx-auto" />
+                  <p className="text-gray-300">Checking your status...</p>
                 </div>
               ) : userExists ? (
                 <div className="mt-6 w-full">
@@ -223,10 +223,10 @@ export default function Influencer() {
                   <div className="flex items-start gap-1 p-3 bg-blue-500/30 border-2 border-blue-500/80 rounded-lg text-blue-200 text-base">
                     <InfoIcon className="w-5 h-5 mt-0.5 flex-shrink-0" />
                     <span>
-                      You are not yet registered with "Maxxit". This is a necessary
-                      step, as once you have registered on our platform, you
-                      will be eligible to receive a portion of payments from
-                      your subscribed users
+                      You are not yet registered with "Maxxit". This is a
+                      necessary step, as once you have registered on our
+                      platform, you will be eligible to receive a portion of
+                      payments from your subscribed users
                     </span>
                   </div>
                   <button
@@ -322,8 +322,8 @@ export default function Influencer() {
           setIsModalOpen(false);
           setUserExists(true); // Update status after successful registration
         }}
-        sessionUsername={session?.user?.name} // Pass authenticated username
-        sessionUserhandle={session?.user?.username} // Pass authenticated username
+        // sessionUsername={session?.user?.name} // Pass authenticated username
+        // sessionUserhandle={session?.user?.username} // Pass authenticated username
       />
     </>
   );
