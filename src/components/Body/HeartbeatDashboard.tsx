@@ -939,11 +939,12 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                 </button>
                 {/* Subscribe Button (Identical) */}
                 <button
-                  onClick={() =>
-                    !isSubscribed &&
-                    !isCurrentlySubscribing &&
-                    onSubscribe(agent.handle)
-                  }
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent redirection to profile page
+                    if (!isSubscribed && !isCurrentlySubscribing) {
+                      onSubscribe(agent.handle);
+                    }
+                  }}
                   disabled={
                     isSubscribed || isCurrentlySubscribing
                   } /* ... identical button classes/logic ... */
@@ -1148,11 +1149,12 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                       {/* Subscribe Button (Identical) */}
                       <div className="w-24 flex justify-center">
                         <button
-                          onClick={() =>
-                            !isSubscribed &&
-                            !isCurrentlySubscribing &&
-                            onSubscribe(agent.handle)
-                          }
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent redirection to profile page
+                            if (!isSubscribed && !isCurrentlySubscribing) {
+                              onSubscribe(agent.handle);
+                            }
+                          }}
                           disabled={
                             isSubscribed || isCurrentlySubscribing
                           } /* ... classes/content identical ... */

@@ -73,6 +73,7 @@ export async function POST(request: Request): Promise<Response> {
     const client = await dbConnect();
     const db = client.db("ctxbt-signal-flow");
     const usersCollection = db.collection("users");
+    const transactionsCollection = db.collection("transactions");
 
     // Check existing users
     const existingUser = await usersCollection.findOne({
@@ -98,27 +99,48 @@ export async function POST(request: Request): Promise<Response> {
 
     // Create new user
     const now = new Date();
+    const initialCredits = credits || 100;
     const newUser = {
       twitterUsername,
       twitterId,
       telegramId,
       chatId,
-      credits: credits || 100,
+      credits: initialCredits,
       subscribedAccounts: [],
       createdAt: now,
       updatedAt: now,
       verified: true, // Mark as verified since we confirmed chat exists
     };
 
-    const result = await usersCollection.insertOne(newUser);
+    // Start a session for transaction
+    const session = client.startSession();
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        _id: result.insertedId,
-        ...newUser,
-      },
-    });
+    try {
+      await session.withTransaction(async () => {
+        // Insert the new user
+        const result = await usersCollection.insertOne(newUser, { session });
+        
+        // Log the initial credit grant as a transaction
+        await transactionsCollection.insertOne({
+          userId: result.insertedId,
+          twitterId: twitterId,
+          twitterUsername: twitterUsername,
+          type: "CREDIT_GRANT",
+          amount: initialCredits,
+          description: "Initial signup bonus credits",
+          timestamp: now
+        }, { session });
+      });
+      
+      return NextResponse.json({
+        success: true,
+        data: {
+          ...newUser,
+        },
+      });
+    } finally {
+      await session.endSession();
+    }
   } catch (error) {
     console.error("Server error:", error);
     return NextResponse.json(
