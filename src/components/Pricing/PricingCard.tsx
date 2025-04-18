@@ -58,7 +58,7 @@ export default function PricingCard({
           <div className="p-8 text-center border-b border-gray-100">
             <h3 className="text-gray-500 font-medium text-sm mb-2">{name}</h3>
             <div className="flex items-baseline justify-center">
-              <span className="text-5xl font-extrabold text-gray-900">
+              <span className="text-4xl font-extrabold text-gray-900">
                 ${price}
               </span>
               {name != "Free" && (
