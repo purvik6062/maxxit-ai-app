@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, CreditCard, Bitcoin } from "lucide-react";
 import { createCheckoutSession } from "@/app/actions/stripe";
 import { stripePromise } from "@/lib/stripeClient";
+
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -23,6 +24,10 @@ export default function PaymentModal({
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     "credit" | "crypto" | null
   >(null);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoCodeError, setPromoCodeError] = useState("");
+  const [discountApplied, setDiscountApplied] = useState(false);
+  const [finalPrice, setFinalPrice] = useState(planPrice);
 
   const paymentMethods = [
     {
@@ -41,13 +46,39 @@ export default function PaymentModal({
 
   if (!isOpen) return null;
 
+  const handleApplyPromoCode = async () => {
+    try {
+      const response = await fetch("/api/validate-promo-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ promoCode }),
+      });
+      const data = await response.json();
+      if (data.valid) {
+        const discount = Math.min(planPrice * 0.5, 10); // 50% off up to $10
+        setFinalPrice(planPrice - discount);
+        setDiscountApplied(true);
+        setPromoCodeError("");
+      } else {
+        setPromoCodeError("Invalid or inactive promo code");
+        setFinalPrice(planPrice);
+        setDiscountApplied(false);
+      }
+    } catch (error) {
+      setPromoCodeError("Error validating promo code");
+      setFinalPrice(planPrice);
+      setDiscountApplied(false);
+    }
+  };
+
   const handleProceed = async () => {
     if (selectedPaymentMethod === "credit") {
       try {
         const checkoutSession = await createCheckoutSession(
           planName,
-          planPrice,
-          planCredits
+          finalPrice,
+          planCredits,
+          promoCode
         );
         const stripe = await stripePromise;
         const { error } = await stripe!.redirectToCheckout({
@@ -55,14 +86,11 @@ export default function PaymentModal({
         });
         if (error) {
           console.error(error);
-          // Optionally, set an error state to display to the user
         }
       } catch (error) {
         console.error("Error creating checkout session:", error);
-        // Handle error, e.g., show a user-friendly message
       }
     } else if (selectedPaymentMethod === "crypto") {
-      // For now, just log it (crypto payment logic can be added later)
       console.log("Crypto payment selected for", planName);
     }
   };
@@ -83,7 +111,6 @@ export default function PaymentModal({
         className="bg-white rounded-2xl w-[900px] h-[600px] flex shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
@@ -91,7 +118,6 @@ export default function PaymentModal({
           <X className="w-6 h-6" />
         </button>
 
-        {/* Left Side - Purchase Info */}
         <div className="w-1/2 bg-gray-50 p-12 flex flex-col justify-center">
           <AnimatePresence mode="wait">
             {!selectedPaymentMethod && (
@@ -106,14 +132,36 @@ export default function PaymentModal({
                   {planName} Plan
                 </h2>
                 <div className="text-5xl font-extrabold text-blue-600">
-                  ${planPrice}
+                  ${finalPrice}
                 </div>
                 <div className="text-lg text-gray-600">
                   {planCredits} Credits
                 </div>
+                {discountApplied && (
+                  <p className="text-green-600">
+                    Promo code applied! Saved ${planPrice - finalPrice}
+                  </p>
+                )}
+                <div className="mt-4">
+                  <input
+                    type="text"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value)}
+                    placeholder="Enter promo code"
+                    className="!text-black w-full p-2 border rounded-lg"
+                  />
+                  <button
+                    onClick={handleApplyPromoCode}
+                    className="mt-2 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
+                  >
+                    Apply Promo Code
+                  </button>
+                  {promoCodeError && (
+                    <p className="text-red-500 mt-2">{promoCodeError}</p>
+                  )}
+                </div>
                 <p className="text-gray-500">
-                  One-time purchase with no recurring fees. Credits never
-                  expire.
+                  One-time purchase with no recurring fees.
                 </p>
               </motion.div>
             )}
@@ -174,12 +222,10 @@ export default function PaymentModal({
           </AnimatePresence>
         </div>
 
-        {/* Right Side - Payment Methods */}
         <div className="w-1/2 p-12 flex flex-col justify-center">
           <h3 className="text-2xl font-bold mb-6 text-center text-black">
             Choose Payment Method
           </h3>
-
           <div className="space-y-4">
             {paymentMethods.map((method) => (
               <motion.button
@@ -206,7 +252,6 @@ export default function PaymentModal({
               </motion.button>
             ))}
           </div>
-
           {selectedPaymentMethod && (
             <motion.button
               initial={{ opacity: 0 }}

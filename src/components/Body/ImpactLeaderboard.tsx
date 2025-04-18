@@ -10,6 +10,7 @@ import {
   FaChevronUp,
   FaRobot,
 } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 import { TrendingUp, Award, BarChart2, ArrowUpDown } from "lucide-react";
 import { LuWandSparkles } from "react-icons/lu";
 import gsap from "gsap";
@@ -57,6 +58,7 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
   const [showStats, setShowStats] = useState<Record<string, boolean>>({});
   const [sortField, setSortField] = useState<SortField>("impactFactor");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const router = useRouter()
 
   const { agents, loadingUmd, error, refreshData } = useUserData();
 
@@ -319,11 +321,10 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
           <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
             <div
               onClick={() => sortAgents("impactFactor")}
-              className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                sortField === "impactFactor"
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-              }`}
+              className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${sortField === "impactFactor"
+                ? "bg-blue-900/50 text-blue-300"
+                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+                }`}
             >
               <TrendingUp size={14} />
               <span>Impact</span>
@@ -336,11 +337,10 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
             </div>
             <div
               onClick={() => sortAgents("mindshare")}
-              className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                sortField === "mindshare"
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-              }`}
+              className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${sortField === "mindshare"
+                ? "bg-blue-900/50 text-blue-300"
+                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+                }`}
             >
               <BarChart2 size={14} />
               <span>Mindshare</span>
@@ -353,11 +353,10 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
             </div>
             <div
               onClick={() => sortAgents("followers")}
-              className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                sortField === "followers"
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-              }`}
+              className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${sortField === "followers"
+                ? "bg-blue-900/50 text-blue-300"
+                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+                }`}
             >
               <Users size={14} />
               <span>Followers</span>
@@ -370,11 +369,10 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
             </div>
             <div
               onClick={() => sortAgents("herdedVsHidden")}
-              className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                sortField === "herdedVsHidden"
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-              }`}
+              className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${sortField === "herdedVsHidden"
+                ? "bg-blue-900/50 text-blue-300"
+                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+                }`}
             >
               <span>Herded-Hidden</span>
               {sortField === "herdedVsHidden" &&
@@ -386,11 +384,10 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
             </div>
             <div
               onClick={() => sortAgents("convictionVsHype")}
-              className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                sortField === "convictionVsHype"
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-              }`}
+              className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${sortField === "convictionVsHype"
+                ? "bg-blue-900/50 text-blue-300"
+                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+                }`}
             >
               <span>Conviction-Hype</span>
               {sortField === "convictionVsHype" &&
@@ -402,11 +399,10 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
             </div>
             <div
               onClick={() => sortAgents("memeVsInstitutional")}
-              className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                sortField === "memeVsInstitutional"
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-              }`}
+              className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${sortField === "memeVsInstitutional"
+                ? "bg-blue-900/50 text-blue-300"
+                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+                }`}
             >
               <span>Meme-Institutional</span>
               {sortField === "memeVsInstitutional" &&
@@ -442,34 +438,31 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                   : rank === 2
                   ? "border-gray-400/30"
                   : "border-amber-700/30"
-              } bg-gradient-to-br from-gray-900/80 via-gray-900/60 to-blue-900/20 backdrop-blur-sm`}
+                } bg-gradient-to-br from-gray-900/80 via-gray-900/60 to-blue-900/20 backdrop-blur-sm`}
             >
               {/* Top Medal Badge */}
               <div className="absolute -right-6 -top-6 w-28 h-24">
                 <div
-                  className={`absolute inset-0 bg-gradient-to-br ${
-                    medalColors[rank - 1]
-                  } opacity-50 rotate-45`}
+                  className={`absolute inset-0 bg-gradient-to-br ${medalColors[rank - 1]
+                    } opacity-50 rotate-45`}
                 ></div>
               </div>
 
-              <div className="p-5">
+              <div className="p-5 cursor-pointer" onClick={() => { router.push(`/influencer/${cleanHandle}`) }}>
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
                     <div
-                      className={`relative flex items-center justify-center h-12 w-12 rounded-full bg-gradient-to-br ${
-                        medalColors[rank - 1]
-                      } p-0.5`}
+                      className={`relative flex items-center justify-center h-12 w-12 rounded-full bg-gradient-to-br ${medalColors[rank - 1]
+                        } p-0.5`}
                     >
                       <div className="absolute inset-0.5 rounded-full bg-gray-900/80"></div>
                       <FaTrophy
-                        className={`relative w-5 h-5 ${
-                          rank === 1
-                            ? "text-yellow-300"
-                            : rank === 2
+                        className={`relative w-5 h-5 ${rank === 1
+                          ? "text-yellow-300"
+                          : rank === 2
                             ? "text-gray-300"
                             : "text-amber-700"
-                        }`}
+                          }`}
                       />
                     </div>
                     <div>
@@ -624,21 +617,18 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                           {" "}
                           <polygon
                             points={`50,${(100 - factor) / 2} 
-                                                                  ${
-                                                                    signals / 2
-                                                                  },50 
-                                                                  50,${
-                                                                    100 -
-                                                                    (100 -
-                                                                      mindshare) /
-                                                                      2
-                                                                  } 
-                                                                  ${
-                                                                    100 -
-                                                                    (100 -
-                                                                      (agent.impactFactor ||
-                                                                        0))
-                                                                  },50
+                                                                  ${signals / 2
+                              },50 
+                                                                  50,${100 -
+                              (100 -
+                                mindshare) /
+                              2
+                              } 
+                                                                  ${100 -
+                              (100 -
+                                (agent.impactFactor ||
+                                  0))
+                              },50
                                                                 `}
                             fill="rgba(59, 130, 246, 0.2)"
                             stroke="rgba(59, 130, 246, 0.6)"
@@ -675,6 +665,9 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                   <Link
                     href={`https://x.com/${cleanHandle}`}
                     target="_blank"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
                     className="inline-flex items-center gap-1 text-blue-400 text-xs hover:text-blue-300 transition-colors"
                   >
                     View Profile <FaExternalLinkAlt className="text-[10px]" />
@@ -987,6 +980,9 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                         <Link
                           href={`https://x.com/${cleanHandle}`}
                           target="_blank"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
                           className="p-1.5 rounded text-gray-400 hover:text-blue-300 hover:bg-gray-700/50 transition-colors"
                           title="View Profile"
                         >

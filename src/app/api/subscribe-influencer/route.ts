@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import dbConnect from "src/utils/dbConnect";
 
-const SUBSCRIPTION_COST = 10;
+// Define a base cost that will be multiplied by the impact factor
+const BASE_SUBSCRIPTION_COST = 10;
+// Default impact factor if none is found
+const DEFAULT_IMPACT_FACTOR = 1;
 
 export async function POST(request: Request): Promise<Response> {
   try {
@@ -21,6 +24,7 @@ export async function POST(request: Request): Promise<Response> {
     const db = client.db("ctxbt-signal-flow");
     const usersCollection = db.collection("users");
     const influencersCollection = db.collection("influencers");
+    const transactionsCollection = db.collection("transactions");
 
     // Start a session for transaction
     const session = client.startSession();
@@ -36,8 +40,17 @@ export async function POST(request: Request): Promise<Response> {
           );
         }
 
-        if (user.credits < SUBSCRIPTION_COST) {
-          throw new Error("Insufficient credits");
+        // 2. Get influencer data to calculate subscription cost
+        const existingInfluencer = await influencersCollection.findOne({
+          twitterHandle: cleanHandle,
+        });
+
+        // Calculate subscription cost based on impact factor (default to 1 if not available)
+        const impactFactor = existingInfluencer?.impactFactor || DEFAULT_IMPACT_FACTOR;
+        const subscriptionCost = Math.round(BASE_SUBSCRIPTION_COST * impactFactor);
+
+        if (user.credits < subscriptionCost) {
+          throw new Error(`Insufficient credits. This influencer requires ${subscriptionCost} credits to subscribe.`);
         }
 
         // Get user's telegram ID and clean it (remove @ if exists)
@@ -52,11 +65,7 @@ export async function POST(request: Request): Promise<Response> {
           throw new Error("Already subscribed to this influencer");
         }
 
-        // 2. Check if influencer exists
-        const existingInfluencer = await influencersCollection.findOne({
-          twitterHandle: cleanHandle,
-        });
-
+        // 3. Update or create influencer
         if (existingInfluencer) {
           // Update existing influencer
           await influencersCollection.updateOne(
@@ -68,7 +77,7 @@ export async function POST(request: Request): Promise<Response> {
             { session }
           );
         } else {
-          // Create new influencer
+          // Create new influencer with default impact factor
           await influencersCollection.insertOne(
             {
               twitterHandle: cleanHandle,
@@ -76,12 +85,13 @@ export async function POST(request: Request): Promise<Response> {
               tweets: [],
               processedTweetIds: [],
               updatedAt: new Date(),
+              impactFactor: DEFAULT_IMPACT_FACTOR, // Set a default impact factor for new influencers
             },
             { session }
           );
         }
 
-        // 3. Update user document
+        // 4. Update user document
         const subscriptionDate = new Date();
         const expiryDate = new Date(subscriptionDate);
         expiryDate.setMonth(expiryDate.getMonth() + 1); // Add one month to the subscription date
@@ -89,18 +99,33 @@ export async function POST(request: Request): Promise<Response> {
         await usersCollection.updateOne(
           { twitterId },
           {
-            $inc: { credits: -SUBSCRIPTION_COST },
+            $inc: { credits: -subscriptionCost },
             $addToSet: {
               subscribedAccounts: {
                 twitterHandle: cleanHandle,
                 subscriptionDate: subscriptionDate,
                 expiryDate: expiryDate,
+                costPaid: subscriptionCost,
               },
             },
             $set: { updatedAt: new Date() },
           },
           { session }
         );
+        
+        // 5. Log the subscription transaction
+        await transactionsCollection.insertOne({
+          userId: user._id,
+          twitterId: user.twitterId,
+          twitterUsername: user.twitterUsername,
+          type: "SUBSCRIPTION",
+          amount: -subscriptionCost,
+          influencerHandle: cleanHandle,
+          impactFactor: impactFactor,
+          description: `Subscription to influencer @${cleanHandle} (Impact Factor: ${impactFactor})`,
+          expiryDate: expiryDate,
+          timestamp: subscriptionDate
+        }, { session });
       });
 
       return NextResponse.json({

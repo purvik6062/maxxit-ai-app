@@ -177,7 +177,7 @@ const HomePage: React.FC = () => {
     <div className="flex flex-col min-h-screen bg-[#020617]">
       <Header searchText={searchText} setSearchText={setSearchText} />
 
-      <div className="px-6 py-8">
+      <div>
         <TopInfluencersGraph />
         {/* <ShareButton /> */}
       </div>

@@ -1,11 +1,12 @@
+// src/app/actions/stripe.ts
 "use server";
-
 import { stripe } from "@/lib/stripe";
 
 export async function createCheckoutSession(
   planName: string,
   price: number,
-  credits: string
+  credits: string,
+  promoCode?: string
 ) {
   const checkoutSession = await stripe.checkout.sessions.create({
     line_items: [
@@ -24,9 +25,9 @@ export async function createCheckoutSession(
     success_url: `${process.env.NEXT_PUBLIC_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${process.env.NEXT_PUBLIC_URL}/pricing`,
     metadata: {
-      credits: credits,
+      credits,
+      promoCode: promoCode || "",
     },
   });
-
   return checkoutSession;
 }

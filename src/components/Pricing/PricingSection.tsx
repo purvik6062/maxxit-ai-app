@@ -66,68 +66,80 @@ export default function PricingSection() {
   ];
 
   return (
-    <section className="py-20 px-4 min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
-      <div className="max-w-7xl mx-auto">
+    <section className="py-20 px-6 bg-[#020617]">
+      <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-white mb-4">
-            Simple, Transparent Pricing
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
+              Simple, Transparent Pricing
+            </span>
           </h2>
-          <p className="text-blue-100 text-lg max-w-2xl mx-auto">
+          <p className="text-gray-400 max-w-2xl mx-auto text-base">
             Choose the plan that works for your needs. One-time payment, no
             recurring fees.
           </p>
-
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-4 gap-8">
-            {pricingPlans.map((plan) => (
-              <PricingCard
-                key={plan.name}
-                name={plan.name}
-                price={plan.price}
-                description={plan.description}
-                features={plan.features}
-                ctaText={plan.ctaText}
-                popular={plan.popular}
-              />
-            ))}
-          </div>
         </div>
 
-        <div className="mt-16 bg-white/10 rounded-xl p-8 backdrop-blur-sm">
-          <h3 className="text-xl font-bold text-white mb-4">
-            How Credits Work
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-blue-50">
-            <div>
-              <h4 className="font-medium text-white mb-2">Flexible Usage</h4>
-              <p>
-                Credits can be used across all features. Use them how you want,
-                when you want.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium text-white mb-2">
-                One Month Validity
-              </h4>
-              <p>
-                Your purchased credits are valid for one month from the date of
-                purchase. Unused credits will expire after the validity period.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium text-white mb-2">Volume Discounts</h4>
-              <p>
-                Need more credits? Contact us for custom pricing on bulk
-                purchases.
-              </p>
+        <div className="p-[1px] bg-gradient-to-r from-cyan-900 to-blue-900 rounded-xl mb-16">
+          <div className="bg-gradient-to-br from-gray-900/80 to-gray-950/60 backdrop-blur-sm rounded-lg border border-gray-800/30 shadow-xl overflow-hidden">
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {pricingPlans.map((plan) => (
+                  <PricingCard
+                    key={plan.name}
+                    name={plan.name}
+                    price={plan.price}
+                    description={plan.description}
+                    features={plan.features}
+                    ctaText={plan.ctaText}
+                    popular={plan.popular}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="mt-16 text-center text-blue-100 text-sm">
+        <div className="mt-16 p-[1px] bg-gradient-to-r from-cyan-900 to-blue-900 rounded-xl">
+          <div className="bg-gradient-to-br from-gray-900/80 to-gray-950/60 backdrop-blur-sm rounded-lg border border-gray-800/30 shadow-xl overflow-hidden">
+            <div className="p-8">
+              <h3 className="text-xl font-bold text-white mb-4">
+                How Credits Work
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-gray-300">
+                <div>
+                  <h4 className="font-medium text-white mb-2">Flexible Usage</h4>
+                  <p>
+                    Credits can be used across all features. Use them how you want,
+                    when you want.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-white mb-2">
+                    One Month Validity
+                  </h4>
+                  <p>
+                    Your purchased credits are valid for one month from the date of
+                    purchase. Unused credits will expire after the validity period.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-white mb-2">Volume Discounts</h4>
+                  <p>
+                    Need more credits? Contact us for custom pricing on bulk
+                    purchases.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-12 text-center text-gray-400 text-sm">
           <p>One-time purchase with no recurring fees.</p>
           <p className="mt-2">
             Need a custom plan?{" "}
-            <a href="#" className="text-white underline font-medium">
+            <a href="#" className="text-blue-400 underline font-medium hover:text-blue-300">
               Contact us
             </a>
           </p>
