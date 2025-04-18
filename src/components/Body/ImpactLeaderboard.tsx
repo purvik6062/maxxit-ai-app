@@ -10,7 +10,7 @@ import {
   FaChevronUp,
   FaRobot,
 } from "react-icons/fa";
-import { TrendingUp, Award, BarChart2, ArrowUpDown } from "lucide-react";
+import { TrendingUp, Award, BarChart2, ArrowUpDown, Router } from "lucide-react";
 import { LuWandSparkles } from "react-icons/lu";
 import gsap from "gsap";
 import {
@@ -27,6 +27,7 @@ import { useGSAP } from "@gsap/react";
 import { useImpactLeaderboard } from "@/hooks/useImpactLeaderboard";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 // Define TypeScript interface for user data (from UMD)
 interface PublicMetrics {
@@ -118,6 +119,7 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
   const [loadingUmd, setLoadingUmd] = useState(true);
   const [sortField, setSortField] = useState<SortField>("impactFactor");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const router = useRouter()
 
   // Calculate random stats for visualization
   const getRandomStat = (handle: string, type: string): number => {
@@ -556,7 +558,7 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                 ></div>
               </div>
 
-              <div className="p-5">
+              <div className="p-5 cursor-pointer" onClick={() => { router.push(`/influencer/${cleanHandle}`) }}>
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
                     <div
@@ -627,8 +629,8 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                 {/* Detailed stats with hover interaction */}
                 <div
                   className={`transition-all duration-300 overflow-hidden ${showStats[agent.handle]
-                      ? "max-h-40 opacity-100 mb-4"
-                      : "max-h-0 opacity-0"
+                    ? "max-h-40 opacity-100 mb-4"
+                    : "max-h-0 opacity-0"
                     }`}
                 >
                   <div className="grid grid-cols-3 gap-2 mb-3">
@@ -771,9 +773,11 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                 {/* View profile link from UMD */}
                 <div className="mb-3 text-center">
                   <Link
-                    href={`/influencer/${cleanHandle}`}
-                    // href={`https://x.com/${cleanHandle}`}
-                    // target="_blank"
+                    href={`https://x.com/${cleanHandle}`}
+                    target="_blank"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
                     className="inline-flex items-center gap-1 text-blue-400 text-xs hover:text-blue-300 transition-colors"
                   >
                     View Profile <FaExternalLinkAlt className="text-[10px]" />
@@ -782,8 +786,8 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                 {/* Detailed stats with hover interaction */}
                 <div
                   className={`transition-all duration-300 overflow-hidden ${showStats[agent.handle]
-                      ? "max-h-[500px] opacity-100 mb-4"
-                      : "max-h-0 opacity-0"
+                    ? "max-h-[500px] opacity-100 mb-4"
+                    : "max-h-0 opacity-0"
                     }`}
                 >
                   {/* UMD Metrics */}
@@ -999,7 +1003,8 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
               return (
                 <div
                   key={agent.handle}
-                  className="impact-card list-item relative bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-lg overflow-hidden transition-all hover:bg-cyan-950 duration-200"
+                  onClick={() => { router.push(`/influencer/${cleanHandle}`) }}
+                  className="impact-card list-item relative bg-gray-900/50 backdrop-blur-sm border cursor-pointer border-gray-800/50 rounded-lg overflow-hidden transition-all hover:bg-cyan-950 duration-200"
                 >
                   {/* Main Row Container - Matching Header Flex Structure */}
                   <div className="px-4 py-2 flex items-center gap-3 md:gap-4">
@@ -1118,9 +1123,11 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                         {" "}
                         {/* Match header width */}
                         <Link
-                          href={`/influencer/${cleanHandle}`}
-                          // href={`https://x.com/${cleanHandle}`}
-                          // target="_blank"
+                          href={`https://x.com/${cleanHandle}`}
+                          target="_blank"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
                           className="p-1.5 rounded text-gray-400 hover:text-blue-300 hover:bg-gray-700/50 transition-colors"
                           title="View Profile"
                         >
@@ -1133,8 +1140,8 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                         {/* Match header width */}
                         <button
                           className={`flex items-center justify-center px-2 py-1.5 rounded-md text-xs w-full ${isSubscribed || isCurrentlySubscribing
-                              ? "bg-green-500/20 text-green-300"
-                              : "bg-blue-600/80 hover:bg-blue-700 text-white"
+                            ? "bg-green-500/20 text-green-300"
+                            : "bg-blue-600/80 hover:bg-blue-700 text-white"
                             } transition-all duration-200 whitespace-nowrap ${isCurrentlySubscribing ? "animate-pulse" : ""
                             }`}
                           onClick={() =>

@@ -68,32 +68,11 @@ function InfluencerTable({ influencerId }: InfluencerTableProps) {
                   TP2
                 </TableHead>
                 <TableHead
-                  className="w-[150px] py-4 px-6 cursor-pointer text-sm font-semibold text-gray-200"
-                  onClick={() =>
-                    setSortConfig({
-                      key: "signalGenerationDate",
-                      direction:
-                        sortConfig?.direction === "asc" &&
-                        sortConfig.key === "signalGenerationDate"
-                          ? "desc"
-                          : "asc",
-                    })
-                  }
+                  className="w-[150px] py-4 px-6 text-center cursor-pointer text-sm font-semibold text-gray-200"
                 >
-                  <div className="flex items-center justify-between">
-                    <span>Signal Date</span>
-                    {sortConfig?.key === "signalGenerationDate" ? (
-                      sortConfig.direction === "asc" ? (
-                        <ArrowUp className="h-4 w-4 text-blue-400" />
-                      ) : (
-                        <ArrowDown className="h-4 w-4 text-blue-400" />
-                      )
-                    ) : (
-                      <ArrowUpDown className="h-4 w-4 text-gray-400" />
-                    )}
-                  </div>
+                  <span>Signal Date</span>
                 </TableHead>
-                <TableHead className="w-[100px] py-4 px-6 text-sm font-semibold text-gray-200 bg-gradient-to-l from-gray-900 to-gray-800 rounded-tr-xl">
+                <TableHead className="w-[100px] py-4 px-6 text-center text-sm font-semibold text-gray-200 bg-gradient-to-l from-gray-900 to-gray-800 rounded-tr-xl">
                   Details
                 </TableHead>
               </TableRow>
@@ -105,12 +84,8 @@ function InfluencerTable({ influencerId }: InfluencerTableProps) {
                 filteredSignals.map((signal, index) => (
                   <TableRow
                     key={signal._id}
-                    className={`transition-colors duration-200 border-b border-gray-700 ${
-                      index % 2 === 0 ? "bg-gray-800/50" : "bg-gray-800"
-                    } hover:bg-gray-700/80 cursor-pointer`}
-                    onClick={() =>
-                      window.open(signal.ipfsLink, "_blank", "noopener,noreferrer")
-                    }
+                    className={`transition-colors duration-200 border-b border-gray-700 ${index % 2 === 0 ? "bg-gray-800/50" : "bg-gray-800"
+                      } hover:bg-gray-700/80 cursor-pointer`}               
                   >
                     <TableCell className="py-3 px-3 text-center text-sm text-gray-200">
                       {signal.tokenId}
@@ -123,11 +98,10 @@ function InfluencerTable({ influencerId }: InfluencerTableProps) {
                     </TableCell>
                     <TableCell className="py-3 px-3 text-center">
                       <span
-                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          signal.pnl.startsWith("-")
+                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${signal.pnl.startsWith("-")
                             ? "bg-rose-900/50 text-rose-400"
                             : "bg-emerald-900/50 text-emerald-400"
-                        }`}
+                          }`}
                       >
                         {signal.pnl}
                         {signal.pnl.startsWith("-") ? (

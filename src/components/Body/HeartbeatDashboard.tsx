@@ -29,6 +29,7 @@ import { useGSAP } from "@gsap/react";
 import { useHeartbeatLeaderboard } from "@/hooks/useHeartbeatLeaderboard";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 // --- UMD Interfaces (Copied directly) ---
 interface PublicMetrics {
@@ -141,6 +142,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
   const [hoveredIconRef, setHoveredIconRef] = useState<EventTarget | null>(
     null
   );
+  const router = useRouter();
 
   // --- Helper Functions (Copied, potentially adjust getRandomStat if needed) ---
 
@@ -608,7 +610,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                 ></div>
               </div>
 
-              <div className="p-5">
+              <div className="p-5 cursor-pointer" onClick={() => { router.push(`/influencer/${cleanHandle}`) }}>
                 {/* ... Rank icon, Profile Pic, Name, Handle ... (Identical) */}
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
@@ -640,8 +642,8 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                                 agent.profileUrl?.trim().length > 0
                                   ? agent.profileUrl
                                   : `https://picsum.photos/seed/${encodeURIComponent(
-                                      agent.handle
-                                    )}/40/40`
+                                    agent.handle
+                                  )}/40/40`
                               }
                               alt={agent.name}
                               className="w-full h-full object-cover rounded-full border border-gray-700/50"
@@ -706,9 +708,11 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
 
                 <div className="mb-3 text-center">
                   <Link
-                    href={`/influencer/${cleanHandle}`}
-                    // href={`https://x.com/${cleanHandle}`}
-                    // target="_blank"
+                    href={`https://x.com/${cleanHandle}`}
+                    target="_blank"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
                     className="inline-flex items-center gap-1 text-blue-400 text-xs hover:text-blue-300 transition-colors"
                   >
                     View Profile <FaExternalLinkAlt className="text-[10px]" />
@@ -717,11 +721,10 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
 
                 {/* Expandable Section for Stats (Identical Structure - uses random/placeholder stats) */}
                 <div
-                  className={`transition-all duration-300 overflow-hidden ${
-                    showStats[agent.handle]
-                      ? "max-h-[500px] opacity-100 mb-4"
-                      : "max-h-0 opacity-0"
-                  }`}
+                  className={`transition-all duration-300 overflow-hidden ${showStats[agent.handle]
+                    ? "max-h-[500px] opacity-100 mb-4"
+                    : "max-h-0 opacity-0"
+                    }`}
                 >
                   {/* Display beat, signals, mindshare - Identical structure */}
                   <div className="grid grid-cols-3 gap-2 mb-3">
@@ -816,11 +819,9 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                         <svg className="absolute inset-0 w-full h-full">
                           {" "}
                           <polygon
-                            points={`50,${(100 - beat) / 2} ${
-                              signals / 2
-                            },50 50,${100 - (100 - mindshare) / 2} ${
-                              100 - (100 - (agent.heartbeat || 0))
-                            },50`}
+                            points={`50,${(100 - beat) / 2} ${signals / 2
+                              },50 50,${100 - (100 - mindshare) / 2} ${100 - (100 - (agent.heartbeat || 0))
+                              },50`}
                             fill="rgba(239, 68, 68, 0.2)"
                             stroke="rgba(239, 68, 68, 0.6)"
                             strokeWidth="1"
@@ -1030,7 +1031,8 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
               return (
                 <div
                   key={agent.handle} /* ... identical list item classes ... */
-                  className="impact-card list-item relative bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-lg overflow-hidden transition-all hover:bg-blue-950 duration-200" // Adjusted hover color maybe
+                  onClick={() => { router.push(`/influencer/${cleanHandle}`) }}
+                  className="impact-card cursor-pointer list-item relative bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-lg overflow-hidden transition-all hover:bg-blue-950 duration-200" // Adjusted hover color maybe
                 >
                   <div className="px-4 py-2 flex items-center gap-3 md:gap-4">
                     {" "}
@@ -1050,8 +1052,8 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                               agent.profileUrl?.trim().length > 0
                                 ? agent.profileUrl
                                 : `https://picsum.photos/seed/${encodeURIComponent(
-                                    agent.handle
-                                  )}/40/40`
+                                  agent.handle
+                                )}/40/40`
                             }
                             alt={agent.name}
                             className="w-full h-full object-cover rounded-full border border-gray-700/50"
@@ -1132,9 +1134,11 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                       {/* View Link (Identical) */}
                       <div className="w-8 flex justify-center">
                         <Link
-                          // href={`https://x.com/${cleanHandle}`}
-                          href={`/influencer/${cleanHandle}`}
-                          // target="_blank"
+                          href={`https://x.com/${cleanHandle}`}
+                          target="_blank"
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent the event from bubbling up to the parent div
+                          }}
                           className="p-1.5 rounded text-gray-400 hover:text-blue-300 hover:bg-gray-700/50 transition-colors"
                           title="View Profile"
                         >
