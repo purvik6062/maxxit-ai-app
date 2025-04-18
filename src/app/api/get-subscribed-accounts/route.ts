@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     const usersCollection = db.collection("users");
     const syncedCollection = db.collection("influencers");
 
-    const db2 = client.db("test_analysis");
+    // const db2 = client.db("test_analysis");
 
     // Find the user by twitterId
     const user = await usersCollection.findOne({ twitterId });
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
           success: false,
           error: {
             message:
-              "Please register yourself first to receive 100 free credits!",
+              "Please register yourself first to receive 500 free credits!",
           },
         },
         { status: 404 }

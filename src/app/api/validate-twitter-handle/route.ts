@@ -15,10 +15,10 @@ export async function POST(request: Request) {
 
     const client = await dbConnect();
     const db = client.db("ctxbt-signal-flow");
-    const db2 = client.db("test_analysis");
-    const influencer_Test_Collection = db2.collection("influencers_testing");
+    // const db2 = client.db("test_analysis");
+    // const influencer_Test_Collection = db2.collection("influencers_testing");
     const usersCollection = db.collection("users");
-    const collection = db.collection("influencers_account");
+    const collection = db.collection("influencers");
 
     if (!twitterId) {
       return NextResponse.json(
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
         {
           success: false,
           error: {
-            message: "Register yourself first to receive 100 free credits!",
+            message: "Register yourself first to receive 500 free credits!",
           },
         },
         { status: 400 }
@@ -199,14 +199,14 @@ export async function POST(request: Request) {
           }
 
           // Store the handle and profile URL in the database
-          if (userProfileUrl) {
-            await influencer_Test_Collection.insertOne({
-              handle: username,
-              userData: {
-                userProfileUrl,
-              },
-            });
-          }
+          // if (userProfileUrl) {
+          //   await influencer_Test_Collection.insertOne({
+          //     handle: username,
+          //     userData: {
+          //       userProfileUrl,
+          //     },
+          //   });
+          // }
         } catch (profileError) {
           console.error("Error scraping profile image:", profileError);
         }

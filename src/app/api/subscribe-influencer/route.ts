@@ -32,7 +32,7 @@ export async function POST(request: Request): Promise<Response> {
 
         if (!user) {
           throw new Error(
-            "Register yourself first to receive 100 free credits!"
+            "Register yourself first to receive 500 free credits!"
           );
         }
 

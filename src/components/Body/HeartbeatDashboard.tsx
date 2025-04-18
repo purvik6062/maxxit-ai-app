@@ -10,77 +10,21 @@ import {
   FaChevronUp,
   FaRobot,
 } from "react-icons/fa";
-// Assuming a different primary icon might be relevant for "Heartbeat"
 import { HeartPulse, TrendingUp, BarChart2, ArrowUpDown } from "lucide-react";
-import { LuWandSparkles } from "react-icons/lu"; // Or a different title icon
 import gsap from "gsap";
 import {
   Loader2,
   AlertCircle,
   SearchX,
   ChevronUp,
-  Shield, // Keep for top 3 card example stats
+  Shield,
   Users,
   InfoIcon,
 } from "lucide-react";
 import { RiPulseLine } from "react-icons/ri"; // Keep for top 3 button example
 import { useGSAP } from "@gsap/react";
-// *** Replace with your actual hook for Heartbeat data ***
-import { useHeartbeatLeaderboard } from "@/hooks/useHeartbeatLeaderboard";
-import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-
-// --- UMD Interfaces (Copied directly) ---
-interface PublicMetrics {
-  followers_count: number;
-  following_count: number;
-  tweet_count: number;
-  listed_count: number;
-  like_count: number;
-  media_count: number;
-}
-
-interface UserData {
-  userId: string;
-  username: string;
-  verified: boolean;
-  publicMetrics: PublicMetrics;
-  userProfileUrl: string;
-  mindshare: number;
-  herdedVsHidden: number;
-  convictionVsHype: number;
-  memeVsInstitutional: number;
-}
-
-interface UserResponse {
-  _id: string;
-  lastUpdated: string;
-  userData: UserData;
-}
-
-// --- Heartbeat Agent Interface (Adjusted) ---
-interface HeartbeatAgentBase {
-  name: string;
-  handle: string;
-  heartbeat?: number; // Primary metric for this dashboard
-  // Add any other metrics provided by useHeartbeatData if needed for top 3 cards
-  beat?: number;
-  signals?: number;
-  mindshare?: number;
-}
-
-// Combined interface for merged data
-interface EnhancedHeartbeatAgent extends HeartbeatAgentBase {
-  // Fields from UMD
-  userData?: UserData;
-  profileUrl?: string;
-  verified?: boolean;
-  mindshare?: number;
-  followers?: number;
-  herdedVsHidden?: number;
-  convictionVsHype?: number;
-  memeVsInstitutional?: number;
-}
+import { useUserData } from "@/context/UserDataContext";
 
 // --- SortField Type (Adjusted) ---
 type SortField =
@@ -113,36 +57,11 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
   const container = useRef(null);
   gsap.registerPlugin(useGSAP);
 
-  // *** Use the Heartbeat data hook ***
-  const {
-    agents: heartbeatAgents, // Renamed
-    loading: loadingHeartbeat, // Renamed
-    error,
-    refreshData,
-  } = useHeartbeatLeaderboard(); // Using the assumed hook
-
-  // --- State Variables (Copied directly) ---
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [showStats, setShowStats] = useState<Record<string, boolean>>({}); // For Top 3 cards
-  const [showTooltip, setShowTooltip] = useState<string | null>(null);
-  const [tooltipCoords, setTooltipCoords] = useState<{
-    top: number;
-    left: number;
-  } | null>(null);
-  // const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
-  const [umdUsers, setUmdUsers] = useState<UserResponse[]>([]);
-  const [enhancedAgents, setEnhancedAgents] = useState<
-    EnhancedHeartbeatAgent[]
-  >([]); // Use specific type
-  const [loadingUmd, setLoadingUmd] = useState(true);
-  // *** Default sort field changed ***
-  const [sortField, setSortField] = useState<SortField>("heartbeat");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
-  const [hoveredIconRef, setHoveredIconRef] = useState<EventTarget | null>(
-    null
-  );
+  const [sortField, setSortField] = useState<SortField>("heartbeat");
 
-  // --- Helper Functions (Copied, potentially adjust getRandomStat if needed) ---
+  const { agents, loadingUmd, error, refreshData } = useUserData();
 
   // Example: Keep random stats for top 3, or use real data if useHeartbeatData provides it
   const getRandomStat = (handle: string, type: string): number => {
@@ -162,98 +81,11 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
     }
   };
 
-  // --- Tooltip Handlers ---
-  const handleTooltipEnter = (
-    event: React.MouseEvent<SVGElement>,
-    tooltipId: string
-  ) => {
-    const iconElement = event.currentTarget;
-    const rect = iconElement.getBoundingClientRect();
-
-    // Calculate position relative to the document, not just viewport
-    const top = rect.top + window.scrollY;
-    const left = rect.left + window.scrollX + rect.width / 2; // Center horizontally
-
-    setTooltipCoords({ top, left });
-    setShowTooltip(tooltipId);
-  };
-
-  const handleTooltipLeave = () => {
-    setShowTooltip(null);
-    setTooltipCoords(null);
-  };
-
   const toggleStats = (handle: string) => {
     setShowStats((prev) => ({ ...prev, [handle]: !prev[handle] }));
   };
 
-  // --- Hooks for Data Fetching & Merging (Copied, adapted for heartbeat) ---
-
-  // Fetch UMD data (Identical to EL)
-  useEffect(() => {
-    async function fetchUserMetricsData() {
-      /* ...identical code... */
-      try {
-        const response = await fetch("/api/get-user-profile-data");
-        const data: UserResponse[] = await response.json();
-        setUmdUsers(data);
-        setLoadingUmd(false);
-      } catch (error) {
-        console.error("Failed to fetch user metrics data:", error);
-        setLoadingUmd(false);
-      }
-    }
-    fetchUserMetricsData();
-  }, []);
-
-  // Merge data (Adapted for heartbeatAgents)
-  useEffect(() => {
-    if (!loadingHeartbeat && !loadingUmd && heartbeatAgents.length > 0) {
-      // Use heartbeat loading state
-      const merged = heartbeatAgents.map((agent) => {
-        // Use heartbeat agents
-        const matchingUser = umdUsers.find(
-          (user) =>
-            user.userData.username.toLowerCase() ===
-            agent.handle.replace("@", "").toLowerCase()
-        );
-        return {
-          ...agent, // Spread the base heartbeat agent data
-          userData: matchingUser?.userData,
-          profileUrl: matchingUser?.userData.userProfileUrl || "",
-          verified: matchingUser?.userData.verified || false,
-          mindshare: matchingUser?.userData.mindshare || 0,
-          followers: matchingUser?.userData.publicMetrics?.followers_count || 0,
-          herdedVsHidden: matchingUser?.userData.herdedVsHidden || 50,
-          convictionVsHype: matchingUser?.userData.convictionVsHype || 50,
-          memeVsInstitutional: matchingUser?.userData.memeVsInstitutional || 50,
-        };
-      });
-      setEnhancedAgents(merged); // Set the state with merged data
-    }
-    // Depend on heartbeat loading state
-  }, [heartbeatAgents, umdUsers, loadingHeartbeat, loadingUmd]);
-
-  // Handle refresh (Identical, relies on refreshData from useHeartbeatData)
-  React.useEffect(() => {
-    const wrappedRefreshData = async () => {
-      /* ...identical code... */
-      console.log("HeartbeatDashboard: Starting refresh");
-      setIsRefreshing(true);
-      try {
-        await refreshData(); // Call refresh from useHeartbeatData
-        console.log("HeartbeatDashboard: Refresh completed");
-      } finally {
-        setIsRefreshing(false);
-      }
-    };
-    setRefreshData(() => wrappedRefreshData);
-  }, [refreshData, setRefreshData]);
-
-  // --- Sorting Logic (Copied, adapted for SortField type and primary metric) ---
-
   const sortAgents = (field: SortField) => {
-    /* ...identical code... */
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
@@ -293,7 +125,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
   useGSAP(
     () => {
       /* ...identical code... */
-      if (!loadingHeartbeat && !loadingUmd && enhancedAgents.length > 0) {
+      if (!loadingUmd && agents.length > 0) {
         const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
         tl.fromTo(
           ".top-card",
@@ -310,20 +142,20 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
     },
     {
       scope: container,
-      dependencies: [loadingHeartbeat, loadingUmd, enhancedAgents],
+      dependencies: [loadingUmd, agents],
     }
   ); // Depend on heartbeat loading
 
   // Get sorted and filteblue agents (Adapted for heartbeat)
   const getSortedAndFilteblueAgents = () => {
     const filteblue = searchText
-      ? enhancedAgents.filter(
+      ? agents.filter(
           /* ...identical filter logic... */
           (agent) =>
             agent.name.toLowerCase().includes(searchText.toLowerCase()) ||
-            agent.handle.toLowerCase().includes(searchText.toLowerCase())
+            agent.twitterHandle.toLowerCase().includes(searchText.toLowerCase())
         )
-      : enhancedAgents;
+      : agents;
 
     return [...filteblue].sort((a, b) => {
       let valueA: any, valueB: any; // Use any temporarily or ensure types align
@@ -343,8 +175,8 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
           valueB = b.followers || 0;
           break;
         case "username":
-          valueA = a.handle.toLowerCase();
-          valueB = b.handle.toLowerCase();
+          valueA = a.twitterHandle.toLowerCase();
+          valueB = b.twitterHandle.toLowerCase();
           return sortDirection === "asc"
             ? valueA.localeCompare(valueB)
             : valueB.localeCompare(valueA);
@@ -376,7 +208,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
 
   // --- Render Logic ---
 
-  const loading = loadingHeartbeat || loadingUmd; // Check both loading states
+  const loading = loadingUmd; // Check both loading states
 
   // Loading State (Identical)
   if (loading) {
@@ -438,6 +270,15 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
     "from-gray-300 to-gray-400",
     "from-amber-700 to-amber-900",
   ];
+
+  function formatFollowersCount(num?: number): string {
+    if (num === undefined || num === null) return "--";
+
+    if (num < 1000) return num.toString();
+    if (num < 1_000_000)
+      return (num / 1000).toFixed(2).replace(/\.?0+$/, "") + " K";
+    return (num / 1_000_000).toFixed(2).replace(/\.?0+$/, "") + " M";
+  }
 
   // --- Main JSX Structure (Copied, adapted text & primary metric) ---
   return (
@@ -585,20 +426,18 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {topAgents.map((agent, index) => {
           const rank = index + 1; // Simple rank for top 3 display
-          const cleanHandle = agent.handle.replace("@", "");
+          const cleanHandle = agent.twitterHandle.replace("@", "");
           const isSubscribed = subscribedHandles.includes(cleanHandle);
           const isCurrentlySubscribing = subscribingHandle === cleanHandle;
 
           // Use actual heartbeat stats if available, else fallback to random
-          const beat = agent.beat ?? getRandomStat(agent.handle, "beat");
-          const signals =
-            agent.signals ?? getRandomStat(agent.handle, "signals");
-          const mindshare =
-            agent.mindshare ?? getRandomStat(agent.handle, "mindshare");
+          const beat = getRandomStat(agent.twitterHandle, "beat");
+          const signals = getRandomStat(agent.twitterHandle, "signals");
+          const mindshare = getRandomStat(agent.twitterHandle, "mindshare");
 
           return (
             <div
-              key={agent.handle} /* ... identical card classes ... */
+              key={agent.twitterHandle} /* ... identical card classes ... */
               className={`impact-card top-card relative overflow-hidden rounded-xl border ${
                 rank === 1
                   ? "border-yellow-500/30"
@@ -641,7 +480,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                         Rank #{rank}
                       </span>
                       <div className="flex items-center gap-2 mb-1">
-                        {agent.handle && (
+                        {agent.twitterHandle && (
                           <div className="relative w-6 h-6">
                             {" "}
                             {/* ... img + checkmark ... */}
@@ -650,7 +489,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                                 agent.profileUrl?.trim().length > 0
                                   ? agent.profileUrl
                                   : `https://picsum.photos/seed/${encodeURIComponent(
-                                      agent.handle
+                                      agent.twitterHandle
                                     )}/40/40`
                               }
                               alt={agent.name}
@@ -667,7 +506,9 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                           {agent.name}
                         </h3>
                       </div>
-                      <p className="text-sm text-gray-400">{agent.handle}</p>
+                      <p className="text-sm text-gray-400">
+                        {agent.twitterHandle}
+                      </p>
                     </div>
                   </div>
 
@@ -706,7 +547,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                     <div className="text-center">
                       <p className="text-gray-200 text-lg font-medium">
                         {agent.mindshare > 0
-                          ? agent.followers?.toLocaleString()
+                          ? formatFollowersCount(agent.followers)
                           : "--"}
                       </p>
                       <p className="text-xs text-gray-500">Followers</p>
@@ -727,7 +568,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                 {/* Expandable Section for Stats (Identical Structure - uses random/placeholder stats) */}
                 <div
                   className={`transition-all duration-300 overflow-hidden ${
-                    showStats[agent.handle]
+                    showStats[agent.twitterHandle]
                       ? "max-h-[500px] opacity-100 mb-4"
                       : "max-h-0 opacity-0"
                   }`}
@@ -852,16 +693,6 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                           <span className="text-xs text-gray-300">vs</span>
                           <span className="text-xs text-cyan-400">Hidden</span>
                         </div>
-                        <div className="relative">
-                          <FaRobot
-                            className="text-gray-500 hover:text-blue-400 text-xs cursor-help"
-                            // --- MODIFIED ---
-                            onMouseEnter={(e) =>
-                              handleTooltipEnter(e, "herdedVsHidden")
-                            }
-                            onMouseLeave={handleTooltipLeave}
-                          />
-                        </div>
                       </div>
                       {renderMetricIndicator(
                         agent.herdedVsHidden || 0,
@@ -878,16 +709,6 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                           </span>
                           <span className="text-xs text-gray-300">vs</span>
                           <span className="text-xs text-rose-400">Hype</span>
-                        </div>
-                        <div className="relative">
-                          <FaRobot
-                            className="text-gray-500 hover:text-blue-400 text-xs cursor-help"
-                            // --- MODIFIED ---
-                            onMouseEnter={(e) =>
-                              handleTooltipEnter(e, "convictionVsHype")
-                            }
-                            onMouseLeave={handleTooltipLeave}
-                          />
                         </div>
                       </div>
                       {renderMetricIndicator(
@@ -906,16 +727,6 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                             Institutional
                           </span>
                         </div>
-                        <div className="relative">
-                          <FaRobot
-                            className="text-gray-500 hover:text-blue-400 text-xs cursor-help"
-                            // --- MODIFIED ---
-                            onMouseEnter={(e) =>
-                              handleTooltipEnter(e, "memeVsInstitutional")
-                            }
-                            onMouseLeave={handleTooltipLeave}
-                          />
-                        </div>
                       </div>
                       {renderMetricIndicator(
                         agent.memeVsInstitutional || 0,
@@ -929,11 +740,11 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                 {/* Toggle Button (Identical) */}
                 <button
                   onClick={() =>
-                    toggleStats(agent.handle)
+                    toggleStats(agent.twitterHandle)
                   } /* ... identical button classes/logic ... */
                   className="w-full flex items-center justify-center gap-1 py-1 mb-3 rounded-lg text-sm font-medium text-blue-300 hover:text-blue-200 bg-blue-900/30 hover:bg-blue-800/40 transition-all duration-200"
                 >
-                  {showStats[agent.handle] ? (
+                  {showStats[agent.twitterHandle] ? (
                     <>
                       <ChevronUp className="w-3 h-3" />
                       <span>Hide Details</span>
@@ -950,7 +761,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                   onClick={() =>
                     !isSubscribed &&
                     !isCurrentlySubscribing &&
-                    onSubscribe(agent.handle)
+                    onSubscribe(agent.twitterHandle)
                   }
                   disabled={
                     isSubscribed || isCurrentlySubscribing
@@ -1033,14 +844,18 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
           <div className="space-y-2">
             {remainingAgents.map((agent) => {
               const rank =
-                sortedAgents.findIndex((a) => a.handle === agent.handle) + 1;
-              const cleanHandle = agent.handle.replace("@", "");
+                sortedAgents.findIndex(
+                  (a) => a.twitterHandle === agent.twitterHandle
+                ) + 1;
+              const cleanHandle = agent.twitterHandle.replace("@", "");
               const isSubscribed = subscribedHandles.includes(cleanHandle);
               const isCurrentlySubscribing = subscribingHandle === cleanHandle;
 
               return (
                 <div
-                  key={agent.handle} /* ... identical list item classes ... */
+                  key={
+                    agent.twitterHandle
+                  } /* ... identical list item classes ... */
                   className="impact-card list-item relative bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-lg overflow-hidden transition-all hover:bg-blue-950 duration-200" // Adjusted hover color maybe
                 >
                   <div className="px-4 py-2 flex items-center gap-3 md:gap-4">
@@ -1053,7 +868,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                       <div className="w-6 flex items-center justify-center rounded-full bg-gray-800/70 text-gray-400 text-xs font-medium mr-3 flex-shrink-0">
                         {rank}
                       </div>
-                      {agent.handle && (
+                      {agent.twitterHandle && (
                         <div className="relative w-8 h-8 mr-3 flex-shrink-0">
                           {/* ... img + check ... */}
                           <img
@@ -1061,7 +876,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                               agent.profileUrl?.trim().length > 0
                                 ? agent.profileUrl
                                 : `https://picsum.photos/seed/${encodeURIComponent(
-                                    agent.handle
+                                    agent.twitterHandle
                                   )}/40/40`
                             }
                             alt={agent.name}
@@ -1079,7 +894,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                           {agent.name}
                         </h4>
                         <p className="text-xs text-gray-500 truncate">
-                          {agent.handle}
+                          {agent.twitterHandle}
                         </p>
                       </div>
                     </div>
@@ -1127,7 +942,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                       <div className="w-20 text-right hidden lg:inline-block">
                         {agent.followers > 0 ? (
                           <p className="text-gray-300 text-sm">
-                            {agent.followers?.toLocaleString()}
+                            {formatFollowersCount(agent.followers)}
                           </p>
                         ) : (
                           <span className="text-sm text-gray-100">--</span>
@@ -1157,7 +972,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                           onClick={() =>
                             !isSubscribed &&
                             !isCurrentlySubscribing &&
-                            onSubscribe(agent.handle)
+                            onSubscribe(agent.twitterHandle)
                           }
                           disabled={
                             isSubscribed || isCurrentlySubscribing
@@ -1212,44 +1027,6 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
             {/* Adjusted text */}
           </div>
         )}
-      {/* Refreshing Indicator (Identical) */}
-      {isRefreshing /* ... identical JSX ... */ && (
-        <div className="flex items-center justify-center p-3 mt-4">
-          <Loader2 className="w-5 h-5 text-blue-400 animate-spin mr-2" />
-          <span className="text-sm text-slate-400">
-            Updating heartbeat data...
-          </span>{" "}
-          {/* Adjusted text */}
-        </div>
-      )}
-      {/* Tooltip */}
-      {/* --- MODIFIED --- Check for tooltipCoords as well */}
-      {/* {showTooltip && tooltipCoords && (
-        <div
-          className="fixed z-50 bg-gray-800 rounded-md shadow-lg p-2 text-xs text-white max-w-[200px] pointer-events-none" // Added pointer-events-none
-          style={{
-            // --- MODIFIED --- Use stored coordinates
-            top: `${tooltipCoords.top}px`,
-            left: `${tooltipCoords.left}px`,
-            // Transform to position correctly relative to the calculated point
-            // -50% X centers it horizontally
-            // -100% Y moves it above the point
-            // -4px Y adds a small gap
-            transform: "translate(-50%, -100%) translateY(-4px)",
-            // --- END MODIFIED ---
-          }}
-        >
-          <p className="font-medium">AI-Powered Metric</p>
-          <p className="text-gray-300 text-[10px] mt-1">
-            {showTooltip === "herdedVsHidden" &&
-              "Analyzes whether content follows crowd sentiment or provides contrarian views."}
-            {showTooltip === "convictionVsHype" &&
-              "Measures genuine belief versus promotional content based on language patterns."}
-            {showTooltip === "memeVsInstitutional" &&
-              "Evaluates content tone from casual/humorous to formal/institutional."}
-          </p>
-        </div>
-      )} */}
     </div> // Closing main container div
   );
 };

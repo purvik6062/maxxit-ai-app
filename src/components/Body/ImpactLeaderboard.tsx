@@ -1,4 +1,4 @@
-// components/EnhancedImpactLeaderboard.tsx
+// components/ImpactLeaderboard.tsx
 "use client";
 import React, { useRef, useState, useEffect } from "react";
 import {
@@ -24,57 +24,8 @@ import {
 } from "lucide-react";
 import { RiPulseLine } from "react-icons/ri";
 import { useGSAP } from "@gsap/react";
-import { useImpactLeaderboard } from "@/hooks/useImpactLeaderboard";
-import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-
-// Define TypeScript interface for user data (from UMD)
-interface PublicMetrics {
-  followers_count: number;
-  following_count: number;
-  tweet_count: number;
-  listed_count: number;
-  like_count: number;
-  media_count: number;
-}
-
-interface UserData {
-  userId: string;
-  username: string;
-  verified: boolean;
-  publicMetrics: PublicMetrics;
-  userProfileUrl: string;
-  mindshare: number;
-  // Added comparison metrics
-  herdedVsHidden: number; // 0-100 (0 = fully herded, 100 = fully hidden)
-  convictionVsHype: number; // 0-100 (0 = pure conviction, 100 = pure hype)
-  memeVsInstitutional: number; // 0-100 (0 = meme, 100 = institutional)
-}
-
-interface UserResponse {
-  _id: string;
-  lastUpdated: string;
-  userData: UserData;
-}
-
-// Original agent interface from IL
-interface Agent {
-  name: string;
-  handle: string;
-  impactFactor?: number;
-}
-
-// Combined interface for merged data
-interface EnhancedAgent extends Agent {
-  userData?: UserData;
-  profileUrl?: string;
-  verified?: boolean;
-  mindshare?: number;
-  followers?: number;
-  herdedVsHidden?: number;
-  convictionVsHype?: number;
-  memeVsInstitutional?: number;
-}
+import { useUserData } from "@/context/UserDataContext";
 
 type SortField =
   | "impactFactor"
@@ -86,7 +37,7 @@ type SortField =
   | "memeVsInstitutional";
 type SortDirection = "asc" | "desc";
 
-interface EnhancedImpactLeaderboardProps {
+interface ImpactLeaderboardProps {
   subscribedHandles: string[];
   subscribingHandle: string | null;
   onSubscribe: (handle: string) => void;
@@ -94,7 +45,7 @@ interface EnhancedImpactLeaderboardProps {
   searchText: string;
 }
 
-const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
+const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
   subscribedHandles,
   subscribingHandle,
   onSubscribe,
@@ -103,21 +54,11 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
 }) => {
   const container = useRef(null);
   gsap.registerPlugin(useGSAP);
-  const {
-    agents,
-    loading: loadingImpact,
-    error,
-    refreshData,
-  } = useImpactLeaderboard();
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [showStats, setShowStats] = useState<Record<string, boolean>>({});
-  const [showTooltip, setShowTooltip] = useState<string | null>(null);
-  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
-  const [umdUsers, setUmdUsers] = useState<UserResponse[]>([]);
-  const [enhancedAgents, setEnhancedAgents] = useState<EnhancedAgent[]>([]);
-  const [loadingUmd, setLoadingUmd] = useState(true);
   const [sortField, setSortField] = useState<SortField>("impactFactor");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+
+  const { agents, loadingUmd, error, refreshData } = useUserData();
 
   // Calculate random stats for visualization
   const getRandomStat = (handle: string, type: string): number => {
@@ -144,67 +85,6 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
       [handle]: !prev[handle],
     }));
   };
-
-  // Fetch UMD data
-  useEffect(() => {
-    async function fetchUserMetricsData() {
-      try {
-        const response = await fetch("/api/get-user-profile-data");
-        const data: UserResponse[] = await response.json();
-        setUmdUsers(data);
-        setLoadingUmd(false);
-      } catch (error) {
-        console.error("Failed to fetch user metrics data:", error);
-        setLoadingUmd(false);
-      }
-    }
-
-    fetchUserMetricsData();
-  }, []);
-
-  // Merge data from both sources when both are loaded
-  useEffect(() => {
-    if (!loadingImpact && !loadingUmd && agents.length > 0) {
-      const merged = agents.map((agent) => {
-        // Find matching UMD user by username
-        const matchingUser = umdUsers.find(
-          (user) =>
-            user.userData.username.toLowerCase() ===
-            agent.handle.replace("@", "").toLowerCase()
-        );
-
-        // Create enhanced agent with data from both sources
-        return {
-          ...agent,
-          userData: matchingUser?.userData,
-          profileUrl: matchingUser?.userData.userProfileUrl || "",
-          verified: matchingUser?.userData.verified || false,
-          mindshare: matchingUser?.userData.mindshare || 0,
-          followers: matchingUser?.userData.publicMetrics?.followers_count || 0,
-          herdedVsHidden: matchingUser?.userData.herdedVsHidden || 50,
-          convictionVsHype: matchingUser?.userData.convictionVsHype || 50,
-          memeVsInstitutional: matchingUser?.userData.memeVsInstitutional || 50,
-        };
-      });
-
-      setEnhancedAgents(merged);
-    }
-  }, [agents, umdUsers, loadingImpact, loadingUmd]);
-
-  // Handle refresh
-  React.useEffect(() => {
-    const wrappedRefreshData = async () => {
-      console.log("ImpactLeaderboard: Starting refresh");
-      setIsRefreshing(true);
-      try {
-        await refreshData();
-        console.log("ImpactLeaderboard: Refresh completed");
-      } finally {
-        setIsRefreshing(false);
-      }
-    };
-    setRefreshData(() => wrappedRefreshData);
-  }, [refreshData, setRefreshData]);
 
   // Handle sorting
   const sortAgents = (field: SortField) => {
@@ -254,7 +134,7 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
   // Apply GSAP animations
   useGSAP(
     () => {
-      if (!loadingImpact && !loadingUmd && enhancedAgents.length > 0) {
+      if (!loadingUmd && agents.length > 0) {
         const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
         // Staggered entrance animation
         tl.fromTo(
@@ -274,7 +154,7 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
     },
     {
       scope: container,
-      dependencies: [loadingImpact, loadingUmd, enhancedAgents],
+      dependencies: [loadingUmd, agents],
     }
   );
 
@@ -282,12 +162,12 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
   const getSortedAndFilteredAgents = () => {
     // First filter by search text
     const filtered = searchText
-      ? enhancedAgents.filter(
+      ? agents.filter(
           (agent) =>
             agent.name.toLowerCase().includes(searchText.toLowerCase()) ||
-            agent.handle.toLowerCase().includes(searchText.toLowerCase())
+            agent.twitterHandle.toLowerCase().includes(searchText.toLowerCase())
         )
-      : enhancedAgents;
+      : agents;
 
     // Then sort
     return [...filtered].sort((a, b) => {
@@ -307,8 +187,8 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
           valueB = b.followers || 0;
           break;
         case "username":
-          valueA = a.handle.toLowerCase();
-          valueB = b.handle.toLowerCase();
+          valueA = a.twitterHandle.toLowerCase();
+          valueB = b.twitterHandle.toLowerCase();
           return sortDirection === "asc"
             ? valueA.localeCompare(valueB)
             : valueB.localeCompare(valueA);
@@ -333,7 +213,7 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
     });
   };
 
-  const loading = loadingImpact || loadingUmd;
+  const loading = loadingUmd;
 
   if (loading) {
     return (
@@ -390,6 +270,15 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
     "from-gray-300 to-gray-400", // silver
     "from-amber-700 to-amber-900", // bronze
   ];
+
+  function formatFollowersCount(num?: number): string {
+    if (num === undefined || num === null) return "--";
+
+    if (num < 1000) return num.toString();
+    if (num < 1_000_000)
+      return (num / 1000).toFixed(2).replace(/\.?0+$/, "") + " K";
+    return (num / 1_000_000).toFixed(2).replace(/\.?0+$/, "") + " M";
+  }
 
   return (
     <div ref={container}>
@@ -535,18 +424,18 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {topAgents.map((agent, index) => {
           const rank = index + 1;
-          const cleanHandle = agent.handle.replace("@", "");
+          const cleanHandle = agent.twitterHandle.replace("@", "");
           const isSubscribed = subscribedHandles.includes(cleanHandle);
           const isCurrentlySubscribing = subscribingHandle === cleanHandle;
 
           // Generate pseudo-random metrics for visualization
-          const factor = getRandomStat(agent.handle, "factor");
-          const signals = getRandomStat(agent.handle, "signals");
-          const mindshare = getRandomStat(agent.handle, "mindshare");
+          const factor = getRandomStat(agent.twitterHandle, "factor");
+          const signals = getRandomStat(agent.twitterHandle, "signals");
+          const mindshare = getRandomStat(agent.twitterHandle, "mindshare");
 
           return (
             <div
-              key={agent.handle}
+              key={agent.twitterHandle}
               className={`impact-card top-card relative overflow-hidden rounded-xl border ${
                 rank === 1
                   ? "border-yellow-500/30"
@@ -590,14 +479,14 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
 
                       {/* Profile pic & name */}
                       <div className="flex items-center gap-2 mb-1">
-                        {agent.handle && (
+                        {agent.twitterHandle && (
                           <div className="relative w-6 h-6">
                             <img
                               src={
                                 agent.profileUrl?.trim().length > 0
                                   ? agent.profileUrl
                                   : `https://picsum.photos/seed/${encodeURIComponent(
-                                      agent.handle
+                                      agent.twitterHandle
                                     )}/40/40`
                               }
                               alt={agent.name}
@@ -614,7 +503,9 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                           {agent.name}
                         </h3>
                       </div>
-                      <p className="text-sm text-gray-400">{agent.handle}</p>
+                      <p className="text-sm text-gray-400">
+                        {agent.twitterHandle}
+                      </p>
                     </div>
                   </div>
 
@@ -637,7 +528,7 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                 {/* Detailed stats with hover interaction */}
                 <div
                   className={`transition-all duration-300 overflow-hidden ${
-                    showStats[agent.handle]
+                    showStats[agent.twitterHandle]
                       ? "max-h-40 opacity-100 mb-4"
                       : "max-h-0 opacity-0"
                   }`}
@@ -686,13 +577,11 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                         <div className="absolute inset-0 border-2 border-blue-800/30 rounded-full"></div>
                         <div className="absolute inset-[20%] border-2 border-blue-800/20 rounded-full"></div>
                         <div className="absolute inset-[40%] border-2 border-blue-800/10 rounded-full"></div>
-
                         {/* Stat lines */}
                         <div className="absolute top-0 left-1/2 h-1/2 w-0.5 bg-blue-800/20 -translate-x-1/2"></div>
                         <div className="absolute top-1/2 left-0 h-0.5 w-1/2 bg-blue-800/20"></div>
                         <div className="absolute bottom-0 left-1/2 h-1/2 w-0.5 bg-blue-800/20 -translate-x-1/2"></div>
                         <div className="absolute top-1/2 right-0 h-0.5 w-1/2 bg-blue-800/20"></div>
-
                         {/* Data points */}
                         <div
                           className="absolute rounded-full w-2 h-2 bg-blue-400"
@@ -730,10 +619,9 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                             boxShadow: "0 0 5px rgba(59, 130, 246, 0.7)",
                           }}
                         ></div>{" "}
-
                         {/* Connecting lines */}
                         <svg className="absolute inset-0 w-full h-full">
-                        {" "}
+                          {" "}
                           <polygon
                             points={`50,${(100 - factor) / 2} 
                                                                   ${
@@ -756,7 +644,7 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                             stroke="rgba(59, 130, 246, 0.6)"
                             strokeWidth="1"
                           />
-                        </svg>{" "} 
+                        </svg>{" "}
                       </div>
                     </div>
                   </div>
@@ -775,7 +663,7 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                     <div className="text-center">
                       <p className="text-gray-200 text-lg font-medium">
                         {agent.mindshare > 0
-                          ? agent.followers?.toLocaleString()
+                          ? formatFollowersCount(agent.followers)
                           : "--"}
                       </p>
                       <p className="text-xs text-gray-500">Followers</p>
@@ -795,7 +683,7 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                 {/* Detailed stats with hover interaction */}
                 <div
                   className={`transition-all duration-300 overflow-hidden ${
-                    showStats[agent.handle]
+                    showStats[agent.twitterHandle]
                       ? "max-h-[500px] opacity-100 mb-4"
                       : "max-h-0 opacity-0"
                   }`}
@@ -809,19 +697,6 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                           <span className="text-xs text-red-400">Herded</span>
                           <span className="text-xs text-gray-300">vs</span>
                           <span className="text-xs text-cyan-400">Hidden</span>
-                        </div>
-                        <div className="relative">
-                          <FaRobot
-                            className="text-gray-500 hover:text-blue-400 text-xs cursor-help"
-                            onMouseEnter={(e) => {
-                              setTooltipPosition({
-                                x: e.clientX,
-                                y: e.clientY,
-                              });
-                              setShowTooltip("herdedVsHidden");
-                            }}
-                            onMouseLeave={() => setShowTooltip(null)}
-                          />
                         </div>
                       </div>
                       {renderMetricIndicator(
@@ -841,19 +716,6 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                           <span className="text-xs text-gray-300">vs</span>
                           <span className="text-xs text-rose-400">Hype</span>
                         </div>
-                        <div className="relative">
-                          <FaRobot
-                            className="text-gray-500 hover:text-blue-400 text-xs cursor-help"
-                            onMouseEnter={(e) => {
-                              setTooltipPosition({
-                                x: e.clientX,
-                                y: e.clientY,
-                              });
-                              setShowTooltip("convictionVsHype");
-                            }}
-                            onMouseLeave={() => setShowTooltip(null)}
-                          />
-                        </div>
                       </div>
                       {renderMetricIndicator(
                         agent.convictionVsHype || 0,
@@ -872,19 +734,6 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                             Institutional
                           </span>
                         </div>
-                        <div className="relative">
-                          <FaRobot
-                            className="text-gray-500 hover:text-blue-400 text-xs cursor-help"
-                            onMouseEnter={(e) => {
-                              setTooltipPosition({
-                                x: e.clientX,
-                                y: e.clientY,
-                              });
-                              setShowTooltip("memeVsInstitutional");
-                            }}
-                            onMouseLeave={() => setShowTooltip(null)}
-                          />
-                        </div>
                       </div>
                       {renderMetricIndicator(
                         agent.memeVsInstitutional || 0,
@@ -899,9 +748,9 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                 <button
                   className="w-full flex items-center justify-center gap-1 py-1 mb-3 rounded-lg text-sm font-medium
                     text-blue-300 hover:text-blue-200 bg-blue-900/30 hover:bg-blue-800/40 transition-all duration-200"
-                  onClick={() => toggleStats(agent.handle)}
+                  onClick={() => toggleStats(agent.twitterHandle)}
                 >
-                  {showStats[agent.handle] ? (
+                  {showStats[agent.twitterHandle] ? (
                     <>
                       <ChevronUp className="w-3 h-3" />
                       <span>Hide Details</span>
@@ -925,7 +774,7 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                   onClick={() =>
                     !isSubscribed &&
                     !isCurrentlySubscribing &&
-                    onSubscribe(agent.handle)
+                    onSubscribe(agent.twitterHandle)
                   }
                   disabled={isSubscribed || isCurrentlySubscribing}
                 >
@@ -1007,14 +856,16 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
           <div className="space-y-2">
             {remainingAgents.map((agent, index) => {
               const rank =
-                sortedAgents.findIndex((a) => a.handle === agent.handle) + 1;
-              const cleanHandle = agent.handle.replace("@", "");
+                sortedAgents.findIndex(
+                  (a) => a.twitterHandle === agent.twitterHandle
+                ) + 1;
+              const cleanHandle = agent.twitterHandle.replace("@", "");
               const isSubscribed = subscribedHandles.includes(cleanHandle);
               const isCurrentlySubscribing = subscribingHandle === cleanHandle;
 
               return (
                 <div
-                  key={agent.handle}
+                  key={agent.twitterHandle}
                   className="impact-card list-item relative bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-lg overflow-hidden transition-all hover:bg-cyan-950 duration-200"
                 >
                   {/* Main Row Container - Matching Header Flex Structure */}
@@ -1027,14 +878,14 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                       <div className="w-6 flex items-center justify-center rounded-full bg-gray-800/70 text-gray-400 text-xs font-medium mr-3 flex-shrink-0">
                         {rank}
                       </div>
-                      {agent.handle && (
+                      {agent.twitterHandle && (
                         <div className="relative w-8 h-8 mr-3 flex-shrink-0">
                           <img
                             src={
                               agent.profileUrl?.trim().length > 0
                                 ? agent.profileUrl
                                 : `https://picsum.photos/seed/${encodeURIComponent(
-                                    agent.handle
+                                    agent.twitterHandle
                                   )}/40/40`
                             }
                             alt={agent.name}
@@ -1052,7 +903,7 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                           {agent.name}
                         </h4>
                         <p className="text-xs text-gray-500 truncate">
-                          {agent.handle}
+                          {agent.twitterHandle}
                         </p>
                       </div>
                     </div>
@@ -1114,7 +965,7 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                         {agent.followers > 0 ? (
                           <p className="text-gray-300 text-sm">
                             {agent.followers != null
-                              ? agent.followers.toLocaleString()
+                              ? formatFollowersCount(agent.followers)
                               : "--"}
                           </p>
                         ) : (
@@ -1157,7 +1008,7 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                           onClick={() =>
                             !isSubscribed &&
                             !isCurrentlySubscribing &&
-                            onSubscribe(agent.handle)
+                            onSubscribe(agent.twitterHandle)
                           }
                           disabled={isSubscribed || isCurrentlySubscribing}
                         >
@@ -1198,37 +1049,8 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
           <p className="text-gray-400">No analyst data available</p>
         </div>
       )}
-
-      {isRefreshing && (
-        <div className="flex items-center justify-center p-3 mt-4">
-          <Loader2 className="w-5 h-5 text-blue-400 animate-spin mr-2" />
-          <span className="text-sm text-slate-400">Updating rankings...</span>
-        </div>
-      )}
-
-      {/* Tooltip for AI metrics */}
-        {/* {showTooltip && (
-          <div
-            className="fixed z-50 bg-gray-800 rounded-md shadow-lg p-2 text-xs text-white max-w-[200px]"
-            style={{
-              left: `${tooltipPosition.x + 10}px`,
-              top: `${tooltipPosition.y - 10}px`,
-              transform: "translateY(-100%)", // Position above cursor
-            }}
-          >
-            <p className="font-medium">AI-Powered Metric</p>
-            <p className="text-gray-300 text-[10px] mt-1">
-              {showTooltip === "herdedVsHidden" &&
-                "Analyzes whether content follows crowd sentiment or provides contrarian views."}
-              {showTooltip === "convictionVsHype" &&
-                "Measures genuine belief versus promotional content based on language patterns."}
-              {showTooltip === "memeVsInstitutional" &&
-                "Evaluates content tone from casual/humorous to formal/institutional."}
-            </p>
-          </div>
-        )} */}
     </div> // Closing main container div
   );
 };
 
-export default React.memo(EnhancedImpactLeaderboard);
+export default React.memo(ImpactLeaderboard);

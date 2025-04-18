@@ -4,6 +4,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "react-toastify";
 import { useCredits } from "@/context/CreditsContext";
+import { UserDataProvider  } from "@/context/UserDataContext";
 import { IoPersonAdd } from "react-icons/io5";
 import { LuWandSparkles } from "react-icons/lu";
 import { Heart, Sparkles } from "lucide-react";
@@ -181,6 +182,8 @@ const HomePage: React.FC = () => {
         {/* <ShareButton /> */}
       </div>
 
+      <UserDataProvider >
+
       <main className="flex-grow px-6 py-6 max-w-6xl mx-auto w-full">
         <div className="mb-6 text-center">
           <h2 className="text-xl md:text-2xl font-bold text-white mb-2">
@@ -250,6 +253,7 @@ const HomePage: React.FC = () => {
         onClose={() => setIsModalOpen(false)}
         onSuccess={handleInfluencerAdded}
       />
+      </UserDataProvider>
     </div>
   );
 };

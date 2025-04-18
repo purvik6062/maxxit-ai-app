@@ -4,13 +4,13 @@ import { FaTelegram, FaUserPlus } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { useSession } from "next-auth/react";
 import { useCredits } from "@/context/CreditsContext";
+import { useUserData } from "@/context/UserDataContext";
 import "../../app/css/add_influencer.css";
 
 interface AddInfluencerModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  sessionUsername?: string | undefined | null;
   sessionUserhandle?: string | undefined | null;
 }
 
@@ -18,32 +18,25 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
-  sessionUsername,
   sessionUserhandle,
 }) => {
-  const [name, setName] = useState("");
   const [handle, setHandle] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [handleError, setHandleError] = useState<string | null>(null);
   const { data: session } = useSession();
   const { updateCredits } = useCredits();
-
-  // Check if sessionUsername exists (not null or undefined)
-  const isSessionUsernamePresent =
-    sessionUsername !== undefined && sessionUsername !== null;
+  // Get the refresh function from context
+  const { refreshData } = useUserData();
   const isSessionUserhandlePresent =
     sessionUserhandle !== undefined && sessionUserhandle !== null;
 
   useEffect(() => {
-    if (isSessionUsernamePresent) {
-      setName(sessionUsername);
-    }
     if (isSessionUserhandlePresent) {
       const cleanHandle = sessionUserhandle.replace(/^@/, "");
       setHandle(`@${cleanHandle}`);
     }
-  }, [sessionUsername, sessionUserhandle]);
+  }, [sessionUserhandle]);
 
   useEffect(() => {
     if (isOpen) {
@@ -109,7 +102,7 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name.trim() || !handle.trim()) {
+    if (!handle.trim()) {
       toast.error("Please fill in all fields", {
         position: "top-center",
       });
@@ -142,7 +135,6 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name,
           handle: formattedHandle,
           impactFactor: null,
           heartbeat: null,
@@ -167,7 +159,7 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
       });
 
       await updateCredits();
-      setName("");
+      await refreshData();
       setHandle("");
       onSuccess();
       onClose();
@@ -215,27 +207,6 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-2">
-            <label className="text-sm text-slate-300 font-medium">
-              Influencer Name
-            </label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 w-5 h-5" />
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter full name"
-                disabled={isSessionUsernamePresent}
-                className={`w-full plClass pr-4 py-3 rounded-lg bg-blue-900/20 border borderCss focus:border-blue-400 focus:ring-1 focus:ring-blue-400 text-white placeholder-slate-500 outline-none transition-all duration-300 ${
-                  isSessionUsernamePresent
-                    ? "cursor-not-allowed opacity-80"
-                    : ""
-                }`}
-              />
-            </div>
-          </div>
-
           <div className="space-y-2">
             <label className="text-sm text-slate-300 font-medium">
               Twitter Username

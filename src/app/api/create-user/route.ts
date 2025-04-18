@@ -103,7 +103,7 @@ export async function POST(request: Request): Promise<Response> {
       twitterId,
       telegramId,
       chatId,
-      credits: credits || 100,
+      credits: credits || 500,
       subscribedAccounts: [],
       createdAt: now,
       updatedAt: now,
