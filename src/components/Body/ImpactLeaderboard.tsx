@@ -910,11 +910,12 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                     : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
                     } transition-all duration-200 ${isCurrentlySubscribing ? "animate-pulse" : ""
                     }`}
-                  onClick={() =>
-                    !isSubscribed &&
-                    !isCurrentlySubscribing &&
-                    onSubscribe(agent.handle)
-                  }
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!isSubscribed && !isCurrentlySubscribing) {
+                      onSubscribe(agent.handle);
+                    }
+                  }}
                   disabled={isSubscribed || isCurrentlySubscribing}
                 >
                   {isCurrentlySubscribing ? (
@@ -1144,11 +1145,12 @@ const EnhancedImpactLeaderboard: React.FC<EnhancedImpactLeaderboardProps> = ({
                             : "bg-blue-600/80 hover:bg-blue-700 text-white"
                             } transition-all duration-200 whitespace-nowrap ${isCurrentlySubscribing ? "animate-pulse" : ""
                             }`}
-                          onClick={() =>
-                            !isSubscribed &&
-                            !isCurrentlySubscribing &&
-                            onSubscribe(agent.handle)
-                          }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!isSubscribed && !isCurrentlySubscribing) {
+                              onSubscribe(agent.handle);
+                            }
+                          }}
                           disabled={isSubscribed || isCurrentlySubscribing}
                         >
                           {isCurrentlySubscribing ? (
