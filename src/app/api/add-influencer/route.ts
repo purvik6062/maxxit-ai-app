@@ -15,28 +15,27 @@ function calculateMindshare(
   tweet_count: number,
   verified: boolean
 ): number {
-  // Normalize metrics (assuming reasonable max values)
-  const normFollowers = Math.min(followers_count / 1000000, 1); // Max 1M followers
-  const normFollowing = Math.min(following_count / 10000, 1); // Max 10K following
-  const normTweets = Math.min(tweet_count / 100000, 1); // Max 100K tweets
-  const verifiedWeight = verified ? 1.5 : 1; // 50% bonus if verified
+  const normFollowers = Math.min(followers_count / 2000000, 1);
+  const normFollowing = Math.min(following_count / 10000, 1);
+  const normTweets = Math.min(tweet_count / 200000, 1);
+  const verifiedWeight = verified ? 1.35 : 1; // Slight bump to 35%
 
-  // Weighted sum (adjust weights as needed)
-  const weights = { followers: 0.5, following: 0.2, tweets: 0.3 };
-  const mindshare =
-    (weights.followers * normFollowers +
-      weights.following * normFollowing +
-      weights.tweets * normTweets) *
-    verifiedWeight;
+  const weights = { followers: 0.35, following: 0.25, tweets: 0.4 };
 
-  return Math.min(1, parseFloat(mindshare.toFixed(2))); // Cap at 1, round to 2 decimals
+  const rawScore =
+    weights.followers * normFollowers +
+    weights.following * normFollowing +
+    weights.tweets * normTweets;
+
+  const mindshare = rawScore * verifiedWeight;
+
+  return Math.min(1, parseFloat(mindshare.toFixed(2)));
 }
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const {
-      name,
       handle,
       impactFactor,
       heartbeat,
@@ -48,11 +47,11 @@ export async function POST(request: Request) {
     const cleanHandle = handle.replace("@", "");
 
     // Validate the input
-    if (!name || !handle) {
+    if (!handle) {
       return NextResponse.json(
         {
           success: false,
-          error: { message: "Name and handle are required" },
+          error: { message: "Handle is required" },
         },
         { status: 400 }
       );
@@ -61,26 +60,7 @@ export async function POST(request: Request) {
     const client = await dbConnect();
     const db = client.db("ctxbt-signal-flow");
     const usersCollection = db.collection("users");
-    const influencersAccountCollection = db.collection("influencers_account");
     const influencersCollection = db.collection("influencers");
-
-    if (
-      !(await db.listCollections({ name: "influencer_tweetscout_data" }).hasNext())
-    ) {
-      await db.createCollection("influencer_tweetscout_data");
-    }
-    const influencerRawDataCollection = db.collection("influencer_tweetscout_data");
-
-    // Create new influencer in influencers_account collection
-    const newInfluencer = {
-      name,
-      handle,
-      impactFactor,
-      heartbeat,
-      createdAt: new Date(createdAt),
-    };
-
-    await influencersAccountCollection.insertOne(newInfluencer);
 
     // If twitterId is provided, process subscription
     if (twitterId) {
@@ -88,9 +68,11 @@ export async function POST(request: Request) {
       const existingInfluencer = await influencersCollection.findOne({
         twitterHandle: cleanHandle,
       });
+
+      // Define apiData at a higher scope to use throughout the function
+      let apiData: any = null;
       
-      // Fetch data from TweetScout API outside the transaction
-      let apiData: any;
+      // Fetch data from TweetScout API only if the influencer doesn't exist
       if (!existingInfluencer) {
         try {
           const url = `https://api.tweetscout.io/v2/info/${cleanHandle}`;
@@ -135,7 +117,7 @@ export async function POST(request: Request) {
 
           if (!user) {
             throw new Error(
-              "Register yourself first to receive 100 free credits!"
+              "Register yourself first to receive 500 free credits!"
             );
           }
 
@@ -167,37 +149,20 @@ export async function POST(request: Request) {
               { session }
             );
           } else {
-            // Store raw data in influencer_tweetscout_data collection
-            await influencerRawDataCollection.insertOne(
-              {
-                twitterHandle: cleanHandle,
-                rawData: apiData,
-                fetchedAt: new Date(),
-              },
-              { session }
-            );
-
-            console.log("data stored in raw DB");
-
-            // Fetch the stored data from the database
-            const storedData = await influencerRawDataCollection.findOne(
-              { twitterHandle: cleanHandle },
-              { session } // Include session here
-            );
-
-            if (!storedData) {
-              throw new Error("Failed to retrieve stored influencer data");
-            }
-
+            // Extract directly from apiData for new influencer
             const {
               id: userId,
+              name,
               screen_name: username,
               verified,
               followers_count,
               friends_count: following_count,
               tweets_count: tweet_count,
-              avatar: userProfileUrl,
-            } = storedData.rawData;
+              avatar: rawAvatarUrl,
+            } = apiData;
+
+            // Clean avatar URL
+            const userProfileUrl = rawAvatarUrl.replace(/_normal(?=\.(jpg|jpeg|png|gif|webp))/i, "");    
 
             // Prepare publicMetrics
             const publicMetrics = {
@@ -206,7 +171,7 @@ export async function POST(request: Request) {
               tweet_count,
             };
 
-            // Calculate mindshare
+            // Calculate mindshare directly using apiData values
             const mindshare = calculateMindshare(
               followers_count,
               following_count,
@@ -227,17 +192,23 @@ export async function POST(request: Request) {
               memeVsInstitutional: 1,
             };
 
-            // Insert into influencersCollection
+            // Insert into influencersCollection with the apiData included
             await influencersCollection.insertOne(
               {
+                name: name,
                 twitterHandle: cleanHandle,
+                impactFactor,
+                heartbeat,
                 subscribers: [cleanTelegramId],
                 tweets: [],
                 processedTweetIds: [],
+                tweetScoutScore: 0,
                 updatedAt: new Date(),
                 isProcessing: false,
                 lastProcessed: new Date(),
                 userData,
+                tweetScoutData: apiData, // Store the raw API data directly here
+                createdAt: new Date(createdAt),
               },
               { session }
             );
@@ -274,11 +245,6 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({
-      success: true,
-      message: "Successfully added influencer",
-      data: newInfluencer,
-    });
   } catch (error) {
     console.error("❌ /api/add-influencer failed:", error);
     return NextResponse.json(

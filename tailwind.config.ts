@@ -8,10 +8,6 @@ export default {
   ],
   theme: {
     extend: {
-      colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-      },
       animation: {
         'ping-fast': 'ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite',
         'ping-medium': 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite',

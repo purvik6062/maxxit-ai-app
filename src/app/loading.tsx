@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function Loading() {
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm dark:bg-slate-950/80 z-50">
+    <div className="fixed inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm dark:bg-slate-950/80 z-50">
       <div className="relative">
         {/* Outer ring */}
         <div className="w-16 h-16 rounded-full border-4 border-blue-100 dark:border-blue-950 border-dashed animate-spin"></div>

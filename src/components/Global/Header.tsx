@@ -120,9 +120,9 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
     // Check if we've already shown this toast by using localStorage
     const hasShownWelcomeToast = localStorage.getItem("hasShownWelcomeToast");
 
-    if (credits === 100 && !hasShownWelcomeToast) {
+    if (credits === 500 && !hasShownWelcomeToast) {
       toast.info(
-        "🎉 Welcome! Explore our prediction markets with your 100 free credits",
+        "🎉 Welcome! Explore our prediction markets with your 500 free credits",
         {
           position: "top-center",
           autoClose: 7000,
@@ -641,7 +641,7 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
                     Retweet Verification
                   </h4>
                   <p className="text-sm text-gray-300 mb-4">
-                    Please retweet our latest announcement to receive your 100 FREE credits!
+                    Please retweet our latest announcement to receive your 500 FREE credits!
                   </p>
 
                   <a

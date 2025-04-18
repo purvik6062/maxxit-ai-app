@@ -1,6 +1,6 @@
 export interface CryptoAgent {
     id: number
-    handle: string
+    twitterHandle: string
     name: string
     impactFactor: number
     weeklyChange: number
