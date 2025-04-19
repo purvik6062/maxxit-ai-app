@@ -5,6 +5,7 @@ const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 
 export async function POST(request: Request): Promise<Response> {
+
   try {
     const { twitterUsername, twitterId, telegramId, credits } = await request.json();
 
@@ -140,6 +141,7 @@ export async function POST(request: Request): Promise<Response> {
       });
     } finally {
       await session.endSession();
+      await client.close();
     }
   } catch (error) {
     console.error("Server error:", error);

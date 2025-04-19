@@ -3,8 +3,8 @@ import dbConnect from "src/utils/dbConnect";
 import { randomUUID } from 'crypto';
 
 export async function POST(request: Request) {
+  const client = await dbConnect();
   try {
-    const client = await dbConnect();
     const db = client.db('test_analysis'); 
     const collection = db.collection('shares');
 
@@ -19,5 +19,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Error creating share:', error);
     return NextResponse.json({ error: 'Failed to create share' }, { status: 500 });
+  } finally {
+    await client.close();
   }
 }

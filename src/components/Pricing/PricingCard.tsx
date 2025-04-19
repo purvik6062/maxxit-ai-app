@@ -36,7 +36,7 @@ export default function PricingCard({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className={`relative rounded-2xl overflow-hidden ${
+        className={`relative rounded-3xl overflow-hidden ${
           popular
             ? "border-4 border-cyan-400 border-solid shadow-[0_4px_20px_rgba(6,182,212,0.8)]"
             : ""
@@ -51,14 +51,18 @@ export default function PricingCard({
         )}
 
         <div
-          className={`h-full flex flex-col bg-white rounded-2xl transition-all duration-300 ${
+          className={`h-full flex flex-col bg-[#E1EAF9] rounded-2xl transition-all duration-300 ${
             isHovered ? "shadow-2xl transform -translate-y-1" : "shadow-xl"
+          }  ${
+            popular
+              ? "bg-gradient-to-tr from-[#99BEF7] to-[#E1EAF9] text-white hover:shadow-lg hover:shadow-blue-500/30"
+              : "bg-gray-100 text-gray-800 "
           }`}
         >
-          <div className="p-8 text-center border-b border-gray-100">
+          <div className="p-8 text-center border-b border-gray-100 ">
             <h3 className="text-gray-500 font-medium text-sm mb-2">{name}</h3>
             <div className="flex items-baseline justify-center">
-              <span className="text-5xl font-extrabold text-gray-900">
+              <span className="text-4xl font-extrabold text-gray-900">
                 ${price}
               </span>
               {name != "Free" && (
@@ -74,7 +78,28 @@ export default function PricingCard({
                 ? "5000 Credits"
                 : "15000 Credits"}
             </div>
-            <p className="mt-4 text-gray-600 text-sm">{description}</p>
+            <p className="mt-4 text-gray-600 text-sm h-8">{description}</p>
+          </div>
+
+          <div className="p-8 pt-0">
+            {name === "Free" ? (
+              <Link href="/redeem-credits">
+                <button className="w-full py-3 px-6 rounded-3xl font-medium transition-all duration-200 bg-gradient-to-r bg-[#1C2333] text-white hover:shadow-lg hover:shadow-black-500/30">
+                  Redeem Credits
+                </button>
+              </Link>
+            ) : (
+              <button
+                onClick={handleCtaClick}
+                className={`w-full py-3 px-6 rounded-3xl text-white font-medium transition-all duration-200 !bg-[#1C2333] hover:shadow-black-500/30 ${
+                  popular
+                    ? "bg-gradient-to-r from-[#1C2333] to-[#1C2333] text-white hover:shadow-lg hover:shadow-blue-500/30"
+                    : "bg-gray-100 text-gray-800 "
+                }`}
+              >
+                {ctaText}
+              </button>
+            )}
           </div>
 
           <div className="flex-grow p-8">
@@ -96,26 +121,6 @@ export default function PricingCard({
                 </li>
               ))}
             </ul>
-          </div>
-          <div className="p-8 pt-0">
-            {name === "Free" ? (
-              <Link href="/redeem-credits">
-                <button className="w-full py-3 px-6 rounded-lg font-medium transition-all duration-200 bg-gradient-to-r from-green-500 to-green-600 text-white hover:shadow-lg hover:shadow-green-500/30">
-                  Redeem Credits
-                </button>
-              </Link>
-            ) : (
-              <button
-                onClick={handleCtaClick}
-                className={`w-full py-3 px-6 rounded-lg font-medium transition-all duration-200 ${
-                  popular
-                    ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:shadow-lg hover:shadow-blue-500/30"
-                    : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                }`}
-              >
-                {ctaText}
-              </button>
-            )}
           </div>
         </div>
       </motion.div>

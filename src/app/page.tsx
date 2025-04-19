@@ -185,7 +185,7 @@ const HomePage: React.FC = () => {
       <UserDataProvider >
 
       <main className="flex-grow px-6 py-6 max-w-6xl mx-auto w-full">
-        <div className="mb-6 text-center">
+        <div className="mb-6 text-center mt-16">
           <h2 className="text-xl md:text-2xl font-bold text-white mb-2">
             <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
               Analyst Rankings

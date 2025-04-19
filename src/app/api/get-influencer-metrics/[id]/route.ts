@@ -4,8 +4,8 @@ import dbConnect from "src/utils/dbConnect";
 export async function GET(request, { params }) {
   const { id } = await params;
 
+  const client = await dbConnect();
   try {
-    const client = await dbConnect();
     const db = client.db("ctxbt-signal-flow");
 
     const influencer = await db
@@ -26,5 +26,9 @@ export async function GET(request, { params }) {
       { error: "Failed to fetch influencer" },
       { status: 500 }
     );
+  }finally {
+    if (client) {
+      await client.close();
+    }
   }
 }

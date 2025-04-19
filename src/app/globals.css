@@ -209,7 +209,6 @@
 
 ::-webkit-scrollbar-track {
   background: rgba(30, 30, 30, 0.4);
-  border-radius: 0px;
   color: rgb(38, 250, 84);
 }
 
@@ -219,7 +218,6 @@
     rgba(110, 228, 244, 0.9),
     rgba(87, 235, 251, 0.9)
   );
-  border-radius: 0px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
