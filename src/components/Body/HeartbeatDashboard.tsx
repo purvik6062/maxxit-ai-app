@@ -42,7 +42,7 @@ type SortDirection = "asc" | "desc";
 interface HeartbeatDashboardProps {
   subscribedHandles: string[];
   subscribingHandle: string | null;
-  onSubscribe: (handle: string) => void;
+  onSubscribe: (handle: string, impactFactor: number) => void;
   setRefreshData: (refresh: () => void) => void; // For the heartbeat data source
   searchText: string;
 }
@@ -428,7 +428,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
 
           // Use actual heartbeat stats if available, else fallback to random
           const beat = getRandomStat(agent.twitterHandle, "beat");
-          const signals = getRandomStat(agent.twitterHandle, "signals");
+          const signals = agent.signals;
           const mindshare = getRandomStat(agent.twitterHandle, "mindshare");
 
           return (
@@ -450,7 +450,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                 ></div>
               </div>
 
-              <div className="p-5 cursor-pointer" onClick={() => { router.push(`/influencer/${cleanHandle}`) }}>
+              <div className="p-5">
                 {/* ... Rank icon, Profile Pic, Name, Handle ... (Identical) */}
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
@@ -588,22 +588,14 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                     {/* ... signals div ... */}
                     <div className="flex flex-col items-center justify-center bg-cyan-900/20 rounded-lg p-2.5 border border-cyan-700/20">
                       <TrendingUp className="h-4 w-4 text-cyan-400 mb-1" />{" "}
-                      <span className="text-xs text-cyan-400 mb-0.5">
-                        Signals
-                      </span>{" "}
-                      <span className="text-xs font-semibold text-white">
-                        {signals}%
-                      </span>
+                      <span className="text-xs text-cyan-400 mb-0.5">Signals</span>{" "}
+                      <span className="text-xs font-semibold text-white">{agent.signals || "0"}</span>
                     </div>
                     {/* ... mindshare div ... */}
                     <div className="flex flex-col items-center justify-center bg-blue-800/20 rounded-lg p-2.5 border border-blue-700/20">
                       <BarChart2 className="h-4 w-4 text-blue-300 mb-1" />{" "}
-                      <span className="text-xs text-blue-300 mb-0.5">
-                        Mindshare
-                      </span>{" "}
-                      <span className="text-xs font-semibold text-white">
-                        {mindshare}%
-                      </span>
+                      <span className="text-xs text-blue-300 mb-0.5">Tokens</span>{" "}
+                      <span className="text-xs font-semibold text-white">{agent.tokens || "0"}</span>
                     </div>
                   </div>
                   {/* Radar Chart (Identical structure - uses placeholder stats & heartbeat score) */}
@@ -755,7 +747,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                   onClick={() =>
                     !isSubscribed &&
                     !isCurrentlySubscribing &&
-                    onSubscribe(agent.twitterHandle)
+                    onSubscribe(agent.twitterHandle, agent.impactFactor)
                   }
                   disabled={
                     isSubscribed || isCurrentlySubscribing
@@ -967,7 +959,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                           onClick={() =>
                             !isSubscribed &&
                             !isCurrentlySubscribing &&
-                            onSubscribe(agent.twitterHandle)
+                            onSubscribe(agent.twitterHandle, agent.impactFactor)
                           }
                           disabled={
                             isSubscribed || isCurrentlySubscribing

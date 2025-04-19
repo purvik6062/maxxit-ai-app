@@ -13,6 +13,9 @@ export async function POST(req: NextRequest) {
   });
 
   if (promoCodeDoc) {
+
+    client.close();
+    
     return NextResponse.json({
       valid: true,
       influencerId: promoCodeDoc.influencerId,

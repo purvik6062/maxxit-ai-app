@@ -69,7 +69,7 @@ const HomePage: React.FC = () => {
   }, [session]);
 
   const handleSubscribe = useCallback(
-    async (handle: string) => {
+    async (handle: string, impactFactor: number) => {
       if (!session || !session.user?.id) {
         toast.error("Please login with Twitter/X first", {
           position: "top-center",
@@ -80,6 +80,9 @@ const HomePage: React.FC = () => {
       const cleanHandle = handle.replace("@", "");
       setSubscribingHandle(cleanHandle);
 
+      // Calculate subscription fee based on impact factor
+      const subscriptionFee = impactFactor * 10;
+
       try {
         const response = await fetch("/api/subscribe-influencer", {
           method: "POST",
@@ -89,6 +92,7 @@ const HomePage: React.FC = () => {
           body: JSON.stringify({
             twitterId: session.user.id,
             influencerHandle: cleanHandle,
+            subscriptionFee: subscriptionFee
           }),
         });
 

@@ -8,7 +8,7 @@ const DEFAULT_IMPACT_FACTOR = 1;
 
 export async function POST(request: Request): Promise<Response> {
   try {
-    const { twitterId, influencerHandle } = await request.json();
+    const { twitterId, influencerHandle, subscriptionFee } = await request.json();
 
     // Remove @ from the handle if it exists
     const cleanHandle = influencerHandle.replace("@", "");
@@ -16,6 +16,13 @@ export async function POST(request: Request): Promise<Response> {
     if (!twitterId || !cleanHandle) {
       return NextResponse.json(
         { success: false, error: { message: "Missing required fields" } },
+        { status: 400 }
+      );
+    }
+
+    if (subscriptionFee === undefined || subscriptionFee === null) {
+      return NextResponse.json(
+        { success: false, error: { message: "Subscription fee not provided" } },
         { status: 400 }
       );
     }
@@ -40,17 +47,9 @@ export async function POST(request: Request): Promise<Response> {
           );
         }
 
-        // 2. Get influencer data to calculate subscription cost
-        const existingInfluencer = await influencersCollection.findOne({
-          twitterHandle: cleanHandle,
-        });
-
-        // Calculate subscription cost based on impact factor (default to 1 if not available)
-        const impactFactor = existingInfluencer?.impactFactor || DEFAULT_IMPACT_FACTOR;
-        const subscriptionCost = Math.round(BASE_SUBSCRIPTION_COST * impactFactor);
-
-        if (user.credits < subscriptionCost) {
-          throw new Error(`Insufficient credits. This influencer requires ${subscriptionCost} credits to subscribe.`);
+        // 2. Check if user has enough credits for the subscription fee
+        if (user.credits < subscriptionFee) {
+          throw new Error(`Insufficient credits. This subscription requires ${subscriptionFee} credits.`);
         }
 
         // Get user's telegram ID and clean it (remove @ if exists)
@@ -66,6 +65,10 @@ export async function POST(request: Request): Promise<Response> {
         }
 
         // 3. Update or create influencer
+        const existingInfluencer = await influencersCollection.findOne({
+          twitterHandle: cleanHandle,
+        });
+
         if (existingInfluencer) {
           // Update existing influencer
           await influencersCollection.updateOne(
@@ -99,13 +102,13 @@ export async function POST(request: Request): Promise<Response> {
         await usersCollection.updateOne(
           { twitterId },
           {
-            $inc: { credits: -subscriptionCost },
+            $inc: { credits: -subscriptionFee },
             $addToSet: {
               subscribedAccounts: {
                 twitterHandle: cleanHandle,
                 subscriptionDate: subscriptionDate,
                 expiryDate: expiryDate,
-                costPaid: subscriptionCost,
+                costPaid: subscriptionFee,
               },
             },
             $set: { updatedAt: new Date() },
@@ -119,10 +122,10 @@ export async function POST(request: Request): Promise<Response> {
           twitterId: user.twitterId,
           twitterUsername: user.twitterUsername,
           type: "SUBSCRIPTION",
-          amount: -subscriptionCost,
+          amount: -subscriptionFee,
           influencerHandle: cleanHandle,
-          impactFactor: impactFactor,
-          description: `Subscription to influencer @${cleanHandle} (Impact Factor: ${impactFactor})`,
+          impactFactor: existingInfluencer?.impactFactor || DEFAULT_IMPACT_FACTOR,
+          description: `Subscription to influencer @${cleanHandle} (Impact Factor: ${existingInfluencer?.impactFactor || DEFAULT_IMPACT_FACTOR})`,
           expiryDate: expiryDate,
           timestamp: subscriptionDate
         }, { session });
