@@ -322,7 +322,7 @@ export default function Influencer() {
           setIsModalOpen(false);
           setUserExists(true); // Update status after successful registration
         }}
-        sessionUsername={session?.user?.name} // Pass authenticated username
+        // sessionUsername={session?.user?.name} // Pass authenticated username
         sessionUserhandle={session?.user?.username} // Pass authenticated username
       />
     </>

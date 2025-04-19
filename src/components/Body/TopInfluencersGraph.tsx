@@ -1,13 +1,16 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Influencer, influencerData } from "@/constants/InfluencerClusterData";
+import { Influencer } from "@/constants/InfluencerClusterData";
+import Image from "next/image";
 
 interface InfluencerDetailsProps {
   influencer: Influencer | null;
 }
 
-const InfluencerDetails: React.FC<InfluencerDetailsProps> = ({ influencer }) => {
+const InfluencerDetails: React.FC<InfluencerDetailsProps> = ({
+  influencer,
+}) => {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -17,7 +20,10 @@ const InfluencerDetails: React.FC<InfluencerDetailsProps> = ({ influencer }) => 
     >
       {influencer ? (
         <div className="flex items-center w-full space-x-6">
-          <motion.div className="relative flex-shrink-0" whileHover={{ scale: 1.05 }}>
+          <motion.div
+            className="relative flex-shrink-0"
+            whileHover={{ scale: 1.05 }}
+          >
             <img
               src={influencer.avatar}
               alt={influencer.name}
@@ -27,16 +33,19 @@ const InfluencerDetails: React.FC<InfluencerDetailsProps> = ({ influencer }) => 
           </motion.div>
           <div className="flex-1 flex items-center justify-between">
             <div className="flex flex-col">
-              <h3 className="text-xl font-bold text-cyan-400">{influencer.name}</h3>
+              <h3 className="text-xl font-bold text-cyan-400">
+                {influencer.name}
+              </h3>
               <p className="text-sm text-gray-400">
-                Specialties: {influencer.specialties.join(", ")}
+                Specialties:{" "}
+                {influencer.specialties?.join(", ") || "Crypto Analysis"}
               </p>
             </div>
             <div className="flex space-x-4">
               <div className="bg-gray-800/50 p-3 rounded-lg">
                 <p className="text-xs text-gray-400">Profit</p>
                 <p className="text-sm font-semibold text-cyan-300">
-                  ${influencer.profit.toLocaleString()}
+                  ${influencer.profit?.toLocaleString()}
                 </p>
               </div>
               <div className="bg-gray-800/50 p-3 rounded-lg">
@@ -48,7 +57,9 @@ const InfluencerDetails: React.FC<InfluencerDetailsProps> = ({ influencer }) => 
               <div className="bg-gray-800/50 p-3 rounded-lg">
                 <p className="text-xs text-gray-400">Accuracy</p>
                 <p className="text-sm font-semibold text-cyan-300">
-                  {influencer.accuracy}%
+                  {influencer.accuracy !== undefined
+                    ? `${influencer.accuracy}%`
+                    : "N/A"}
                 </p>
               </div>
             </div>
@@ -66,9 +77,37 @@ const InfluencerDetails: React.FC<InfluencerDetailsProps> = ({ influencer }) => 
 const CosmicWebInfluencerGraph: React.FC = () => {
   const sliderRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [hoveredInfluencer, setHoveredInfluencer] = useState<Influencer | null>(null);
-  const [frontInfluencer, setFrontInfluencer] = useState<Influencer | null>(null);
+  const [hoveredInfluencer, setHoveredInfluencer] = useState<Influencer | null>(
+    null
+  );
+  const [frontInfluencer, setFrontInfluencer] = useState<Influencer | null>(
+    null
+  );
   const [rotation, setRotation] = useState<number>(0);
+  const [influencers, setInfluencers] = useState<Influencer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch influencers from API
+  useEffect(() => {
+    const fetchInfluencers = async () => {
+      try {
+        const response = await fetch("/api/top-weekly-influencers");
+        if (!response.ok) {
+          throw new Error("Failed to fetch influencers");
+        }
+        const data: Influencer[] = await response.json();
+        setInfluencers(data);
+        setLoading(false);
+      } catch (err) {
+        setError("Error loading influencers");
+        setLoading(false);
+        console.error(err);
+      }
+    };
+
+    fetchInfluencers();
+  }, []);
 
   // Particle System
   useEffect(() => {
@@ -122,7 +161,8 @@ const CosmicWebInfluencerGraph: React.FC = () => {
       mouse.y = y;
     };
 
-    const handleMouseMove = (e: MouseEvent) => updateMousePosition(e.clientX, e.clientY);
+    const handleMouseMove = (e: MouseEvent) =>
+      updateMousePosition(e.clientX, e.clientY);
     const handleTouchMove = (e: TouchEvent) => {
       e.preventDefault();
       const touch = e.touches[0];
@@ -234,7 +274,9 @@ const CosmicWebInfluencerGraph: React.FC = () => {
         const bandWidth = canvas.width * 0.3;
         const x = Math.random() * canvas.width;
         const y = isMilkyWay
-          ? x * 0.4 + (Math.random() * bandWidth - bandWidth / 2) + canvas.height * 0.2
+          ? x * 0.4 +
+            (Math.random() * bandWidth - bandWidth / 2) +
+            canvas.height * 0.2
           : Math.random() * canvas.height;
         const colorChoice = Math.random();
         let color: string;
@@ -334,11 +376,13 @@ const CosmicWebInfluencerGraph: React.FC = () => {
   // Front Influencer
   useEffect(() => {
     const updateFrontInfluencer = () => {
+      if (influencers.length === 0) return;
+
       let maxZ = -Infinity;
       let frontIdx = 0;
 
-      influencerData.forEach((influencer, index) => {
-        const baseAngle = index * (360 / influencerData.length);
+      influencers.forEach((influencer, index) => {
+        const baseAngle = index * (360 / influencers.length);
         const currentAngle = (baseAngle + rotation) % 360;
         const angleRad = (currentAngle * Math.PI) / 180;
         const zPosition = Math.cos(angleRad);
@@ -349,13 +393,69 @@ const CosmicWebInfluencerGraph: React.FC = () => {
         }
       });
 
-      setFrontInfluencer(influencerData[frontIdx]);
+      setFrontInfluencer(influencers[frontIdx]);
     };
 
-    updateFrontInfluencer();
-    const intervalId = setInterval(updateFrontInfluencer, 500);
-    return () => clearInterval(intervalId);
-  }, [rotation]);
+    if (influencers.length > 0) {
+      updateFrontInfluencer();
+      const intervalId = setInterval(updateFrontInfluencer, 500);
+      return () => clearInterval(intervalId);
+    }
+  }, [rotation, influencers]);
+
+  // Render loading state with same cosmic design
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center font-sans relative overflow-hidden">
+        <canvas ref={canvasRef} className="canvas-background" />
+        <div className="starfield relative">
+          <div className="overlay" />
+        </div>
+        <motion.div
+          className="z-20 bg-gray-900/50 backdrop-blur-md p-6 rounded-xl border border-cyan-500/30 shadow-lg"
+          animate={{
+            scale: [1, 1.05, 1],
+            boxShadow: [
+              "0 0 20px rgba(0, 255, 255, 0.3)",
+              "0 0 30px rgba(0, 255, 255, 0.5)",
+              "0 0 20px rgba(0, 255, 255, 0.3)",
+            ],
+          }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <Image
+            src="/maxxit.gif"
+            alt="Loading animation"
+            width={120}
+            height={120}
+            unoptimized
+            priority
+          />
+        </motion.div>
+      </div>
+    );
+  }
+
+  // Render error state with same cosmic design
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center font-sans relative overflow-hidden">
+        <canvas ref={canvasRef} className="canvas-background" />
+        <div className="starfield relative">
+          <div className="overlay" />
+        </div>
+        <div className="bg-gray-900/70 backdrop-blur-md p-6 rounded-xl border border-red-500/50 shadow-lg z-20">
+          <p className="text-red-400 text-lg">{error}</p>
+          <button
+            className="mt-4 px-6 py-2 bg-gray-800 text-cyan-300 rounded-lg border border-cyan-500/30 hover:bg-gray-700"
+            onClick={() => window.location.reload()}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center font-sans relative overflow-hidden">
@@ -363,11 +463,12 @@ const CosmicWebInfluencerGraph: React.FC = () => {
       <div className="starfield relative">
         <div className="overlay" />
       </div>
-      <h1 className="text-4xl font-bold mb-2 mt-4 text-cyan-400 z-20">
+      <h1 className="text-4xl font-bold mb-2 mt-16 text-cyan-400 z-20">
         Crypto Influencer Constellation
       </h1>
       <p className="text-gray-300 mb-8 text-center max-w-2xl text-lg z-20">
-        Discover our top influencers shaping the crypto universe with their insights.
+        Discover our top influencers shaping the crypto universe with their
+        insights.
       </p>
       <div className="relative w-full max-w-7xl h-[650px] text-center overflow-hidden z-20">
         <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-gray-900/80 backdrop-blur-lg text-cyan-300 text-base font-semibold py-2 px-6 rounded-full shadow-[0_0_15px_rgba(0,255,255,0.5)] z-30 border border-cyan-500/50">
@@ -379,8 +480,8 @@ const CosmicWebInfluencerGraph: React.FC = () => {
             className="absolute top-[48%] left-1/2 w-0 h-0 [transform-style:preserve-3d] origin-center"
             style={{ transform: `rotateX(-20deg) rotateY(${rotation}deg)` }}
           >
-            {influencerData.map((influencer, index) => {
-              const baseAngle = index * (360 / influencerData.length);
+            {influencers.map((influencer, index) => {
+              const baseAngle = index * (360 / influencers.length);
               const currentAngle = (baseAngle + rotation) % 360;
               const angleRad = (currentAngle * Math.PI) / 180;
               const zPosition = Math.cos(angleRad);
@@ -410,7 +511,10 @@ const CosmicWebInfluencerGraph: React.FC = () => {
                   />
                   <motion.div
                     className="absolute w-full bg-gray-900/80 text-cyan-300 text-xs font-semibold py-1.5 px-3 rounded-full border border-cyan-500/50 shadow-[0_0_10px_rgba(0,255,255,0.4)]"
-                    style={{ top: `${height + 5}px`, transform: "translateZ(0px)" }}
+                    style={{
+                      top: `${height + 5}px`,
+                      transform: "translateZ(0px)",
+                    }}
                     whileHover={{
                       scale: 1.1,
                       boxShadow: "0 0 15px rgba(0,255,255,0.7)",

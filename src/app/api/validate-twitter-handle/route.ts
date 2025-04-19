@@ -10,10 +10,10 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   let browser = null;
 
+  const client = await dbConnect();
   try {
     const { handle, twitterId } = await request.json();
 
-    const client = await dbConnect();
     const db = client.db("ctxbt-signal-flow");
     // const db2 = client.db("test_analysis");
     // const influencer_Test_Collection = db2.collection("influencers_testing");
@@ -260,6 +260,9 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   } finally {
+    if (client) {
+      await client.close();
+    }
     if (browser) await browser.close();
   }
 }

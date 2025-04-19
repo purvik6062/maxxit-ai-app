@@ -112,33 +112,33 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   // Function to check if cache is valid
-  const isCacheValid = (): boolean => {
-    const timestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
-    if (!timestamp) return false;
+  // const isCacheValid = (): boolean => {
+  //   const timestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+  //   if (!timestamp) return false;
     
-    const cachedTime = parseInt(timestamp, 10);
-    const currentTime = new Date().getTime();
+  //   const cachedTime = parseInt(timestamp, 10);
+  //   const currentTime = new Date().getTime();
     
-    return currentTime - cachedTime < CACHE_EXPIRY;
-  };
+  //   return currentTime - cachedTime < CACHE_EXPIRY;
+  // };
 
   // Function to fetch data from API
   const fetchUserProfileData = useCallback(async (forceRefresh = false): Promise<void> => {
     // Check cache first if not forcing refresh
-    if (!forceRefresh) {
-      const cachedData = localStorage.getItem(CACHE_KEY);
-      if (cachedData && isCacheValid()) {
-        try {
-          const parsedData = JSON.parse(cachedData) as UserResponse[];
-          setRawData(parsedData);
-          setAgents(mapToEnhancedAgents(parsedData));
-          return;
-        } catch (e) {
-          console.error("Error parsing cached data:", e);
-          // Continue to fetch if cache parsing fails
-        }
-      }
-    }
+    // if (!forceRefresh) {
+    //   // const cachedData = localStorage.getItem(CACHE_KEY);
+    //   if (cachedData && isCacheValid()) {
+    //     try {
+    //       const parsedData = JSON.parse(cachedData) as UserResponse[];
+    //       setRawData(parsedData);
+    //       setAgents(mapToEnhancedAgents(parsedData));
+    //       return;
+    //     } catch (e) {
+    //       console.error("Error parsing cached data:", e);
+    //       // Continue to fetch if cache parsing fails
+    //     }
+    //   }
+    // }
 
     setLoadingUmd(true);
     setError(null);
@@ -154,8 +154,8 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setAgents(mapToEnhancedAgents(data));
       
       // Save to cache
-      localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-      localStorage.setItem(CACHE_TIMESTAMP_KEY, String(new Date().getTime()));
+      // localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+      // localStorage.setItem(CACHE_TIMESTAMP_KEY, String(new Date().getTime()));
     } catch (err) {
       console.error("Failed to fetch user profile data:", err);
       setError(err);
@@ -172,8 +172,8 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Initial data load on component mount
   useEffect(() => {
     // Clear localStorage on hard or soft refresh
-    localStorage.removeItem(CACHE_KEY);
-    localStorage.removeItem(CACHE_TIMESTAMP_KEY);
+    // localStorage.removeItem(CACHE_KEY);
+    // localStorage.removeItem(CACHE_TIMESTAMP_KEY);
   
     fetchUserProfileData();
   }, [fetchUserProfileData]);
