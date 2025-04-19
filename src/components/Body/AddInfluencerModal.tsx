@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import { X, User, MessageSquare, Loader2 } from "lucide-react";
 import { FaTelegram, FaUserPlus } from "react-icons/fa";

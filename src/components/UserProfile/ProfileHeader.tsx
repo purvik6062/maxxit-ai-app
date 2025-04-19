@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import { User, Wallet } from "lucide-react";
 import type { UserProfile } from "./types";

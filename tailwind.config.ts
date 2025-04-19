@@ -27,6 +27,10 @@ export default {
         'drift': 'drift 20s linear infinite',
         'pulse-drift': 'pulse-particles 6s ease-in-out infinite, drift 20s linear infinite',
       },
+      fontFamily: {
+        napzerRounded: ["var(--font-napzer-rounded)"],
+        leagueSpartan: ["var(--font-league-spartan)"],
+      },
       keyframes: {
         pulseLeftToRight: {
           '0%': { transform: 'scaleX(0)', transformOrigin: 'left', opacity: "0.8" },
