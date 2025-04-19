@@ -52,7 +52,7 @@ interface UserResponse {
   createdAt?: string;
 }
 
-interface EnhancedAgent {
+export interface EnhancedAgent {
   name: string;
   twitterHandle: string;
   impactFactor: number;
@@ -64,6 +64,9 @@ interface EnhancedAgent {
   herdedVsHidden: number;
   convictionVsHype: number;
   memeVsInstitutional: number;
+  subscribers: string[];
+  signals: number;
+  tokens: number;
 }
 
 interface UserDataContextType {
@@ -94,51 +97,136 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [loadingUmd, setLoadingUmd] = useState<boolean>(false);
   const [error, setError] = useState<any>(null);
 
-  // Function to map raw API data to EnhancedAgent format
-  const mapToEnhancedAgents = (data: UserResponse[]): EnhancedAgent[] => {
-    return data.map((item) => ({
-      name: item.name,
-      twitterHandle: item.twitterHandle,
-      impactFactor: item.impactFactor,
-      heartbeat: item.heartbeat,
-      mindshare: item.userData.mindshare ?? 0,
-      followers: item.userData.publicMetrics.followers_count ?? 0,
-      profileUrl: item.userData.userProfileUrl || "",
-      verified: item.userData.verified || false,
-      herdedVsHidden: item.userData.herdedVsHidden ?? 1,
-      convictionVsHype: item.userData.convictionVsHype ?? 1,
-      memeVsInstitutional: item.userData.memeVsInstitutional ?? 1,
-    }));
+  // Function to fetch Signals and Tokens data from trading-signals collection
+  const fetchSignalsAndTokensData = async (agentsData: UserResponse[]): Promise<Record<string, { signals: number, tokens: number }>> => {
+    const result: Record<string, { signals: number, tokens: number }> = {};
+    try {
+      const response = await fetch('/api/get-signals-tokens-data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ handles: agentsData.map(agent => agent.twitterHandle) }),
+      });
+      if (!response.ok) throw new Error('Failed to fetch signals and tokens data');
+      const data = await response.json();
+      Object.keys(data).forEach(handle => {
+        result[handle] = {
+          signals: data[handle].signals || 0,
+          tokens: data[handle].tokens || 0,
+        };
+      });
+    } catch (err) {
+      console.error('Error fetching signals and tokens data:', err);
+      agentsData.forEach(agent => {
+        result[agent.twitterHandle] = { signals: 0, tokens: 0 };
+      });
+    }
+    return result;
   };
 
+  // Function to fetch Impact Factor data from impact_factors collection
+  const fetchImpactFactorData = async (handles: string[]): Promise<Record<string, number>> => {
+    const result: Record<string, number> = {};
+    try {
+      const response = await fetch('/api/get-impact-factors', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ handles }),
+      });
+      if (!response.ok) throw new Error('Failed to fetch impact factor data');
+      const data = await response.json();
+      Object.keys(data).forEach(handle => {
+        result[handle] = data[handle] || 0;
+      });
+    } catch (err) {
+      console.error('Error fetching impact factor data:', err);
+      handles.forEach(handle => {
+        result[handle] = 0;
+      });
+    }
+    return result;
+  };
+
+  const fetchHeartbeatData = async (handles: string[]): Promise<Record<string, number>> => {
+    try {
+      const response = await fetch('/api/get-heartbeat-data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ handles }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error?.message || 'Failed to fetch heartbeat data');
+      }
+
+      return data.data;
+    } catch (err) {
+      console.error('Error fetching heartbeat data:', err);
+      return {};
+    }
+  };
+
+  // Function to map raw API data to EnhancedAgent format
+  const mapToEnhancedAgents = useCallback(
+    async (users: UserResponse[], signalsTokensData: Record<string, { signals: number, tokens: number }>, impactFactorData: Record<string, number>, heartbeatData: Record<string, number>): Promise<EnhancedAgent[]> => {
+      return users.map((user) => ({
+        name: user.name,
+        twitterHandle: user.twitterHandle,
+        impactFactor: impactFactorData[user.twitterHandle] ?? user.impactFactor ?? 0,
+        heartbeat: heartbeatData[user.twitterHandle] ?? 0,
+        mindshare: user.userData.mindshare ?? 0,
+        followers: user.userData.publicMetrics.followers_count ?? 0,
+        profileUrl: user.userData.userProfileUrl || "",
+        verified: user.userData.verified || false,
+        herdedVsHidden: user.userData.herdedVsHidden ?? 1,
+        convictionVsHype: user.userData.convictionVsHype ?? 1,
+        memeVsInstitutional: user.userData.memeVsInstitutional ?? 1,
+        subscribers: user.subscribers || [],
+        signals: signalsTokensData[user.twitterHandle]?.signals || 0,
+        tokens: signalsTokensData[user.twitterHandle]?.tokens || 0,
+      }));
+    },
+    []
+  );
+
   // Function to check if cache is valid
-  // const isCacheValid = (): boolean => {
-  //   const timestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
-  //   if (!timestamp) return false;
+  const isCacheValid = (): boolean => {
+    const timestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+    if (!timestamp) return false;
     
-  //   const cachedTime = parseInt(timestamp, 10);
-  //   const currentTime = new Date().getTime();
+    const cachedTime = parseInt(timestamp, 10);
+    const currentTime = new Date().getTime();
     
-  //   return currentTime - cachedTime < CACHE_EXPIRY;
-  // };
+    return currentTime - cachedTime < CACHE_EXPIRY;
+  };
 
   // Function to fetch data from API
   const fetchUserProfileData = useCallback(async (forceRefresh = false): Promise<void> => {
     // Check cache first if not forcing refresh
-    // if (!forceRefresh) {
-    //   // const cachedData = localStorage.getItem(CACHE_KEY);
-    //   if (cachedData && isCacheValid()) {
-    //     try {
-    //       const parsedData = JSON.parse(cachedData) as UserResponse[];
-    //       setRawData(parsedData);
-    //       setAgents(mapToEnhancedAgents(parsedData));
-    //       return;
-    //     } catch (e) {
-    //       console.error("Error parsing cached data:", e);
-    //       // Continue to fetch if cache parsing fails
-    //     }
-    //   }
-    // }
+    if (!forceRefresh) {
+      const cachedData = localStorage.getItem(CACHE_KEY);
+      if (cachedData && isCacheValid()) {
+        try {
+          const parsedData = JSON.parse(cachedData) as UserResponse[];
+          setRawData(parsedData);
+          const signalsTokensData = await fetchSignalsAndTokensData(parsedData);
+          const impactFactorData = await fetchImpactFactorData(parsedData.map(user => user.twitterHandle));
+          const heartbeatData = await fetchHeartbeatData(parsedData.map(user => user.twitterHandle));
+          setAgents(await mapToEnhancedAgents(parsedData, signalsTokensData, impactFactorData, heartbeatData));
+          return;
+        } catch (e) {
+          console.error("Error parsing cached data:", e);
+          // Continue to fetch if cache parsing fails
+        }
+      }
+    }
 
     setLoadingUmd(true);
     setError(null);
@@ -148,14 +236,17 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (!response.ok) throw new Error("Failed to fetch user profile data");
       
       const data: UserResponse[] = await response.json();
+      const signalsTokensData = await fetchSignalsAndTokensData(data);
+      const impactFactorData = await fetchImpactFactorData(data.map(user => user.twitterHandle));
+      const heartbeatData = await fetchHeartbeatData(data.map(user => user.twitterHandle));
       
       // Save to state
       setRawData(data);
-      setAgents(mapToEnhancedAgents(data));
+      setAgents(await mapToEnhancedAgents(data, signalsTokensData, impactFactorData, heartbeatData));
       
       // Save to cache
-      // localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-      // localStorage.setItem(CACHE_TIMESTAMP_KEY, String(new Date().getTime()));
+      localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+      localStorage.setItem(CACHE_TIMESTAMP_KEY, String(new Date().getTime()));
     } catch (err) {
       console.error("Failed to fetch user profile data:", err);
       setError(err);
@@ -172,8 +263,8 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Initial data load on component mount
   useEffect(() => {
     // Clear localStorage on hard or soft refresh
-    // localStorage.removeItem(CACHE_KEY);
-    // localStorage.removeItem(CACHE_TIMESTAMP_KEY);
+    localStorage.removeItem(CACHE_KEY);
+    localStorage.removeItem(CACHE_TIMESTAMP_KEY);
   
     fetchUserProfileData();
   }, [fetchUserProfileData]);

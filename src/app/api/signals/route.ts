@@ -61,6 +61,8 @@ export async function GET(request: Request) {
       ipfsLink: signal["IPFS Link"],
     }));
 
+    // client.close();
+
     return NextResponse.json({
       signals: formattedSignals,
       total,

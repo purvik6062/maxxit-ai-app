@@ -116,40 +116,41 @@ const ApiCredentialsSection = ({
     JavaScript: `fetch(\`\${endpoint}/api/get-my-signals\`, {
   method: 'GET',
   headers: {
-    'Authorization': 'Bearer ${
-      showApiKey ? apiKey : apiKey?.replace(/.(?=.{4})/g, "•")
-    }'
+    'Authorization': 'Bearer ${showApiKey ? apiKey : apiKey?.replace(/.(?=.{4})/g, "•")
+      }'
   }
 })
   .then(res => res.json())
   .then(data => console.log(data))
   .catch(err => console.error(err));`,
     cURL: `curl -X GET \`\${endpoint}/api/get-my-signals\` \\
-  -H "Authorization: Bearer ${
-    showApiKey ? apiKey : apiKey?.replace(/.(?=.{4})/g, "•")
-  }"`,
+  -H "Authorization: Bearer ${showApiKey ? apiKey : apiKey?.replace(/.(?=.{4})/g, "•")
+      }"`,
     Python: `import requests
 
 url = f"{endpoint}/api/get-my-signals"
-headers = {"Authorization": "Bearer ${
-      showApiKey ? apiKey : apiKey?.replace(/.(?=.{4})/g, "•")
-    }"}
+headers = {"Authorization": "Bearer ${showApiKey ? apiKey : apiKey?.replace(/.(?=.{4})/g, "•")
+      }"}
 response = requests.get(url, headers=headers)
 print(response.json())`,
   };
 
   return (
-    <div className="bg-gray-800/50 rounded-lg p-6 mb-8 border border-gray-700">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-gray-100">API Access</h2>
-        <span className="text-sm text-blue-400">Trading Signals API</span>
+    <div className="bg-[#0E1725B3] rounded-2xl p-6" style={{ border: "1px solid #818791" }}>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h2 className="text-xl font-medium text-[#E4EFFF]">API Access</h2>
+          <p className="text-[#8ba1bc]">Manage your active subscriptions</p>
+        </div>
+        <div>
+          <span className="text-[#AAC9FA] font-medium">Trading Signals API</span>
+        </div>
         {!apiKey && (
           <button
             onClick={handleGenerateKey}
-            disabled={loading} // Disable button while loading
-            className={`bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors flex items-center gap-2 ${
-              loading ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+            disabled={loading}
+            className={`bg-gradient-to-b from-[#E1EAF9] to-[#99BEF7] text-[#131d2c] px-4 py-2 rounded-full transition-colors flex items-center gap-2 font-medium ${loading ? "opacity-50 cursor-not-allowed" : "hover:shadow-md"
+              }`}
           >
             {loading ? (
               <>
@@ -166,74 +167,67 @@ print(response.json())`,
         )}
       </div>
 
-      <p className="text-gray-300 mb-6">
-        Use these credentials to access your trading signals through our API.
-        Keep them secure!
-      </p>
-
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-900/30 p-4 rounded-lg">
-          <div className="flex-1 mb-2 sm:mb-0">
-            <label className="text-sm font-medium text-gray-400">
-              API Endpoint
-            </label>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="font-mono text-gray-100 break-all">
-                {endpoint + "/api/get-my-signals"}
-              </span>
+      <div className="space-y-4 mb-8">
+        <div className="bg-[#1C2333] p-4 rounded-lg" style={{ border: "1px solid #81879166" }}>
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="text-sm text-[#8ba1bc] mb-1">API Endpoint</p>
+              <p className="font-mono text-white">{endpoint + "/api/get-my-signals"}</p>
             </div>
-          </div>
-          <button
-            onClick={() =>
-              copyToClipboard(
-                endpoint + "/api/get-my-signals",
-                "Endpoint copied!"
-              )
-            }
-            className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors"
-          >
-            <Copy className="w-4 h-4" />
-            <span className="text-sm">Copy</span>
-          </button>
-        </div>
-
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-900/30 p-4 rounded-lg">
-          <div className="flex-1 mb-2 sm:mb-0">
-            <label className="text-sm font-medium text-gray-400">API Key</label>
-            {apiKey ? (
-              <div className="flex items-center gap-2 mt-1">
-                <span className="font-mono text-gray-100">
-                  {showApiKey ? apiKey : apiKey.replace(/.(?=.{4})/g, "•")}
-                </span>
-                <button
-                  onClick={toggleKeyVisibility}
-                  className="text-gray-400 hover:text-gray-200 transition-colors"
-                >
-                  {!showApiKey ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-            ) : (
-              <p className="text-gray-400">No API key generated yet</p>
-            )}
-          </div>
-          {apiKey && (
             <button
-              onClick={() => copyToClipboard(apiKey, "API key copied!")}
-              className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors"
+              onClick={() =>
+                copyToClipboard(
+                  endpoint + "/api/get-my-signals",
+                  "Endpoint copied!"
+                )
+              }
+              className="flex items-center gap-1 text-[#AAC9FA] hover:text-blue-200"
             >
               <Copy className="w-4 h-4" />
               <span className="text-sm">Copy</span>
             </button>
-          )}
+          </div>
+        </div>
+
+        <div className="bg-[#1C2333] p-4 rounded-lg" style={{ border: "1px solid #81879166" }}>
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="text-sm text-[#8ba1bc] mb-1">API Key</p>
+              {apiKey ? (
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-white">
+                    {showApiKey ? apiKey : apiKey.replace(/.(?=.{4})/g, "•")}
+                  </span>
+                  <button
+                    onClick={toggleKeyVisibility}
+                    className="text-[#8ba1bc] hover:text-white transition-colors"
+                  >
+                    {!showApiKey ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+              ) : (
+                <p className="text-[#8ba1bc]">No API key generated yet</p>
+              )}
+            </div>
+            {apiKey && (
+              <button
+                onClick={() => copyToClipboard(apiKey, "API key copied!")}
+                className="flex items-center gap-1 text-[#AAC9FA] hover:text-blue-200"
+              >
+                <Copy className="w-4 h-4" />
+                <span className="text-sm">Copy</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="mt-6">
-        <h3 className="text-sm font-semibold text-yellow-400 mb-2">
+      <div>
+        <h3 className="text-lg font-medium text-white mb-4">
           Usage Example
         </h3>
         <div className="flex space-x-2 mb-3">
@@ -241,43 +235,43 @@ print(response.json())`,
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-3 py-1 text-xs font-medium rounded ${
-                activeTab === tab
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-              }`}
+              className={`px-5 py-2 text-sm font-medium rounded-full ${activeTab === tab
+                ? "bg-gradient-to-b from-[#E1EAF9] to-[#99BEF7] text-[#131d2c]"
+                : "bg-[#0c1623] text-[#99BEF7] border border-[#99BEF7]"
+                }`}
             >
               {tab}
             </button>
           ))}
         </div>
-        <code className="block text-sm text-gray-300 font-mono p-3 bg-gray-800 rounded whitespace-pre">
-          {snippets[activeTab]
-            .replace(/\${endpoint}/g, endpoint)
-            .replace(
-              /\${apiKey ? apiKey : "YOUR_API_KEY"}/g,
-              apiKey
-                ? showApiKey
-                  ? apiKey
-                  : apiKey.replace(/.(?=.{4})/g, "•")
-                : "YOUR_API_KEY"
-            )}
-        </code>
+        <div className="rounded-lg p-4">
+          <code className="block bg-[#070915] text-sm text-[#8ba1bc] font-mono whitespace-pre rounded-lg">
+            {snippets[activeTab]
+              .replace(/\${endpoint}/g, endpoint)
+              .replace(
+                /\${apiKey ? apiKey : "YOUR_API_KEY"}/g,
+                apiKey
+                  ? showApiKey
+                    ? apiKey
+                    : apiKey.replace(/.(?=.{4})/g, "•")
+                  : "YOUR_API_KEY"
+              )}
+          </code>
+        </div>
       </div>
 
       <div className="mt-6">
-        <h3 className="text-sm font-semibold text-yellow-400 mb-2">
+        <h3 className="text-lg font-medium text-white mb-4">
           Example Response
         </h3>
-        <p className="text-gray-300 mb-2">
-          The API will return a JSON object with <code>success</code>,{" "}
-          <code>count</code>, and <code>data</code> fields. The{" "}
-          <code>data</code> field is an array of signals, each with the
-          following structure:
+        <p className="text-[#8ba1bc] mb-4">
+          The API will return a JSON object with the following structure:
         </p>
-        <pre className="block text-sm text-gray-300 font-mono p-3 bg-gray-800 rounded whitespace-pre overflow-x-auto">
-          {JSON.stringify(exampleResponse, null, 2)}
-        </pre>
+        <div className="rounded-lg p-4 overflow-x-auto">
+          <pre className="text-sm bg-[#070915] text-[#8ba1bc] font-mono whitespace-pre rounded-lg">
+            {JSON.stringify(exampleResponse, null, 2)}
+          </pre>
+        </div>
       </div>
     </div>
   );

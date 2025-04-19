@@ -43,7 +43,7 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [apiKey, setApiKey] = useState<string | null>(null);
-  const [activeSection, setActiveSection] = useState<"subscriptions" | "api">(
+  const [activeSection, setActiveSection] = useState<"subscriptions" | "api" | "signals">(
     "subscriptions"
   );
   const { credits, updateCredits } = useCredits();
@@ -135,56 +135,78 @@ const UserProfile = () => {
     );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 py-[4rem]">
-      <div className="max-w-5xl mx-auto py-12 px-4 sm:px-6 lg:px-8 profileCss">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-100">Your Dashboard</h1>
+    <div className="min-h-screen bg-[#0b1016] py-[4rem]">
+      <div className="py-12 px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-center mb-8">
+          <h1 className="text-3xl font-bold text-white">Your Dashboard</h1>
         </div>
+        <div className="grid grid-cols-8 gap-10">
+          <div className="col-span-2">
 
-        <ProfileHeader profile={profile} />
 
-        {/* Toggle Buttons */}
-        <div className="flex space-x-4 mb-6">
-          <button
-            onClick={() => setActiveSection("subscriptions")}
-            className={`px-4 py-2 rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg ${
-              activeSection === "subscriptions"
-                ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md"
-                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-            }`}
-          >
-            Subscribed Accounts
-          </button>
-          <button
-            onClick={() => setActiveSection("api")}
-            className={`px-4 py-2 rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg ${
-              activeSection === "api"
-                ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md"
-                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-            }`}
-          >
-            API Access
-          </button>
+            <ProfileHeader profile={profile} />
+          </div>
+
+          {/* Toggle Buttons */}
+          <div className="col-span-6">
+            <div className="flex mb-6 rounded-full bg-[#0D1321] overflow-hidden" style={{ border: "1px solid #353940" }}>
+              <div className="flex w-full p-1 rounded-full">
+                <button
+                  onClick={() => setActiveSection("subscriptions")}
+                  className={`flex-1 px-8 py-3 text-center transition-all ${activeSection === "subscriptions"
+                    ? "bg-[#DEEBFF14] text-white font-medium rounded-r-sm rounded-l-full shadow-inner shadow-[#E4EFFF47]"
+                    : "text-[#8ba1bc] hover:text-white"
+                    }`}
+                >
+                  Subscribed Accounts
+                </button>
+                <button
+                  onClick={() => setActiveSection("signals")}
+                  className={`flex-1 px-8 py-3 text-center transition-all ${activeSection === "signals"
+                    ? "bg-[#DEEBFF14] text-white font-medium rounded-sm shadow-inner shadow-[#E4EFFF47]"
+                    : "text-[#8ba1bc] hover:text-white"
+                    }`}
+                >
+                  Your Signals
+                </button>
+                <button
+                  onClick={() => setActiveSection("api")}
+                  className={`flex-1 px-8 py-3 text-center transition-all ${activeSection === "api"
+                    ? "bg-[#DEEBFF14] text-white font-medium rounded-l-sm rounded-r-full shadow-inner shadow-[#E4EFFF47]"
+                    : "text-[#8ba1bc] hover:text-white"
+                    }`}
+                >
+                  API Access
+                </button>
+              </div>
+            </div>
+
+            {/* Conditionally Render Sections */}
+            {activeSection === "subscriptions" && (
+              <SubscriptionsList subscriptions={profile.subscribedAccounts} />
+            )}
+            {activeSection === "signals" && (
+              <div className="bg-[#131d2c] rounded-lg p-6">
+                <h2 className="text-xl font-medium text-white mb-4">Your Trading Signals</h2>
+                <p className="text-[#8ba1bc]">You don't have any signals yet. Subscribe to trading accounts to receive signals.</p>
+              </div>
+            )}
+            {activeSection === "api" && (
+              <ApiCredentialsSection
+                apiKey={apiKey}
+                endpoint={
+                  process.env.NODE_ENV === "production"
+                    ? "https://app.maxxit.ai"
+                    : "https://app.maxxit.ai"
+                }
+                twitterId={session.user.id}
+                onGenerateNewKey={handleNewKeyGenerated}
+                onApiKeyUpdate={handleApiKeyUpdate}
+                profile={profile}
+              />
+            )}
+          </div>
         </div>
-
-        {/* Conditionally Render Sections */}
-        {activeSection === "subscriptions" && (
-          <SubscriptionsList subscriptions={profile.subscribedAccounts} />
-        )}
-        {activeSection === "api" && (
-          <ApiCredentialsSection
-            apiKey={apiKey}
-            endpoint={
-              process.env.NODE_ENV === "production"
-                ? "https://app.maxxit.ai"
-                : "https://app.maxxit.ai"
-            }
-            twitterId={session.user.id}
-            onGenerateNewKey={handleNewKeyGenerated}
-            onApiKeyUpdate={handleApiKeyUpdate}
-            profile={profile}
-          />
-        )}
       </div>
     </div>
   );

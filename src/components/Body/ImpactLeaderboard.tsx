@@ -41,7 +41,7 @@ type SortDirection = "asc" | "desc";
 interface ImpactLeaderboardProps {
   subscribedHandles: string[];
   subscribingHandle: string | null;
-  onSubscribe: (handle: string) => void;
+  onSubscribe: (handle: string, impactFactor: number) => void;
   setRefreshData: (refresh: () => void) => void;
   searchText: string;
 }
@@ -432,7 +432,7 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
 
           // Generate pseudo-random metrics for visualization
           const factor = getRandomStat(agent.twitterHandle, "factor");
-          const signals = getRandomStat(agent.twitterHandle, "signals");
+          const signals = agent.signals;
           const mindshare = getRandomStat(agent.twitterHandle, "mindshare");
 
           return (
@@ -455,12 +455,7 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                 ></div>
               </div>
 
-              <div
-                className="p-5 cursor-pointer"
-                onClick={() => {
-                  router.push(`/influencer/${cleanHandle}`);
-                }}
-              >
+              <div className="p-5">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
                     <div
@@ -549,30 +544,18 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                           style={{ animationDuration: "3s" }}
                         ></div>
                       </div>
-                      <span className="text-xs text-blue-400 mb-0.5">
-                        Factor
-                      </span>
-                      <span className="text-xs font-semibold text-white">
-                        {factor}%
-                      </span>
+                      <span className="text-xs text-blue-400 mb-0.5">Subscribers</span>
+                      <span className="text-xs font-semibold text-white">{agent.subscribers?.length || 0}</span>
                     </div>
                     <div className="flex flex-col items-center justify-center bg-cyan-900/20 rounded-lg p-2.5 border border-cyan-700/20">
                       <TrendingUp className="h-4 w-4 text-cyan-400 mb-1" />
-                      <span className="text-xs text-cyan-400 mb-0.5">
-                        Signals
-                      </span>
-                      <span className="text-xs font-semibold text-white">
-                        {signals}%
-                      </span>
+                      <span className="text-xs text-cyan-400 mb-0.5">Signals</span>
+                      <span className="text-xs font-semibold text-white">{agent.signals || "0"}</span>
                     </div>
                     <div className="flex flex-col items-center justify-center bg-blue-800/20 rounded-lg p-2.5 border border-blue-700/20">
                       <BarChart2 className="h-4 w-4 text-blue-300 mb-1" />
-                      <span className="text-xs text-blue-300 mb-0.5">
-                        Mindshare
-                      </span>
-                      <span className="text-xs font-semibold text-white">
-                        {mindshare}%
-                      </span>
+                      <span className="text-xs text-blue-300 mb-0.5">Tokens</span>
+                      <span className="text-xs font-semibold text-white">{agent.tokens || "0"}</span>
                     </div>
                   </div>
 
@@ -784,12 +767,11 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                   } transition-all duration-200 ${
                     isCurrentlySubscribing ? "animate-pulse" : ""
                   }`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!isSubscribed && !isCurrentlySubscribing) {
-                      onSubscribe(agent.twitterHandle);
-                    }
-                  }}
+                  onClick={() =>
+                    !isSubscribed &&
+                    !isCurrentlySubscribing &&
+                    onSubscribe(agent.twitterHandle, agent.impactFactor)
+                  }
                   disabled={isSubscribed || isCurrentlySubscribing}
                 >
                   {isCurrentlySubscribing ? (
@@ -1025,12 +1007,11 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                           } transition-all duration-200 whitespace-nowrap ${
                             isCurrentlySubscribing ? "animate-pulse" : ""
                           }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (!isSubscribed && !isCurrentlySubscribing) {
-                              onSubscribe(agent.twitterHandle);
-                            }
-                          }}
+                          onClick={() =>
+                            !isSubscribed &&
+                            !isCurrentlySubscribing &&
+                            onSubscribe(agent.twitterHandle, agent.impactFactor)
+                          }
                           disabled={isSubscribed || isCurrentlySubscribing}
                         >
                           {isCurrentlySubscribing ? (
