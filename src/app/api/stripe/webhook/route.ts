@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   const sig = req.headers.get("stripe-signature") as string;
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
-  let event, client;
+  let event;
   try {
     event = stripe.webhooks.constructEvent(payload, sig, webhookSecret);
   } catch (err) {
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     const session = event.data.object;
     const { promoCode, credits } = session.metadata;
     const planPrice = session.amount_total / 100; // Convert cents to dollars
-    client = await dbConnect();
+    const client = await dbConnect();
     const db = client.db("ctxbt-signal-flow");
 
     if (promoCode) {
@@ -58,8 +58,6 @@ export async function POST(req: NextRequest) {
     // Additional purchase processing logic here (e.g., credit assignment)
   }
 
-  await client.close();
-
   return NextResponse.json({ received: true });
 }
 
@@ -85,5 +83,4 @@ async function addCredits(userId: string, amount: number) {
     description: "Promo code incentive",
     createdAt: creditedAt,
   });
-  await client.close();
 }

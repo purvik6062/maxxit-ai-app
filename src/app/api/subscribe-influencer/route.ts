@@ -7,7 +7,6 @@ const BASE_SUBSCRIPTION_COST = 10;
 const DEFAULT_IMPACT_FACTOR = 1;
 
 export async function POST(request: Request): Promise<Response> {
-  let client;
   try {
     const { twitterId, influencerHandle } = await request.json();
 
@@ -21,7 +20,7 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    client = await dbConnect();
+    const client = await dbConnect();
     const db = client.db("ctxbt-signal-flow");
     const usersCollection = db.collection("users");
     const influencersCollection = db.collection("influencers");
@@ -149,9 +148,5 @@ export async function POST(request: Request): Promise<Response> {
       },
       { status: 500 }
     );
-  }finally {
-    if (client) {
-      await client.close();
-    }
   }
 }

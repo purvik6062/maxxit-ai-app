@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import dbConnect from "src/utils/dbConnect";
 
 export async function GET(request: Request): Promise<Response> {
-  let client;
   try {
     const { searchParams } = new URL(request.url);
     const twitterId = searchParams.get("twitterId");
@@ -14,7 +13,7 @@ export async function GET(request: Request): Promise<Response> {
       );
     }
 
-    client = await dbConnect();
+    const client = await dbConnect();
     const db = client.db("ctxbt-signal-flow");
     const usersCollection = db.collection("users");
 
@@ -43,10 +42,5 @@ export async function GET(request: Request): Promise<Response> {
       },
       { status: 500 }
     );
-  } finally {
-    if (client) {
-      await client.close();
-    }
   }
-  
 }

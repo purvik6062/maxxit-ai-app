@@ -12,9 +12,6 @@ export async function POST(req: NextRequest) {
     isActive: true,
   });
 
-  if (client) {
-    await client.close();
-  }
   if (promoCodeDoc) {
     return NextResponse.json({
       valid: true,

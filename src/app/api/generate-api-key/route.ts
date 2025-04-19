@@ -6,7 +6,6 @@ import dbConnect from "src/utils/dbConnect";
 const SECRET_KEY = process.env.API_KEY_HASH_SECRET!;
 
 export async function POST(request: Request): Promise<Response> {
-  let client;
   try {
     const { twitterId } = await request.json();
     if (!twitterId) {
@@ -16,7 +15,7 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    client = await dbConnect();
+    const client = await dbConnect();
     const db = client.db("ctxbt-signal-flow");
     const apiKeysCollection = db.collection("apiKeys");
     const usersCollection = db.collection("users");
@@ -91,9 +90,5 @@ export async function POST(request: Request): Promise<Response> {
       },
       { status: 500 }
     );
-  } finally {
-    if (client) {
-      await client.close();
-    }
   }
 }

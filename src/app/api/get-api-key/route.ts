@@ -6,7 +6,6 @@ const MONGODB_URI = process.env.MONGODB_URI!;
 const DB_NAME = "ctxbt-signal-flow";
 
 export async function GET(request: Request): Promise<Response> {
-  let client;
   try {
     const { searchParams } = new URL(request.url);
     const twitterId = searchParams.get("twitterId");
@@ -18,7 +17,7 @@ export async function GET(request: Request): Promise<Response> {
       );
     }
 
-    client = await dbConnect();
+    const client = await dbConnect();
     const db = client.db("ctxbt-signal-flow");
     const apiKeysCollection = db.collection("apiKeys");
 
@@ -51,9 +50,5 @@ export async function GET(request: Request): Promise<Response> {
       },
       { status: 500 }
     );
-  } finally {
-    if (client) {
-      await client.close();
-    }
   }
 }

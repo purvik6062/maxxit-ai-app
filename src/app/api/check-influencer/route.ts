@@ -26,7 +26,5 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("MongoDB error:", error);
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
-  } finally {
-    await client.close();
-  }
+  } 
 }
