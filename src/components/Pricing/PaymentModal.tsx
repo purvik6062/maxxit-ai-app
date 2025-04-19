@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, CreditCard, Bitcoin } from "lucide-react";
 import { createCheckoutSession } from "@/app/actions/stripe";
 import { stripePromise } from "@/lib/stripeClient";
+import { createPortal } from "react-dom";
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -28,23 +29,33 @@ export default function PaymentModal({
   const [promoCodeError, setPromoCodeError] = useState("");
   const [discountApplied, setDiscountApplied] = useState(false);
   const [finalPrice, setFinalPrice] = useState(planPrice);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  useEffect(() => {
+    setFinalPrice(planPrice);
+  }, [planPrice]);
 
   const paymentMethods = [
     {
       id: "credit",
       name: "Credit Card",
-      icon: <CreditCard className="w-6 h-6 mr-2 text-black" />,
+      icon: <CreditCard className="w-6 h-6 mr-2 text-white" />,
       description: "Instant processing, secure payment",
     },
     {
       id: "crypto",
       name: "Cryptocurrency",
-      icon: <Bitcoin className="w-6 h-6 mr-2 text-black" />,
+      icon: <Bitcoin className="w-6 h-6 mr-2 text-white" />,
       description: "Anonymous, decentralized payment",
     },
   ];
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const handleApplyPromoCode = async () => {
     try {
@@ -95,12 +106,12 @@ export default function PaymentModal({
     }
   };
 
-  return (
+  const modalContent = (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm pt-[100px]"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
       onClick={onClose}
     >
       <motion.div
@@ -108,122 +119,58 @@ export default function PaymentModal({
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
-        className="bg-white rounded-2xl w-[900px] h-[600px] flex shadow-2xl overflow-hidden"
+        className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl flex flex-col md:flex-row shadow-2xl overflow-hidden border border-gray-800/30 max-w-4xl w-full mx-4 md:mx-auto relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
+          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-10"
         >
           <X className="w-6 h-6" />
         </button>
 
-        <div className="w-1/2 bg-gray-50 p-12 flex flex-col justify-center">
-          <AnimatePresence mode="wait">
-            {!selectedPaymentMethod && (
-              <motion.div
-                key="plan-info"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="space-y-4"
-              >
-                <h2 className="text-3xl font-bold text-gray-900">
-                  {planName} Plan
-                </h2>
-                <div className="text-5xl font-extrabold text-blue-600">
-                  ${finalPrice}
-                </div>
-                <div className="text-lg text-gray-600">
-                  {planCredits} Credits
-                </div>
-                {discountApplied && (
-                  <p className="text-green-600">
-                    Promo code applied! Saved ${planPrice - finalPrice}
-                  </p>
-                )}
-                <div className="mt-4">
-                  <input
-                    type="text"
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value)}
-                    placeholder="Enter promo code"
-                    className="!text-black w-full p-2 border rounded-lg"
-                  />
-                  <button
-                    onClick={handleApplyPromoCode}
-                    className="mt-2 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
-                  >
-                    Apply Promo Code
-                  </button>
-                  {promoCodeError && (
-                    <p className="text-red-500 mt-2">{promoCodeError}</p>
-                  )}
-                </div>
-                <p className="text-gray-500">
-                  One-time purchase with no recurring fees.
-                </p>
-              </motion.div>
+        <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center border-b md:border-b-0 md:border-r border-gray-800/20">
+          <div className="space-y-4">
+            <div className="bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent">
+              <h2 className="text-3xl font-bold font-napzerRounded">
+                {planName} Plan
+              </h2>
+            </div>
+            <div className="text-5xl font-extrabold text-[#AAC9FA]">
+              ${finalPrice}
+            </div>
+            <div className="text-lg text-gray-300">{planCredits} Credits</div>
+            {discountApplied && (
+              <p className="text-green-400">
+                Promo code applied! Saved ${planPrice - finalPrice}
+              </p>
             )}
-
-            {selectedPaymentMethod === "credit" && (
-              <motion.div
-                key="credit-info"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="space-y-4"
+            <div className="mt-4">
+              <input
+                type="text"
+                value={promoCode}
+                onChange={(e) => setPromoCode(e.target.value)}
+                placeholder="Enter promo code"
+                className="w-full p-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              />
+              <button
+                onClick={handleApplyPromoCode}
+                className="mt-2 w-full bg-gradient-to-r from-[#1C2333] to-[#1C2333] text-white py-2 rounded-lg hover:shadow-lg hover:shadow-black-500/30 transition-all duration-200"
               >
-                <h3 className="text-2xl font-bold text-gray-900">
-                  Credit Card Payment
-                </h3>
-                <p className="text-gray-600">
-                  Secure payment processing via Stripe. We accept all major
-                  credit cards.
-                </p>
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <p className="text-blue-700 font-medium">
-                    💳 PCI DSS Compliant
-                  </p>
-                  <p className="text-sm text-blue-600">
-                    Your payment information is encrypted and securely
-                    processed.
-                  </p>
-                </div>
-              </motion.div>
-            )}
-
-            {selectedPaymentMethod === "crypto" && (
-              <motion.div
-                key="crypto-info"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="space-y-4"
-              >
-                <h3 className="text-2xl font-bold text-gray-900">
-                  Cryptocurrency Payment
-                </h3>
-                <p className="text-gray-600">
-                  Pay securely with Bitcoin, Ethereum, and other major
-                  cryptocurrencies.
-                </p>
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <p className="text-green-700 font-medium">
-                    🔒 Blockchain Verified
-                  </p>
-                  <p className="text-sm text-green-600">
-                    Transactions are processed through our secure crypto payment
-                    gateway.
-                  </p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                Apply Promo Code
+              </button>
+              {promoCodeError && (
+                <p className="text-red-400 mt-2">{promoCodeError}</p>
+              )}
+            </div>
+            <p className="text-gray-400 text-sm">
+              One-time purchase with no recurring fees.
+            </p>
+          </div>
         </div>
 
-        <div className="w-1/2 p-12 flex flex-col justify-center">
-          <h3 className="text-2xl font-bold mb-6 text-center text-black">
+        <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
+          <h3 className="text-2xl font-bold mb-6 text-center text-[#E1EAF9] font-napzerRounded">
             Choose Payment Method
           </h3>
           <div className="space-y-4">
@@ -233,10 +180,10 @@ export default function PaymentModal({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: method.id === "credit" ? 0 : 0.1 }}
-                className={`w-full flex items-center p-4 rounded-lg border-2 transition-all ${
+                className={`w-full flex items-center p-4 rounded-lg border transition-all ${
                   selectedPaymentMethod === method.id
-                    ? "border-blue-500 bg-blue-50 shadow-md"
-                    : "border-gray-200 hover:border-blue-300 hover:bg-blue-50/20"
+                    ? "border-cyan-500 bg-gray-800/50 shadow-md shadow-cyan-500/20"
+                    : "border-gray-700 hover:border-cyan-800 hover:bg-gray-800/30"
                 }`}
                 onClick={() =>
                   setSelectedPaymentMethod(method.id as "credit" | "crypto")
@@ -244,8 +191,8 @@ export default function PaymentModal({
               >
                 {method.icon}
                 <div className="text-left">
-                  <div className="font-semibold text-black">{method.name}</div>
-                  <div className="text-sm text-gray-500">
+                  <div className="font-semibold text-white">{method.name}</div>
+                  <div className="text-sm text-gray-400">
                     {method.description}
                   </div>
                 </div>
@@ -253,17 +200,35 @@ export default function PaymentModal({
             ))}
           </div>
           {selectedPaymentMethod && (
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="mt-6 w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors"
-              onClick={handleProceed}
-            >
-              Proceed to Payment
-            </motion.button>
+            <div className="mt-6">
+              {selectedPaymentMethod === "credit" && (
+                <div className="mb-4 p-3 rounded-lg bg-gray-800/50 border border-blue-900/50">
+                  <p className="text-blue-400 font-medium text-sm">
+                    💳 Secure payment processing via Stripe
+                  </p>
+                </div>
+              )}
+              {selectedPaymentMethod === "crypto" && (
+                <div className="mb-4 p-3 rounded-lg bg-gray-800/50 border border-green-900/50">
+                  <p className="text-green-400 font-medium text-sm">
+                    🔒 Pay securely with crypto
+                  </p>
+                </div>
+              )}
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="w-full bg-gradient-to-r from-[#1C2333] to-[#1C2333] text-white py-3 rounded-3xl hover:shadow-lg hover:shadow-black-500/30 transition-all duration-200 font-medium"
+                onClick={handleProceed}
+              >
+                Proceed to Payment
+              </motion.button>
+            </div>
           )}
         </div>
       </motion.div>
     </motion.div>
   );
+
+  return createPortal(modalContent, document.body);
 }

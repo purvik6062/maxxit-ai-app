@@ -36,5 +36,7 @@ export async function GET(req: NextRequest) {
     promoCodeId: promoCodeDoc._id,
   });
 
+  await client.close();
+
   return NextResponse.json({ claimableUSD, usageCount });
 }

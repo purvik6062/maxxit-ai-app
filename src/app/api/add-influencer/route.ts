@@ -242,6 +242,7 @@ export async function POST(request: Request) {
         });
       } finally {
         await session.endSession();
+        await client.close();
       }
     }
 

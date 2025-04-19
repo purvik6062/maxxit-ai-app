@@ -7,6 +7,7 @@ const BASE_SUBSCRIPTION_COST = 10;
 const DEFAULT_IMPACT_FACTOR = 1;
 
 export async function POST(request: Request): Promise<Response> {
+  let client;
   try {
     const { twitterId, influencerHandle, subscriptionFee } = await request.json();
 
@@ -151,5 +152,9 @@ export async function POST(request: Request): Promise<Response> {
       },
       { status: 500 }
     );
+  }finally {
+    if (client) {
+      await client.close();
+    }
   }
 }
