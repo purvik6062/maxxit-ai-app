@@ -171,10 +171,10 @@
   animation: shadow046 0.5s alternate infinite ease;
 }
 
-.profileCss {
+/* .profileCss {
   border: 2px solid white;
   border-radius: 20px;
-}
+} */
 
 @keyframes shadow046 {
   0% {
