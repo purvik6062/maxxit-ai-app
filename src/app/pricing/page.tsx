@@ -4,10 +4,10 @@ import BackgroundComponent from "@/components/ui/BackgroundComponent";
 
 function page() {
   return (
-    <div className="relative isolate overflow-hidden">
-      <div className="absolute inset-0 -z-1">
-        <BackgroundComponent gridSize={60} />
-      </div>
+    <div>
+      {/* <div className="absolute inset-0 -z-1"> */}
+      {/* <BackgroundComponent gridSize={60} /> */}
+      {/* </div> */}
       <PricingSection />
     </div>
   );

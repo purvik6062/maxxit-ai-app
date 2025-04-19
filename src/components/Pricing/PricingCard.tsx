@@ -91,7 +91,7 @@ export default function PricingCard({
             ) : (
               <button
                 onClick={handleCtaClick}
-                className={`w-full py-3 px-6 rounded-3xl text-white font-medium transition-all duration-200 bg-[#1C2333] hover:shadow-black-500/30 ${
+                className={`w-full py-3 px-6 rounded-3xl text-white font-medium transition-all duration-200 !bg-[#1C2333] hover:shadow-black-500/30 ${
                   popular
                     ? "bg-gradient-to-r from-[#1C2333] to-[#1C2333] text-white hover:shadow-lg hover:shadow-blue-500/30"
                     : "bg-gray-100 text-gray-800 "
