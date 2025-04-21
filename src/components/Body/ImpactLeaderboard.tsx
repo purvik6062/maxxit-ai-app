@@ -427,6 +427,10 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                   ? "border-gray-400/30"
                   : "border-amber-700/30"
               } bg-gradient-to-br from-gray-900/80 via-gray-900/60 to-blue-900/20 backdrop-blur-sm`}
+              onClick={() => {
+                router.push(`/influencer/${cleanHandle}`);
+              }}
+              style={{ cursor: 'pointer' }}
             >
               {/* Top Medal Badge */}
               <div className="absolute -right-6 -top-6 w-28 h-24">

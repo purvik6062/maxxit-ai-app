@@ -68,7 +68,7 @@ const InfluencerDetails: React.FC<InfluencerDetailsProps> = ({
               <div className="bg-gray-900 p-3 rounded-lg">
                 <p className="text-xs text-gray-400">Followers</p>
                 <p className="text-sm font-semibold text-cyan-300">
-                  {influencer.followers.toLocaleString()}
+                  {influencer.followers?.toLocaleString()}
                 </p>
               </div>
             </div>

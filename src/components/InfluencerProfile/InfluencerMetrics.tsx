@@ -104,9 +104,9 @@ function InfluencerMetrics() {
   const { publicMetrics, userProfileUrl, verified, mindshare } = userData;
 
   const socialMetrics = [
-    { label: "Followers", value: publicMetrics.followers_count.toLocaleString() },
-    { label: "Following", value: publicMetrics.following_count.toLocaleString() },
-    { label: "Tweets", value: publicMetrics.tweet_count.toLocaleString() },
+    { label: "Followers", value: publicMetrics.followers_count?.toLocaleString() },
+    { label: "Following", value: publicMetrics.following_count?.toLocaleString() },
+    { label: "Tweets", value: publicMetrics.tweet_count?.toLocaleString() },
   ];
 
   const influenceMetrics = [

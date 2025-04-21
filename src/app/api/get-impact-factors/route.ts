@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { MongoClient } from "mongodb";
+import dbConnect from '../../../utils/dbConnect';
 
 export async function POST(request: Request) {
   try {
-    const client = await MongoClient.connect(process.env.MONGODB_URI!);
+    const client = await dbConnect();
     const db = client.db("backtesting_db");
     const collection = db.collection("impact_factors");
 

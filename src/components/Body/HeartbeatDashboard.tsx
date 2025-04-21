@@ -421,7 +421,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
 
           return (
             <div
-              key={agent.twitterHandle} /* ... identical card classes ... */
+              key={agent.twitterHandle}
               className={`impact-card top-card relative overflow-hidden rounded-xl border ${
                 rank === 1
                   ? "border-yellow-500/30"
@@ -429,6 +429,10 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                   ? "border-gray-400/30"
                   : "border-amber-700/30"
               } bg-gradient-to-br from-gray-900/80 via-gray-900/60 to-blue-900/20 backdrop-blur-sm`} // Maybe adjust accent color
+              onClick={() => {
+                router.push(`/influencer/${cleanHandle}`);
+              }}
+              style={{ cursor: 'pointer' }}
             >
               {/* ... Top Medal Badge ... */}
               <div className="absolute -right-6 -top-6 w-28 h-24">
@@ -832,10 +836,12 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
 
               return (
                 <div
-                  key={
-                    agent.twitterHandle
-                  } /* ... identical list item classes ... */
+                  key={agent.twitterHandle}
                   className="impact-card list-item relative bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-lg overflow-hidden transition-all hover:bg-blue-950 duration-200" // Adjusted hover color maybe
+                  onClick={() => {
+                    router.push(`/influencer/${cleanHandle}`);
+                  }}
+                  style={{ cursor: 'pointer' }}
                 >
                   <div className="px-4 py-2 flex items-center gap-3 md:gap-4">
                     {" "}
