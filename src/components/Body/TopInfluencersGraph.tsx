@@ -1,8 +1,19 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Influencer } from "@/constants/InfluencerClusterData";
 import Image from "next/image";
+
+type Influencer = {
+  id: string;
+  name: string;
+  followers: number;
+  accuracy: number;
+  recentPredictions: number;
+  avatar: string;
+  specialties: string[];
+  recentWeekSignals: number;
+  recentWeekTokens: number;
+};
 
 interface InfluencerDetailsProps {
   influencer: Influencer | null;
@@ -16,7 +27,7 @@ const InfluencerDetails: React.FC<InfluencerDetailsProps> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="w-full max-w-4xl bg-gray-900/70 backdrop-blur-md p-4 rounded-xl shadow-xl my-8 z-20 border border-cyan-500/30 flex items-center justify-between"
+      className="w-full max-w-4xl bg-gray-800/70 backdrop-blur-md p-4 rounded-xl shadow-xl my-8 z-20 border border-cyan-500/30 flex items-center justify-between"
     >
       {influencer ? (
         <div className="flex items-center w-full space-x-6">
@@ -42,24 +53,22 @@ const InfluencerDetails: React.FC<InfluencerDetailsProps> = ({
               </p>
             </div>
             <div className="flex space-x-4">
-              <div className="bg-gray-800/50 p-3 rounded-lg">
-                <p className="text-xs text-gray-400">Profit</p>
+              <div className="bg-gray-900 p-3 rounded-lg">
+                <p className="text-xs text-gray-400">Signals (past 7d)</p>
                 <p className="text-sm font-semibold text-cyan-300">
-                  ${influencer.profit?.toLocaleString()}
+                  {influencer.recentWeekSignals?.toLocaleString()}
                 </p>
               </div>
-              <div className="bg-gray-800/50 p-3 rounded-lg">
+              <div className="bg-gray-900 p-3 rounded-lg">
+                <p className="text-xs text-gray-400">Tokens (past 7d)</p>
+                <p className="text-sm font-semibold text-cyan-300">
+                  {influencer.recentWeekTokens?.toLocaleString()}
+                </p>
+              </div>
+              <div className="bg-gray-900 p-3 rounded-lg">
                 <p className="text-xs text-gray-400">Followers</p>
                 <p className="text-sm font-semibold text-cyan-300">
                   {influencer.followers.toLocaleString()}
-                </p>
-              </div>
-              <div className="bg-gray-800/50 p-3 rounded-lg">
-                <p className="text-xs text-gray-400">Accuracy</p>
-                <p className="text-sm font-semibold text-cyan-300">
-                  {influencer.accuracy !== undefined
-                    ? `${influencer.accuracy}%`
-                    : "N/A"}
                 </p>
               </div>
             </div>
@@ -412,7 +421,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
           <div className="overlay" />
         </div>
         <motion.div
-          className="z-20 bg-gray-900/50 backdrop-blur-md p-6 rounded-xl border border-cyan-500/30 shadow-lg"
+          className="z-20 bg-gray-900/50 backdrop-blur-md rounded-xl border border-cyan-500/30 shadow-lg"
           animate={{
             scale: [1, 1.05, 1],
             boxShadow: [

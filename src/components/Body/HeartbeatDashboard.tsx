@@ -65,24 +65,6 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
 
   const { agents, loadingUmd, error, refreshData } = useUserData();
 
-  // Example: Keep random stats for top 3, or use real data if useHeartbeatData provides it
-  const getRandomStat = (handle: string, type: string): number => {
-    const seed = handle
-      .split("")
-      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const baseValue = (seed % 30) + 50;
-    switch (type) {
-      case "beat":
-        return (baseValue + 5) % 100;
-      case "signals":
-        return (baseValue + 10) % 100;
-      case "mindshare":
-        return (baseValue + 15) % 100;
-      default:
-        return baseValue;
-    }
-  };
-
   const toggleStats = (handle: string) => {
     setShowStats((prev) => ({ ...prev, [handle]: !prev[handle] }));
   };
@@ -431,11 +413,11 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
           const cleanHandle = agent.twitterHandle.replace("@", "");
           const isSubscribed = subscribedHandles.includes(cleanHandle);
           const isCurrentlySubscribing = subscribingHandle === cleanHandle;
-
-          // Use actual heartbeat stats if available, else fallback to random
-          const beat = getRandomStat(agent.twitterHandle, "beat");
-          const signals = agent.signals;
-          const mindshare = getRandomStat(agent.twitterHandle, "mindshare");
+          
+          // Metrics for radar chart visualization
+          const subscribers = agent.subscribers?.length || 0;
+          const signals = agent.signals || 0;
+          const tokens = agent.tokens || 0;
 
           return (
             <div
@@ -590,9 +572,8 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                         ></div>
                       </div>
                       <span className="text-xs text-blue-400 mb-0.5">Beat</span>{" "}
-                      <span className="text-xs font-semibold text-white">
-                        {beat}%
-                      </span>
+                      <span className="text-xs text-blue-400 mb-0.5">Subscribers</span>
+                      <span className="text-xs font-semibold text-white">{agent.subscribers?.length || 0}</span>
                     </div>
                     {/* ... signals div ... */}
                     <div className="flex flex-col items-center justify-center bg-cyan-900/20 rounded-lg p-2.5 border border-cyan-700/20">
@@ -625,7 +606,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                         <div
                           className="absolute rounded-full w-2 h-2 bg-blue-400"
                           style={{
-                            top: `${(100 - beat) / 2}%`,
+                            top: `${(100 - subscribers) / 2}%`,
                             left: "50%",
                             transform: "translate(-50%, -50%)",
                             boxShadow: "0 0 5px rgba(96, 165, 250, 0.7)",
@@ -643,7 +624,7 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                         <div
                           className="absolute rounded-full w-2 h-2 bg-blue-300"
                           style={{
-                            bottom: `${(100 - mindshare) / 2}%`,
+                            bottom: `${(100 - tokens) / 2}%`,
                             left: "50%",
                             transform: "translate(-50%, 50%)",
                             boxShadow: "0 0 5px rgba(147, 197, 253, 0.7)",
@@ -663,9 +644,9 @@ const HeartbeatDashboard: React.FC<HeartbeatDashboardProps> = ({
                         <svg className="absolute inset-0 w-full h-full">
                           {" "}
                           <polygon
-                            points={`50,${(100 - beat) / 2} ${
+                            points={`50,${(100 - subscribers) / 2} ${
                               signals / 2
-                            },50 50,${100 - (100 - mindshare) / 2} ${
+                            },50 50,${100 - (100 - tokens) / 2} ${
                               100 - (100 - (agent.heartbeat || 0))
                             },50`}
                             fill="rgba(239, 68, 68, 0.2)"

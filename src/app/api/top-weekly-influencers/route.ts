@@ -17,6 +17,7 @@ export async function GET() {
     const db2 = client.db("ctxbt-signal-flow");
     const backtestingCollection = db1.collection("weekly_pnl");
     const ctxbtCollection = db2.collection("influencers");
+    const tradingSignalsCollection = db2.collection("trading-signals");
 
     // Fetch the latest document from weekly_pnl
     const latestWeeklyPnl = await backtestingCollection
@@ -32,18 +33,21 @@ export async function GET() {
       );
     }
 
+    const weekStart = new Date(latestWeeklyPnl[0].timestamp);
+    weekStart.setDate(weekStart.getDate() - 7);
+
     // Extract the data property and convert to array of { name, profit }
     const pnlData = latestWeeklyPnl[0].data;
-    const influencers = Object.entries(pnlData)
-      .map(([name, profit]) => ({
+    const influencers = Object.entries(pnlData) // this converts the object into array of arrays where arrays will be in [key, value] format
+      .map(([name, profit]) => ({ // array destructuring, will assign [key, value] key to name and value to profit and wrap them in array of objects
         name,
         profit: Number(profit),
       }))
-      .sort((a, b) => b.profit - a.profit)
+      .sort((a, b) => b.profit - a.profit) // descending order sorting
       .slice(0, 6); // Get top 6
 
     // Fetch additional data from ctxbt-signal-flow.influencers
-    const influencerDetails = await Promise.all(
+    const influencerDetails = await Promise.all( // Waiting for all asynchronous operations to finish
       influencers.map(async (influencer, index) => {
         const influencerDoc = await ctxbtCollection.findOne({
           twitterHandle: influencer.name,
@@ -65,7 +69,26 @@ export async function GET() {
       })
     );
 
-    return NextResponse.json(influencerDetails);
+    const influencersWithSignals = await Promise.all(
+      influencerDetails.map(async (influencer) => {
+        if (!influencer) return null;
+        
+        const signals = await tradingSignalsCollection.find({
+          twitterHandle: influencer.name,
+          generatedAt: { $gte: weekStart, $lte: latestWeeklyPnl[0].timestamp }
+        }).toArray();
+    
+        const uniqueTokens = new Set(signals.map(signal => signal.coin));
+        
+        return {
+          ...influencer,
+          recentWeekSignals: signals.length,
+          recentWeekTokens: uniqueTokens.size
+        };
+      })
+    );
+
+    return NextResponse.json(influencersWithSignals.filter(Boolean));
   } catch (error) {
     console.error("Error fetching influencers:", error);
     return NextResponse.json(

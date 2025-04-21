@@ -62,24 +62,6 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
 
   const { agents, loadingUmd, error, refreshData } = useUserData();
 
-  // Calculate random stats for visualization
-  const getRandomStat = (handle: string, type: string): number => {
-    const seed = handle
-      .split("")
-      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const baseValue = (seed % 30) + 50; // Between 50-80
-    switch (type) {
-      case "factor":
-        return (baseValue + 5) % 100;
-      case "signals":
-        return (baseValue + 10) % 100;
-      case "mindshare":
-        return (baseValue + 15) % 100;
-      default:
-        return baseValue;
-    }
-  };
-
   // Toggle detailed stats for a specific card
   const toggleStats = (handle: string) => {
     setShowStats((prev) => ({
@@ -430,10 +412,10 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
           const isSubscribed = subscribedHandles.includes(cleanHandle);
           const isCurrentlySubscribing = subscribingHandle === cleanHandle;
 
-          // Generate pseudo-random metrics for visualization
-          const factor = getRandomStat(agent.twitterHandle, "factor");
-          const signals = agent.signals;
-          const mindshare = getRandomStat(agent.twitterHandle, "mindshare");
+          // Metrics for radar chart visualization
+          const subscribers = agent.subscribers?.length || 0;
+          const signals = agent.signals || 0;
+          const tokens = agent.tokens || 0;
 
           return (
             <div
@@ -576,7 +558,7 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                         <div
                           className="absolute rounded-full w-2 h-2 bg-blue-400"
                           style={{
-                            top: `${(100 - factor) / 2}%`,
+                            top: `${(100 - subscribers) / 2}%`,
                             left: "50%",
                             transform: "translate(-50%, -50%)",
                             boxShadow: "0 0 5px rgba(96, 165, 250, 0.7)",
@@ -594,7 +576,7 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                         <div
                           className="absolute rounded-full w-2 h-2 bg-blue-300"
                           style={{
-                            bottom: `${(100 - mindshare) / 2}%`,
+                            bottom: `${(100 - tokens) / 2}%`,
                             left: "50%",
                             transform: "translate(-50%, 50%)",
                             boxShadow: "0 0 5px rgba(147, 197, 253, 0.7)",
@@ -613,14 +595,14 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                         <svg className="absolute inset-0 w-full h-full">
                           {" "}
                           <polygon
-                            points={`50,${(100 - factor) / 2} 
+                            points={`50,${(100 - subscribers) / 2} 
                                                                   ${
                                                                     signals / 2
                                                                   },50 
                                                                   50,${
                                                                     100 -
                                                                     (100 -
-                                                                      mindshare) /
+                                                                      tokens) /
                                                                       2
                                                                   } 
                                                                   ${

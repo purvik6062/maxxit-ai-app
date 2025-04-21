@@ -921,7 +921,7 @@ frenify_typing span {
 }
 
 .main-content {
-  padding-top: var(--techwave-header-height);
+  padding-top: 50px;
 }
 
 .fn__token_info,
