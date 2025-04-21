@@ -91,10 +91,10 @@ function InfluencerTable({ influencerId }: InfluencerTableProps) {
                       {signal.tokenId}
                     </TableCell>
                     <TableCell className="py-3 px-3 text-center text-sm text-gray-200">
-                      ${signal.entryPrice.toLocaleString()}
+                      ${signal.entryPrice?.toLocaleString()}
                     </TableCell>
                     <TableCell className="py-3 px-3 text-center text-sm text-gray-200">
-                      ${signal.exitPrice.toLocaleString()}
+                      ${signal.exitPrice?.toLocaleString()}
                     </TableCell>
                     <TableCell className="py-3 px-3 text-center">
                       <span
@@ -136,13 +136,13 @@ function InfluencerTable({ influencerId }: InfluencerTableProps) {
                       </span>
                     </TableCell>
                     <TableCell className="py-3 px-3 text-center text-sm text-gray-200 hidden lg:table-cell">
-                      ${signal.stopLoss.toLocaleString()}
+                      ${signal.stopLoss?.toLocaleString()}
                     </TableCell>
                     <TableCell className="py-3 px-3 text-center text-sm text-gray-200 hidden lg:table-cell">
-                      ${signal.takeProfit1.toLocaleString()}
+                      ${signal.takeProfit1?.toLocaleString()}
                     </TableCell>
                     <TableCell className="py-3 px-3 text-center text-sm text-gray-200 hidden lg:table-cell">
-                      ${signal.takeProfit2.toLocaleString()}
+                      ${signal.takeProfit2?.toLocaleString()}
                     </TableCell>
                     <TableCell className="py-3 px-3 text-center text-sm text-gray-400">
                       {format(
