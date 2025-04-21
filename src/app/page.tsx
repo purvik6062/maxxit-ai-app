@@ -179,7 +179,7 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#020617]">
-      <Header searchText={searchText} setSearchText={setSearchText} />
+      {/* <Header searchText={searchText} setSearchText={setSearchText} /> */}
 
       <div>
         <TopInfluencersGraph />

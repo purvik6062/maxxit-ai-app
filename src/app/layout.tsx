@@ -3,10 +3,11 @@ import { Providers } from "./providers";
 import { CreditsProvider } from "@/context/CreditsContext";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
-import { Footer } from "@/components";
+import { Footer, Header } from "@/components";
 import { League_Spartan } from "next/font/google";
 import localFonts from "next/font/local";
 import MainHeader from "@/components/Global/MainHeader";
+import { useState } from "react";
 
 const leagueSpartan = League_Spartan({
   subsets: ["latin"],
@@ -29,6 +30,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [searchText, setSearchText] = useState("");
   return (
     <html lang="en">
       <title>Maxxit | App</title>
@@ -44,8 +46,8 @@ export default function RootLayout({
             refetchOnWindowFocus={false}
           >
             <CreditsProvider>
-              <MainHeader />
-              <main className="main-content">{children}</main>
+              <Header searchText={searchText} setSearchText={setSearchText} />
+              <main>{children}</main>
               <Footer />
             </CreditsProvider>
           </SessionProvider>
