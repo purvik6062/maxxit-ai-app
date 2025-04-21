@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
-import { MongoClient } from "mongodb";
-
-const uri = process.env.MONGODB_URI;
-const client = new MongoClient(uri as string);
+import dbConnect from '../../../utils/dbConnect';
 
 export async function GET(request: Request) {
   try {
@@ -12,7 +9,7 @@ export async function GET(request: Request) {
     const influencerId = searchParams.get("influencerId");
     const skip = (page - 1) * limit;
 
-    await client.connect();
+    const client = await dbConnect();
     const database = client.db("backtesting_db");
     const collection = database.collection(
       "backtesting_results_with_reasoning"

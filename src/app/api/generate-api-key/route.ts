@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { MongoClient } from "mongodb";
 import crypto from "crypto";
 import dbConnect from "src/utils/dbConnect";
 

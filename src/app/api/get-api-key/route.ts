@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { MongoClient } from "mongodb";
 import dbConnect from "src/utils/dbConnect";
 
 const MONGODB_URI = process.env.MONGODB_URI!;

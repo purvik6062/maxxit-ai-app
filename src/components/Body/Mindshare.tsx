@@ -242,11 +242,11 @@ export default function UserMetricsDashboard() {
                 
                 <div className="flex justify-center gap-4 mb-4">
                   <div className="text-center">
-                    <p className="text-blue-400 text-lg font-bold">{user.userData.mindshare.toFixed(1)}%</p>
+                    <p className="text-blue-400 text-lg font-bold">{user.userData.mindshare?.toFixed(1)}%</p>
                     <p className="text-xs text-gray-500">Mindshare</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-gray-200 text-lg font-medium">{user.userData.publicMetrics.followers_count.toLocaleString()}</p>
+                    <p className="text-gray-200 text-lg font-medium">{user.userData.publicMetrics.followers_count?.toLocaleString()}</p>
                     <p className="text-xs text-gray-500">Followers</p>
                   </div>
                 </div>
@@ -425,12 +425,12 @@ export default function UserMetricsDashboard() {
                 {/* Right side with metrics - closer together */}
                 <div className="flex items-center">
                   <div className="text-right mr-4">
-                    <p className="text-blue-400 text-sm font-medium">{user.userData.mindshare.toFixed(1)}%</p>
+                    <p className="text-blue-400 text-sm font-medium">{user.userData.mindshare?.toFixed(1)}%</p>
                     <p className="text-xs text-gray-500">Mindshare</p>
                   </div>
                   
                   <div className="text-right mr-4">
-                    <p className="text-gray-300 text-sm">{user.userData.publicMetrics.followers_count.toLocaleString()}</p>
+                    <p className="text-gray-300 text-sm">{user.userData.publicMetrics.followers_count?.toLocaleString()}</p>
                     <p className="text-xs text-gray-500">Followers</p>
                   </div>
                   
