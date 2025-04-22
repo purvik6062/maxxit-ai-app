@@ -6,13 +6,16 @@ import Image from "next/image";
 type Influencer = {
   id: string;
   name: string;
-  followers: number;
-  accuracy: number;
-  recentPredictions: number;
   avatar: string;
-  specialties: string[];
+  followers: number;
   recentWeekSignals: number;
   recentWeekTokens: number;
+  specialties?: string[];
+};
+
+type ApiResponse = {
+  influencers: Influencer[];
+  totalProfit: number;
 };
 
 interface InfluencerDetailsProps {
@@ -96,6 +99,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
   const [influencers, setInfluencers] = useState<Influencer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalProfit, setTotalProfit] = useState<number>(0);
 
   // Fetch influencers from API
   useEffect(() => {
@@ -105,8 +109,9 @@ const CosmicWebInfluencerGraph: React.FC = () => {
         if (!response.ok) {
           throw new Error("Failed to fetch influencers");
         }
-        const data: Influencer[] = await response.json();
-        setInfluencers(data);
+        const data: ApiResponse = await response.json();
+        setInfluencers(data.influencers);
+        setTotalProfit(data.totalProfit);
         setLoading(false);
       } catch (err) {
         setError("Error loading influencers");
@@ -550,7 +555,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
             }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >
-            Net ROI: 350%
+            Net ROI: ${totalProfit.toLocaleString()}
           </motion.div>
         </div>
       </div>
