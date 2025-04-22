@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import dbConnect from '../../../utils/dbConnect';
+import { MongoClient } from "mongodb";
 
 export async function GET(request: Request) {
+  let client: MongoClient;
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
@@ -9,7 +11,7 @@ export async function GET(request: Request) {
     const influencerId = searchParams.get("influencerId");
     const skip = (page - 1) * limit;
 
-    const client = await dbConnect();
+    client = await dbConnect();
     const database = client.db("backtesting_db");
     const collection = database.collection(
       "backtesting_results_with_reasoning"
@@ -58,8 +60,6 @@ export async function GET(request: Request) {
       ipfsLink: signal["IPFS Link"],
     }));
 
-    // client.close();
-
     return NextResponse.json({
       signals: formattedSignals,
       total,
@@ -72,8 +72,5 @@ export async function GET(request: Request) {
       { error: "Internal Server Error" },
       { status: 500 }
     );
-  } 
-  // finally {
-  //   await client.close();
-  // }
+  }
 }

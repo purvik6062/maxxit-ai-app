@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import dbConnect from "src/utils/dbConnect";
+import { MongoClient } from "mongodb";
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 
 export async function POST(request: Request): Promise<Response> {
+  let client: MongoClient;
   try {
     const { twitterUsername, twitterId, telegramId, credits } = await request.json();
 
@@ -70,7 +72,7 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    const client = await dbConnect();
+    client = await dbConnect();
     const db = client.db("ctxbt-signal-flow");
     const usersCollection = db.collection("users");
     const transactionsCollection = db.collection("transactions");
