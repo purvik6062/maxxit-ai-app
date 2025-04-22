@@ -225,10 +225,10 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
   // const isCacheValid = (): boolean => {
   //   const timestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
   //   if (!timestamp) return false;
-
+    
   //   const cachedTime = parseInt(timestamp, 10);
   //   const currentTime = new Date().getTime();
-
+    
   //   return currentTime - cachedTime < CACHE_EXPIRY;
   // };
 
@@ -304,7 +304,7 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
     // Clear localStorage on hard or soft refresh
     // localStorage.removeItem(CACHE_KEY);
     // localStorage.removeItem(CACHE_TIMESTAMP_KEY);
-
+  
     fetchUserProfileData();
   }, [fetchUserProfileData]);
 
