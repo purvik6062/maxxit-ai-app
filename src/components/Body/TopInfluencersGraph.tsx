@@ -112,7 +112,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
         const data: ApiResponse = await response.json();
         setInfluencers(data.influencers);
         setTotalProfit(data.totalProfit);
-        // setLoading(false);
+        setLoading(false);
       } catch (err) {
         setError("Error loading influencers");
         // setLoading(false);
