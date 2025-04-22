@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import dbConnect from "src/utils/dbConnect";
+import { MongoClient } from "mongodb";
 
 export async function GET(request: Request): Promise<Response> {
+  let client: MongoClient;
   try {
     const { searchParams } = new URL(request.url);
     const twitterId = searchParams.get("twitterId");
@@ -13,7 +15,7 @@ export async function GET(request: Request): Promise<Response> {
       );
     }
 
-    const client = await dbConnect();
+    client = await dbConnect();
     const db = client.db("ctxbt-signal-flow");
     const usersCollection = db.collection("users");
     const influencerCollection = db.collection("influencers");

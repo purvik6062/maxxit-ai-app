@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import dbConnect from "src/utils/dbConnect";
+import { MongoClient } from "mongodb";
 
 const SECRET_KEY = process.env.API_KEY_HASH_SECRET!;
 
 export async function POST(request: Request): Promise<Response> {
+  let client: MongoClient;
   try {
     const { twitterId } = await request.json();
     if (!twitterId) {
@@ -14,7 +16,7 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    const client = await dbConnect();
+    client = await dbConnect();
     const db = client.db("ctxbt-signal-flow");
     const apiKeysCollection = db.collection("apiKeys");
     const usersCollection = db.collection("users");

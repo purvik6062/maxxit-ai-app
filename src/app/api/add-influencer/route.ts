@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "src/utils/dbConnect";
+import { MongoClient } from "mongodb";
 
 const SUBSCRIPTION_COST = 30;
 const TWEETSCOUT_API_KEY = process.env.TWEETSCOUT_API_KEY;
@@ -33,6 +34,7 @@ function calculateMindshare(
 }
 
 export async function POST(request: Request) {
+  let client: MongoClient;
   try {
     const body = await request.json();
     const {
@@ -57,7 +59,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const client = await dbConnect();
+    client = await dbConnect();
     const db = client.db("ctxbt-signal-flow");
     const usersCollection = db.collection("users");
     const influencersCollection = db.collection("influencers");

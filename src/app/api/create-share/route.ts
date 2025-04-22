@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import dbConnect from "src/utils/dbConnect";
 import { randomUUID } from 'crypto';
+import { MongoClient } from "mongodb";
 
 export async function POST(request: Request) {
+  let client: MongoClient;
   try {
-    const client = await dbConnect();
+    client = await dbConnect();
     const db = client.db('test_analysis'); 
     const collection = db.collection('shares');
 
