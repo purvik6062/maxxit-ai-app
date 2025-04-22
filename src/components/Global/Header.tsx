@@ -24,13 +24,6 @@ const NAVIGATION_ITEMS = [
   { path: "/playground", label: "Playground", id: "playground" },
 ];
 
-// Sub-components for better organization
-const Logo = () => (
-  <Link href="/" className="flex-shrink-0">
-    <img src="/img/maxxit.svg" alt="Maxxit" className="h-7 sm:h-8" />
-  </Link>
-);
-
 interface NavItemProps {
   item: typeof NAVIGATION_ITEMS[0];
   isActive: boolean;
@@ -418,8 +411,10 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
       <ToastContainer />
       <div className="mx-auto px-2 sm:px-4 py-2">
         <div className="flex items-center justify-between">
-          {/* Logo */}
-          <Logo />
+          <Link href="/" className="flex items-center gap-2">
+            <img src="/img/maxxit_logo.svg" alt="Maxxit" className="h-7 sm:h-8" />
+            <div className="text-2xl font-napzerRounded bg-gradient-to-b from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent">maxxit</div>
+          </Link>
 
           {/* Desktop Navigation Links */}
           <nav className="font-leagueSpartan hidden md:flex bg-[#101322B3] rounded-full items-center border border-gray-700 overflow-hidden">
