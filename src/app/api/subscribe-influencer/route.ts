@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "src/utils/dbConnect";
+import { MongoClient } from "mongodb";
 
 // Define a base cost that will be multiplied by the impact factor
 const BASE_SUBSCRIPTION_COST = 10;
@@ -7,6 +8,7 @@ const BASE_SUBSCRIPTION_COST = 10;
 const DEFAULT_IMPACT_FACTOR = 1;
 
 export async function POST(request: Request): Promise<Response> {
+  let client: MongoClient;
   try {
     const { twitterId, influencerHandle, subscriptionFee } = await request.json();
 
@@ -27,7 +29,7 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    const client = await dbConnect();
+    client = await dbConnect();
     const db = client.db("ctxbt-signal-flow");
     const usersCollection = db.collection("users");
     const influencersCollection = db.collection("influencers");

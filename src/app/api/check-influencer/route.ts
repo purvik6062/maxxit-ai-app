@@ -1,18 +1,19 @@
 // app/api/check-influencer/route.js
 import { NextResponse } from "next/server";
 import dbConnect from "src/utils/dbConnect";
+import { MongoClient } from "mongodb";
 
 export async function POST(request: Request) {
-  const { username } = await request.json();
-  console.log("api check-influencer", username);
-
-  if (!username) {
-    return NextResponse.json({ message: "Username is required" }, { status: 400 });
-  }
-
-  const client = await dbConnect();
-
+  let client: MongoClient;
   try {
+    const { username } = await request.json();
+    console.log("api check-influencer", username);
+
+    if (!username) {
+      return NextResponse.json({ message: "Username is required" }, { status: 400 });
+    }
+
+    client = await dbConnect();
     const database = client.db("ctxbt-signal-flow");
     const collection = database.collection("influencers"); 
 

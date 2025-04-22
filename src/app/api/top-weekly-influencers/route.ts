@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "src/utils/dbConnect";
+import { MongoClient } from "mongodb";
 
 // Interface for the API response
 export interface Influencer {
@@ -9,10 +10,10 @@ export interface Influencer {
   avatar: string;
 }
 
-
 export async function GET() {
-  const client = await dbConnect();
+  let client: MongoClient;
   try {
+    client = await dbConnect();
     const db1 = client.db("backtesting_db");
     const db2 = client.db("ctxbt-signal-flow");
     const backtestingCollection = db1.collection("weekly_pnl");

@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import dbConnect from '../../../utils/dbConnect';
+import { MongoClient } from "mongodb";
 
 export async function POST(request: Request) {
+  let client: MongoClient;
   try {
-    const client = await dbConnect();
+    client = await dbConnect();
     const db = client.db("backtesting_db");
     const collection = db.collection("impact_factors");
 
@@ -20,8 +22,6 @@ export async function POST(request: Request) {
       const impactData = await collection.findOne({ account: handle });
       result[handle] = impactData ? Math.round(impactData.impactFactor * 10) / 10 : 0;
     }
-
-    // client.close();
 
     return NextResponse.json(result, { status: 200 });
   } catch (error) {

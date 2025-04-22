@@ -1,14 +1,12 @@
 // app/api/get-my-signals/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { MongoClient } from "mongodb";
 import dbConnect from "src/utils/dbConnect";
 
-const MONGODB_URI = process.env.MONGODB_URI!;
-const DB_NAME = "ctxbt-signal-flow";
-
 export async function GET(request: Request): Promise<Response> {
-  const client = await dbConnect();
+  let client;
   try {
+    client = await dbConnect();
+    
     // Verify API key
     const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -102,8 +100,5 @@ export async function GET(request: Request): Promise<Response> {
       },
       { status: 500 }
     );
-  } 
-  // finally {
-  //   await client.close();
-  // }
+  }
 }

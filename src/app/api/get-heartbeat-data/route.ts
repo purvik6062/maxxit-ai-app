@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import dbConnect from "src/utils/dbConnect";
+import { MongoClient } from "mongodb";
 
 export async function POST(request: Request): Promise<Response> {
+  let client: MongoClient;
   try {
     const { handles } = await request.json();
 
@@ -9,15 +11,12 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json(
         { success: false, error: { message: "Invalid or missing handles array" } },
         { status: 400 }
-      );''
+      );
     }
 
     // Explicitly connect to the database
-    const client = await dbConnect();
-    if (!client.connect) {
-      throw new Error("Database client is not connected");
-    }
-
+    client = await dbConnect();
+    
     const db = client.db("ctxbt-signal-flow");
     const heartbeatCollection = db.collection("heartbeat");
 
