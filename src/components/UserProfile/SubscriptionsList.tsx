@@ -54,14 +54,14 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
 
   return (
     <div>
-      <div style={headerStyle} className="flex items-center justify-between bg-[#1C2333]">
+      <div style={headerStyle} className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 md:p-6 bg-[#1C2333]">
         <div>
-          <h3 className="text-2xl font-bold text-[#AAC9FA]">
+          <h3 className="text-xl md:text-2xl font-bold text-[#AAC9FA]">
             Subscribe Accounts
           </h3>
           <p className="text-[#8ba1bc] mt-1">Manage your active subscriptions</p>
         </div>
-        <div className="flex items-center space-x-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-6 w-full md:w-auto">
           <div className="flex items-center space-x-3">
             <div style={iconContainerStyle}>
               <Users className="w-5 h-5 text-[#8ba1bc]" />
@@ -84,13 +84,14 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
       </div>
 
       <div className="bg-[#0E1725] rounded-xl" style={{ border: "1px solid #818791" }}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 md:p-6">
           {(subscriptions.length ? subscriptions : Array(4).fill(null)).map((sub, index) => (
             <div
               key={sub?.twitterHandle || `placeholder-${index}`}
               style={cardStyle}
+              className="flex flex-col"
             >
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4 gap-2">
                 <div className="flex items-center space-x-3">
                   <div style={cardIconStyle}>
                     <TrendingUp className="w-5 h-5 text-[#8ba1bc]" />
@@ -107,7 +108,7 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
                     </div>
                   </div>
                 </div>
-                <span style={activeTagStyle} className="inline-flex items-center">
+                <span style={activeTagStyle} className="inline-flex items-center self-start">
                   Active
                 </span>
               </div>

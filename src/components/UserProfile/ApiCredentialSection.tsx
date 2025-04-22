@@ -136,43 +136,48 @@ print(response.json())`,
   };
 
   return (
-    <div className="bg-[#0E1725B3] rounded-2xl p-6" style={{ border: "1px solid #818791" }}>
-      <div className="flex justify-between items-center mb-6">
-        <div>
+    <div className="bg-[#0E1725B3] rounded-2xl p-4 md:p-6" style={{ border: "1px solid #818791" }}>
+      <div className="mb-6">
+        <div className="mb-4">
           <h2 className="text-xl font-medium text-[#E4EFFF]">API Access</h2>
           <p className="text-[#8ba1bc]">Manage your active subscriptions</p>
         </div>
-        <div>
-          <span className="text-[#AAC9FA] font-medium">Trading Signals API</span>
+
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center">
+            <span className="text-[#AAC9FA] font-medium mr-2">Trading Signals API</span>
+            <div className="w-2 h-2 rounded-full bg-green-400"></div>
+          </div>
+
+          {!apiKey && (
+            <button
+              onClick={handleGenerateKey}
+              disabled={loading}
+              className={`bg-gradient-to-b from-[#E1EAF9] to-[#99BEF7] text-[#131d2c] px-4 py-2 rounded-full transition-colors flex items-center gap-2 font-medium ${loading ? "opacity-50 cursor-not-allowed" : "hover:shadow-md"
+                }`}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Key className="w-4 h-4" />
+                  Generate API Key (50 credits)
+                </>
+              )}
+            </button>
+          )}
         </div>
-        {!apiKey && (
-          <button
-            onClick={handleGenerateKey}
-            disabled={loading}
-            className={`bg-gradient-to-b from-[#E1EAF9] to-[#99BEF7] text-[#131d2c] px-4 py-2 rounded-full transition-colors flex items-center gap-2 font-medium ${loading ? "opacity-50 cursor-not-allowed" : "hover:shadow-md"
-              }`}
-          >
-            {loading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Key className="w-4 h-4" />
-                Generate API Key (50 credits)
-              </>
-            )}
-          </button>
-        )}
       </div>
 
       <div className="space-y-4 mb-8">
-        <div className="bg-[#1C2333] p-4 rounded-lg" style={{ border: "1px solid #81879166" }}>
-          <div className="flex justify-between items-center">
-            <div>
+        <div className="bg-[#1C2333] p-3 md:p-4 rounded-lg" style={{ border: "1px solid #81879166" }}>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div className="w-full sm:w-auto overflow-hidden">
               <p className="text-sm text-[#8ba1bc] mb-1">API Endpoint</p>
-              <p className="font-mono text-white">{endpoint + "/api/get-my-signals"}</p>
+              <p className="font-mono text-white text-sm md:text-base break-all">{endpoint + "/api/get-my-signals"}</p>
             </div>
             <button
               onClick={() =>
@@ -181,7 +186,7 @@ print(response.json())`,
                   "Endpoint copied!"
                 )
               }
-              className="flex items-center gap-1 text-[#AAC9FA] hover:text-blue-200"
+              className="flex items-center gap-1 text-[#AAC9FA] hover:text-blue-200 mt-2 sm:mt-0 whitespace-nowrap"
             >
               <Copy className="w-4 h-4" />
               <span className="text-sm">Copy</span>
@@ -189,13 +194,13 @@ print(response.json())`,
           </div>
         </div>
 
-        <div className="bg-[#1C2333] p-4 rounded-lg" style={{ border: "1px solid #81879166" }}>
-          <div className="flex justify-between items-center">
-            <div>
+        <div className="bg-[#1C2333] p-3 md:p-4 rounded-lg" style={{ border: "1px solid #81879166" }}>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div className="w-full sm:w-auto overflow-hidden">
               <p className="text-sm text-[#8ba1bc] mb-1">API Key</p>
               {apiKey ? (
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-white">
+                  <span className="font-mono text-white text-sm md:text-base break-all">
                     {showApiKey ? apiKey : apiKey.replace(/.(?=.{4})/g, "•")}
                   </span>
                   <button
@@ -216,7 +221,7 @@ print(response.json())`,
             {apiKey && (
               <button
                 onClick={() => copyToClipboard(apiKey, "API key copied!")}
-                className="flex items-center gap-1 text-[#AAC9FA] hover:text-blue-200"
+                className="flex items-center gap-1 text-[#AAC9FA] hover:text-blue-200 mt-2 sm:mt-0 whitespace-nowrap"
               >
                 <Copy className="w-4 h-4" />
                 <span className="text-sm">Copy</span>
@@ -230,12 +235,12 @@ print(response.json())`,
         <h3 className="text-lg font-medium text-white mb-4">
           Usage Example
         </h3>
-        <div className="flex space-x-2 mb-3">
+        <div className="flex flex-wrap gap-2 mb-3">
           {(["JavaScript", "cURL", "Python"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-5 py-2 text-sm font-medium rounded-full ${activeTab === tab
+              className={`px-3 sm:px-5 py-2 text-sm font-medium rounded-full ${activeTab === tab
                 ? "bg-gradient-to-b from-[#E1EAF9] to-[#99BEF7] text-[#131d2c]"
                 : "bg-[#0c1623] text-[#99BEF7] border border-[#99BEF7]"
                 }`}
@@ -244,19 +249,11 @@ print(response.json())`,
             </button>
           ))}
         </div>
-        <div className="rounded-lg p-4">
-          <code className="block bg-[#070915] text-sm text-[#8ba1bc] font-mono whitespace-pre rounded-lg">
+        <div className="rounded-lg p-4 overflow-x-auto">
+          <pre className="block bg-[#070915] text-sm text-[#8ba1bc] font-mono whitespace-pre-wrap sm:whitespace-pre rounded-lg p-4 overflow-x-auto">
             {snippets[activeTab]
-              .replace(/\${endpoint}/g, endpoint)
-              .replace(
-                /\${apiKey ? apiKey : "YOUR_API_KEY"}/g,
-                apiKey
-                  ? showApiKey
-                    ? apiKey
-                    : apiKey.replace(/.(?=.{4})/g, "•")
-                  : "YOUR_API_KEY"
-              )}
-          </code>
+              .replace(/\${endpoint}/g, endpoint)}
+          </pre>
         </div>
       </div>
 

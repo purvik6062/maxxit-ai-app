@@ -80,9 +80,9 @@ export default function PricingSection() {
           </p>
         </div>
 
-        <div className="p-[1px] bg-gradient-to-r rounded-xl mb-16">
-          <div className="bg-gradient-to-br from-gray-900/80 to-gray-950/60 backdrop-blur-sm rounded-lg border border-gray-800/30 shadow-xl overflow-hidden">
-            <div className="p-6">
+        <div className="p-1 bg-gradient-to-r rounded-xl mb-16">
+          <div className="backdrop-blur-sm rounded-lg border border-gray-800/30 shadow-xl overflow-hidden">
+            {/* <div className="p-6"> */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {pricingPlans.map((plan) => (
                   <PricingCard
@@ -96,7 +96,7 @@ export default function PricingSection() {
                   />
                 ))}
               </div>
-            </div>
+            {/* </div> */}
           </div>
         </div>
 

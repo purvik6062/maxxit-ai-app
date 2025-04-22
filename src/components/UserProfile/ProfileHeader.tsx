@@ -36,11 +36,11 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
   };
 
   return (
-    <div className="bg-[#0b1016] p-6 mb-6 h-fit rounded-lg shadow-xl" style={containerBorderStyle}>
-      <div className="flex flex-col items-center space-y-6">
+    <div className="bg-[#0b1016] p-4 md:p-6 mb-6 h-fit rounded-lg shadow-xl" style={containerBorderStyle}>
+      <div className="flex flex-col items-center space-y-4 md:space-y-6">
         {/* Avatar container */}
-        <div className="bg-[#1a1f29] p-5 rounded-md" style={avatarBorderStyle}>
-          <User className="w-10 h-10 text-[#a4b8d3]" />
+        <div className="bg-[#1a1f29] p-4 md:p-5 rounded-md" style={avatarBorderStyle}>
+          <User className="w-8 h-8 md:w-10 md:h-10 text-[#a4b8d3]" />
         </div>
 
         {/* Telegram ID */}
@@ -48,7 +48,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
           <label className="text-sm font-medium text-[#8ba1bc] mb-1 block">
             Telegram ID
           </label>
-          <div className="bg-[#131923] p-3 rounded-md text-white" style={fieldBorderStyle}>
+          <div className="bg-[#131923] p-2 md:p-3 rounded-md text-white text-sm md:text-base" style={fieldBorderStyle}>
             @{profile.telegramId || "username1234"}
           </div>
         </div>
@@ -58,7 +58,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
           <label className="text-sm font-medium text-[#8ba1bc] mb-1 block">
             User Name
           </label>
-          <div className="flex items-center bg-[#131923] p-3 rounded-md text-white" style={fieldBorderStyle}>
+          <div className="flex items-center bg-[#131923] p-2 md:p-3 rounded-md text-white text-sm md:text-base" style={fieldBorderStyle}>
             <div className="truncate flex-1">
               {session?.user?.username}
             </div>
@@ -76,7 +76,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
           <label className="text-sm font-medium text-[#8ba1bc] mb-1 block">
             Credit
           </label>
-          <div className="bg-[#131923] p-3 rounded-md text-white" style={fieldBorderStyle}>
+          <div className="bg-[#131923] p-2 md:p-3 rounded-md text-white text-sm md:text-base" style={fieldBorderStyle}>
             {credits !== null ? credits : profile.credits || "9999999"}
           </div>
         </div>

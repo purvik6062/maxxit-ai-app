@@ -16,6 +16,164 @@ import { useCredits } from "@/context/CreditsContext";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 
+// Navigation configuration
+const NAVIGATION_ITEMS = [
+  { path: "/influencer", label: "Influencer", id: "influencer" },
+  { path: "/profile", label: "Profile", id: "profile" },
+  { path: "/pricing", label: "Pricing", id: "pricing", hasBorders: true },
+  { path: "/playground", label: "Playground", id: "playground" },
+];
+
+// Sub-components for better organization
+const Logo = () => (
+  <Link href="/" className="flex-shrink-0">
+    <img src="/img/maxxit.svg" alt="Maxxit" className="h-7 sm:h-8" />
+  </Link>
+);
+
+interface NavItemProps {
+  item: typeof NAVIGATION_ITEMS[0];
+  isActive: boolean;
+  onClick?: () => void;
+  isMobile?: boolean;
+}
+
+const NavItem: React.FC<NavItemProps> = ({ item, isActive, onClick, isMobile = false }) => {
+  const { path, label, hasBorders, id } = item;
+
+  // Desktop nav item
+  if (!isMobile) {
+    return (
+      <Link href={path}>
+        <span
+          className={`
+            px-3 lg:px-4 py-2 text-xs sm:text-sm font-medium inline-block 
+            transition-colors duration-200
+            ${hasBorders ? 'border-l border-r border-gray-700' : ''}
+            ${isActive ? "bg-[#E4EFFF] text-[#393B49]" : "text-gray-300 hover:bg-gray-800"}
+          `}
+        >
+          {label}
+        </span>
+      </Link>
+    );
+  }
+
+  // Mobile nav item
+  return (
+    <Link href={path} onClick={onClick}>
+      <span className={`flex items-center px-4 py-3 text-sm font-medium ${isActive ? "bg-blue-900/30 text-blue-100 border-l-2 border-blue-400" : "text-gray-300 hover:bg-gray-800"}`}>
+        {label}
+        {isActive && (
+          <span className="ml-auto">
+            <span className="w-2 h-2 bg-blue-400 rounded-full block"></span>
+          </span>
+        )}
+      </span>
+    </Link>
+  );
+};
+
+interface SearchInputProps {
+  searchText: string;
+  setSearchText: (text: string) => void;
+  showSearchInput: boolean;
+  toggleSearchInput?: () => void;
+  isMobile?: boolean;
+}
+
+const SearchInput: React.FC<SearchInputProps> = ({
+  searchText,
+  setSearchText,
+  showSearchInput,
+  toggleSearchInput,
+  isMobile = false
+}) => {
+  if (isMobile) {
+    return (
+      <div className="relative">
+        <input
+          type="text"
+          placeholder="Search accounts..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          className="w-full px-4 py-2 rounded-full text-white text-sm bg-gray-800/60 border border-gray-700 focus:border-blue-500 focus:outline-none"
+        />
+        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+          {searchText ? (
+            <button onClick={() => setSearchText("")} className="text-gray-400 hover:text-red-400">
+              <X className="w-4 h-4" />
+            </button>
+          ) : (
+            <Search className="text-gray-400 w-4 h-4" />
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (showSearchInput) {
+    return (
+      <div className="relative flex items-center rounded-full transition-all duration-300">
+        <input
+          id="search-input"
+          type="text"
+          placeholder="Search accounts..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          className="w-full px-4 py-2 rounded-full text-white"
+        />
+        <div className="absolute right-3 flex space-x-2">
+          {searchText && (
+            <button onClick={() => setSearchText("")} className="text-gray-400 hover:text-red-400">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+          <button onClick={toggleSearchInput} className="text-gray-400 hover:text-white">
+            <Search className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={toggleSearchInput}
+      className="flex items-center justify-center w-8 h-8 text-gray-300 hover:text-white hover:bg-gray-800 rounded-full"
+    >
+      <Search className="w-5 h-5" />
+    </button>
+  );
+};
+
+interface CreditsDisplayProps {
+  credits: number;
+  isMobile?: boolean;
+}
+
+const CreditsDisplay: React.FC<CreditsDisplayProps> = ({ credits, isMobile = false }) => {
+  if (isMobile) {
+    return (
+      <div className="flex items-center justify-between px-4 py-2 rounded-lg bg-gradient-to-r from-blue-900/30 to-blue-800/20 border border-blue-500/30">
+        <span className="text-gray-300 font-medium text-sm">Available Credits</span>
+        <span className="text-blue-400 font-bold text-lg">
+          {credits}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="hidden md:block px-2 sm:px-3 py-1 rounded-full bg-gradient-to-r from-blue-500/20 to-blue-700/20 border border-blue-500/50">
+      <span className="text-blue-400 font-bold text-xs sm:text-sm">
+        {credits} <span className="text-white font-normal">Credits</span>
+      </span>
+    </div>
+  );
+};
+
+// Main Header component
 interface HeaderProps {
   searchText: string;
   setSearchText: (text: string) => void;
@@ -42,6 +200,7 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
   const menuRef = useRef<HTMLDivElement>(null);
   const [activeLink, setActiveLink] = useState("");
 
+  // Error mapping for telegram registration
   const ERROR_MAPPING: { [key: string]: string } = {
     "Twitter username already registered":
       "This Twitter username is already connected to another account",
@@ -53,21 +212,53 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
       "Complete Step 1 & 2: Start the bot and send /start",
   };
 
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMobileMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [menuRef]);
+
+  // Close mobile menu on resize to larger viewport
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Set active link based on current URL path
+  useEffect(() => {
+    if (pathname?.includes("/influencer")) setActiveLink("influencer");
+    else if (pathname?.includes("/profile")) setActiveLink("profile");
+    else if (pathname?.includes("/pricing")) setActiveLink("pricing");
+    else if (pathname?.includes("/playground")) setActiveLink("playground");
+    else setActiveLink("");
+  }, [pathname]);
+
+  // Prevent scrolling when modal is open
   useEffect(() => {
     if (isModalOpen || isTelegramModalOpen) {
-      // Prevent scrolling when modal is open
       document.body.style.overflow = "hidden";
-      // Also prevent touchmove on mobile devices
       document.body.style.position = "fixed";
       document.body.style.width = "100%";
     } else {
-      // Re-enable scrolling when modal is closed
       document.body.style.overflow = "unset";
       document.body.style.position = "static";
       document.body.style.width = "auto";
     }
 
-    // Cleanup function to ensure we reset the styles when component unmounts
     return () => {
       document.body.style.overflow = "unset";
       document.body.style.position = "static";
@@ -75,8 +266,8 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
     };
   }, [isModalOpen, isTelegramModalOpen]);
 
+  // Check if user has registered
   useEffect(() => {
-    // Check if the user has already registered from localStorage
     const hasRegisteredPreviously = localStorage.getItem("hasRegistered");
     if (hasRegisteredPreviously === "true") {
       setShowTokens(true);
@@ -92,7 +283,6 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
         );
 
         if (response.status === 404) {
-          // User not found, they need to register
           setShowTokens(false);
           setHasRegistered(false);
           localStorage.removeItem("hasRegistered");
@@ -122,8 +312,8 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
     fetchUserData();
   }, [session]);
 
+  // Show welcome toast for new users with credits
   useEffect(() => {
-    // Check if we've already shown this toast by using localStorage
     const hasShownWelcomeToast = localStorage.getItem("hasShownWelcomeToast");
 
     if (credits === 500 && !hasShownWelcomeToast) {
@@ -136,19 +326,19 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
         }
       );
 
-      // Mark that we've shown the toast so it doesn't appear again
       localStorage.setItem("hasShownWelcomeToast", "true");
     }
   }, [credits]);
 
-  useEffect(() => {
-    // Set active link based on current URL path
-    if (pathname?.includes("/influencer")) setActiveLink("influencer");
-    else if (pathname?.includes("/profile")) setActiveLink("profile");
-    else if (pathname?.includes("/pricing")) setActiveLink("pricing");
-    else if (pathname?.includes("/playground")) setActiveLink("playground");
-    else setActiveLink("");
-  }, [pathname]);
+  const toggleSearchInput = () => {
+    setShowSearchInput(!showSearchInput);
+    if (!showSearchInput) {
+      setTimeout(() => {
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) searchInput.focus();
+      }, 100);
+    }
+  };
 
   const handleTelemodal = () => {
     if (!session) {
@@ -193,8 +383,8 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
       }
 
       setHasRegistered(true);
-      setShowTokens(true); // Set showTokens to true after successful submission
-      localStorage.setItem("hasRegistered", "true"); // Persist the registration status
+      setShowTokens(true);
+      localStorage.setItem("hasRegistered", "true");
 
       toast.success("Success! 500 Credits added to your account", {
         position: "top-center",
@@ -223,120 +413,39 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
     }
   };
 
-  const toggleSearchInput = () => {
-    setShowSearchInput(!showSearchInput);
-    if (!showSearchInput) {
-      // Focus the input field when it appears
-      setTimeout(() => {
-        const searchInput = document.getElementById('search-input');
-        if (searchInput) searchInput.focus();
-      }, 100);
-    }
-  };
-
-  // Close mobile menu when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setMobileMenuOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [menuRef]);
-
-  // Close mobile menu on resize to larger viewport
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 768) {
-        setMobileMenuOpen(false);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
   return (
     <header className="bg-[#07091573] border rounded-full border-[#3E434B] m-2 sm:m-4">
       <ToastContainer />
       <div className="mx-auto px-2 sm:px-4 py-2">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex-shrink-0">
-            <img src="/img/maxxit.svg" alt="Maxxit" className="h-6 sm:h-8" />
-          </Link>
+          <Logo />
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex bg-[#101322B3] rounded-full items-center border border-gray-700 overflow-hidden">
-            <Link href="/influencer">
-              <span className={`px-3 lg:px-4 py-2 text-xs sm:text-sm font-medium inline-block transition-colors duration-200 ${activeLink === "influencer" ? "bg-blue-800/30 text-blue-200" : "text-gray-300 hover:bg-gray-800"}`}>
-                Influencer
-              </span>
-            </Link>
-            <Link href="/profile">
-              <span className={`px-3 lg:px-4 py-2 text-xs sm:text-sm font-medium inline-block transition-colors duration-200 ${activeLink === "profile" ? "bg-blue-800/30 text-blue-200" : "text-gray-300 hover:bg-gray-800"}`}>
-                Profile
-              </span>
-            </Link>
-            <Link href="/pricing">
-              <span className={`px-3 lg:px-4 py-2 text-xs sm:text-sm font-medium inline-block border-l border-r border-gray-700 transition-colors duration-200 ${activeLink === "pricing" ? "bg-blue-800/30 text-blue-200" : "text-gray-300 hover:bg-gray-800"}`}>
-                Pricing
-              </span>
-            </Link>
-            <Link href="/playground">
-              <span className={`px-3 lg:px-4 py-2 text-xs sm:text-sm font-medium inline-block transition-colors duration-200 ${activeLink === "playground" ? "bg-blue-800/30 text-blue-200" : "text-gray-300 hover:bg-gray-800"}`}>
-                Playground
-              </span>
-            </Link>
+          <nav className="font-leagueSpartan hidden md:flex bg-[#101322B3] rounded-full items-center border border-gray-700 overflow-hidden">
+            {NAVIGATION_ITEMS.map(item => (
+              <NavItem
+                key={item.id}
+                item={item}
+                isActive={activeLink === item.id}
+              />
+            ))}
 
             {/* Search icon and input inside navbar - Desktop */}
             <div className="ml-2 mr-2 relative">
-              {showSearchInput ? (
-                <div className="relative flex items-center rounded-full transition-all duration-300">
-                  <input
-                    id="search-input"
-                    type="text"
-                    placeholder="Search accounts..."
-                    value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
-                    className="w-full px-4 py-2 rounded-full text-white"
-                  />
-                  <div className="absolute right-3 flex space-x-2">
-                    {searchText && (
-                      <button onClick={() => setSearchText("")} className="text-gray-400 hover:text-red-400">
-                        <X className="w-4 h-4" />
-                      </button>
-                    )}
-                    <button onClick={toggleSearchInput} className="text-gray-400 hover:text-white">
-                      <Search className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  onClick={toggleSearchInput}
-                  className="flex items-center justify-center w-8 h-8 text-gray-300 hover:text-white hover:bg-gray-800 rounded-full"
-                >
-                  <Search className="w-5 h-5" />
-                </button>
-              )}
+              <SearchInput
+                searchText={searchText}
+                setSearchText={setSearchText}
+                showSearchInput={showSearchInput}
+                toggleSearchInput={toggleSearchInput}
+              />
             </div>
           </nav>
 
           {/* Right section - credits and login */}
-          <div className="flex items-center space-x-2 sm:space-x-4">
+          <div className="font-leagueSpartan flex items-center space-x-2 sm:space-x-4">
             {/* Credits Display */}
-            {showTokens && (
-              <div className="hidden md:block px-2 sm:px-3 py-1 rounded-full bg-gradient-to-r from-blue-500/20 to-blue-700/20 border border-blue-500/50">
-                <span className="text-blue-400 font-bold text-xs sm:text-sm">
-                  {credits} <span className="text-white font-normal">Credits</span>
-                </span>
-              </div>
-            )}
+            {showTokens && <CreditsDisplay credits={credits} />}
 
             {/* Login/Profile */}
             {!session ? (
@@ -425,88 +534,40 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
 
         {/* Mobile search */}
         <div className="px-4 py-3 border-b border-gray-700">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search accounts..."
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              className="w-full px-4 py-2 rounded-full text-white text-sm bg-gray-800/60 border border-gray-700 focus:border-blue-500 focus:outline-none"
-            />
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-              {searchText ? (
-                <button onClick={() => setSearchText("")} className="text-gray-400 hover:text-red-400">
-                  <X className="w-4 h-4" />
-                </button>
-              ) : (
-                <Search className="text-gray-400 w-4 h-4" />
-              )}
-            </div>
-          </div>
+          <SearchInput
+            searchText={searchText}
+            setSearchText={setSearchText}
+            showSearchInput={true}
+            isMobile={true}
+          />
         </div>
 
         {/* Mobile navigation */}
-        <nav className="py-2">
+        <nav className="py-2 font-leagueSpartan">
           <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
             Navigation
           </div>
-          <Link href="/influencer" onClick={() => setMobileMenuOpen(false)}>
-            <span className={`flex items-center px-4 py-3 text-sm font-medium ${activeLink === "influencer" ? "bg-blue-900/30 text-blue-100 border-l-2 border-blue-400" : "text-gray-300 hover:bg-gray-800"}`}>
-              Influencer
-              {activeLink === "influencer" && (
-                <span className="ml-auto">
-                  <span className="w-2 h-2 bg-blue-400 rounded-full block"></span>
-                </span>
-              )}
-            </span>
-          </Link>
-          <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
-            <span className={`flex items-center px-4 py-3 text-sm font-medium ${activeLink === "profile" ? "bg-blue-900/30 text-blue-100 border-l-2 border-blue-400" : "text-gray-300 hover:bg-gray-800"}`}>
-              Profile
-              {activeLink === "profile" && (
-                <span className="ml-auto">
-                  <span className="w-2 h-2 bg-blue-400 rounded-full block"></span>
-                </span>
-              )}
-            </span>
-          </Link>
-          <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>
-            <span className={`flex items-center px-4 py-3 text-sm font-medium ${activeLink === "pricing" ? "bg-blue-900/30 text-blue-100 border-l-2 border-blue-400" : "text-gray-300 hover:bg-gray-800"}`}>
-              Pricing
-              {activeLink === "pricing" && (
-                <span className="ml-auto">
-                  <span className="w-2 h-2 bg-blue-400 rounded-full block"></span>
-                </span>
-              )}
-            </span>
-          </Link>
-          <Link href="/playground" onClick={() => setMobileMenuOpen(false)}>
-            <span className={`flex items-center px-4 py-3 text-sm font-medium ${activeLink === "playground" ? "bg-blue-900/30 text-blue-100 border-l-2 border-blue-400" : "text-gray-300 hover:bg-gray-800"}`}>
-              Playground
-              {activeLink === "playground" && (
-                <span className="ml-auto">
-                  <span className="w-2 h-2 bg-blue-400 rounded-full block"></span>
-                </span>
-              )}
-            </span>
-          </Link>
+          {NAVIGATION_ITEMS.map(item => (
+            <NavItem
+              key={item.id}
+              item={item}
+              isActive={activeLink === item.id}
+              onClick={() => setMobileMenuOpen(false)}
+              isMobile={true}
+            />
+          ))}
         </nav>
 
         {/* Credits in mobile */}
         {showTokens && (
-          <div className="px-4 py-3 mt-auto border-t border-gray-700 md:hidden">
-            <div className="flex items-center justify-between px-4 py-2 rounded-lg bg-gradient-to-r from-blue-900/30 to-blue-800/20 border border-blue-500/30">
-              <span className="text-gray-300 font-medium text-sm">Available Credits</span>
-              <span className="text-blue-400 font-bold text-lg">
-                {credits}
-              </span>
-            </div>
+          <div className="px-4 py-3 mt-auto border-t border-gray-700 md:hidden font-leagueSpartan">
+            <CreditsDisplay credits={credits} isMobile={true} />
           </div>
         )}
 
         {/* Login in mobile if not logged in */}
         {!session && (
-          <div className="px-4 py-3 mt-auto border-t border-gray-700">
+          <div className="px-4 py-3 mt-auto border-t border-gray-700 font-leagueSpartan">
             <button
               onClick={() => {
                 signIn("twitter");
@@ -523,7 +584,7 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
 
       {/* Telegram Modal - keeping this intact for functionality */}
       {isTelegramModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 font-leagueSpartan">
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
           <div className="relative z-50 w-full max-w-md overflow-hidden rounded-xl bg-gray-900 p-6 shadow-2xl border border-blue-500/30">
             {telegramStep === 1 ? (
@@ -761,7 +822,7 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
 
       {/* Coming Soon Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center font-leagueSpartan">
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
           <div className="z-50 w-full max-w-lg bg-gray-900 rounded-xl shadow-2xl p-6 mx-4 transform -translate-y-1/2 top-1/2 left-1/2 -translate-x-1/2 fixed">
             <button

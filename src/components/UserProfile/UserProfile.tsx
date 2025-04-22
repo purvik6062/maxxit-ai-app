@@ -136,48 +136,52 @@ const UserProfile = () => {
 
   return (
     <div className="min-h-screen bg-[#0b1016] py-[4rem]">
-      <div className="py-12 px-4 sm:px-6 lg:px-8">
+      <div className="py-6 md:py-12 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-center mb-8">
-          <h1 className="text-3xl font-bold text-white">Your Dashboard</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Your Dashboard</h1>
         </div>
-        <div className="grid grid-cols-8 gap-10">
-          <div className="col-span-2">
 
-
+        {/* Responsive grid layout */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-10">
+          {/* Profile Header - full width on mobile, sidebar on larger screens */}
+          <div className="col-span-1 md:col-span-1">
             <ProfileHeader profile={profile} />
           </div>
 
-          {/* Toggle Buttons */}
-          <div className="col-span-6">
-            <div className="flex mb-6 rounded-full bg-[#0D1321] overflow-hidden" style={{ border: "1px solid #353940" }}>
-              <div className="flex w-full p-1 rounded-full">
-                <button
-                  onClick={() => setActiveSection("subscriptions")}
-                  className={`flex-1 px-8 py-3 text-center transition-all ${activeSection === "subscriptions"
-                    ? "bg-[#DEEBFF14] text-white font-medium rounded-r-sm rounded-l-full shadow-inner shadow-[#E4EFFF47]"
-                    : "text-[#8ba1bc] hover:text-white"
-                    }`}
-                >
-                  Subscribed Accounts
-                </button>
-                <button
-                  onClick={() => setActiveSection("signals")}
-                  className={`flex-1 px-8 py-3 text-center transition-all ${activeSection === "signals"
-                    ? "bg-[#DEEBFF14] text-white font-medium rounded-sm shadow-inner shadow-[#E4EFFF47]"
-                    : "text-[#8ba1bc] hover:text-white"
-                    }`}
-                >
-                  Your Signals
-                </button>
-                <button
-                  onClick={() => setActiveSection("api")}
-                  className={`flex-1 px-8 py-3 text-center transition-all ${activeSection === "api"
-                    ? "bg-[#DEEBFF14] text-white font-medium rounded-l-sm rounded-r-full shadow-inner shadow-[#E4EFFF47]"
-                    : "text-[#8ba1bc] hover:text-white"
-                    }`}
-                >
-                  API Access
-                </button>
+          {/* Main content area */}
+          <div className="col-span-1 md:col-span-2 lg:col-span-3">
+            {/* Toggle Buttons */}
+            <div className="mb-6">
+              <div className="bg-[#0D1321] rounded-full p-1" style={{ border: "1px solid #353940" }}>
+                <div className="grid grid-cols-3 w-full">
+                  <button
+                    onClick={() => setActiveSection("subscriptions")}
+                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all ${activeSection === "subscriptions"
+                      ? "bg-[#1a2234] text-white font-medium shadow-inner"
+                      : "text-[#8ba1bc] hover:text-white"
+                      }`}
+                  >
+                    Subscriptions
+                  </button>
+                  <button
+                    onClick={() => setActiveSection("signals")}
+                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all mx-1 ${activeSection === "signals"
+                      ? "bg-[#1a2234] text-white font-medium shadow-inner"
+                      : "text-[#8ba1bc] hover:text-white"
+                      }`}
+                  >
+                    Signals
+                  </button>
+                  <button
+                    onClick={() => setActiveSection("api")}
+                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all ${activeSection === "api"
+                      ? "bg-[#1a2234] text-white font-medium shadow-inner"
+                      : "text-[#8ba1bc] hover:text-white"
+                      }`}
+                  >
+                    API Access
+                  </button>
+                </div>
               </div>
             </div>
 
