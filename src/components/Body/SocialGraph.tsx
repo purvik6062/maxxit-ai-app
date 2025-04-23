@@ -56,6 +56,7 @@ export default function SubscribedAccountsPage() {
   const { credits } = useCredits();
   const [showTooltip, setShowTooltip] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [isPlayable, setIsPlayable] = useState(false);
 
   const stringToColor = (str: string) => {
     let hash = 2166136261;
@@ -146,7 +147,7 @@ export default function SubscribedAccountsPage() {
     };
 
     fetchSubscribedAccounts();
-  }, [session?.user?.id, credits]);
+  }, [session?.user?.id, credits, isPlayable]);
 
   // Clean up animations when unmounting or when data changes
   useEffect(() => {
@@ -156,13 +157,9 @@ export default function SubscribedAccountsPage() {
         animationRef.current = null;
       }
     };
-  }, [credits]);
+  }, [credits, isPlayable]);
 
-  const startSignalAnimation = (
-    centralPos,
-    surroundingNodeIds,
-    positions
-  ) => {
+  const startSignalAnimation = (centralPos, surroundingNodeIds, positions) => {
     // Cancel any existing animation
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
@@ -172,7 +169,6 @@ export default function SubscribedAccountsPage() {
     // Create temporary nodes for the signals - one for each surrounding node
     const tempNodeIds = surroundingNodeIds.map((nodeId, index) => {
       const tempNodeId = `temp-${index}`;
-      
       // Check if the temp node already exists
       if (nodesDataSet.current.get(tempNodeId)) {
         // Just update its position
@@ -180,7 +176,7 @@ export default function SubscribedAccountsPage() {
           id: tempNodeId,
           x: centralPos.x,
           y: centralPos.y,
-          hidden: false
+          hidden: false,
         });
       } else {
         // Create new temp node
@@ -205,7 +201,7 @@ export default function SubscribedAccountsPage() {
       }
       return tempNodeId;
     });
-    
+
     const animationDuration = 2000;
     let startTime = Date.now();
 
@@ -221,7 +217,7 @@ export default function SubscribedAccountsPage() {
           const tempNodeId = tempNodeIds[index];
           const newX = centralPos.x + (targetPos.x - centralPos.x) * progress;
           const newY = centralPos.y + (targetPos.y - centralPos.y) * progress;
-          
+
           nodesDataSet.current.update({
             id: tempNodeId,
             x: newX,
@@ -237,9 +233,9 @@ export default function SubscribedAccountsPage() {
         // Signal has reached all nodes, hide temp nodes and trigger glow effect
         tempNodeIds.forEach((tempNodeId) => {
           if (nodesDataSet.current) {
-            nodesDataSet.current.update({ 
-              id: tempNodeId, 
-              hidden: true 
+            nodesDataSet.current.update({
+              id: tempNodeId,
+              hidden: true,
             });
           }
         });
@@ -252,7 +248,7 @@ export default function SubscribedAccountsPage() {
               shadow: {
                 enabled: true,
                 color: stringToColor(nodeId),
-                size: 50, // Larger glow
+                size: 70, // Larger glow
                 x: 0,
                 y: 0,
               },
@@ -342,7 +338,6 @@ export default function SubscribedAccountsPage() {
         networkInstance.current.destroy();
         networkInstance.current = null;
       }
-      
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
         animationRef.current = null;
@@ -377,7 +372,14 @@ export default function SubscribedAccountsPage() {
           shapeProperties: { useBorderWithImage: true },
         },
         edges: {
-          smooth: false,
+          smooth: isPlayable
+            ? {
+                enabled: true,
+                type: "continuous",
+                forceDirection: "none",
+                roundness: 0.5,
+              }
+            : false,
           selectionWidth: 3,
           shadow: {
             enabled: true,
@@ -437,8 +439,8 @@ export default function SubscribedAccountsPage() {
             bindToWindow: false,
           },
           zoomView: false,
-          dragView: true,
-          dragNodes: false,
+          dragView: false,
+          dragNodes: isPlayable ? true : false,
         },
         height: "680px",
         width: "100%",
@@ -475,27 +477,70 @@ export default function SubscribedAccountsPage() {
         setZoomLevel(newScale);
       });
 
+      let shadowInterval = null;
+
       networkInstance.current.once("stabilizationIterationsDone", function () {
         networkInstance.current.fit({
           animation: { duration: 1000, easingFunction: "easeInOutQuad" },
         });
 
-        networkInstance.current.setOptions({ physics: false });
-        
+        networkInstance.current.setOptions({ physics: isPlayable });
+
         // Get positions of all nodes
         const positions = networkInstance.current.getPositions();
         const centralNodeId = session.user.id;
         const centralPos = positions[centralNodeId];
-        
-        // Get ids of all nodes except the central one
-        const surroundingNodeIds = graphData.nodes
-          .filter((node) => node.id !== centralNodeId)
-          .map((node) => node.id);
 
-        // Start animations
-        if (surroundingNodeIds.length > 0) {
-          startSignalAnimation(centralPos, surroundingNodeIds, positions);
-          startCentralPulse(centralNodeId);
+        if (!isPlayable) {
+          // Only run animations in non-playable mode
+          const positions = networkInstance.current.getPositions();
+          const centralNodeId = session.user.id;
+          const surroundingNodeIds = graphData.nodes
+            .filter((node) => node.id !== centralNodeId)
+            .map((node) => node.id);
+
+          if (surroundingNodeIds.length > 0) {
+            startSignalAnimation(centralPos, surroundingNodeIds, positions);
+            startCentralPulse(centralNodeId);
+          }
+        } else {
+          // Apply shadow effect to connected nodes every 3 seconds
+        const surroundingNodeIds = graphData.nodes
+        .filter((node) => node.id !== session.user.id)
+        .map((node) => node.id);
+
+      if (surroundingNodeIds.length > 0 && nodesDataSet.current) {
+        shadowInterval = setInterval(() => {
+          surroundingNodeIds.forEach((nodeId) => {
+            nodesDataSet.current.update({
+              id: nodeId,
+              shadow: {
+                enabled: true,
+                color: stringToColor(nodeId),
+                size: 70,
+                x: 0,
+                y: 0,
+              },
+            });
+          });
+
+          // Reset shadow after 1.5 seconds to create a pulsing effect
+          setTimeout(() => {
+            surroundingNodeIds.forEach((nodeId) => {
+              nodesDataSet.current.update({
+                id: nodeId,
+                shadow: {
+                  enabled: true,
+                  color: "rgba(0,0,0,0.5)",
+                  size: 10,
+                  x: 0,
+                  y: 0,
+                },
+              });
+            });
+          }, 2500);
+        }, 5000);
+      }
         }
       });
     }
@@ -505,13 +550,13 @@ export default function SubscribedAccountsPage() {
         cancelAnimationFrame(animationRef.current);
         animationRef.current = null;
       }
-      
+
       if (networkInstance.current) {
         networkInstance.current.destroy();
         networkInstance.current = null;
       }
     };
-  }, [graphData, session?.user?.id]);
+  }, [graphData, session?.user?.id, isPlayable]);
 
   const handleZoomIn = () => {
     if (networkInstance.current) {
@@ -538,9 +583,7 @@ export default function SubscribedAccountsPage() {
   };
 
   return (
-    <div
-      className="min-h-screen text-white flex flex-col bg-transparent items-center justify-center p-8 relative overflow-hidden"
-    >
+    <div className="min-h-screen text-white flex flex-col bg-transparent items-center justify-center p-8 relative overflow-hidden">
       {/* Background Particles */}
       <div
         className="absolute inset-0 pointer-events-none animate-pulse-drift"
@@ -554,14 +597,27 @@ export default function SubscribedAccountsPage() {
       <div className="w-full max-w-7xl z-10 relative p-4">
         {/* Header with glowing effect */}
         <div className="text-center mb-8">
-          <h1
-            className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent"
-            style={{
-              textShadow: "0 0 15px rgba(55, 65, 81, 0.7)",
-            }}
-          >
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
             Your Network
           </h1>
+          <div className="mt-4 flex items-center justify-center gap-3">
+            <span className="text-sm text-gray-300 font-medium">
+              Explore Mode
+            </span>
+            <button
+              onClick={() => setIsPlayable(!isPlayable)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                isPlayable ? "bg-blue-500" : "bg-gray-600"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  isPlayable ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+            <span className="text-sm text-gray-300 font-medium">Play Mode</span>
+          </div>
         </div>
 
         {loading ? (

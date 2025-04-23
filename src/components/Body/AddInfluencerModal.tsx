@@ -182,7 +182,7 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
 
-      <div className="relative z-10 w-full max-w-md p-6 rounded-2xl bg-gradient-to-b from-blue-900/80 to-gray-900/90 border border-blue-500/30 shadow-xl animate-fadeIn">
+      <div className="relative z-10 w-full max-w-md p-6 rounded-2xl bg-gradient-to-b from-gray-800/80 to-gray-900/90 border border-gray-500/30 shadow-xl animate-fadeIn">
         <div className="absolute -top-3 -right-3">
           <button
             onClick={onClose}
@@ -193,16 +193,16 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
         </div>
 
         <div className="mb-6 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500/20 backdrop-blur-sm mb-4">
-            <FaTelegram className="text-blue-400 text-xl" />
-            <span className="text-base font-medium text-blue-300">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-500/20 backdrop-blur-sm mb-4">
+            <FaTelegram className="text-gray-300 text-xl" />
+            <span className="text-base font-medium text-gray-300">
               New Influencer
             </span>
           </div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-blue-300 bg-clip-text text-transparent">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
             Add Telegram Influencer
           </h2>
-          <p className="text-slate-400 mt-2">
+          <p className="text-gray-300 mt-2">
             Add a new influencer to track their trading tweets
           </p>
         </div>
@@ -213,14 +213,14 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
               Twitter Username
             </label>
             <div className="relative">
-              <MessageSquare className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 w-5 h-5" />
+              <MessageSquare className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300 w-5 h-5" />
               <input
                 type="text"
                 value={handle}
                 onChange={(e) => setHandle(e.target.value)}
                 placeholder="@username"
                 disabled={isSessionUserhandlePresent}
-                className={`w-full plClass pr-4 py-3 rounded-lg bg-blue-900/20 border borderCss focus:border-blue-400 focus:ring-1 focus:ring-blue-400 text-white placeholder-slate-500 outline-none transition-all duration-300 ${
+                className={`w-full plClass pr-4 py-3 rounded-lg bg-gray-700/20 border borderCss focus:border-gray-400 focus:ring-1 focus:ring-gray-400 text-white placeholder-slate-500 outline-none transition-all duration-300 ${
                   isSessionUserhandlePresent
                     ? "cursor-not-allowed opacity-80"
                     : ""
@@ -228,7 +228,7 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
               />
               {isValidating && !isSessionUserhandlePresent && (
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
+                  <Loader2 className="w-5 h-5 text-gray-300 animate-spin" />
                 </div>
               )}
             </div>
@@ -241,7 +241,7 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
             <button
               type="submit"
               disabled={isSubmitting || isValidating}
-              className="w-full py-3 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-500 hover:to-blue-300 text-white font-medium transition-all duration-300 flex items-center justify-center gap-2 group disabled:opacity-70"
+              className="w-full py-3 px-4 rounded-lg bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white font-medium transition-all duration-300 flex items-center justify-center gap-2 group disabled:opacity-70"
             >
               {isSubmitting ? (
                 <>
