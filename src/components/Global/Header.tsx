@@ -440,7 +440,16 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
           {/* Right section - credits and login */}
           <div className="font-leagueSpartan flex items-center space-x-2 sm:space-x-4">
             {/* Credits Display */}
-            {showTokens && <CreditsDisplay credits={credits} />}
+            {showTokens ? (
+              <CreditsDisplay credits={credits} />
+            ) : (
+              <button
+                className="px-3 py-1 bg-blue-500 text-white text-sm rounded-full hover:bg-blue-600 transition whitespace-nowrap"
+                onClick={handleTelemodal}
+              >
+                Get Credits
+              </button>
+            )}
 
             {/* Login/Profile */}
             {!session ? (

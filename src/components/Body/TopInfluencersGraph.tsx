@@ -152,7 +152,6 @@ const CosmicWebInfluencerGraph: React.FC = () => {
         setLoading(false);
       } catch (err) {
         setError("Error loading influencers");
-        // setLoading(false);
         console.error(err);
       }
     };
@@ -180,8 +179,9 @@ const CosmicWebInfluencerGraph: React.FC = () => {
       vy: number;
     }
 
+    const isMobile = window.innerWidth <= 768;
+    const numParticles = isMobile ? 50 : 150; // Fewer particles on mobile
     const particles: Particle[] = [];
-    const numParticles = 150;
     const mouse = { x: -1000, y: -1000 };
 
     const resizeCanvas = () => {
@@ -194,7 +194,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
           y: Math.random() * canvas.height,
           baseX: Math.random() * canvas.width,
           baseY: Math.random() * canvas.height,
-          size: Math.random() * 1 + 0.5,
+          size: Math.random() * (isMobile ? 0.8 : 1) + 0.5,
           speed: Math.random() * 0.3 + 0.1,
           opacity: Math.random() * 0.4 + 0.4,
           vx: (Math.random() - 0.5) * 0.5,
@@ -229,20 +229,20 @@ const CosmicWebInfluencerGraph: React.FC = () => {
     canvas.addEventListener("mouseleave", handleMouseLeave);
 
     const animate = () => {
-      ctx.fillStyle = "rgba(7, 11, 19, 0.95)"; // Darker bluish-black background
+      ctx.fillStyle = "rgba(7, 11, 19, 0.95)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       particles.forEach((particle, i) => {
         const dx = mouse.x - particle.x;
         const dy = mouse.y - particle.y;
         const distance = Math.hypot(dx, dy);
-        const maxDistance = 100;
+        const maxDistance = isMobile ? 50 : 100;
 
         if (distance < maxDistance) {
           const force = (maxDistance - distance) / maxDistance;
           const angle = Math.atan2(dy, dx);
-          particle.vx -= Math.cos(angle) * force * 1.5;
-          particle.vy -= Math.sin(angle) * force * 1.5;
+          particle.vx -= Math.cos(angle) * force * (isMobile ? 1 : 1.5);
+          particle.vy -= Math.sin(angle) * force * (isMobile ? 1 : 1.5);
           particle.opacity = Math.min(particle.opacity + force * 0.2, 1);
         } else {
           particle.opacity = Math.max(particle.opacity - 0.01, 0.4);
@@ -268,7 +268,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
         for (let j = i + 1; j < particles.length; j++) {
           const other = particles[j];
           const dist = Math.hypot(particle.x - other.x, particle.y - other.y);
-          if (dist < 50) {
+          if (dist < (isMobile ? 30 : 50)) {
             ctx.beginPath();
             ctx.moveTo(particle.x, particle.y);
             ctx.lineTo(other.x, other.y);
@@ -313,37 +313,40 @@ const CosmicWebInfluencerGraph: React.FC = () => {
       color: string;
     }
 
+    const isMobile = window.innerWidth <= 768;
+    const numStars = isMobile ? 200 : 500; // Fewer stars on mobile
     const stars: Star[] = [];
-    const numStars = 500;
 
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       stars.length = 0;
       for (let i = 0; i < numStars; i++) {
-        const isMilkyWay = i < 150;
+        const isMilkyWay = i < (isMobile ? 50 : 150);
         const bandWidth = canvas.width * 0.3;
         const x = Math.random() * canvas.width;
         const y = isMilkyWay
           ? x * 0.4 +
-            (Math.random() * bandWidth - bandWidth / 2) +
-            canvas.height * 0.2
+          (Math.random() * bandWidth - bandWidth / 2) +
+          canvas.height * 0.2
           : Math.random() * canvas.height;
         const colorChoice = Math.random();
         let color: string;
         if (colorChoice < 0.5) {
-          color = `hsla(180, 70%, 70%, ${Math.random() * 0.3 + 0.7})`; // Cyan
+          color = `hsla(180, 70%, 70%, ${Math.random() * 0.3 + 0.7})`;
         } else if (colorChoice < 0.8) {
-          color = `hsla(120, 70%, 60%, ${Math.random() * 0.3 + 0.7})`; // Lime green
+          color = `hsla(120, 70%, 60%, ${Math.random() * 0.3 + 0.7})`;
         } else {
-          color = `hsla(0, 0%, 90%, ${Math.random() * 0.3 + 0.7})`; // White
+          color = `hsla(0, 0%, 90%, ${Math.random() * 0.3 + 0.7})`;
         }
         stars.push({
           x,
           y,
-          vx: (Math.random() - 0.5) * 0.5,
-          vy: (Math.random() - 0.5) * 0.5,
-          size: isMilkyWay ? Math.random() * 2 + 1 : Math.random() * 1.5 + 0.5,
+          vx: (Math.random() - 0.5) * (isMobile ? 0.3 : 0.5),
+          vy: (Math.random() - 0.5) * (isMobile ? 0.3 : 0.5),
+          size: isMilkyWay
+            ? Math.random() * (isMobile ? 1.5 : 2) + 1
+            : Math.random() * (isMobile ? 1 : 1.5) + 0.5,
           opacity: Math.random() * 0.3 + 0.7,
           color,
         });
@@ -357,28 +360,28 @@ const CosmicWebInfluencerGraph: React.FC = () => {
     const createNebula = () => {
       const nebula = document.createElement("div");
       nebula.className = "nebula";
-      const size = 400;
+      const size = isMobile ? 200 : 400;
       nebula.style.width = `${size}px`;
       nebula.style.height = `${size * 0.8}px`;
       nebula.style.left = `${Math.random() * 80}%`;
       nebula.style.top = `${Math.random() * 80}%`;
       nebula.style.background = `radial-gradient(ellipse at center, rgba(0,255,255,0.3), rgba(128,0,128,0.2), transparent)`;
       nebula.style.opacity = "0.4";
-      nebula.style.filter = "blur(50px)";
+      nebula.style.filter = `blur(${isMobile ? 30 : 50}px)`;
       starfield.appendChild(nebula);
     };
 
     const createGalaxySwirl = () => {
       const galaxy = document.createElement("div");
       galaxy.className = "galaxy-swirl";
-      const size = 300;
+      const size = isMobile ? 150 : 300;
       galaxy.style.width = `${size}px`;
       galaxy.style.height = `${size}px`;
       galaxy.style.left = `${Math.random() * 80}%`;
       galaxy.style.top = `${Math.random() * 80}%`;
       galaxy.style.background = `radial-gradient(circle, rgba(0,255,255,0.3), transparent 70%)`;
       galaxy.style.opacity = "0.3";
-      galaxy.style.filter = "blur(40px)";
+      galaxy.style.filter = `blur(${isMobile ? 20 : 40}px)`;
       starfield.appendChild(galaxy);
     };
 
@@ -416,8 +419,9 @@ const CosmicWebInfluencerGraph: React.FC = () => {
   // Carousel Rotation
   useEffect(() => {
     let animationFrameId: number;
+    const isMobile = window.innerWidth <= 768;
     const animateCarousel = () => {
-      setRotation((prev) => prev + 0.3);
+      setRotation((prev) => prev + (isMobile ? 0.2 : 0.3)); // Slower rotation on mobile
       animationFrameId = requestAnimationFrame(animateCarousel);
     };
     animateCarousel();
@@ -454,7 +458,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
     }
   }, [rotation, influencers]);
 
-  // Render loading state with same cosmic design
+  // Render loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center font-sans relative overflow-hidden">
@@ -477,17 +481,18 @@ const CosmicWebInfluencerGraph: React.FC = () => {
           <Image
             src="/maxxit.gif"
             alt="Loading animation"
-            width={120}
-            height={120}
+            width={80}
+            height={80}
             unoptimized
             priority
+            className="sm:w-[120px] sm:h-[120px]"
           />
         </motion.div>
       </div>
     );
   }
 
-  // Render error state with same cosmic design
+  // Render error state
   if (error) {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center font-sans relative overflow-hidden">
@@ -495,10 +500,10 @@ const CosmicWebInfluencerGraph: React.FC = () => {
         <div className="starfield relative">
           <div className="overlay" />
         </div>
-        <div className="bg-gray-900/70 backdrop-blur-md p-6 rounded-xl border border-red-500/50 shadow-lg z-20">
-          <p className="text-red-400 text-lg">{error}</p>
+        <div className="bg-gray-900/70 backdrop-blur-md p-4 sm:p-6 rounded-xl border border-red-500/50 shadow-lg z-20">
+          <p className="text-red-400 text-base sm:text-lg">{error}</p>
           <button
-            className="mt-4 px-6 py-2 bg-gray-800 text-cyan-300 rounded-lg border border-cyan-500/30 hover:bg-gray-700"
+            className="mt-4 px-4 sm:px-6 py-2 bg-gray-800 text-cyan-300 rounded-lg border border-cyan-500/30 hover:bg-gray-700 text-sm sm:text-base"
             onClick={() => window.location.reload()}
           >
             Retry
@@ -509,27 +514,29 @@ const CosmicWebInfluencerGraph: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center font-sans relative overflow-hidden">
+    <div className="font-leagueSpartan min-h-screen bg-gray-900 text-white flex flex-col items-center justify-start sm:justify-center relative overflow-hidden">
       <canvas ref={canvasRef} className="canvas-background" />
       <div className="starfield relative">
         <div className="overlay" />
       </div>
-      <h1 className="text-4xl font-bold mb-2 mt-12 text-cyan-400 z-20">
+      <h1 className="font-leagueSpartan text-2xl sm:text-4xl font-bold mb-2 mt-10 sm:mt-16 text-cyan-400 z-20">
         Crypto Influencer Constellation
       </h1>
-      <p className="text-gray-300 mb-8 text-center max-w-2xl text-lg z-20">
+      <p className="text-gray-300 mb-4 sm:mb-8 text-center max-w-xl sm:max-w-2xl text-sm sm:text-lg z-20 px-4">
         Discover our top influencers shaping the crypto universe with their
         insights.
       </p>
-      <div className="relative w-full max-w-7xl h-[650px] text-center overflow-hidden z-20">
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-gray-900/80 backdrop-blur-lg text-cyan-300 text-base font-semibold py-2 px-6 rounded-full shadow-[0_0_15px_rgba(0,255,255,0.5)] z-30 border border-cyan-500/50">
-          Top Performing Cluster: 1st Week of April
-        </div>
-        <div className="absolute w-full h-full top-0 left-0 perspective-[1200px] z-20">
+
+      <div className="bg-gray-900/80 backdrop-blur-lg text-cyan-300 text-xs sm:text-base font-semibold py-2 px-4 sm:px-6 rounded-full shadow-[0_0_15px_rgba(0,255,255,0.5)] z-30 border border-cyan-500/50">
+        Top Performing Cluster: 1st Week of April
+      </div>
+      <div className="relative w-full max-w-7xl h-[500px] sm:h-[650px] text-center overflow-hidden z-20">
+
+        <div className="absolute w-full h-full top-0 left-0 perspective-[800px] sm:perspective-[1200px] z-20">
           <div
             ref={sliderRef}
             className="absolute top-[48%] left-1/2 w-0 h-0 [transform-style:preserve-3d] origin-center"
-            style={{ transform: `rotateX(-20deg) rotateY(${rotation}deg)` }}
+            style={{ transform: `rotateX(${window.innerWidth <= 768 ? -25 : -20}deg) rotateY(${rotation}deg)` }}
           >
             {influencers.map((influencer, index) => {
               const baseAngle = index * (360 / influencers.length);
@@ -537,22 +544,24 @@ const CosmicWebInfluencerGraph: React.FC = () => {
               const angleRad = (currentAngle * Math.PI) / 180;
               const zPosition = Math.cos(angleRad);
               const scale = 0.7 + (zPosition + 1) * 0.3;
-              const baseWidth = 160;
-              const baseHeight = 180;
+              const baseWidth = window.innerWidth <= 768 ? 120 : 160;
+              const baseHeight = window.innerWidth <= 768 ? 140 : 180;
               const width = baseWidth * scale;
               const height = baseHeight * scale;
 
               return (
                 <div
                   key={influencer.id}
-                  className="absolute left-[-80px] top-[-90px] [transform-style:preserve-3d] transition-transform duration-300 hover:scale-125"
+                  className="absolute left-[-60px] sm:left-[-80px] top-[-70px] sm:top-[-90px] [transform-style:preserve-3d] transition-transform duration-300 hover:scale-125 touch-pan-y"
                   style={{
-                    transform: `rotateY(${baseAngle}deg) translateZ(400px) rotateX(5deg)`,
+                    transform: `rotateY(${baseAngle}deg) translateZ(${window.innerWidth <= 768 ? 250 : 400
+                      }px) rotateX(5deg)`,
                     width: `${width}px`,
                     height: `${height}px`,
                   }}
                   onMouseEnter={() => setHoveredInfluencer(influencer)}
                   onMouseLeave={() => setHoveredInfluencer(null)}
+                  onTouchStart={() => setHoveredInfluencer(influencer)}
                 >
                   <img
                     src={influencer.avatar}
@@ -561,7 +570,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
                     aria-label={`Profile image of ${influencer.name}`}
                   />
                   <motion.div
-                    className="absolute w-full bg-gray-900/80 text-cyan-300 text-xs font-semibold py-1.5 px-3 rounded-full border border-cyan-500/50 shadow-[0_0_10px_rgba(0,255,255,0.4)]"
+                    className="absolute w-full bg-gray-900/80 text-cyan-300 text-[10px] sm:text-xs font-semibold py-1 sm:py-1.5 px-2 sm:px-3 rounded-full border border-cyan-500/50 shadow-[0_0_10px_rgba(0,255,255,0.4)]"
                     style={{
                       top: `${height + 5}px`,
                       transform: "translateZ(0px)",
@@ -580,7 +589,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
         </div>
         <div className="absolute top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-30">
           <motion.div
-            className="text-white text-3xl font-bold px-6 py-3 rounded-lg bg-gray-900/50 backdrop-blur-sm"
+            className="text-white text-xl md:text-3xl font-bold px-4 sm:px-6 py-2 sm:py-3 rounded-lg bg-gray-900/50 backdrop-blur-sm"
             style={{ boxShadow: "0 0 20px rgba(0, 255, 255, 0.5)" }}
             animate={{
               scale: [1, 1.05, 1],
