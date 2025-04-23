@@ -11,7 +11,7 @@ import {
   FaRobot,
 } from "react-icons/fa";
 import { useRouter } from "next/navigation";
-import { TrendingUp, Award, BarChart2, ArrowUpDown } from "lucide-react";
+import { TrendingUp, Award, BarChart2, ArrowUpDown, Info } from "lucide-react";
 import { LuWandSparkles } from "react-icons/lu";
 import gsap from "gsap";
 import {
@@ -287,7 +287,7 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
               <div className="w-2 h-2 rounded-full bg-cyan-500"></div>
               <div className="w-2 h-2 rounded-full bg-cyan-500/70 absolute animate-ping"></div>
             </div>
-            <span className="text-sm text-cyan-400/80">
+            <span className="text-sm text-cyan-500">
               Data updated on • {new Date().toLocaleDateString()}
             </span>
 
@@ -299,8 +299,13 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
             </div>
           </div>
 
-          {/* Sorting options - from UMD */}
-          <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
+          <div className="flex flex-wrap gap-2 mt-2 sm:mt-0 items-center">
+            <div className="relative group">
+              <Info className="w-4 h-4 text-cyan-500 cursor-help" />
+              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-800 text-gray-200 text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                Click on any option to sort the analysts
+              </div>
+            </div>
             <div
               onClick={() => sortAgents("impactFactor")}
               className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${
@@ -430,7 +435,7 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
               onClick={() => {
                 router.push(`/influencer/${cleanHandle}`);
               }}
-              style={{ cursor: 'pointer' }}
+              style={{ cursor: "pointer" }}
             >
               {/* Top Medal Badge */}
               <div className="absolute -right-6 -top-6 w-28 h-24">
@@ -482,7 +487,7 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                             />
                             {agent.verified && (
                               <div className="absolute -bottom-0.5 -right-0.5 bg-blue-500 rounded-full p-0.5 border border-gray-900">
-                                <FaCheck className="w-1 h-1 text-white" />
+                                <FaCheck className="w-1.5 h-1.5 text-white" />
                               </div>
                             )}
                           </div>
@@ -513,35 +518,113 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                     style={{ width: `${agent.impactFactor || 0}%` }}
                   ></div>
                 </div>
+
+                {/* Mindshare & Followers from UMD */}
+                {agent.mindshare >= 0 && (
+                  <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl p-5 mb-6 border border-gray-700/30 shadow-lg">
+                    {/* Glass card for metrics */}
+                    <div className="backdrop-blur-sm bg-white/5 rounded-lg p-2 mb-4 border border-white/10 shadow-inner relative z-10">
+                      <div className="flex justify-between">
+                        {/* Mindshare */}
+                        <div className="text-center relative">
+                          <div className="relative p-3 flex flex-col items-center">
+                            <p className="text-gray-200 text-xl font-bold tracking-tight transition-transform duration-300">
+                              {agent.mindshare > 0
+                                ? `${agent.mindshare.toFixed(2)}%`
+                                : "--"}
+                            </p>
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <div className="relative flex items-center">
+                                <div className="w-1.5 h-1.5 rounded-full bg-cyan-500"></div>
+                                <div className="w-1.5 h-1.5 rounded-full bg-cyan-500/70 absolute animate-ping"></div>
+                              </div>
+                              <p className="text-xs text-cyan-400 uppercase tracking-wider font-medium">
+                                Mindshare
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Animated divider */}
+                        <div className="flex items-center">
+                          <div className="w-[2px] h-16 bg-gradient-to-b from-transparent via-gray-200/50 to-transparent"></div>
+                        </div>
+
+                        {/* Followers */}
+                        <div className="text-center relative">
+                          <div className="relative p-3 flex flex-col items-center">
+                            <p className="text-gray-200 text-xl font-bold tracking-tight transition-transform duration-300">
+                              {agent.mindshare > 0
+                                ? formatFollowersCount(agent.followers)
+                                : "--"}
+                            </p>
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <div className="relative flex items-center">
+                                <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
+                                <div className="w-1.5 h-1.5 rounded-full bg-purple-500/70 absolute animate-ping"></div>
+                              </div>
+                              <p className="text-xs text-purple-400 uppercase tracking-wider font-medium">
+                                Followers
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* View profile button */}
+                    <Link
+                      href={`https://x.com/${cleanHandle}`}
+                      target="_blank"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
+                      className="group relative overflow-hidden flex items-center justify-center gap-2 w-full py-3 text-sm font-medium rounded-lg z-10 bg-gradient-to-r from-gray-900 to-gray-700 hover:from-gray-800 hover:to-gray-700 text-white transition-all duration-300 shadow-md"
+                    >
+                      <span className="relative z-10 flex items-center gap-2 group-hover:translate-x-1 transition-transform duration-300">
+                        View Profile{" "}
+                        <FaExternalLinkAlt className="text-xs opacity-80" />
+                      </span>
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 via-blue-400/20 to-blue-600/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                    </Link>
+                  </div>
+                )}
+
                 {/* Detailed stats with hover interaction */}
                 <div
                   className={`transition-all duration-300 overflow-hidden ${
                     showStats[agent.twitterHandle]
-                      ? "max-h-40 opacity-100 mb-4"
+                      ? "max-h-[500px] opacity-100 mb-4"
                       : "max-h-0 opacity-0"
                   }`}
                 >
                   <div className="grid grid-cols-3 gap-2 mb-3">
                     <div className="flex flex-col items-center justify-center bg-blue-900/20 rounded-lg p-2.5 border border-blue-700/20">
-                      <div className="relative mb-1">
-                        <Shield className="h-4 w-4 text-blue-400" />
-                        <div
-                          className="absolute inset-0 bg-blue-400/20 rounded-full animate-ping"
-                          style={{ animationDuration: "3s" }}
-                        ></div>
-                      </div>
-                      <span className="text-xs text-blue-400 mb-0.5">Subscribers</span>
-                      <span className="text-xs font-semibold text-white">{agent.subscribers?.length || 0}</span>
+                      <Shield className="h-4 w-4 text-blue-400" />
+                      <span className="text-xs text-blue-400 mb-0.5">
+                        Subscribers
+                      </span>
+                      <span className="text-sm font-semibold text-white">
+                        {agent.subscribers?.length || 0}
+                      </span>
                     </div>
                     <div className="flex flex-col items-center justify-center bg-cyan-900/20 rounded-lg p-2.5 border border-cyan-700/20">
                       <TrendingUp className="h-4 w-4 text-cyan-400 mb-1" />
-                      <span className="text-xs text-cyan-400 mb-0.5">Signals</span>
-                      <span className="text-xs font-semibold text-white">{agent.signals || "0"}</span>
+                      <span className="text-xs text-cyan-400 mb-0.5">
+                        Signals
+                      </span>
+                      <span className="text-sm font-semibold text-white">
+                        {agent.signals || "0"}
+                      </span>
                     </div>
                     <div className="flex flex-col items-center justify-center bg-blue-800/20 rounded-lg p-2.5 border border-blue-700/20">
                       <BarChart2 className="h-4 w-4 text-blue-300 mb-1" />
-                      <span className="text-xs text-blue-300 mb-0.5">Tokens</span>
-                      <span className="text-xs font-semibold text-white">{agent.tokens || "0"}</span>
+                      <span className="text-xs text-blue-300 mb-0.5">
+                        Tokens
+                      </span>
+                      <span className="text-sm font-semibold text-white">
+                        {agent.tokens || "0"}
+                      </span>
                     </div>
                   </div>
 
@@ -624,49 +707,9 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                       </div>
                     </div>
                   </div>
-                </div>
-                {/* Mindshare & Followers from UMD */}
-                {agent.mindshare >= 0 && (
-                  <div className="flex justify-center gap-4 mb-4">
-                    <div className="text-center">
-                      <p className="text-blue-400 text-lg font-bold">
-                        {agent.mindshare > 0
-                          ? `${agent.mindshare.toFixed(2)}%`
-                          : "--"}
-                      </p>
-                      <p className="text-xs text-gray-500">Mindshare</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-gray-200 text-lg font-medium">
-                        {agent.mindshare > 0
-                          ? formatFollowersCount(agent.followers)
-                          : "--"}
-                      </p>
-                      <p className="text-xs text-gray-500">Followers</p>
-                    </div>
-                  </div>
-                )}
-                {/* View profile link from UMD */}
-                <div className="mb-3 text-center">
-                  <Link
-                    href={`https://x.com/${cleanHandle}`}
-                    target="_blank"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
-                    className="inline-flex items-center gap-1 text-blue-400 text-xs hover:text-blue-300 transition-colors"
-                  >
-                    View Profile <FaExternalLinkAlt className="text-[10px]" />
-                  </Link>
-                </div>
-                {/* Detailed stats with hover interaction */}
-                <div
-                  className={`transition-all duration-300 overflow-hidden ${
-                    showStats[agent.twitterHandle]
-                      ? "max-h-[500px] opacity-100 mb-4"
-                      : "max-h-0 opacity-0"
-                  }`}
-                >
+                  {/* </div> */}
+
+                  {/* Detailed stats with hover interaction */}
                   {/* UMD Metrics */}
                   <div className="p-3 space-y-4 bg-gray-900/30 rounded-lg border border-gray-800/20 mb-3">
                     {/* Herded vs Hidden */}
@@ -729,7 +772,7 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                     text-blue-300 hover:text-blue-200 bg-blue-900/30 hover:bg-blue-800/40 transition-all duration-200"
                   onClick={(e) => {
                     e.stopPropagation();
-                    toggleStats(agent.twitterHandle)
+                    toggleStats(agent.twitterHandle);
                   }}
                 >
                   {showStats[agent.twitterHandle] ? (
@@ -749,7 +792,7 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                   className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium ${
                     isSubscribed || isCurrentlySubscribing
                       ? "bg-green-600/30 text-green-300"
-                      : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                      : "bg-gradient-to-r from-blue-700 to-cyan-700 hover:from-cyan-700 hover:to-blue-800 text-white"
                   } transition-all duration-200 ${
                     isCurrentlySubscribing ? "animate-pulse" : ""
                   }`}
@@ -878,7 +921,7 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                           />
                           {agent.verified && (
                             <div className="absolute -bottom-0.5 -right-0.5 bg-blue-500 rounded-full p-0.5 border border-gray-900">
-                              <FaCheck className="w-1 h-1 text-white" />
+                              <FaCheck className="w-1.5 h-1.5 text-white" />
                             </div>
                           )}
                         </div>
