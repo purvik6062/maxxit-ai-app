@@ -142,9 +142,9 @@ function UserSignals({
   };
 
   const EmptyState = () => (
-    <div className="text-center py-10">
+    <div className="text-center py-8 sm:py-10">
       <svg
-        className="mx-auto h-12 w-12 text-gray-400"
+        className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-gray-400"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -156,17 +156,17 @@ function UserSignals({
           d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
         />
       </svg>
-      <h3 className="mt-2 text-sm font-medium text-gray-300">
+      <h3 className="mt-2 text-sm sm:text-base font-medium text-gray-300 font-leagueSpartan">
         No signals found
       </h3>
-      <p className="mt-1 text-sm text-gray-400">
+      <p className="mt-1 text-xs sm:text-sm text-gray-400">
         You don't have any signals yet. Subscribe to trading accounts to receive
         signals.
       </p>
-      <div className="mt-6">
+      <div className="mt-4 sm:mt-6">
         <a
           href="/marketplace"
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
           Browse Marketplace
         </a>
@@ -174,7 +174,6 @@ function UserSignals({
     </div>
   );
 
-  // Skeleton Loader Component
   const SkeletonLoader = () => (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-700">
@@ -195,7 +194,7 @@ function UserSignals({
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-[150px]">
               Targets
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-[120px]">
+            <th className="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-[150px]">
               Potential
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-[120px]">
@@ -258,15 +257,15 @@ function UserSignals({
 
   return (
     <div className="bg-[#0c1420] rounded-lg shadow-lg overflow-hidden">
-      <div className="flex justify-between items-center p-6">
-        <h2 className="text-xl font-semibold text-white">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 sm:p-6">
+        <h2 className="text-lg sm:text-xl font-semibold text-white font-leagueSpartan mb-4 sm:mb-0">
           Your Trading Signals
         </h2>
         {signals.length > 0 && (
-          <div className="flex space-x-2">
+          <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0">
             <button
               onClick={() => setFilterType("all")}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${
                 filterType === "all"
                   ? "bg-blue-600 text-white"
                   : "bg-[#1a2535] text-gray-300 hover:bg-[#243044]"
@@ -276,7 +275,7 @@ function UserSignals({
             </button>
             <button
               onClick={() => setFilterType("buy")}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${
                 filterType === "buy"
                   ? "bg-blue-600 text-white"
                   : "bg-[#1a2535] text-gray-300 hover:bg-[#243044]"
@@ -286,7 +285,7 @@ function UserSignals({
             </button>
             <button
               onClick={() => setFilterType("sell")}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${
                 filterType === "sell"
                   ? "bg-blue-600 text-white"
                   : "bg-[#1a2535] text-gray-300 hover:bg-[#243044]"
@@ -301,11 +300,13 @@ function UserSignals({
       {loading ? (
         <SkeletonLoader />
       ) : error ? (
-        <p className="text-red-400 p-6">Error: {error}</p>
+        <p className="text-red-400 p-4 sm:p-6 text-sm sm:text-base">
+          Error: {error}
+        </p>
       ) : signals.length === 0 ? (
         <EmptyState />
       ) : filteredSignals.length === 0 ? (
-        <p className="text-gray-400 text-center py-6">
+        <p className="text-gray-400 text-center py-6 text-sm sm:text-base">
           No {filterType} signals found. Try a different filter.
         </p>
       ) : (
@@ -328,7 +329,7 @@ function UserSignals({
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-[150px]">
                   Targets
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-[130px]">
+                <th className="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-[150px]">
                   Potential
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-[120px]">
@@ -402,8 +403,8 @@ function UserSignals({
         </div>
       )}
       {pagination.totalPages > 1 && !loading && (
-        <div className="flex justify-between items-center p-6">
-          <div className="text-sm text-gray-400">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 sm:p-6 space-y-4 sm:space-y-0">
+          <div className="text-xs sm:text-sm text-gray-400">
             Showing {(pagination.currentPage - 1) * pagination.limit + 1} to{" "}
             {Math.min(
               pagination.currentPage * pagination.limit,
@@ -415,14 +416,14 @@ function UserSignals({
             <button
               onClick={() => handlePageChange(pagination.currentPage - 1)}
               disabled={pagination.currentPage === 1}
-              className="px-4 py-2 text-sm font-medium text-white bg-[#1a2535] rounded-md disabled:opacity-50 hover:bg-[#243044]"
+              className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-white bg-[#1a2535] rounded-md disabled:opacity-50 hover:bg-[#243044]"
             >
               Previous
             </button>
             <button
               onClick={() => handlePageChange(pagination.currentPage + 1)}
               disabled={pagination.currentPage === pagination.totalPages}
-              className="px-4 py-2 text-sm font-medium text-white bg-[#1a2535] rounded-md disabled:opacity-50 hover:bg-[#243044]"
+              className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-white bg-[#1a2535] rounded-md disabled:opacity-50 hover:bg-[#243044]"
             >
               Next
             </button>
