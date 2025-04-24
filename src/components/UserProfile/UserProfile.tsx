@@ -136,7 +136,7 @@ const UserProfile = () => {
     );
 
   return (
-    <div className="min-h-screen bg-[#0b1016] pb-[4rem]">
+    <div className="min-h-screen pb-[4rem]">
       <div className="py-6 md:py-12 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-center mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent font-napzerRounded">

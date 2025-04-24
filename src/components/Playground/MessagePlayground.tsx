@@ -143,7 +143,7 @@ const MessagePlayground = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#0B0E1D]">
+    <div className="flex flex-col min-h-screen">
       <div className="flex-grow px-6 py-6 max-w-6xl mx-auto w-full">
         <div className="mb-6 text-center">
           <h2 className="text-xl md:text-4xl font-bold mb-2 font-sans">
