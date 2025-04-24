@@ -552,7 +552,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
               return (
                 <div
                   key={influencer.id}
-                  className="absolute left-[-60px] sm:left-[-80px] top-[-70px] sm:top-[-90px] [transform-style:preserve-3d] transition-transform duration-300 hover:scale-125 touch-pan-y"
+                  className="absolute left-[-60px] sm:left-[-80px] top-[-70px] sm:top-[-90px] [transform-style:preserve-3d] transition-transform duration-300 hover:scale-125 touch-pan-y overflow-hidden"
                   style={{
                     transform: `rotateY(${baseAngle}deg) translateZ(${window.innerWidth <= 768 ? 250 : 400
                       }px) rotateX(5deg)`,

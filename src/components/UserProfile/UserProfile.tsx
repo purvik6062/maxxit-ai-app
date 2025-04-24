@@ -8,6 +8,7 @@ import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import ApiCredentialsSection from "./ApiCredentialSection";
 import { useCredits } from "@/context/CreditsContext";
+import UserSignals from "./UserSignals";
 
 // Reusable UI components for different states
 const LoadingState = () => (
@@ -43,9 +44,9 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [apiKey, setApiKey] = useState<string | null>(null);
-  const [activeSection, setActiveSection] = useState<"subscriptions" | "api" | "signals">(
-    "subscriptions"
-  );
+  const [activeSection, setActiveSection] = useState<
+    "subscriptions" | "api" | "signals"
+  >("subscriptions");
   const { credits, updateCredits } = useCredits();
 
   const handleApiKeyUpdate = (newKey: string) => {
@@ -138,11 +139,13 @@ const UserProfile = () => {
     <div className="min-h-screen bg-[#0b1016] pb-[4rem]">
       <div className="py-6 md:py-12 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-center mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">Your Dashboard</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent font-napzerRounded">
+            Your Dashboard
+          </h1>
         </div>
 
         {/* Responsive grid layout */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-10 font-leagueSpartan ">
           {/* Profile Header - full width on mobile, sidebar on larger screens */}
           <div className="col-span-1 md:col-span-1">
             <ProfileHeader profile={profile} />
@@ -152,32 +155,38 @@ const UserProfile = () => {
           <div className="col-span-1 md:col-span-2 lg:col-span-3">
             {/* Toggle Buttons */}
             <div className="mb-6">
-              <div className="bg-[#0D1321] rounded-full p-1" style={{ border: "1px solid #353940" }}>
+              <div
+                className="bg-[#0D1321] rounded-full p-1"
+                style={{ border: "1px solid #353940" }}
+              >
                 <div className="grid grid-cols-3 w-full">
                   <button
                     onClick={() => setActiveSection("subscriptions")}
-                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all ${activeSection === "subscriptions"
-                      ? "bg-[#1a2234] text-white font-medium shadow-inner"
-                      : "text-[#8ba1bc] hover:text-white"
-                      }`}
+                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all ${
+                      activeSection === "subscriptions"
+                        ? "bg-[#1a2234] text-white font-medium shadow-inner"
+                        : "text-[#8ba1bc] hover:text-white"
+                    }`}
                   >
                     Subscriptions
                   </button>
                   <button
                     onClick={() => setActiveSection("signals")}
-                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all mx-1 ${activeSection === "signals"
-                      ? "bg-[#1a2234] text-white font-medium shadow-inner"
-                      : "text-[#8ba1bc] hover:text-white"
-                      }`}
+                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all mx-1 ${
+                      activeSection === "signals"
+                        ? "bg-[#1a2234] text-white font-medium shadow-inner"
+                        : "text-[#8ba1bc] hover:text-white"
+                    }`}
                   >
                     Signals
                   </button>
                   <button
                     onClick={() => setActiveSection("api")}
-                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all ${activeSection === "api"
-                      ? "bg-[#1a2234] text-white font-medium shadow-inner"
-                      : "text-[#8ba1bc] hover:text-white"
-                      }`}
+                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all ${
+                      activeSection === "api"
+                        ? "bg-[#1a2234] text-white font-medium shadow-inner"
+                        : "text-[#8ba1bc] hover:text-white"
+                    }`}
                   >
                     API Access
                   </button>
@@ -190,10 +199,7 @@ const UserProfile = () => {
               <SubscriptionsList subscriptions={profile.subscribedAccounts} />
             )}
             {activeSection === "signals" && (
-              <div className="bg-[#131d2c] rounded-lg p-6">
-                <h2 className="text-xl font-medium text-white mb-4">Your Trading Signals</h2>
-                <p className="text-[#8ba1bc]">You don't have any signals yet. Subscribe to trading accounts to receive signals.</p>
-              </div>
+              <UserSignals twitterId={session.user.id} profile={profile} />
             )}
             {activeSection === "api" && (
               <ApiCredentialsSection

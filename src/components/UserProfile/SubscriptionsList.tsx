@@ -1,20 +1,21 @@
 import React from "react";
 import { Calendar, TrendingUp, BarChart2, Users } from "lucide-react";
-import type { Subscription } from "./types";
 import { FaXTwitter } from "react-icons/fa6";
+import type { Subscription } from "./types";
+import { useRouter } from "next/navigation";
 
 interface SubscriptionsListProps {
   subscriptions: Subscription[];
 }
 
 export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
+  const router = useRouter();
   const totalLeads = subscriptions.reduce(
     (acc, sub) => acc + (sub.leadsCount || 0),
     0
   );
 
   const headerStyle: React.CSSProperties = {
-    // backgroundColor: '#0d131d',
     border: '1px solid rgba(206, 212, 218, 0.15)',
     borderRadius: '0.375rem',
     padding: '1.5rem',
@@ -52,11 +53,15 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
     fontWeight: 500
   };
 
+  const handleCardClick = (twitterHandle: string) => {
+    router.push(`/influencer/${twitterHandle}`);
+  };
+
   return (
-    <div>
+    <div className="font-leagueSpartan">
       <div style={headerStyle} className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 md:p-6 bg-[#1C2333]">
         <div>
-          <h3 className="text-xl md:text-2xl font-bold text-[#AAC9FA]">
+          <h3 className="text-xl md:text-2xl font-bold text-[#AAC9FA] font-leagueSpartan">
             Subscribe Accounts
           </h3>
           <p className="text-[#8ba1bc] mt-1">Manage your active subscriptions</p>
@@ -89,7 +94,8 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
             <div
               key={sub?.twitterHandle || `placeholder-${index}`}
               style={cardStyle}
-              className="flex flex-col"
+              className="flex flex-col cursor-pointer hover:transform hover:scale-101 transition-transform duration-200 ease-in-out"
+              onClick={() => handleCardClick(sub?.twitterHandle)}
             >
               <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4 gap-2">
                 <div className="flex items-center space-x-3">
@@ -97,8 +103,8 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
                     <TrendingUp className="w-5 h-5 text-[#8ba1bc]" />
                   </div>
                   <div>
-                    <h4 className="text-lg font-semibold text-[#111827]">
-                      {sub?.twitterHandle || "LOREM IPSUM"}
+                    <h4 className="text-lg font-semibold text-[#111827] font-leagueSpartan">
+                      {sub?.twitterHandle || ""}
                     </h4>
                     <div className="flex items-center text-[#4b5563]">
                       <FaXTwitter className="w-3.5 h-3.5 mr-1" />

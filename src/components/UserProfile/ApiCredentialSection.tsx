@@ -139,7 +139,7 @@ print(response.json())`,
     <div className="bg-[#0E1725B3] rounded-2xl p-4 md:p-6" style={{ border: "1px solid #818791" }}>
       <div className="mb-6">
         <div className="mb-4">
-          <h2 className="text-xl font-medium text-[#E4EFFF]">API Access</h2>
+          <h2 className="text-xl font-medium text-[#E4EFFF] font-leagueSpartan">API Access</h2>
           <p className="text-[#8ba1bc]">Manage your active subscriptions</p>
         </div>
 
@@ -232,7 +232,7 @@ print(response.json())`,
       </div>
 
       <div>
-        <h3 className="text-lg font-medium text-white mb-4">
+        <h3 className="text-lg font-medium text-white mb-4 font-leagueSpartan">
           Usage Example
         </h3>
         <div className="flex flex-wrap gap-2 mb-3">
@@ -258,7 +258,7 @@ print(response.json())`,
       </div>
 
       <div className="mt-6">
-        <h3 className="text-lg font-medium text-white mb-4">
+        <h3 className="text-lg font-medium text-white mb-4 font-leagueSpartan">
           Example Response
         </h3>
         <p className="text-[#8ba1bc] mb-4">

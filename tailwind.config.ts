@@ -27,23 +27,23 @@ export default {
         drift: "drift 20s linear infinite",
         "pulse-drift":
           "pulse-particles 6s ease-in-out infinite, drift 20s linear infinite",
-          'avatar-fire-pulse': 'avatarFirePulse 3s infinite ease-in-out',
+        "avatar-fire-pulse": "avatarFirePulse 3s infinite ease-in-out",
       },
       fontFamily: {
         napzerRounded: ["var(--font-napzer-rounded)"],
         leagueSpartan: ["var(--font-league-spartan)"],
       },
       keyframes: {
-         // Avatar specific fire pulse
-         avatarFirePulse: {
-          '0%, 100%': {
-            opacity: '0.7',
-            transform: 'scale(1.0)'
+        // Avatar specific fire pulse
+        avatarFirePulse: {
+          "0%, 100%": {
+            opacity: "0.7",
+            transform: "scale(1.0)",
           },
-          '50%': {
-            opacity: '0.9',
-            transform: 'scale(1.07)'
-          }
+          "50%": {
+            opacity: "0.9",
+            transform: "scale(1.07)",
+          },
         },
         pulseLeftToRight: {
           "0%": {
@@ -152,6 +152,10 @@ export default {
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
+      },
+      scale: {
+        95: "0.95",
+        101: "1.01",
       },
     },
   },
