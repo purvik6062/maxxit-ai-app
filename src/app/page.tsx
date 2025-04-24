@@ -10,14 +10,13 @@ import { LuWandSparkles } from "react-icons/lu";
 import { Heart, Sparkles } from "lucide-react";
 import {
   Header,
-  ImpactLeaderboard,
-  HeartbeatDashboard,
   Footer,
   Mindshare,
   TopInfluencersGraph,
   ShareButton,
 } from "../components/index";
 import SocialGraph from "@/components/Body/SocialGraph";
+import AnalystLeaderboard from "@/components/Body/AnalystLeaderboard";
 import TabNavigation from "@/components/Body/TabNavigation";
 import AddInfluencerModal from "../components/Body/AddInfluencerModal";
 import { useSession } from "next-auth/react";
@@ -222,23 +221,14 @@ const HomePage: React.FC = () => {
           {/* Main Content Area */}
           <div className="bg-gradient-to-br from-gray-900/80 to-gray-950/60 backdrop-blur-sm rounded-lg border border-gray-800/30 shadow-xl overflow-hidden">
             <div className="p-4">
-              {activeTab === "impact" ? (
-                <ImpactLeaderboard
+            <AnalystLeaderboard
+                  mode={activeTab}
                   subscribedHandles={subscribedHandles}
                   subscribingHandle={subscribingHandle}
                   onSubscribe={handleSubscribe}
-                  setRefreshData={setImpactRefreshData}
+                  setRefreshData={activeTab === "impact" ? setImpactRefreshData : setHeartbeatRefreshData}
                   searchText={searchText}
                 />
-              ) : (
-                <HeartbeatDashboard
-                  subscribedHandles={subscribedHandles}
-                  subscribingHandle={subscribingHandle}
-                  onSubscribe={handleSubscribe}
-                  setRefreshData={setHeartbeatRefreshData}
-                  searchText={searchText}
-                />
-              )}
             </div>
           </div>
         </div>
