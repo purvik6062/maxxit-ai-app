@@ -15,7 +15,7 @@ export default function RedeemCreditsPage() {
       credits: 100,
       frequency: "monthly",
       icon: FaXTwitter,
-      action: "https://x.com/your-account",
+      action: "https://x.com/MaxxitAI",
     },
     {
       id: 2,
@@ -25,7 +25,7 @@ export default function RedeemCreditsPage() {
       credits: 100,
       frequency: "monthly",
       icon: Repeat2,
-      action: "https://x.com/your-account/tweet-id",
+      action: "https://x.com/MaxxitAI",
     },
   ]);
 
