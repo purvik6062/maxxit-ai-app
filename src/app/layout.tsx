@@ -8,6 +8,7 @@ import { League_Spartan } from "next/font/google";
 import localFonts from "next/font/local";
 import MainHeader from "@/components/Global/MainHeader";
 import { useState } from "react";
+import FooterLabel from "@/components/Global/FooterLabel";
 // import CustomCursor from "@/components/Body/CustomCursor";
 // import ThemeProviderClient from "@/providers/ThemeProviderClient";
 
@@ -39,11 +40,11 @@ export default function RootLayout({
       <meta
         name="description"
         content="AI-Powered Signals Generator Platform"
-        />
+      />
       <link rel="icon" type="image/svg+xml" href="/img/maxxit_icon.svg" />
       <body className={`${leagueSpartan.variable} ${napzerRounded.variable}`}>
         <Providers>
-        {/* <ThemeProviderClient> */}
+          {/* <ThemeProviderClient> */}
           <SessionProvider
             refetchInterval={0} // Disable automatic refetching
             refetchOnWindowFocus={false}
@@ -52,10 +53,11 @@ export default function RootLayout({
               <Header searchText={searchText} setSearchText={setSearchText} />
               <main>{children}</main>
               {/* <CustomCursor /> */}
+              <FooterLabel />
               <Footer />
             </CreditsProvider>
           </SessionProvider>
-        {/* </ThemeProviderClient> */}
+          {/* </ThemeProviderClient> */}
         </Providers>
       </body>
     </html>

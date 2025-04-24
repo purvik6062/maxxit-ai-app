@@ -152,6 +152,7 @@ export default {
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
+        "footer-background": "url('../assets/images/footer/footer-bg.svg')",
       },
       scale: {
         95: "0.95",
