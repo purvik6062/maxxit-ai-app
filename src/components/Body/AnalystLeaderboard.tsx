@@ -1,4 +1,3 @@
-// components/ImpactLeaderboard.tsx
 "use client";
 import React, { useRef, useState, useEffect } from "react";
 import {
@@ -8,13 +7,16 @@ import {
   FaExternalLinkAlt,
   FaChevronDown,
   FaChevronUp,
+  FaChevronLeft,
+  FaChevronRight,
   FaRobot,
 } from "react-icons/fa";
 import { useRouter } from "next/navigation";
-import { TrendingUp, Award, BarChart2, ArrowUpDown, Info } from "lucide-react";
-import { LuWandSparkles } from "react-icons/lu";
-import gsap from "gsap";
 import {
+  HeartPulse,
+  TrendingUp,
+  BarChart2,
+  ArrowUpDown,
   Loader2,
   AlertCircle,
   SearchX,
@@ -22,14 +24,19 @@ import {
   Shield,
   Users,
   InfoIcon,
+  Info,
 } from "lucide-react";
+import { LuWandSparkles } from "react-icons/lu";
 import { RiPulseLine } from "react-icons/ri";
 import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
 import Link from "next/link";
 import { useUserData } from "@/context/UserDataContext";
 
+type Mode = "impact" | "heartbeat";
 type SortField =
   | "impactFactor"
+  | "heartbeat"
   | "mindshare"
   | "followers"
   | "username"
@@ -38,7 +45,8 @@ type SortField =
   | "memeVsInstitutional";
 type SortDirection = "asc" | "desc";
 
-interface ImpactLeaderboardProps {
+interface AnalystLeaderboardProps {
+  mode: Mode;
   subscribedHandles: string[];
   subscribingHandle: string | null;
   onSubscribe: (handle: string, impactFactor: number) => void;
@@ -46,7 +54,8 @@ interface ImpactLeaderboardProps {
   searchText: string;
 }
 
-const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
+const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
+  mode,
   subscribedHandles,
   subscribingHandle,
   onSubscribe,
@@ -56,55 +65,50 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
   const container = useRef(null);
   gsap.registerPlugin(useGSAP);
   const [showStats, setShowStats] = useState<Record<string, boolean>>({});
-  const [sortField, setSortField] = useState<SortField>("impactFactor");
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 7;
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [userSortField, setUserSortField] = useState<SortField | null>(null);
   const router = useRouter();
 
   const { agents, loadingUmd, error, refreshData } = useUserData();
+  
+  const effectiveSortField =
+    userSortField || (mode === "impact" ? "impactFactor" : "heartbeat");
 
-  // Toggle detailed stats for a specific card
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchText, effectiveSortField, sortDirection]);
+
   const toggleStats = (handle: string) => {
-    setShowStats((prev) => ({
-      ...prev,
-      [handle]: !prev[handle],
-    }));
+    setShowStats((prev) => ({ ...prev, [handle]: !prev[handle] }));
   };
 
-  // Handle sorting
   const sortAgents = (field: SortField) => {
-    if (sortField === field) {
+    if (userSortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
-      setSortField(field);
+      setUserSortField(field);
       setSortDirection("desc");
     }
   };
 
-  // Function to render the metric indicator on a scale (from UMD)
   const renderMetricIndicator = (
     value: number,
     leftColor: string,
     rightColor: string
   ) => {
-    // Normalize value between -50 and +50
     const normalizedValue = Math.max(-50, Math.min(50, value));
-
-    // Adjust the logic: positive value increases left, negative increases right
     const leftPercentage = ((normalizedValue + 50) / 100) * 100;
     const rightPercentage = 100 - leftPercentage;
-
     return (
       <div className="w-full flex flex-col gap-1">
         <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
-          {/* Two-color bar with dynamic widths */}
           <div className="flex h-full w-full">
-            {/* Left side */}
             <div
               className={`${leftColor} h-full transition-all duration-300`}
               style={{ width: `${leftPercentage}%` }}
             ></div>
-
-            {/* Right side */}
             <div
               className={`${rightColor} h-full transition-all duration-300`}
               style={{ width: `${rightPercentage}%` }}
@@ -115,19 +119,15 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
     );
   };
 
-  // Apply GSAP animations
   useGSAP(
     () => {
       if (!loadingUmd && agents.length > 0) {
         const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-        // Staggered entrance animation
         tl.fromTo(
           ".top-card",
           { y: 30, opacity: 0, scale: 0.95 },
           { y: 0, opacity: 1, scale: 1, duration: 0.7, stagger: 0.15 }
         );
-
-        // Animate the list items
         tl.fromTo(
           ".list-item",
           { x: -20, opacity: 0 },
@@ -136,15 +136,10 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
         );
       }
     },
-    {
-      scope: container,
-      dependencies: [loadingUmd, agents],
-    }
+    { scope: container, dependencies: [loadingUmd, agents] }
   );
 
-  // Get sorted and filtered agents
   const getSortedAndFilteredAgents = () => {
-    // First filter by search text
     const filtered = searchText
       ? agents.filter(
           (agent) =>
@@ -153,14 +148,16 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
         )
       : agents;
 
-    // Then sort
     return [...filtered].sort((a, b) => {
       let valueA, valueB;
-
-      switch (sortField) {
+      switch (effectiveSortField) {
         case "impactFactor":
           valueA = a.impactFactor || 0;
           valueB = b.impactFactor || 0;
+          break;
+        case "heartbeat":
+          valueA = a.heartbeat || 0;
+          valueB = b.heartbeat || 0;
           break;
         case "mindshare":
           valueA = a.mindshare || 0;
@@ -189,10 +186,9 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
           valueB = b.memeVsInstitutional || 0;
           break;
         default:
-          valueA = a.impactFactor || 0;
-          valueB = b.impactFactor || 0;
+          valueA = a[mode === "impact" ? "impactFactor" : "heartbeat"] || 0;
+          valueB = b[mode === "impact" ? "impactFactor" : "heartbeat"] || 0;
       }
-
       return sortDirection === "asc" ? valueA - valueB : valueB - valueA;
     });
   };
@@ -211,7 +207,9 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
             Loading Data
           </h3>
           <p className="text-gray-400 text-sm">
-            Analyzing crypto market influence...
+            {mode === "impact"
+              ? "Analyzing crypto market influence..."
+              : "Analyzing market heartbeat..."}
           </p>
         </div>
       </div>
@@ -248,16 +246,34 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
 
   const topAgents = sortedAgents.slice(0, 3);
   const remainingAgents = sortedAgents.slice(3);
+  const totalPages = Math.ceil(remainingAgents.length / PAGE_SIZE);
+  const paginatedAgents = remainingAgents.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
 
   const medalColors = [
-    "from-yellow-300 to-amber-500", // gold
-    "from-gray-300 to-gray-400", // silver
-    "from-amber-700 to-amber-900", // bronze
+    "from-yellow-300 to-amber-500",
+    "from-gray-300 to-gray-400",
+    "from-amber-700 to-amber-900",
   ];
+
+  const primaryField = mode === "impact" ? "impactFactor" : "heartbeat";
+  const title =
+    mode === "impact" ? "Impact Factor Rankings" : "Market Heartbeat Dashboard";
+  const description =
+    mode === "impact"
+      ? "Discover crypto analysts ranked by their market influence and prediction accuracy"
+      : "Discover analysts ranked by their real-time market pulse";
+  const primaryLabel = mode === "impact" ? "Impact" : "Beat";
+  const primaryIcon = mode === "impact" ? LuWandSparkles : HeartPulse;
+  const progressBarClass =
+    mode === "impact"
+      ? "from-blue-500 to-indigo-500"
+      : "from-blue-500 to-cyan-500";
 
   function formatFollowersCount(num?: number): string {
     if (num === undefined || num === null) return "--";
-
     if (num < 1000) return num.toString();
     if (num < 1_000_000)
       return (num / 1000).toFixed(2).replace(/\.?0+$/, "") + "K";
@@ -268,18 +284,15 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
     <div ref={container}>
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-1">
-          <LuWandSparkles size={18} className="text-blue-400" />
-          <h2 className="text-lg font-bold text-white">
-            Impact Factor Rankings
-          </h2>
+          {React.createElement(primaryIcon, {
+            size: 18,
+            className: "text-blue-400",
+          })}
+          <h2 className="text-lg font-bold text-white">{title}</h2>
         </div>
-        <p className="text-sm text-slate-400">
-          Discover crypto analysts ranked by their market influence and
-          prediction accuracy
-        </p>
+        <p className="text-sm text-slate-400">{description}</p>
       </div>
 
-      {/* Header with sorting options */}
       <div className="p-3 mb-4 bg-gray-900/50 rounded-lg border border-gray-800/50">
         <div className="flex flex-wrap justify-between items-center">
           <div className="flex items-center gap-2">
@@ -290,7 +303,6 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
             <span className="text-sm text-cyan-500">
               Data updated on • {new Date().toLocaleDateString()}
             </span>
-
             <div className="ml-4 flex items-center gap-1.5">
               <Users className="w-4 h-4 text-blue-400/70" />
               <span className="text-sm text-gray-300">
@@ -298,7 +310,6 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
               </span>
             </div>
           </div>
-
           <div className="flex flex-wrap gap-2 mt-2 sm:mt-0 items-center">
             <div className="relative group">
               <Info className="w-4 h-4 text-cyan-500 cursor-help" />
@@ -307,33 +318,34 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
               </div>
             </div>
             <div
-              onClick={() => sortAgents("impactFactor")}
+              onClick={() => sortAgents(primaryField)}
               className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                sortField === "impactFactor"
+                effectiveSortField === primaryField
                   ? "bg-blue-900/50 text-blue-300"
                   : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
               }`}
             >
-              <TrendingUp size={14} />
-              <span>Impact</span>
-              {sortField === "impactFactor" &&
+              {React.createElement(primaryIcon, { size: 14 })}
+              <span>{mode === "impact" ? "Impact" : "Heartbeat"}</span>
+              {effectiveSortField === primaryField &&
                 (sortDirection === "asc" ? (
                   <FaChevronUp className="ml-1" />
                 ) : (
                   <FaChevronDown className="ml-1" />
                 ))}
             </div>
+            {/* Other sort buttons */}
             <div
               onClick={() => sortAgents("mindshare")}
               className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                sortField === "mindshare"
+                userSortField === "mindshare"
                   ? "bg-blue-900/50 text-blue-300"
                   : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
               }`}
             >
               <BarChart2 size={14} />
               <span>Mindshare</span>
-              {sortField === "mindshare" &&
+              {userSortField === "mindshare" &&
                 (sortDirection === "asc" ? (
                   <FaChevronUp className="ml-1" />
                 ) : (
@@ -343,14 +355,14 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
             <div
               onClick={() => sortAgents("followers")}
               className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                sortField === "followers"
+                userSortField === "followers"
                   ? "bg-blue-900/50 text-blue-300"
                   : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
               }`}
             >
               <Users size={14} />
               <span>Followers</span>
-              {sortField === "followers" &&
+              {userSortField === "followers" &&
                 (sortDirection === "asc" ? (
                   <FaChevronUp className="ml-1" />
                 ) : (
@@ -360,13 +372,13 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
             <div
               onClick={() => sortAgents("herdedVsHidden")}
               className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                sortField === "herdedVsHidden"
+                userSortField === "herdedVsHidden"
                   ? "bg-blue-900/50 text-blue-300"
                   : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
               }`}
             >
               <span>Herded-Hidden</span>
-              {sortField === "herdedVsHidden" &&
+              {userSortField === "herdedVsHidden" &&
                 (sortDirection === "asc" ? (
                   <FaChevronUp className="ml-1" />
                 ) : (
@@ -376,13 +388,13 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
             <div
               onClick={() => sortAgents("convictionVsHype")}
               className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                sortField === "convictionVsHype"
+                userSortField === "convictionVsHype"
                   ? "bg-blue-900/50 text-blue-300"
                   : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
               }`}
             >
               <span>Conviction-Hype</span>
-              {sortField === "convictionVsHype" &&
+              {userSortField === "convictionVsHype" &&
                 (sortDirection === "asc" ? (
                   <FaChevronUp className="ml-1" />
                 ) : (
@@ -392,13 +404,13 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
             <div
               onClick={() => sortAgents("memeVsInstitutional")}
               className={`px-3 py-1.5 text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                sortField === "memeVsInstitutional"
+                userSortField === "memeVsInstitutional"
                   ? "bg-blue-900/50 text-blue-300"
                   : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
               }`}
             >
               <span>Meme-Institutional</span>
-              {sortField === "memeVsInstitutional" &&
+              {userSortField === "memeVsInstitutional" &&
                 (sortDirection === "asc" ? (
                   <FaChevronUp className="ml-1" />
                 ) : (
@@ -409,15 +421,12 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
         </div>
       </div>
 
-      {/* Top 3 users in cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {topAgents.map((agent, index) => {
           const rank = index + 1;
           const cleanHandle = agent.twitterHandle.replace("@", "");
           const isSubscribed = subscribedHandles.includes(cleanHandle);
           const isCurrentlySubscribing = subscribingHandle === cleanHandle;
-
-          // Metrics for radar chart visualization
           const subscribers = agent.subscribers?.length || 0;
           const signals = agent.signals || 0;
           const tokens = agent.tokens || 0;
@@ -432,12 +441,9 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                   ? "border-gray-400/30"
                   : "border-amber-700/30"
               } bg-gradient-to-br from-gray-900/80 via-gray-900/60 to-blue-900/20 backdrop-blur-sm`}
-              onClick={() => {
-                router.push(`/influencer/${cleanHandle}`);
-              }}
+              onClick={() => router.push(`/influencer/${cleanHandle}`)}
               style={{ cursor: "pointer" }}
             >
-              {/* Top Medal Badge */}
               <div className="absolute -right-6 -top-6 w-28 h-24">
                 <div
                   className={`absolute inset-0 bg-gradient-to-br ${
@@ -445,7 +451,6 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                   } opacity-50 rotate-45`}
                 ></div>
               </div>
-
               <div className="p-5">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
@@ -469,8 +474,6 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                       <span className="block text-sm text-blue-400 mb-0.5 font-medium">
                         Rank #{rank}
                       </span>
-
-                      {/* Profile pic & name */}
                       <div className="flex items-center gap-2 mb-1">
                         {agent.twitterHandle && (
                           <div className="relative w-6 h-6">
@@ -492,7 +495,7 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                             )}
                           </div>
                         )}
-                        <h3 className="text-xl font-bold text-white">
+                        <h3 className="text-lg font-bold text-white">
                           {agent.name}
                         </h3>
                       </div>
@@ -501,31 +504,25 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                       </p>
                     </div>
                   </div>
-
                   <div className="text-right">
                     <div className="text-sm uppercase font-extrabold tracking-wider text-white mb-1">
-                      Impact
+                      {primaryLabel}
                     </div>
                     <div className="text-xl font-bold text-white bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">
-                      {agent.impactFactor ?? "--"}
+                      {agent[primaryField] ?? "--"}
                     </div>
                   </div>
                 </div>
-                {/* Progress bar */}
                 <div className="h-2 w-full bg-gray-800 rounded-full mb-4 overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full progress-bar-fill"
-                    style={{ width: `${agent.impactFactor || 0}%` }}
+                    className={`h-full bg-gradient-to-r ${progressBarClass} rounded-full progress-bar-fill`}
+                    style={{ width: `${agent[primaryField] || 0}%` }}
                   ></div>
                 </div>
-
-                {/* Mindshare & Followers from UMD */}
                 {agent.mindshare >= 0 && (
                   <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl p-5 mb-6 border border-gray-700/30 shadow-lg">
-                    {/* Glass card for metrics */}
                     <div className="backdrop-blur-sm bg-white/5 rounded-lg p-2 mb-4 border border-white/10 shadow-inner relative z-10">
                       <div className="flex justify-between">
-                        {/* Mindshare */}
                         <div className="text-center relative">
                           <div className="relative p-3 flex flex-col items-center">
                             <p className="text-gray-200 text-xl font-bold tracking-tight transition-transform duration-300">
@@ -544,13 +541,9 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                             </div>
                           </div>
                         </div>
-
-                        {/* Animated divider */}
                         <div className="flex items-center">
                           <div className="w-[2px] h-16 bg-gradient-to-b from-transparent via-gray-200/50 to-transparent"></div>
                         </div>
-
-                        {/* Followers */}
                         <div className="text-center relative">
                           <div className="relative p-3 flex flex-col items-center">
                             <p className="text-gray-200 text-xl font-bold tracking-tight transition-transform duration-300">
@@ -571,14 +564,10 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                         </div>
                       </div>
                     </div>
-
-                    {/* View profile button */}
                     <Link
                       href={`https://x.com/${cleanHandle}`}
                       target="_blank"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                      }}
+                      onClick={(e) => e.stopPropagation()}
                       className="group relative overflow-hidden flex items-center justify-center gap-2 w-full py-3 text-sm font-medium rounded-lg z-10 bg-gradient-to-r from-gray-900 to-gray-700 hover:from-gray-800 hover:to-gray-700 text-white transition-all duration-300 shadow-md"
                     >
                       <span className="relative z-10 flex items-center gap-2 group-hover:translate-x-1 transition-transform duration-300">
@@ -589,8 +578,6 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                     </Link>
                   </div>
                 )}
-
-                {/* Detailed stats with hover interaction */}
                 <div
                   className={`transition-all duration-300 overflow-hidden ${
                     showStats[agent.twitterHandle]
@@ -605,7 +592,7 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                         Subscribers
                       </span>
                       <span className="text-sm font-semibold text-white">
-                        {agent.subscribers?.length || 0}
+                        {subscribers}
                       </span>
                     </div>
                     <div className="flex flex-col items-center justify-center bg-cyan-900/20 rounded-lg p-2.5 border border-cyan-700/20">
@@ -614,7 +601,7 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                         Signals
                       </span>
                       <span className="text-sm font-semibold text-white">
-                        {agent.signals || "0"}
+                        {signals}
                       </span>
                     </div>
                     <div className="flex flex-col items-center justify-center bg-blue-800/20 rounded-lg p-2.5 border border-blue-700/20">
@@ -623,25 +610,20 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                         Tokens
                       </span>
                       <span className="text-sm font-semibold text-white">
-                        {agent.tokens || "0"}
+                        {tokens}
                       </span>
                     </div>
                   </div>
-
-                  {/* Radar chart visualization (simple CSS-based) */}
                   <div className="relative h-24 mb-4 hidden md:block">
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="w-full h-full max-w-[120px] max-h-[120px] relative">
-                        {/* Background hexagon */}
                         <div className="absolute inset-0 border-2 border-blue-800/30 rounded-full"></div>
                         <div className="absolute inset-[20%] border-2 border-blue-800/20 rounded-full"></div>
                         <div className="absolute inset-[40%] border-2 border-blue-800/10 rounded-full"></div>
-                        {/* Stat lines */}
                         <div className="absolute top-0 left-1/2 h-1/2 w-0.5 bg-blue-800/20 -translate-x-1/2"></div>
                         <div className="absolute top-1/2 left-0 h-0.5 w-1/2 bg-blue-800/20"></div>
                         <div className="absolute bottom-0 left-1/2 h-1/2 w-0.5 bg-blue-800/20 -translate-x-1/2"></div>
                         <div className="absolute top-1/2 right-0 h-0.5 w-1/2 bg-blue-800/20"></div>
-                        {/* Data points */}
                         <div
                           className="absolute rounded-full w-2 h-2 bg-blue-400"
                           style={{
@@ -666,53 +648,46 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                             bottom: `${(100 - tokens) / 2}%`,
                             left: "50%",
                             transform: "translate(-50%, 50%)",
-                            boxShadow: "0 0 5px rgba(147, 197, 253, 0.7)",
+                            boxShadow:
+                              mode === "impact"
+                                ? "0 0 5px rgba(147, 197, 253, 0.7)"
+                                : "0 0 5px rgba(239, 68, 68, 0.7)",
                           }}
                         ></div>
                         <div
                           className="absolute rounded-full w-2 h-2 bg-blue-500"
                           style={{
                             top: "50%",
-                            right: `${100 - (agent.impactFactor || 0)}%`,
+                            right: `${100 - (agent[primaryField] || 0)}%`,
                             transform: "translate(50%, -50%)",
                             boxShadow: "0 0 5px rgba(59, 130, 246, 0.7)",
                           }}
-                        ></div>{" "}
-                        {/* Connecting lines */}
+                        ></div>
                         <svg className="absolute inset-0 w-full h-full">
-                          {" "}
                           <polygon
                             points={`50,${(100 - subscribers) / 2} 
-                                                                  ${
-                                                                    signals / 2
-                                                                  },50 
-                                                                  50,${
-                                                                    100 -
-                                                                    (100 -
-                                                                      tokens) /
-                                                                      2
-                                                                  } 
-                                                                  ${
-                                                                    100 -
-                                                                    (100 -
-                                                                      (agent.impactFactor ||
-                                                                        0))
-                                                                  },50
-                                                                `}
-                            fill="rgba(59, 130, 246, 0.2)"
-                            stroke="rgba(59, 130, 246, 0.6)"
+                                    ${signals / 2},50 
+                                    50,${100 - (100 - tokens) / 2} 
+                                    ${
+                                      100 - (100 - (agent[primaryField] || 0))
+                                    },50`}
+                            fill={
+                              mode === "impact"
+                                ? "rgba(59, 130, 246, 0.2)"
+                                : "rgba(239, 68, 68, 0.2)"
+                            }
+                            stroke={
+                              mode === "impact"
+                                ? "rgba(59, 130, 246, 0.6)"
+                                : "rgba(239, 68, 68, 0.6)"
+                            }
                             strokeWidth="1"
                           />
-                        </svg>{" "}
+                        </svg>
                       </div>
                     </div>
                   </div>
-                  {/* </div> */}
-
-                  {/* Detailed stats with hover interaction */}
-                  {/* UMD Metrics */}
                   <div className="p-3 space-y-4 bg-gray-900/30 rounded-lg border border-gray-800/20 mb-3">
-                    {/* Herded vs Hidden */}
                     <div>
                       <div className="flex justify-between items-center mb-1">
                         <div className="flex items-center gap-1">
@@ -727,8 +702,6 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                         "bg-cyan-400"
                       )}
                     </div>
-
-                    {/* Conviction vs Hype */}
                     <div>
                       <div className="flex justify-between items-center mb-1">
                         <div className="flex items-center gap-1">
@@ -745,8 +718,6 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                         "bg-rose-500"
                       )}
                     </div>
-
-                    {/* Meme vs Institutional */}
                     <div>
                       <div className="flex justify-between items-center mb-1">
                         <div className="flex items-center gap-1">
@@ -765,11 +736,8 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                     </div>
                   </div>
                 </div>
-
-                {/* Toggle stats button */}
                 <button
-                  className="w-full flex items-center justify-center gap-1 py-1 mb-3 rounded-lg text-sm font-medium
-                    text-blue-300 hover:text-blue-200 bg-blue-900/30 hover:bg-blue-800/40 transition-all duration-200"
+                  className="w-full flex items-center justify-center gap-1 py-1 mb-3 rounded-lg text-sm font-medium text-blue-300 hover:text-blue-200 bg-blue-900/30 hover:bg-blue-800/40 transition-all duration-200"
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleStats(agent.twitterHandle);
@@ -787,7 +755,6 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                     </>
                   )}
                 </button>
-                {/* Subscribe button */}
                 <button
                   className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium ${
                     isSubscribed || isCurrentlySubscribing
@@ -796,11 +763,12 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                   } transition-all duration-200 ${
                     isCurrentlySubscribing ? "animate-pulse" : ""
                   }`}
-                  onClick={() =>
-                    !isSubscribed &&
-                    !isCurrentlySubscribing &&
-                    onSubscribe(agent.twitterHandle, agent.impactFactor)
-                  }
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!isSubscribed && !isCurrentlySubscribing) {
+                      onSubscribe(agent.twitterHandle, agent.impactFactor);
+                    }
+                  }}
                   disabled={isSubscribed || isCurrentlySubscribing}
                 >
                   {isCurrentlySubscribing ? (
@@ -826,60 +794,45 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
         })}
       </div>
 
-      {/* List view for remaining analysts (integrating UMD style) */}
-      {remainingAgents.length > 0 && (
+      {paginatedAgents.length > 0 && (
         <div className="mt-8">
           <h3 className="text-lg font-semibold text-gray-300 mb-4 flex items-center">
             <ArrowUpDown size={16} className="mr-2 text-blue-400/70" />
             Other Analysts
-            {sortField !== "impactFactor" && (
+            {effectiveSortField !== primaryField && (
               <span className="text-sm ml-2 font-extralight text-cyan-300">
-                (sorted by {sortField})
+                (sorted by {userSortField})
               </span>
             )}
           </h3>
-
-          {/* Header Row - Middle Section Grows */}
           <div className="px-4 py-2 flex items-center gap-3 md:gap-4 text-xs text-gray-300 border-b border-gray-800/50 mb-2">
-            {/* Left: Rank + Name Header */}
             <div className="flex items-center flex-shrink-0 w-[30%] sm:w-[25%] md:w-[240px]">
-              {" "}
-              {/* Keep similar width */}
               <span className="w-6 text-center mr-3 flex-shrink-0">#</span>
               <span className="flex-grow truncate pr-1">Analyst</span>
             </div>
-
-            {/* Middle: Inline UMD Metrics Header (Takes Remaining Space) */}
             <div className="flex items-center justify-between gap-2 md:gap-4 flex-grow min-w-0 px-1">
-              {" "}
-              {/* ADDED flex-grow, min-w-0 */}
               <span className="w-1/3 text-center truncate">Herded/Hidden</span>
               <span className="w-1/3 text-center truncate">
                 Conviction/Hype
               </span>
               <span className="w-1/3 text-center truncate">Meme/Inst.</span>
             </div>
-
-            {/* Right: Original Metrics + Actions Header (Defined Width Again) */}
             <div className="flex items-center justify-end gap-2 md:gap-3 flex-shrink-0 w-auto sm:w-[300px] md:w-[385px]">
-              {" "}
-              {/* REMOVED flex-grow, Adjusted width slightly */}
-              {/* --- Widths adjusted for content --- */}
               <span className="w-16 text-right hidden sm:inline-block">
                 Mindshare
               </span>
               <span className="w-20 text-right hidden lg:inline-block">
                 Followers
               </span>
-              <span className="w-14 text-right">Impact</span>
+              <span className="w-14 text-right">
+                {mode === "impact" ? "Impact" : "Heartbeat"}
+              </span>
               <span className="w-8 text-center">View</span>
               <span className="w-24 text-center">Subscribe</span>
             </div>
           </div>
-          {/* End Header Row */}
-
           <div className="space-y-2">
-            {remainingAgents.map((agent, index) => {
+            {paginatedAgents.map((agent) => {
               const rank =
                 sortedAgents.findIndex(
                   (a) => a.twitterHandle === agent.twitterHandle
@@ -891,18 +844,11 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
               return (
                 <div
                   key={agent.twitterHandle}
-                  onClick={() => {
-                    router.push(`/influencer/${cleanHandle}`);
-                  }}
                   className="impact-card list-item relative bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-lg overflow-hidden transition-all hover:bg-cyan-950 duration-200 hover:cursor-pointer"
+                  onClick={() => router.push(`/influencer/${cleanHandle}`)}
                 >
-                  {/* Main Row Container - Matching Header Flex Structure */}
                   <div className="px-4 py-2 flex items-center gap-3 md:gap-4">
-                    {/* Left side: Rank + Profile + Name */}
                     <div className="flex items-center flex-shrink-0 w-[30%] sm:w-[25%] md:w-[240px]">
-                      {" "}
-                      {/* Match header width */}
-                      {/* Rank, Profile Pic, Name/Handle... (content unchanged) */}
                       <div className="w-6 flex items-center justify-center rounded-full bg-gray-800/70 text-gray-400 text-xs font-medium mr-3 flex-shrink-0">
                         {rank}
                       </div>
@@ -935,22 +881,14 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                         </p>
                       </div>
                     </div>
-
-                    {/* Middle: Inline UMD Metrics (Takes Remaining Space) */}
                     <div className="flex items-center justify-between gap-2 md:gap-4 flex-grow min-w-0 px-1">
-                      {" "}
-                      {/* ADDED flex-grow, min-w-0 */}
-                      {/* Herded vs Hidden */}
                       <div className="w-1/3 text-center">
-                        {" "}
-                        {/* Use fractional width */}
                         {renderMetricIndicator(
                           agent.herdedVsHidden || 0,
                           "bg-red-400",
                           "bg-cyan-400"
                         )}
                       </div>
-                      {/* Conviction vs Hype */}
                       <div className="w-1/3 text-center">
                         {renderMetricIndicator(
                           agent.convictionVsHype || 0,
@@ -958,7 +896,6 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                           "bg-rose-500"
                         )}
                       </div>
-                      {/* Meme vs Institutional */}
                       <div className="w-1/3 text-center">
                         {renderMetricIndicator(
                           agent.memeVsInstitutional || 0,
@@ -967,15 +904,8 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                         )}
                       </div>
                     </div>
-
-                    {/* Right side: Original Metrics + Actions (Defined Width Again) */}
                     <div className="flex items-center justify-end gap-2 md:gap-3 flex-shrink-0 w-auto sm:w-[300px] md:w-[385px]">
-                      {" "}
-                      {/* REMOVED flex-grow, Matched header width */}
-                      {/* Mindshare */}
                       <div className="w-16 text-right hidden sm:inline-block">
-                        {" "}
-                        {/* Match header width */}
                         {agent.mindshare > 0 ? (
                           <p className="text-blue-400 text-sm font-medium">
                             {agent.mindshare != null
@@ -986,10 +916,7 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                           <span className="text-sm text-[#5DA1F3]">--</span>
                         )}
                       </div>
-                      {/* Followers */}
                       <div className="w-20 text-right hidden lg:inline-block">
-                        {" "}
-                        {/* Match header width */}
                         {agent.followers > 0 ? (
                           <p className="text-gray-300 text-sm">
                             {agent.followers != null
@@ -1000,34 +927,23 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                           <span className="text-sm text-gray-100">--</span>
                         )}
                       </div>
-                      {/* Impact */}
                       <div className="w-14 text-right">
-                        {" "}
-                        {/* Match header width */}
                         <p className="text-blue-400 text-sm font-medium">
-                          {agent.impactFactor ?? "--"}
+                          {agent[primaryField] ?? "--"}
                         </p>
                       </div>
-                      {/* View Profile Link */}
                       <div className="w-8 flex justify-center">
-                        {" "}
-                        {/* Match header width */}
                         <Link
                           href={`https://x.com/${cleanHandle}`}
                           target="_blank"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                          }}
+                          onClick={(e) => e.stopPropagation()}
                           className="p-1.5 rounded text-gray-400 hover:text-blue-300 hover:bg-gray-700/50 transition-colors"
                           title="View Profile"
                         >
                           <FaExternalLinkAlt className="w-3 h-3" />
                         </Link>
                       </div>
-                      {/* Subscribe Button */}
                       <div className="w-24 flex justify-center">
-                        {" "}
-                        {/* Match header width */}
                         <button
                           className={`flex items-center justify-center px-2 py-1.5 rounded-md text-xs w-full ${
                             isSubscribed || isCurrentlySubscribing
@@ -1036,11 +952,15 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
                           } transition-all duration-200 whitespace-nowrap ${
                             isCurrentlySubscribing ? "animate-pulse" : ""
                           }`}
-                          onClick={() =>
-                            !isSubscribed &&
-                            !isCurrentlySubscribing &&
-                            onSubscribe(agent.twitterHandle, agent.impactFactor)
-                          }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!isSubscribed && !isCurrentlySubscribing) {
+                              onSubscribe(
+                                agent.twitterHandle,
+                                agent.impactFactor
+                              );
+                            }
+                          }}
                           disabled={isSubscribed || isCurrentlySubscribing}
                         >
                           {isCurrentlySubscribing ? (
@@ -1070,18 +990,38 @@ const ImpactLeaderboard: React.FC<ImpactLeaderboardProps> = ({
               );
             })}
           </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-4 mt-6">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-blue-900 text-white shadow-lg transition-all duration-300 hover:shadow-blue-900/30 disabled:opacity-50 disabled:cursor-not-allowed group"
+              aria-label="Previous page"
+            >
+              <FaChevronLeft size={20} className="transition-transform group-hover:-translate-x-0.5" />
+            </button>
+            
+            <div className="px-5 py-2 bg-gray-800 bg-opacity-80 backdrop-blur-md rounded-full text-white font-medium shadow-lg">
+              <span className="text-gray-400">Page </span> 
+              <span className="text-blue-400 mx-1 font-bold">{currentPage}</span> 
+              <span className="text-gray-400">of </span>
+              <span className="text-blue-400 font-bold">{totalPages}</span>
+            </div>
+            
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-blue-900 text-white shadow-lg transition-all duration-300 hover:shadow-blue-900/30 disabled:opacity-50 disabled:cursor-not-allowed group"
+              aria-label="Next page"
+            >
+              <FaChevronRight size={20} className="transition-transform group-hover:translate-x-0.5" />
+            </button>
+          </div>
+          )}
         </div>
       )}
-
-      {/* Empty state (if no agents after filtering/loading) */}
-      {sortedAgents.length === 0 && !searchText && !loading && (
-        <div className="p-8 text-center bg-gray-900/20 rounded-lg border border-gray-800/30 mt-8">
-          <InfoIcon className="w-8 h-8 text-gray-600 mx-auto mb-2" />
-          <p className="text-gray-400">No analyst data available</p>
-        </div>
-      )}
-    </div> // Closing main container div
+    </div>
   );
 };
 
-export default React.memo(ImpactLeaderboard);
+export default React.memo(AnalystLeaderboard);

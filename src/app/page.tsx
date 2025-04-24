@@ -10,14 +10,13 @@ import { LuWandSparkles } from "react-icons/lu";
 import { Heart, Sparkles } from "lucide-react";
 import {
   Header,
-  ImpactLeaderboard,
-  HeartbeatDashboard,
   Footer,
   Mindshare,
   TopInfluencersGraph,
   ShareButton,
 } from "../components/index";
 import SocialGraph from "@/components/Body/SocialGraph";
+import AnalystLeaderboard from "@/components/Body/AnalystLeaderboard";
 import TabNavigation from "@/components/Body/TabNavigation";
 import AddInfluencerModal from "../components/Body/AddInfluencerModal";
 import { useSession } from "next-auth/react";
@@ -191,35 +190,21 @@ const HomePage: React.FC = () => {
               </button>
             </div>
 
-            {/* Main Content Area with Animation */}
-            <div className="bg-gradient-to-br from-gray-900/80 to-gray-950/60 backdrop-blur-sm rounded-lg border border-gray-800/30 shadow-xl overflow-hidden">
-              <div className="p-4">
-                <div
-                  key={activeTab} // Key ensures animation triggers on tab change
-                  className="animate-fadeIn" // Tailwind animation class
-                >
-                  {activeTab === "impact" ? (
-                    <ImpactLeaderboard
-                      subscribedHandles={subscribedHandles}
-                      subscribingHandle={subscribingHandle}
-                      onSubscribe={handleSubscribe}
-                      setRefreshData={setImpactRefreshData}
-                      searchText={searchText}
-                    />
-                  ) : (
-                    <HeartbeatDashboard
-                      subscribedHandles={subscribedHandles}
-                      subscribingHandle={subscribingHandle}
-                      onSubscribe={handleSubscribe}
-                      setRefreshData={setHeartbeatRefreshData}
-                      searchText={searchText}
-                    />
-                  )}
-                </div>
-              </div>
+          {/* Main Content Area */}
+          <div className="bg-gradient-to-br from-gray-900/80 to-gray-950/60 backdrop-blur-sm rounded-lg border border-gray-800/30 shadow-xl overflow-hidden">
+            <div className="p-4">
+            <AnalystLeaderboard
+                  mode={activeTab}
+                  subscribedHandles={subscribedHandles}
+                  subscribingHandle={subscribingHandle}
+                  onSubscribe={handleSubscribe}
+                  setRefreshData={activeTab === "impact" ? setImpactRefreshData : setHeartbeatRefreshData}
+                  searchText={searchText}
+                />
             </div>
           </div>
-        </main>
+        </div>
+      </main>
 
         <div className="px-6 py-8">
           <SocialGraph />
