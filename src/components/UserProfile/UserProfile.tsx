@@ -139,7 +139,7 @@ const UserProfile = () => {
     <div className="min-h-screen pb-[4rem]">
       <div className="py-6 md:py-12 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-center mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent font-napzerRounded">
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent font-napzerRounded">
             Your Dashboard
           </h1>
         </div>

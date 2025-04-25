@@ -146,11 +146,11 @@ const MessagePlayground = () => {
     <div className="flex flex-col min-h-screen">
       <div className="flex-grow px-6 py-6 max-w-6xl mx-auto w-full">
         <div className="mb-6 text-center">
-          <h2 className="text-xl md:text-4xl font-bold mb-2 font-sans">
+          <h1 className="text-4xl md:text-5xl font-bold mb-2">
             <span className="font-napzerRounded bg-gradient-to-b from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent">
               Signal Analyzer
             </span>
-          </h2>
+          </h1>
           <p className="text-gray-400 max-w-2xl mx-auto text-sm font-leagueSpartan">
             Analyze trading signals from Telegram messages or other sources
           </p>
