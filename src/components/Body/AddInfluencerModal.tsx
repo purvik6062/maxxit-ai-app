@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import { useCredits } from "@/context/CreditsContext";
 import { useUserData } from "@/context/UserDataContext";
 import "../../app/css/add_influencer.css";
+import { FaXTwitter } from "react-icons/fa6";
 
 interface AddInfluencerModalProps {
   isOpen: boolean;
@@ -179,28 +180,30 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center font-leagueSpartan">
+      <div className="absolute inset-0 bg-[#0E1725] backdrop-blur-sm" />
 
       <div className="relative z-10 w-full max-w-md p-6 rounded-2xl bg-gradient-to-b from-gray-800/80 to-gray-900/90 border border-gray-500/30 shadow-xl animate-fadeIn">
-        <div className="absolute -top-3 -right-3">
+        <div className="absolute top-3 right-3">
           <button
             onClick={onClose}
-            className="flex items-center justify-center w-8 h-8 rounded-full bg-red-500/20 hover:bg-red-500/50 border border-red-500/30 transition-all duration-300"
+            className="flex items-center justify-center w-5 h-5 rounded-full bg-gray-300 hover:bg-white transition-all duration-300"
           >
-            <X className="w-4 h-4 text-red-300" />
+            <X className="w-3 h-3 text-black font-bold" />
           </button>
         </div>
 
         <div className="mb-6 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-500/20 backdrop-blur-sm mb-4">
-            <FaTelegram className="text-gray-300 text-xl" />
-            <span className="text-base font-medium text-gray-300">
+          <div className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gray-500/20 backdrop-blur-sm mb-4">
+            <div className="bg-[#162037] rounded" style={{ border: "1px solid #CCD3DF99" }}>
+              <FaXTwitter className=" text-white m-1" size={12} />
+            </div>
+            <div className="flex items-center text-gray-300">
               New Influencer
-            </span>
+            </div>
           </div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-            Add Telegram Influencer
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent font-leagueSpartan">
+            Add Twitter Influencer
           </h2>
           <p className="text-gray-300 mt-2">
             Add a new influencer to track their trading tweets
@@ -213,35 +216,34 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
               Twitter Username
             </label>
             <div className="relative">
-              <MessageSquare className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300 w-5 h-5" />
               <input
                 type="text"
                 value={handle}
                 onChange={(e) => setHandle(e.target.value)}
                 placeholder="@username"
                 disabled={isSessionUserhandlePresent}
-                className={`w-full plClass pr-4 py-3 rounded-lg bg-gray-700/20 border borderCss focus:border-gray-400 focus:ring-1 focus:ring-gray-400 text-white placeholder-slate-500 outline-none transition-all duration-300 ${
-                  isSessionUserhandlePresent
-                    ? "cursor-not-allowed opacity-80"
-                    : ""
-                }`}
+                className={`w-full plClass py-3 rounded-lg bg-gray-700/20 border borderCss focus:border-gray-400 focus:ring-1 focus:ring-gray-400 text-white placeholder-slate-500 outline-none transition-all duration-300 ${isSessionUserhandlePresent
+                  ? "cursor-not-allowed opacity-80"
+                  : ""
+                  }`}
               />
               {isValidating && !isSessionUserhandlePresent && (
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                   <Loader2 className="w-5 h-5 text-gray-300 animate-spin" />
                 </div>
               )}
+              <MessageSquare className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-300 w-5 h-5" />
             </div>
             {handleError && !isSessionUserhandlePresent && (
               <p className="text-red-400 text-sm">{handleError}</p>
             )}
           </div>
 
-          <div className="pt-2">
+          <div className="w-full pt-2 flex items-center justify-center">
             <button
               type="submit"
               disabled={isSubmitting || isValidating}
-              className="w-full py-3 px-4 rounded-lg bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white font-medium transition-all duration-300 flex items-center justify-center gap-2 group disabled:opacity-70"
+              className="py-3 px-4 rounded-full bg-gradient-to-b from-[#E1EAF9] to-[#99BEF7] hover:scale-101 text-[#393B49] font-medium transition-all duration-300 flex items-center justify-center gap-2 group disabled:opacity-70"
             >
               {isSubmitting ? (
                 <>

@@ -15,7 +15,7 @@ export default function RedeemCreditsPage() {
       credits: 100,
       frequency: "monthly",
       icon: FaXTwitter,
-      action: "https://x.com/your-account",
+      action: "https://x.com/MaxxitAI",
     },
     {
       id: 2,
@@ -25,12 +25,12 @@ export default function RedeemCreditsPage() {
       credits: 100,
       frequency: "monthly",
       icon: Repeat2,
-      action: "https://x.com/your-account/tweet-id",
+      action: "https://x.com/MaxxitAI",
     },
   ]);
 
   return (
-    <div className="font-leagueSpartan min-h-screen bg-[#0e111a] bg-opacity-90 py-12 px-4 ">
+    <div className="font-leagueSpartan min-h-screen bg-opacity-90 py-12 px-4 ">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4 font-napzerRounded bg-gradient-to-b from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent">

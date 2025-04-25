@@ -53,6 +53,8 @@
   inset: 0;
   z-index: 0;
   opacity: 0.4;
+  width: 100%;
+  height: 100%;
 }
 
 .overlay {
@@ -229,9 +231,10 @@ html, body {
 }
 
 body {
-  @apply bg-[#070815] text-white;
+  @apply bg-[#161b2e] text-white;
 }
-
+/* #1f263b */
+/* #161b2e */
 ::selection {
   background-color: #04c3fc;
   color: white;

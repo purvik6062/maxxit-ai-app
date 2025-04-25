@@ -9,6 +9,8 @@ import localFonts from "next/font/local";
 import MainHeader from "@/components/Global/MainHeader";
 import { useState } from "react";
 import FooterLabel from "@/components/Global/FooterLabel";
+import BackgroundComponent from "@/components/ui/BackgroundComponent";
+import { usePathname } from "next/navigation";
 // import CustomCursor from "@/components/Body/CustomCursor";
 // import ThemeProviderClient from "@/providers/ThemeProviderClient";
 
@@ -34,6 +36,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const [searchText, setSearchText] = useState("");
+  const pathname = usePathname();
+
   return (
     <html lang="en">
       <title>Maxxit | App</title>
@@ -50,11 +54,19 @@ export default function RootLayout({
             refetchOnWindowFocus={false}
           >
             <CreditsProvider>
-              <Header searchText={searchText} setSearchText={setSearchText} />
-              <main>{children}</main>
-              {/* <CustomCursor /> */}
-              <FooterLabel />
-              <Footer />
+              <div className="relative isolate overflow-hidden">
+                {pathname !== "/" && (
+                  <div className="absolute inset-0 -z-10">
+                    <BackgroundComponent />
+                  </div>
+                )}
+                <Header searchText={searchText} setSearchText={setSearchText} />
+                <main>{children}</main>
+                {/* <CustomCursor /> */}
+                <FooterLabel />
+                <Footer />
+              </div>
+
             </CreditsProvider>
           </SessionProvider>
           {/* </ThemeProviderClient> */}

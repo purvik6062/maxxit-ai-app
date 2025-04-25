@@ -86,7 +86,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
 }) => {
   if (isMobile) {
     return (
-      <div className="relative">
+      <div className="relative font-leagueSpartan">
         <input
           type="text"
           placeholder="Search accounts..."
@@ -109,14 +109,14 @@ const SearchInput: React.FC<SearchInputProps> = ({
 
   if (showSearchInput) {
     return (
-      <div className="relative flex items-center rounded-full transition-all duration-300">
+      <div className="relative flex items-center rounded-full transition-all duration-300 font-leagueSpartan">
         <input
           id="search-input"
           type="text"
-          placeholder="Search accounts..."
+          placeholder="Search accounts"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          className="w-full px-4 py-2 rounded-full text-white"
+          className="w-full !placeholder:font-leagueSpartan placeholder:text-sm !border-none !outline-none px-4 py-2 rounded-full text-white "
         />
         <div className="absolute right-3 flex space-x-2">
           {searchText && (
@@ -428,6 +428,8 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
                 isActive={activeLink === item.id}
               />
             ))}
+
+            <span>|</span>
 
             {/* Search icon and input inside navbar - Desktop */}
             <div className="ml-2 mr-2 relative">

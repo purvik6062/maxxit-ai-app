@@ -12,7 +12,7 @@ import UserSignals from "./UserSignals";
 
 // Reusable UI components for different states
 const LoadingState = () => (
-  <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
+  <div className="min-h-screen flex items-center justify-center">
     <div className="text-center">
       <Loader2 className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
       <p className="text-gray-300">Loading profile...</p>
@@ -21,8 +21,8 @@ const LoadingState = () => (
 );
 
 const ErrorState = ({ message }: { message: string }) => (
-  <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
-    <div className="bg-red-900/50 text-red-100 p-6 rounded-lg max-w-md text-center">
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="bg-red-900 text-red-100 p-6 rounded-lg max-w-md text-center">
       <h2 className="text-xl font-bold mb-2">Error</h2>
       <p>{message}</p>
     </div>
@@ -30,7 +30,7 @@ const ErrorState = ({ message }: { message: string }) => (
 );
 
 const EmptyState = ({ title, message }: { title: string; message: string }) => (
-  <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
+  <div className="min-h-screen flex items-center justify-center">
     <div className="bg-blue-900/50 text-yellow-100 p-6 rounded-lg max-w-md text-center">
       <h2 className="text-xl font-bold mb-2 text-white">{title}</h2>
       <p>{message}</p>
@@ -136,10 +136,10 @@ const UserProfile = () => {
     );
 
   return (
-    <div className="min-h-screen bg-[#0b1016] pb-[4rem]">
+    <div className="min-h-screen pb-[4rem]">
       <div className="py-6 md:py-12 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-center mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent font-napzerRounded">
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent font-napzerRounded">
             Your Dashboard
           </h1>
         </div>
@@ -162,31 +162,28 @@ const UserProfile = () => {
                 <div className="grid grid-cols-3 w-full">
                   <button
                     onClick={() => setActiveSection("subscriptions")}
-                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all ${
-                      activeSection === "subscriptions"
+                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all ${activeSection === "subscriptions"
                         ? "bg-[#1a2234] text-white font-medium shadow-inner"
                         : "text-[#8ba1bc] hover:text-white"
-                    }`}
+                      }`}
                   >
                     Subscriptions
                   </button>
                   <button
                     onClick={() => setActiveSection("signals")}
-                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all mx-1 ${
-                      activeSection === "signals"
+                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all mx-1 ${activeSection === "signals"
                         ? "bg-[#1a2234] text-white font-medium shadow-inner"
                         : "text-[#8ba1bc] hover:text-white"
-                    }`}
+                      }`}
                   >
                     Signals
                   </button>
                   <button
                     onClick={() => setActiveSection("api")}
-                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all ${
-                      activeSection === "api"
+                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all ${activeSection === "api"
                         ? "bg-[#1a2234] text-white font-medium shadow-inner"
                         : "text-[#8ba1bc] hover:text-white"
-                    }`}
+                      }`}
                   >
                     API Access
                   </button>

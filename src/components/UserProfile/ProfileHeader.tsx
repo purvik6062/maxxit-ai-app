@@ -24,7 +24,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
   };
 
   const containerBorderStyle: React.CSSProperties = {
-    border: '1px solid #f2f5fa',
+    border: '1px solid #818791',
   };
 
   const avatarBorderStyle: React.CSSProperties = {
@@ -36,7 +36,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
   };
 
   return (
-    <div className="bg-[#0b1016] p-4 md:p-6 mb-6 h-fit rounded-lg shadow-xl" style={containerBorderStyle}>
+    <div className="bg-[#0b1016] p-4 md:p-6 mb-6 h-fit rounded-2xl shadow-xl" style={containerBorderStyle}>
       <div className="flex flex-col items-center space-y-4 md:space-y-6">
         {/* Avatar container */}
         <div className="bg-[#1a1f29] p-4 md:p-5 rounded-md" style={avatarBorderStyle}>

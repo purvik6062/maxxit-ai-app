@@ -66,7 +66,7 @@ export default function PricingSection() {
   ];
 
   return (
-    <section className="py-20 px-6 bg-[#020617] font-leagueSpartan">
+    <section className="py-20 px-6 font-leagueSpartan">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">

@@ -452,7 +452,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
   // Render loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center font-sans relative overflow-hidden">
+      <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center relative overflow-hidden">
         <canvas ref={canvasRef} className="canvas-background" />
         <div className="starfield relative">
           <div className="overlay" />
@@ -486,7 +486,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
   // Render error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center font-sans relative overflow-hidden">
+      <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center relative overflow-hidden">
         <canvas ref={canvasRef} className="canvas-background" />
         <div className="starfield relative">
           <div className="overlay" />
