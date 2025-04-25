@@ -126,7 +126,7 @@ export default function Influencer() {
               {/* Profile Image Container */}
               <div className="relative">
                 <img
-                  src={session.user?.image || "/default-avatar.png"}
+                  src={session.user?.image.replace(/_normal(?=\.(jpg|jpeg|png|gif|webp))/i, "") || "/default-avatar.png"}
                   alt={`${session.user?.name}'s profile`}
                   className="relative w-28 h-28 rounded-full border-4 border-white shadow-lg mb-6 object-cover transform transition-all duration-500 hover:scale-110"
                 />
