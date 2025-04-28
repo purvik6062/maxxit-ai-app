@@ -10,7 +10,7 @@ export default function PricingSection() {
       price: 0,
       description: "",
       features: [
-        { name: "Upto 200 Credits Every Month", included: true },
+        { name: "Upto 500 Credits Every Month", included: true },
         { name: "Access to all basic features", included: true },
         { name: "Email support", included: true },
         { name: "7-day history", included: true },

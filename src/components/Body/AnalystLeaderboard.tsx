@@ -22,6 +22,8 @@ import {
   Shield,
   Users,
   Info,
+  X,
+  Search,
 } from "lucide-react";
 import { LuWandSparkles } from "react-icons/lu";
 import { RiPulseLine } from "react-icons/ri";
@@ -85,6 +87,21 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [userSortField, setUserSortField] = useState<SortField | null>(null);
   const router = useRouter();
+  
+  // This function will be used in the search input
+  const [localSearchText, setLocalSearchText] = useState(searchText);
+  
+  // In App Router, we need a different approach to update the URL
+  const handleSearchChange = (value: string) => {
+    setLocalSearchText(value);
+    // We would typically update URL params here, but for now we'll just use local state
+    // The parent component should be responsible for updating the URL if needed
+  };
+
+  // Keep localSearchText in sync with props.searchText
+  useEffect(() => {
+    setLocalSearchText(searchText);
+  }, [searchText]);
 
   const { agents, loadingUmd, error, refreshData } = useUserData();
 
@@ -159,12 +176,12 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
   );
 
   const getSortedAndFilteredAgents = () => {
-    const filtered = searchText
+    const filtered = localSearchText
       ? agents.filter(
-        (agent) =>
-          agent.name.toLowerCase().includes(searchText.toLowerCase()) ||
-          agent.twitterHandle.toLowerCase().includes(searchText.toLowerCase())
-      )
+          (agent) =>
+            agent.name.toLowerCase().includes(localSearchText.toLowerCase()) ||
+            agent.twitterHandle.toLowerCase().includes(localSearchText.toLowerCase())
+        )
       : agents;
 
     return [...filtered].sort((a, b) => {
@@ -292,16 +309,41 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
   }
 
   return (
-    <div ref={container} className="px-2 sm:px-4">
-      <div className="mb-4">
-        <div className="flex items-center gap-2 mb-1">
-          {React.createElement(primaryIcon, {
-            size: 16,
-            className: "text-blue-400",
-          })}
-          <h2 className="text-base sm:text-lg font-bold text-white">{title}</h2>
+    <div ref={container}>
+      <div className="mb-4 flex flex-col sm:flex-row justify-between items-start gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            {React.createElement(primaryIcon, {
+              size: 18,
+              className: "text-blue-400",
+            })}
+            <h2 className="text-lg font-bold text-white">{title}</h2>
+          </div>
+          <p className="text-sm text-slate-400">{description}</p>
         </div>
-        <p className="text-xs sm:text-sm text-slate-400">{description}</p>
+        
+        <div className="w-full sm:w-auto min-w-[280px]">
+          <div className="relative font-leagueSpartan">
+            <div className="flex items-center bg-gray-800 rounded-full border border-solid border-gray-200 focus-within:border-blue-500 overflow-hidden">
+              <input
+                type="text"
+                placeholder="Search analysts..."
+                value={localSearchText}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="w-full px-4 py-2 text-white text-sm bg-transparent focus:outline-none border border-solid border-gray-100"
+              />
+              <div className="px-3 flex">
+                {localSearchText ? (
+                  <button onClick={() => handleSearchChange("")} className="text-gray-400 hover:text-red-400">
+                    <X className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <Search className="text-gray-400 w-4 h-4" />
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="p-2 sm:p-3 mb-4 bg-gray-900/50 rounded-lg border border-gray-800/50">
@@ -531,7 +573,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                                 <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-cyan-500"></div>
                                 <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-cyan-500/70 absolute animate-ping"></div>
                               </div>
-                              <p className="text-[8px] sm:text-[10px] lg:text-xs text-cyan-400 uppercase tracking-wider font-medium">
+                              <p className="text-xs text-cyan-400 uppercase tracking-wider font-medium mt-[3px]">
                                 Mindshare
                               </p>
                             </div>
@@ -552,7 +594,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                                 <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-purple-500"></div>
                                 <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-purple-500/70 absolute animate-ping"></div>
                               </div>
-                              <p className="text-[8px] sm:text-[10px] lg:text-xs text-purple-400 uppercase tracking-wider font-medium">
+                              <p className="text-xs text-purple-400 uppercase tracking-wider font-medium mt-[3px]">
                                 Followers
                               </p>
                             </div>

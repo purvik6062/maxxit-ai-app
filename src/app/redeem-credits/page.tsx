@@ -13,7 +13,7 @@ export default function RedeemCreditsPage() {
       description:
         "Follow our X account to stay updated with the latest features and updates",
       credits: 100,
-      frequency: "monthly",
+      frequency: "weekly",
       icon: FaXTwitter,
       action: "https://x.com/MaxxitAI",
     },
@@ -23,7 +23,7 @@ export default function RedeemCreditsPage() {
       description:
         "Retweet our weekly top performers cluster to help spread the word",
       credits: 100,
-      frequency: "monthly",
+      frequency: "weekly",
       icon: Repeat2,
       action: "https://x.com/MaxxitAI",
     },
@@ -34,10 +34,10 @@ export default function RedeemCreditsPage() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4 font-napzerRounded bg-gradient-to-b from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent">
-            Earn Free Credits Monthly
+            Earn Free Credits weekly
           </h1>
           <p className="text-white text-base max-w-2xl mx-auto">
-            Complete these simple tasks to earn free credits every month. It's
+            Complete these simple tasks to earn free credits every week. It's
             our way of saying thank you for supporting our community!
           </p>
         </div>
@@ -89,10 +89,10 @@ export default function RedeemCreditsPage() {
           </h3>
           <div className="space-y-4 text-white">
             <p>
-              • Complete the tasks above to start earning free credits every month
+              • Complete the tasks above to start earning free credits every week
             </p>
             <p>
-              • Credits are automatically added to your account every month
+              • Credits are automatically added to your account every week
             </p>
             <p>• You can track your credits in your account dashboard</p>
           </div>
