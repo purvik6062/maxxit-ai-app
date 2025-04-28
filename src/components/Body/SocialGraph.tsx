@@ -374,11 +374,11 @@ export default function SubscribedAccountsPage() {
         edges: {
           smooth: isPlayable
             ? {
-                enabled: true,
-                type: "continuous",
-                forceDirection: "none",
-                roundness: 0.5,
-              }
+              enabled: true,
+              type: "continuous",
+              forceDirection: "none",
+              roundness: 0.5,
+            }
             : false,
           selectionWidth: 3,
           shadow: {
@@ -505,42 +505,42 @@ export default function SubscribedAccountsPage() {
           }
         } else {
           // Apply shadow effect to connected nodes every 3 seconds
-        const surroundingNodeIds = graphData.nodes
-        .filter((node) => node.id !== session.user.id)
-        .map((node) => node.id);
+          const surroundingNodeIds = graphData.nodes
+            .filter((node) => node.id !== session.user.id)
+            .map((node) => node.id);
 
-      if (surroundingNodeIds.length > 0 && nodesDataSet.current) {
-        shadowInterval = setInterval(() => {
-          surroundingNodeIds.forEach((nodeId) => {
-            nodesDataSet.current.update({
-              id: nodeId,
-              shadow: {
-                enabled: true,
-                color: stringToColor(nodeId),
-                size: 70,
-                x: 0,
-                y: 0,
-              },
-            });
-          });
-
-          // Reset shadow after 1.5 seconds to create a pulsing effect
-          setTimeout(() => {
-            surroundingNodeIds.forEach((nodeId) => {
-              nodesDataSet.current.update({
-                id: nodeId,
-                shadow: {
-                  enabled: true,
-                  color: "rgba(0,0,0,0.5)",
-                  size: 10,
-                  x: 0,
-                  y: 0,
-                },
+          if (surroundingNodeIds.length > 0 && nodesDataSet.current) {
+            shadowInterval = setInterval(() => {
+              surroundingNodeIds.forEach((nodeId) => {
+                nodesDataSet.current.update({
+                  id: nodeId,
+                  shadow: {
+                    enabled: true,
+                    color: stringToColor(nodeId),
+                    size: 70,
+                    x: 0,
+                    y: 0,
+                  },
+                });
               });
-            });
-          }, 2500);
-        }, 5000);
-      }
+
+              // Reset shadow after 1.5 seconds to create a pulsing effect
+              setTimeout(() => {
+                surroundingNodeIds.forEach((nodeId) => {
+                  nodesDataSet.current.update({
+                    id: nodeId,
+                    shadow: {
+                      enabled: true,
+                      color: "rgba(0,0,0,0.5)",
+                      size: 10,
+                      x: 0,
+                      y: 0,
+                    },
+                  });
+                });
+              }, 2500);
+            }, 5000);
+          }
         }
       });
     }
@@ -583,7 +583,7 @@ export default function SubscribedAccountsPage() {
   };
 
   return (
-    <div className="min-h-screen text-white flex flex-col bg-transparent items-center justify-center p-8 relative overflow-hidden">
+    <div className="min-h-screen text-white flex flex-col bg-transparent items-center justify-center relative overflow-hidden">
       {/* Background Particles */}
       <div
         className="absolute inset-0 pointer-events-none animate-pulse-drift"
@@ -606,14 +606,12 @@ export default function SubscribedAccountsPage() {
             </span>
             <button
               onClick={() => setIsPlayable(!isPlayable)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                isPlayable ? "bg-blue-500" : "bg-gray-600"
-              }`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isPlayable ? "bg-blue-500" : "bg-gray-600"
+                }`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  isPlayable ? "translate-x-6" : "translate-x-1"
-                }`}
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isPlayable ? "translate-x-6" : "translate-x-1"
+                  }`}
               />
             </button>
             <span className="text-sm text-gray-300 font-medium">Play Mode</span>
@@ -652,28 +650,42 @@ export default function SubscribedAccountsPage() {
                   }}
                 >
                   {/* Controls overlay */}
-                  <div className="absolute top-4 left-4 bg-[#323442]/10 backdrop-blur-md p-2 rounded-lg shadow-lg z-10 border border-gray-800 flex space-x-2">
-                    <button
-                      onClick={handleZoomIn}
-                      className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-800/70 hover:bg-gray-700 transition-colors"
-                      title="Zoom In"
-                    >
-                      <span className="text-lg">+</span>
-                    </button>
-                    <button
-                      onClick={handleZoomOut}
-                      className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-800/70 hover:bg-gray-700 transition-colors"
-                      title="Zoom Out"
-                    >
-                      <span className="text-lg">-</span>
-                    </button>
-                    <button
-                      onClick={handleFitNetwork}
-                      className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-800/70 hover:bg-gray-700 transition-colors"
-                      title="Fit View"
-                    >
-                      <span className="text-sm">⤢</span>
-                    </button>
+                  <div className="flex justify-between items-center p-4">
+                    <div className="flex gap-2 w-fit text-sm sm:text-base top-4 left-4 bg-[#323442]/10 backdrop-blur-md p-2 rounded-lg shadow-lg z-10 border border-gray-800">
+                      <button
+                        onClick={handleZoomIn}
+                        className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-800/70 hover:bg-gray-700 transition-colors"
+                        title="Zoom In"
+                      >
+                        <span className="text-lg">+</span>
+                      </button>
+                      <button
+                        onClick={handleZoomOut}
+                        className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-800/70 hover:bg-gray-700 transition-colors"
+                        title="Zoom Out"
+                      >
+                        <span className="text-lg">-</span>
+                      </button>
+                      <button
+                        onClick={handleFitNetwork}
+                        className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-800/70 hover:bg-gray-700 transition-colors"
+                        title="Fit View"
+                      >
+                        <span className="text-sm">⤢</span>
+                      </button>
+                    </div>
+                    <div className="bg-[#323442]/10 px-4 py-2 rounded-full shadow-lg border border-gray-800">
+                      <p className="text-gray-300 font-semibold flex items-center text-sm sm:text-base">
+                        <span className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
+                        {graphData.nodes.length > 1 ? (
+                          <span >
+                            {graphData.nodes.length - 1} Connected Accounts
+                          </span>
+                        ) : (
+                          <span>No connections</span>
+                        )}
+                      </p>
+                    </div>
                   </div>
 
                   {/* Network legend - styled with dark theme */}
@@ -705,19 +717,7 @@ export default function SubscribedAccountsPage() {
                   </div>
                 </div>
 
-                {/* Connection count pill */}
-                <div className="absolute top-4 right-4 z-10 bg-[#323442]/10 px-4 py-2 rounded-full shadow-lg border border-gray-800">
-                  <p className="text-gray-300 font-semibold flex items-center">
-                    <span className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
-                    {graphData.nodes.length > 1 ? (
-                      <span>
-                        {graphData.nodes.length - 1} Connected Accounts
-                      </span>
-                    ) : (
-                      <span>No connections</span>
-                    )}
-                  </p>
-                </div>
+
               </div>
 
               {/* Selected node info card with dark effect */}

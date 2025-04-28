@@ -413,6 +413,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
     let animationFrameId: number;
     const isMobile = window.innerWidth <= 768;
     const animateCarousel = () => {
+      setRotation((prev) => prev + (isMobile ? 0.2 : 0.3));
       animationFrameId = requestAnimationFrame(animateCarousel);
     };
     animateCarousel();

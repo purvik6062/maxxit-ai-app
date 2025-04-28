@@ -152,7 +152,8 @@ export default {
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "footer-background": "url('../assets/images/footer/footer-bg.svg')",
+        "footer": "url('../assets/images/footer/footer-bg.svg')",
+        "profile-header": "url('../assets/images/profile/header-bg.svg')",
       },
       scale: {
         95: "0.95",
