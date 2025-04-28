@@ -52,7 +52,7 @@ export default function SubscribedAccountsPage() {
   const networkInstance = useRef<Network | null>(null);
   const nodesDataSet = useRef<DataSet<any> | null>(null);
   const edgesDataSet = useRef<DataSet<any> | null>(null);
-  const animationRef = useRef<number | null>(null); // For tracking animations
+  const animationRef = useRef<number | null>(null);
   const { credits } = useCredits();
   const [showTooltip, setShowTooltip] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -149,7 +149,6 @@ export default function SubscribedAccountsPage() {
     fetchSubscribedAccounts();
   }, [session?.user?.id, credits, isPlayable]);
 
-  // Clean up animations when unmounting or when data changes
   useEffect(() => {
     return () => {
       if (animationRef.current) {
@@ -160,30 +159,80 @@ export default function SubscribedAccountsPage() {
   }, [credits, isPlayable]);
 
   const startSignalAnimation = (centralPos, surroundingNodeIds, positions) => {
-    // Cancel any existing animation
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
       animationRef.current = null;
     }
 
-    // Create temporary nodes for the signals - one for each surrounding node
+    // Apply initial glow effect to surrounding nodes
+    surroundingNodeIds.forEach((nodeId) => {
+      if (nodesDataSet.current) {
+        nodesDataSet.current.update({
+          id: nodeId,
+          shadow: {
+            enabled: true,
+            color: stringToColor(nodeId),
+            size: 70,
+            x: 0,
+            y: 0,
+          },
+        });
+      }
+    });
+
+    // Get central node data
+    const centralNodeData = nodesDataSet.current.get(session.user.id);
+    const centralRadius = centralNodeData.size; // Size is radius in vis.js for circular shapes
+
+    // Create or update temporary nodes
     const tempNodeIds = surroundingNodeIds.map((nodeId, index) => {
       const tempNodeId = `temp-${index}`;
-      // Check if the temp node already exists
+      const nodePos = positions[nodeId];
+      const nodeData = nodesDataSet.current.get(nodeId);
+      const nodeRadius = nodeData.size; // Size is radius
+
+      // Calculate direction vector D
+      const D_x = centralPos.x - nodePos.x;
+      const D_y = centralPos.y - nodePos.y;
+      const d = Math.sqrt(D_x * D_x + D_y * D_y);
+
+      let startX, startY, endX, endY;
+      if (d > 0) {
+        // Start position: edge of surrounding node towards central node
+        startX = nodePos.x + (D_x / d) * nodeRadius;
+        startY = nodePos.y + (D_y / d) * nodeRadius;
+        // End position: edge of central node towards surrounding node
+        endX = centralPos.x - (D_x / d) * centralRadius;
+        endY = centralPos.y - (D_y / d) * centralRadius;
+      } else {
+        // Fallback for co-located nodes (unlikely)
+        startX = nodePos.x;
+        startY = nodePos.y;
+        endX = centralPos.x;
+        endY = centralPos.y;
+      }
+
+      // Add or update temp node with start and end positions
       if (nodesDataSet.current.get(tempNodeId)) {
-        // Just update its position
         nodesDataSet.current.update({
           id: tempNodeId,
-          x: centralPos.x,
-          y: centralPos.y,
+          x: startX,
+          y: startY,
+          startX: startX,
+          startY: startY,
+          endX: endX,
+          endY: endY,
           hidden: false,
         });
       } else {
-        // Create new temp node
         nodesDataSet.current.add({
           id: tempNodeId,
-          x: centralPos.x,
-          y: centralPos.y,
+          x: startX,
+          y: startY,
+          startX: startX,
+          startY: startY,
+          endX: endX,
+          endY: endY,
           label: "",
           size: 5,
           color: stringToColor(nodeId),
@@ -210,14 +259,12 @@ export default function SubscribedAccountsPage() {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / animationDuration, 1);
 
-      // Update temporary node positions to simulate signal movement
-      surroundingNodeIds.forEach((nodeId, index) => {
-        const targetPos = positions[nodeId];
-        if (targetPos && nodesDataSet.current) {
-          const tempNodeId = tempNodeIds[index];
-          const newX = centralPos.x + (targetPos.x - centralPos.x) * progress;
-          const newY = centralPos.y + (targetPos.y - centralPos.y) * progress;
-
+      // Update temporary node positions
+      tempNodeIds.forEach((tempNodeId) => {
+        const tempNode = nodesDataSet.current.get(tempNodeId);
+        if (tempNode) {
+          const newX = tempNode.startX + (tempNode.endX - tempNode.startX) * progress;
+          const newY = tempNode.startY + (tempNode.endY - tempNode.startY) * progress;
           nodesDataSet.current.update({
             id: tempNodeId,
             x: newX,
@@ -227,38 +274,19 @@ export default function SubscribedAccountsPage() {
       });
 
       if (progress < 1) {
-        // Continue animation
         animationRef.current = requestAnimationFrame(animate);
       } else {
-        // Signal has reached all nodes, hide temp nodes and trigger glow effect
+        // Hide temp nodes instantly at the edge
         tempNodeIds.forEach((tempNodeId) => {
-          if (nodesDataSet.current) {
-            nodesDataSet.current.update({
-              id: tempNodeId,
-              hidden: true,
-            });
-          }
+          nodesDataSet.current.update({
+            id: tempNodeId,
+            hidden: true,
+          });
         });
 
-        // Apply glow effect to destination nodes
-        surroundingNodeIds.forEach((nodeId) => {
-          if (nodesDataSet.current) {
-            nodesDataSet.current.update({
-              id: nodeId,
-              shadow: {
-                enabled: true,
-                color: stringToColor(nodeId),
-                size: 70, // Larger glow
-                x: 0,
-                y: 0,
-              },
-            });
-          }
-        });
-
-        // After a delay, reset glow and restart animation
+        // Reset and restart after delay
         setTimeout(() => {
-          // Reset node shadows to normal
+          // Reset surrounding nodes shadow
           surroundingNodeIds.forEach((nodeId) => {
             if (nodesDataSet.current) {
               nodesDataSet.current.update({
@@ -274,40 +302,52 @@ export default function SubscribedAccountsPage() {
             }
           });
 
-          // Reset and show temporary nodes at central position
+          // Reset temp nodes to starting positions
           tempNodeIds.forEach((tempNodeId) => {
-            if (nodesDataSet.current) {
+            const tempNode = nodesDataSet.current.get(tempNodeId);
+            if (tempNode) {
               nodesDataSet.current.update({
                 id: tempNodeId,
-                x: centralPos.x,
-                y: centralPos.y,
+                x: tempNode.startX,
+                y: tempNode.startY,
                 hidden: false,
               });
             }
           });
 
-          // Restart animation cycle
+          // Reapply glow effect
+          surroundingNodeIds.forEach((nodeId) => {
+            if (nodesDataSet.current) {
+              nodesDataSet.current.update({
+                id: nodeId,
+                shadow: {
+                  enabled: true,
+                  color: stringToColor(nodeId),
+                  size: 70,
+                  x: 0,
+                  y: 0,
+                },
+              });
+            }
+          });
+
+          // Restart animation
           startTime = Date.now();
           animationRef.current = requestAnimationFrame(animate);
-        }, 1000); // Glow effect lasts for 1 second
+        }, 1000);
       }
     };
 
-    // Start the animation
     animationRef.current = requestAnimationFrame(animate);
   };
 
-  // Add central node pulse animation
   const startCentralPulse = (centralNodeId) => {
     let start = Date.now();
-    const duration = 2000; // one full breath cycle in ms
+    const duration = 2000;
 
     const animatePulse = () => {
       const elapsed = Date.now() - start;
-      // Normalize sine wave from -1→1 to 0→1
       const t = (Math.sin((elapsed / duration) * 2 * Math.PI) + 1) / 2;
-
-      // Map t to shadow size and borderWidth
       const shadowSize = 10 + t * 50;
       const borderWidth = 2 + t * 4;
 
@@ -333,7 +373,6 @@ export default function SubscribedAccountsPage() {
 
   useEffect(() => {
     if (networkRef.current && graphData.nodes.length > 0) {
-      // Clean up existing instances if any
       if (networkInstance.current) {
         networkInstance.current.destroy();
         networkInstance.current = null;
@@ -486,15 +525,11 @@ export default function SubscribedAccountsPage() {
 
         networkInstance.current.setOptions({ physics: isPlayable });
 
-        // Get positions of all nodes
         const positions = networkInstance.current.getPositions();
         const centralNodeId = session.user.id;
         const centralPos = positions[centralNodeId];
 
         if (!isPlayable) {
-          // Only run animations in non-playable mode
-          const positions = networkInstance.current.getPositions();
-          const centralNodeId = session.user.id;
           const surroundingNodeIds = graphData.nodes
             .filter((node) => node.id !== centralNodeId)
             .map((node) => node.id);
@@ -504,43 +539,41 @@ export default function SubscribedAccountsPage() {
             startCentralPulse(centralNodeId);
           }
         } else {
-          // Apply shadow effect to connected nodes every 3 seconds
-        const surroundingNodeIds = graphData.nodes
-        .filter((node) => node.id !== session.user.id)
-        .map((node) => node.id);
+          const surroundingNodeIds = graphData.nodes
+            .filter((node) => node.id !== session.user.id)
+            .map((node) => node.id);
 
-      if (surroundingNodeIds.length > 0 && nodesDataSet.current) {
-        shadowInterval = setInterval(() => {
-          surroundingNodeIds.forEach((nodeId) => {
-            nodesDataSet.current.update({
-              id: nodeId,
-              shadow: {
-                enabled: true,
-                color: stringToColor(nodeId),
-                size: 70,
-                x: 0,
-                y: 0,
-              },
-            });
-          });
+          if (surroundingNodeIds.length > 0 && nodesDataSet.current) {
+            // shadowInterval = setInterval(() => {
+            //   surroundingNodeIds.forEach((nodeId) => {
+            //     nodesDataSet.current.update({
+            //       id: nodeId,
+            //       shadow: {
+            //         enabled: true,
+            //         color: stringToColor(nodeId),
+            //         size: 70,
+            //         x: 0,
+            //         y: 0,
+            //       },
+            //     });
+            //   });
 
-          // Reset shadow after 1.5 seconds to create a pulsing effect
-          setTimeout(() => {
-            surroundingNodeIds.forEach((nodeId) => {
-              nodesDataSet.current.update({
-                id: nodeId,
-                shadow: {
-                  enabled: true,
-                  color: "rgba(0,0,0,0.5)",
-                  size: 10,
-                  x: 0,
-                  y: 0,
-                },
-              });
-            });
-          }, 2500);
-        }, 5000);
-      }
+            //   setTimeout(() => {
+            //     surroundingNodeIds.forEach((nodeId) => {
+            //       nodesDataSet.current.update({
+            //         id: nodeId,
+            //         shadow: {
+            //           enabled: true,
+            //           color: "rgba(0,0,0,0.5)",
+            //           size: 10,
+            //           x: 0,
+            //           y: 0,
+            //         },
+            //       });
+            //     });
+            //   }, 2500);
+            // }, 5000);
+          }
         }
       });
     }
@@ -550,7 +583,6 @@ export default function SubscribedAccountsPage() {
         cancelAnimationFrame(animationRef.current);
         animationRef.current = null;
       }
-
       if (networkInstance.current) {
         networkInstance.current.destroy();
         networkInstance.current = null;
@@ -584,7 +616,6 @@ export default function SubscribedAccountsPage() {
 
   return (
     <div className="min-h-screen text-white flex flex-col bg-transparent items-center justify-center p-8 relative overflow-hidden">
-      {/* Background Particles */}
       <div
         className="absolute inset-0 pointer-events-none animate-pulse-drift"
         style={{
@@ -593,9 +624,7 @@ export default function SubscribedAccountsPage() {
         }}
       />
 
-      {/* Main content */}
       <div className="w-full max-w-7xl z-10 relative p-4">
-        {/* Header with glowing effect */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
             Your Network
@@ -643,7 +672,6 @@ export default function SubscribedAccountsPage() {
           <div className="w-full flex flex-col items-center">
             <div className="w-full">
               <div className="relative w-full">
-                {/* Network container with glass effect */}
                 <div
                   className="w-full rounded-xl overflow-hidden bg-[#323442]/10 backdrop-blur-lg border border-gray-800 shadow-2xl"
                   style={{
@@ -651,7 +679,6 @@ export default function SubscribedAccountsPage() {
                       "inset 0 0 25px rgba(55, 65, 81, 0.6), 0 0 20px rgba(55, 65, 81, 0.5)",
                   }}
                 >
-                  {/* Controls overlay */}
                   <div className="absolute top-4 left-4 bg-[#323442]/10 backdrop-blur-md p-2 rounded-lg shadow-lg z-10 border border-gray-800 flex space-x-2">
                     <button
                       onClick={handleZoomIn}
@@ -676,7 +703,6 @@ export default function SubscribedAccountsPage() {
                     </button>
                   </div>
 
-                  {/* Network legend - styled with dark theme */}
                   <div className="absolute bottom-4 right-4 bg-gradient-to-r from-gray-900 to-gray-900 p-4 rounded-lg shadow-lg text-sm transform transition-all duration-300 hover:scale-105">
                     <p className="font-semibold text-blue-200 mb-2">
                       Network Legend
@@ -691,13 +717,11 @@ export default function SubscribedAccountsPage() {
                     </div>
                   </div>
 
-                  {/* The network graph */}
                   <div
                     ref={networkRef}
                     className="w-full h-[680px] overflow-hidden"
                   />
 
-                  {/* Hover Instruction */}
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                     <p className="bg-[#323442]/10 bg-opacity-70 px-4 py-2 rounded-lg text-gray-300 text-sm md:text-base shadow-md">
                       Drag to explore | Click nodes to visit profiles
@@ -705,7 +729,6 @@ export default function SubscribedAccountsPage() {
                   </div>
                 </div>
 
-                {/* Connection count pill */}
                 <div className="absolute top-4 right-4 z-10 bg-[#323442]/10 px-4 py-2 rounded-full shadow-lg border border-gray-800">
                   <p className="text-gray-300 font-semibold flex items-center">
                     <span className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
@@ -720,7 +743,6 @@ export default function SubscribedAccountsPage() {
                 </div>
               </div>
 
-              {/* Selected node info card with dark effect */}
               {selectedNode &&
                 selectedNode !== session.user.id &&
                 selectedNode !== "current-user" && (
@@ -741,7 +763,6 @@ export default function SubscribedAccountsPage() {
         )}
       </div>
 
-      {/* Custom CSS for Animations */}
       <style jsx>{`
         @keyframes pulse {
           0%,
