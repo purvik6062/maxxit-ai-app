@@ -160,7 +160,7 @@ const HomePage: React.FC = () => {
       </div>
 
       <UserDataProvider>
-        <main className="flex-grow px-6 py-6 max-w-6xl mx-auto w-full">
+        <main className="flex-grow px-6 py-6 max-w-7xl mx-auto w-full">
           <div className="mb-6 text-center mt-16">
             <h2 className="text-xl md:text-2xl font-bold text-white mb-2">
               <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
@@ -190,10 +190,10 @@ const HomePage: React.FC = () => {
               </button>
             </div>
 
-          {/* Main Content Area */}
-          <div className="bg-gradient-to-br from-gray-900/80 to-gray-950/60 backdrop-blur-sm rounded-lg border border-gray-800/30 shadow-xl overflow-hidden">
-            <div className="p-4">
-            <AnalystLeaderboard
+            {/* Main Content Area */}
+            <div className="bg-gradient-to-br from-gray-900/80 to-gray-950/60 backdrop-blur-sm rounded-lg border border-gray-800/30 shadow-xl overflow-hidden">
+              <div className="p-4">
+                <AnalystLeaderboard
                   mode={activeTab}
                   subscribedHandles={subscribedHandles}
                   subscribingHandle={subscribingHandle}
@@ -201,10 +201,10 @@ const HomePage: React.FC = () => {
                   setRefreshData={activeTab === "impact" ? setImpactRefreshData : setHeartbeatRefreshData}
                   searchText={searchText}
                 />
+              </div>
             </div>
           </div>
-        </div>
-      </main>
+        </main>
 
         <div className="px-6 py-8">
           <SocialGraph />
