@@ -5,21 +5,36 @@ import { motion } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
-function InfluencerMetrics() {
+interface InfluencerMetricsProps {
+  influencerId?: string;
+}
+
+function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
   const params = useParams();
   const router = useRouter();
-  const id = params.id;
+  const id = influencerId || params?.id;
   const [influencer, setInfluencer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id) {
+      console.error("No influencer ID provided");
+      setError("No influencer ID provided");
+      setLoading(false);
+      return;
+    }
 
+    // Validate if the ID is possibly a valid ObjectId
+    const idString = Array.isArray(id) ? id[0] : id;
+    const isValidMongoID = /^[0-9a-fA-F]{24}$/.test(idString);
+    console.log("ID validation:", { id: idString, isValidMongoID });
+    
     const fetchInfluencer = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/get-influencer-metrics/${id}`, {
+        console.log("Fetching influencer data for ID:", idString);
+        const response = await fetch(`/api/get-influencer-metrics/${idString}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -27,18 +42,21 @@ function InfluencerMetrics() {
         });
 
         if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Error response from API:", errorData);
           throw new Error(
             response.status === 404
               ? "Influencer not found"
-              : "Failed to fetch influencer data"
+              : `Failed to fetch influencer data: ${errorData.error || response.statusText}`
           );
         }
 
         const data = await response.json();
+        console.log("Influencer data received:", data);
         setInfluencer(data);
         setError(null);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching influencer data:", error);
         setError(error.message);
       } finally {
         setLoading(false);
@@ -84,14 +102,10 @@ function InfluencerMetrics() {
   if (error) {
     return (
       <div className="max-w-6xl mx-auto p-6 md:p-8 text-center">
-        <h2 className="text-xl font-semibold text-red-500">Error</h2>
-        <p className="text-gray-400">{error}</p>
-        <button
-          onClick={() => router.refresh()}
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Retry
-        </button>
+        <p>{error}</p>
+        <h2 className="text-xl font-semibold text-blue-500">Influencer Profile</h2>
+        <p className="text-gray-400 mt-4">Your influencer profile is being set up. Please check back soon to see your metrics.</p>
+        <p className="text-gray-400 mt-2">It may take a few moments for your profile data to be processed.</p>
       </div>
     );
   }

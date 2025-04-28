@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { FaExternalLinkAlt } from "react-icons/fa";
 
 interface SignalData {
   _id: string;
@@ -20,9 +21,12 @@ interface SignalData {
     tweet_timestamp: string;
     priceAtTweet: number;
     exitValue: number | null;
+    exitPnL?: string;
+    bestStrategy?: string;
     twitterHandle: string;
     tokenMentioned: string;
     tokenId: string;
+    ipfsLink?: string;
   };
   generatedAt: string;
   subscribers: {
@@ -31,6 +35,7 @@ interface SignalData {
   }[];
   tweet_link: string;
   messageSent: boolean;
+  backtestingDone?: boolean;
 }
 
 function UserSignals({
@@ -63,7 +68,7 @@ function UserSignals({
 
       try {
         const response = await fetch(
-          `/api/get-user-signals?telegramId=${profile.telegramId}&page=${pagination.currentPage}&limit=${pagination.limit}`
+          `/api/get-user-signals?telegramId=${profile.telegramId}&page=${pagination.currentPage}&limit=${pagination.limit}&filterType=${filterType}`
         );
 
         if (!response.ok) {
@@ -92,20 +97,7 @@ function UserSignals({
     };
 
     fetchSignals();
-  }, [profile?.telegramId, pagination.currentPage, pagination.limit]);
-
-  useEffect(() => {
-    if (filterType === "all") {
-      setFilteredSignals(signals);
-    } else {
-      setFilteredSignals(
-        signals.filter(
-          (signal) =>
-            signal.signal_data.signal.toLowerCase() === filterType.toLowerCase()
-        )
-      );
-    }
-  }, [filterType, signals]);
+  }, [profile?.telegramId, pagination.currentPage, pagination.limit, filterType]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -192,20 +184,24 @@ function UserSignals({
               Entry Price
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-[150px]">
-              Targets
+              {filterType === "exited" ? "Exit Price" : "Targets"}
             </th>
             <th className="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-[150px]">
-              Potential
+              {filterType === "exited" ? "P&L" : "Potential"}
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-[120px]">
               Stop Loss
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-[120px]">
-              Timeline
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-[150px]">
-              Trader
-            </th>
+            {filterType === "exited" && (
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-[120px]">
+                Strategy
+              </th>
+            )}
+            {filterType === "exited" && (
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider w-[80px]">
+                IPFS
+              </th>
+            )}
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-700">
@@ -235,12 +231,16 @@ function UserSignals({
               <td className="px-6 py-4">
                 <div className="h-4 bg-gray-600 rounded w-1/2"></div>
               </td>
-              <td className="px-6 py-4">
-                <div className="h-4 bg-gray-600 rounded w-1/2"></div>
-              </td>
-              <td className="px-6 py-4">
-                <div className="h-4 bg-gray-600 rounded w-2/3"></div>
-              </td>
+              {filterType === "exited" && (
+                <td className="px-6 py-4">
+                  <div className="h-4 bg-gray-600 rounded w-1/2"></div>
+                </td>
+              )}
+              {filterType === "exited" && (
+                <td className="px-6 py-4 text-center">
+                  <div className="h-4 bg-gray-600 rounded w-4 mx-auto"></div>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>
@@ -255,6 +255,14 @@ function UserSignals({
     }
   };
 
+  const handleFilterChange = (newFilter: string) => {
+    if (newFilter !== filterType) {
+      setFilterType(newFilter);
+      setPagination((prev) => ({ ...prev, currentPage: 1 }));
+      setLoading(true);
+    }
+  };
+
   return (
     <div className="bg-[#0c1420] rounded-lg shadow-lg overflow-hidden">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 sm:p-6">
@@ -264,7 +272,7 @@ function UserSignals({
         {signals.length > 0 && (
           <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0">
             <button
-              onClick={() => setFilterType("all")}
+              onClick={() => handleFilterChange("all")}
               className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${
                 filterType === "all"
                   ? "bg-blue-600 text-white"
@@ -274,7 +282,7 @@ function UserSignals({
               All
             </button>
             <button
-              onClick={() => setFilterType("buy")}
+              onClick={() => handleFilterChange("buy")}
               className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${
                 filterType === "buy"
                   ? "bg-blue-600 text-white"
@@ -284,7 +292,7 @@ function UserSignals({
               Buy
             </button>
             <button
-              onClick={() => setFilterType("sell")}
+              onClick={() => handleFilterChange("sell")}
               className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${
                 filterType === "sell"
                   ? "bg-blue-600 text-white"
@@ -292,6 +300,26 @@ function UserSignals({
               }`}
             >
               Sell
+            </button>
+            <button
+              onClick={() => handleFilterChange("hold")}
+              className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${
+                filterType === "hold"
+                  ? "bg-blue-600 text-white"
+                  : "bg-[#1a2535] text-gray-300 hover:bg-[#243044]"
+              }`}
+            >
+              Hold
+            </button>
+            <button
+              onClick={() => handleFilterChange("exited")}
+              className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${
+                filterType === "exited"
+                  ? "bg-blue-600 text-white"
+                  : "bg-[#1a2535] text-gray-300 hover:bg-[#243044]"
+              }`}
+            >
+              Exited
             </button>
           </div>
         )}
@@ -327,20 +355,24 @@ function UserSignals({
                   Entry Price
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-[150px]">
-                  Targets
+                  {filterType === "exited" ? "Exit Price" : "Targets"}
                 </th>
                 <th className="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-[150px]">
-                  Potential
+                  {filterType === "exited" ? "P&L" : "Potential"}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-[120px]">
                   Stop Loss
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-[120px]">
-                  Timeline
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-[150px]">
-                  Tip
-                </th>
+                {filterType === "exited" && (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-[120px]">
+                    Strategy
+                  </th>
+                )}
+                {filterType === "exited" && (
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider w-[80px]">
+                    IPFS
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
@@ -360,7 +392,11 @@ function UserSignals({
                       className={`inline-flex px-2 py-1 text-xs font-medium rounded ${
                         signal.signal_data.signal.toLowerCase() === "buy"
                           ? "bg-green-900 text-green-200"
-                          : "bg-red-900 text-red-200"
+                          : signal.signal_data.signal.toLowerCase() === "sell"
+                          ? "bg-red-900 text-red-200"
+                          : signal.signal_data.signal.toLowerCase() === "hold"
+                          ? "bg-blue-900 text-blue-200"
+                          : "bg-gray-700 text-gray-200"
                       }`}
                     >
                       {signal.signal_data.signal}
@@ -370,32 +406,60 @@ function UserSignals({
                     ${formatPrice(signal.signal_data.currentPrice)}
                   </td>
                   <td className="px-6 py-4">
-                    <div className="space-y-1">
-                      {signal.signal_data.targets.map((target, idx) => (
-                        <div
-                          key={idx}
-                          className="text-sm text-green-400 whitespace-nowrap"
-                        >
-                          TP{idx + 1}: ${formatPrice(target)}
-                        </div>
-                      ))}
-                    </div>
+                    {filterType === "exited" && signal.signal_data.exitValue ? (
+                      <div className="text-sm text-yellow-400 whitespace-nowrap font-medium">
+                        ${formatPrice(signal.signal_data.exitValue)}
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        {signal.signal_data.targets.map((target, idx) => (
+                          <div
+                            key={idx}
+                            className="text-sm text-green-400 whitespace-nowrap"
+                          >
+                            TP{idx + 1}: ${formatPrice(target)}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </td>
-                  <td className="px-6 py-4 text-sm text-green-400 whitespace-nowrap font-medium">
-                    {calculatePotentialProfit(
-                      signal.signal_data.currentPrice,
-                      signal.signal_data.targets
+                  <td className="px-6 py-4 text-sm whitespace-nowrap font-medium">
+                    {filterType === "exited" && signal.signal_data.exitPnL ? (
+                      <span className="text-green-400">{signal.signal_data.exitPnL}</span>
+                    ) : (
+                      <span className="text-green-400">
+                        {calculatePotentialProfit(
+                          signal.signal_data.currentPrice,
+                          signal.signal_data.targets
+                        )}
+                      </span>
                     )}
                   </td>
                   <td className="px-6 py-4 text-sm text-red-400 whitespace-nowrap font-medium">
                     ${formatPrice(signal.signal_data.stopLoss)}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-300 whitespace-nowrap">
-                    {signal.signal_data.timeline}
-                  </td>
-                  <td className="px-6 py-4 text-sm whitespace-nowrap">
-                    {signal.signal_data.tradeTip}
-                  </td>
+                  {filterType === "exited" && (
+                    <td className="px-6 py-4 text-sm text-gray-300 whitespace-nowrap">
+                      {signal.signal_data.bestStrategy || ""}
+                    </td>
+                  )}
+                  {filterType === "exited" && (
+                    <td className="px-6 py-4 text-center">
+                      {signal.signal_data.ipfsLink ? (
+                        <a
+                          href={signal.signal_data.ipfsLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex p-1.5 rounded text-gray-400 hover:text-blue-300 hover:bg-gray-700/50 transition-colors"
+                          title="View IPFS Link"
+                        >
+                          <FaExternalLinkAlt className="w-3 h-3" />
+                        </a>
+                      ) : (
+                        <span className="text-gray-600">—</span>
+                      )}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

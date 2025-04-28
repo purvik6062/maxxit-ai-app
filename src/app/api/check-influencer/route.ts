@@ -20,7 +20,16 @@ export async function POST(request: Request) {
     const user = await collection.findOne({ twitterHandle: username });
 
     if (user) {
-      return NextResponse.json({ exists: true }, { status: 200 });
+      // Return additional user data for the front-end
+      return NextResponse.json({ 
+        exists: true,
+        userId: user._id.toString(),
+        walletAddress: user.walletAddress || null,
+        subscriberCount: user.subscribers ? user.subscribers.length : 0,
+        creditAmount: user.creditAmount || 0,
+        creditExpiry: user.creditExpiry || null,
+        tweetsCount: user.tweets ? user.tweets.length : 0
+      }, { status: 200 });
     } else {
       return NextResponse.json({ exists: false }, { status: 200 });
     }

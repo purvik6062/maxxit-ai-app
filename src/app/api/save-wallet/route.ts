@@ -18,9 +18,62 @@ export async function POST(request: NextRequest) {
 
     await client.connect();
     const database = client.db("ctxbt-signal-flow");
-    const usersCollection = database.collection("ctxbt_tweets");
+    const ctxbtTweetsCollection = database.collection("ctxbt_tweets");
+    const influencersCollection = database.collection("influencers");
 
-    const existingUser = await usersCollection.findOne({
+    // First, check if the user exists in the influencers collection (which is used by the metrics component)
+    const influencer = await influencersCollection.findOne({
+      twitterHandle: username,
+    });
+    
+    console.log("Found influencer:", influencer ? { 
+      id: influencer._id.toString(), 
+      twitterHandle: influencer.twitterHandle 
+    } : "Not found");
+    
+    let userId = null;
+    
+    // Update or create influencer record with wallet address
+    if (influencer) {
+      await influencersCollection.updateOne(
+        { twitterHandle: username },
+        { $set: { walletAddress, updatedAt: new Date() } }
+      );
+      userId = influencer._id.toString();
+      console.log("Updated influencer wallet address, userId:", userId);
+    } else {
+      console.log("No influencer found for twitterHandle:", username, "Creating new record");
+      // Create a minimal influencer record when one doesn't exist
+      const result = await influencersCollection.insertOne({
+        twitterHandle: username,
+        walletAddress,
+        subscribers: [],
+        tweets: [],
+        userData: {
+          username,
+          verified: false,
+          publicMetrics: {
+            followers_count: 0,
+            following_count: 0,
+            tweet_count: 0
+          },
+          userProfileUrl: "",
+          mindshare: 0,
+          herdedVsHidden: 0,
+          convictionVsHype: 0,
+          memeVsInstitutional: 0
+        },
+        processedTweetIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      
+      userId = result.insertedId.toString();
+      console.log("Created new influencer record with userId:", userId);
+    }
+
+    // Now handle the ctxbt_tweets collection (original functionality)
+    const existingUser = await ctxbtTweetsCollection.findOne({
       twitterHandle: username,
     });
 
@@ -73,7 +126,7 @@ export async function POST(request: NextRequest) {
         creditExpiry.setMonth(creditExpiry.getMonth() + 1); // Set expiry to 1 month from now
       }
 
-      const updateResult = await usersCollection.updateOne(
+      const updateResult = await ctxbtTweetsCollection.updateOne(
         { twitterHandle: username },
         {
           $set: {
@@ -95,9 +148,10 @@ export async function POST(request: NextRequest) {
         creditAmount,
         tweetsCount,
         creditExpiry: creditExpiry?.toISOString(),
+        userId: userId || existingUser._id.toString(),
       });
     } else {
-      const insertResult = await usersCollection.insertOne({
+      const insertResult = await ctxbtTweetsCollection.insertOne({
         twitterHandle: username,
         walletAddress: walletAddress,
         tweets: [],
@@ -117,6 +171,7 @@ export async function POST(request: NextRequest) {
         creditAmount: 0,
         tweetsCount: 0,
         creditExpiry: null,
+        userId: userId || insertResult.insertedId.toString(),
       });
     }
   } catch (error) {

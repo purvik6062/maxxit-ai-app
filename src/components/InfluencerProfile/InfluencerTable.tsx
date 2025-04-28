@@ -35,7 +35,12 @@ function InfluencerTable({ influencerId }: InfluencerTableProps) {
   );
 
   if (error) {
-    return <div className="text-rose-400 p-4">Error: {error.message}</div>;
+    return (
+      <div className="max-w-6xl mx-auto text-gray-100 bg-gray-900 my-6 p-6 rounded-xl text-center">
+        <h2 className="text-xl font-semibold text-blue-400 mb-4">Trading Signals</h2>
+        <p className="text-gray-400">Your trading signals will appear here once you start generating signals.</p>
+      </div>
+    );
   }
 
   return (

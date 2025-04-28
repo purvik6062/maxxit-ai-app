@@ -280,6 +280,11 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
     return (num / 1_000_000).toFixed(2).replace(/\.?0+$/, "") + "M";
   }
 
+  const renderCreditCost = (impactFactor: number) => {
+    const cost = impactFactor * 10;
+    return cost.toFixed(0);
+  };
+
   return (
     <div ref={container}>
       <div className="mb-4">
@@ -430,6 +435,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
           const subscribers = agent.subscribers?.length || 0;
           const signals = agent.signals || 0;
           const tokens = agent.tokens || 0;
+          const creditCost = renderCreditCost(agent.impactFactor || 0);
 
           return (
             <div
@@ -784,7 +790,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                   ) : (
                     <>
                       <FaCrown className="w-4 h-4 text-yellow-300" />
-                      <span>Subscribe</span>
+                      <span>Subscribe ({creditCost} Credits)</span>
                     </>
                   )}
                 </button>
@@ -827,6 +833,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
               <span className="w-14 text-right">
                 {mode === "impact" ? "Impact" : "Heartbeat"}
               </span>
+              <span className="w-16 text-right">Credits</span>
               <span className="w-8 text-center">View</span>
               <span className="w-24 text-center">Subscribe</span>
             </div>
@@ -840,6 +847,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
               const cleanHandle = agent.twitterHandle.replace("@", "");
               const isSubscribed = subscribedHandles.includes(cleanHandle);
               const isCurrentlySubscribing = subscribingHandle === cleanHandle;
+              const creditCost = renderCreditCost(agent.impactFactor || 0);
 
               return (
                 <div
@@ -930,6 +938,11 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                       <div className="w-14 text-right">
                         <p className="text-blue-400 text-sm font-medium">
                           {agent[primaryField] ?? "--"}
+                        </p>
+                      </div>
+                      <div className="w-16 text-right">
+                        <p className="text-amber-400 text-sm font-medium">
+                          {creditCost}
                         </p>
                       </div>
                       <div className="w-8 flex justify-center">

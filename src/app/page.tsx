@@ -20,6 +20,7 @@ import AnalystLeaderboard from "@/components/Body/AnalystLeaderboard";
 import TabNavigation from "@/components/Body/TabNavigation";
 import AddInfluencerModal from "../components/Body/AddInfluencerModal";
 import { useSession } from "next-auth/react";
+import { FaCheck } from "react-icons/fa";
 
 const HomePage: React.FC = () => {
   const { updateCredits } = useCredits();
@@ -90,10 +91,39 @@ const HomePage: React.FC = () => {
         }
 
         setSubscribedHandles((prev) => [...prev, cleanHandle]);
-        toast.success("Successfully subscribed to influencer!", {
-          position: "top-center",
-          autoClose: 3000,
-        });
+        
+        // Success notification with additional message about signals
+        toast(
+          <div className="bg-gray-900/95 backdrop-blur-sm border border-blue-500/20 rounded-lg p-4 shadow-lg relative overflow-hidden">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                  <FaCheck className="w-4 h-4 text-green-400" />
+                </div>
+              </div>
+              <div>
+                <h4 className="text-blue-400 font-medium">Successfully Subscribed!</h4>
+                <p className="text-gray-300 text-sm mt-1">
+                  You'll start receiving trading signals from {cleanHandle}
+                </p>
+              </div>
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-800">
+              <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 animate-toast-progress"></div>
+            </div>
+          </div>,
+          {
+            position: "top-center",
+            autoClose: 5000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            className: "!bg-transparent !p-0",
+            icon: false
+          }
+        );
+        
         await updateCredits();
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Failed to subscribe", {
@@ -190,10 +220,10 @@ const HomePage: React.FC = () => {
               </button>
             </div>
 
-          {/* Main Content Area */}
-          <div className="bg-gradient-to-br from-gray-900/80 to-gray-950/60 backdrop-blur-sm rounded-lg border border-gray-800/30 shadow-xl overflow-hidden">
-            <div className="p-4">
-            <AnalystLeaderboard
+            {/* Main Content Area */}
+            <div className="bg-gradient-to-br from-gray-900/80 to-gray-950/60 backdrop-blur-sm rounded-lg border border-gray-800/30 shadow-xl overflow-hidden">
+              <div className="p-4">
+                <AnalystLeaderboard
                   mode={activeTab}
                   subscribedHandles={subscribedHandles}
                   subscribingHandle={subscribingHandle}
@@ -201,10 +231,10 @@ const HomePage: React.FC = () => {
                   setRefreshData={activeTab === "impact" ? setImpactRefreshData : setHeartbeatRefreshData}
                   searchText={searchText}
                 />
+              </div>
             </div>
           </div>
-        </div>
-      </main>
+        </main>
 
         <div className="px-6 py-8">
           <SocialGraph />
