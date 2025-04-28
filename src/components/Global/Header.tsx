@@ -14,7 +14,7 @@ import "@rainbow-me/rainbowkit/styles.css";
 import Link from "next/link";
 import { useCredits } from "@/context/CreditsContext";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { motion } from 'framer-motion';
+import { motion } from 'framer-motion'; 
 import { usePathname } from "next/navigation";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -490,7 +490,7 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
             ) : (
               <div className="flex items-center bg-gray-800/60 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-gray-700">
                 <img
-                  src={session.user?.image || "/default-avatar.png"}
+                  src={session.user?.image.replace(/_normal(?=\.(jpg|jpeg|png|gif|webp))/i, "") || "/default-avatar.png"}
                   alt="Profile"
                   className="w-6 h-6 sm:w-7 sm:h-7 rounded-full mr-1 sm:mr-2 border border-blue-400"
                 />
@@ -545,7 +545,7 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
           <div className="p-4 border-b border-gray-700">
             <div className="flex items-center">
               <img
-                src={session.user?.image || "/default-avatar.png"}
+                src={session.user?.image.replace(/_normal(?=\.(jpg|jpeg|png|gif|webp))/i, "") || "/default-avatar.png"}
                 alt="Profile"
                 className="w-10 h-10 rounded-full border border-blue-400"
               />

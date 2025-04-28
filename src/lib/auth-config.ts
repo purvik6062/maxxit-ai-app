@@ -22,24 +22,28 @@ declare module "next-auth/jwt" {
 export const authOptions: NextAuthOptions = {
   providers: [
     TwitterProvider({
-      clientId: process.env.API_KEY!,
-      clientSecret: process.env.API_KEY_SECRET!,
+      clientId: process.env.TWITTER_CLIENT_ID!,
+      clientSecret: process.env.TWITTER_CLIENT_SECRET!,
+      version: "2.0",
     }),
   ],
   secret: process.env.AUTH_SECRET,
   debug: false,
   callbacks: {
-    async jwt({ token, profile }) {
+    async jwt({ token, profile, account }) {
       if (profile) {
-        const twitterProfile = profile as {
-          id_str: string;
-          screen_name: string;
-          name: string;
-          profile_image_url_https?: string;
-        };
-        token.id = twitterProfile.id_str;
-        token.username = twitterProfile.screen_name;
-        token.name = twitterProfile.name;
+        // With Twitter OAuth 2.0, the data structure is different
+        const twitterProfile = profile as any;
+
+        // Extract id and username from the profile object
+        if (twitterProfile.data) {
+          token.id = twitterProfile.data.id;
+          token.username = twitterProfile.data.username;
+          token.name = twitterProfile.data.name;
+          if (twitterProfile.data.profile_image_url) {
+            token.image = twitterProfile.data.profile_image_url.replace(/_normal(?=\.(jpg|jpeg|png|gif|webp))/i, "");
+          }
+        }
       }
       return token;
     },
