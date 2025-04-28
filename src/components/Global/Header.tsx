@@ -428,18 +428,6 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
                 isActive={activeLink === item.id}
               />
             ))}
-
-            <span>|</span>
-
-            {/* Search icon and input inside navbar - Desktop */}
-            <div className="ml-2 mr-2 relative">
-              <SearchInput
-                searchText={searchText}
-                setSearchText={setSearchText}
-                showSearchInput={showSearchInput}
-                toggleSearchInput={toggleSearchInput}
-              />
-            </div>
           </nav>
 
           {/* Right section - credits and login */}
@@ -564,14 +552,11 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
           </div>
         )}
 
-        {/* Mobile search */}
+        {/* Mobile search has been removed, replace with a title */}
         <div className="px-4 py-3 border-b border-gray-700">
-          <SearchInput
-            searchText={searchText}
-            setSearchText={setSearchText}
-            showSearchInput={true}
-            isMobile={true}
-          />
+          <div className="text-center">
+            <span className="text-gray-400 text-sm font-medium">Maxxit Menu</span>
+          </div>
         </div>
 
         {/* Mobile navigation */}
