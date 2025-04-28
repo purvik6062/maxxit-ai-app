@@ -413,11 +413,11 @@ export default function SubscribedAccountsPage() {
         edges: {
           smooth: isPlayable
             ? {
-                enabled: true,
-                type: "continuous",
-                forceDirection: "none",
-                roundness: 0.5,
-              }
+              enabled: true,
+              type: "continuous",
+              forceDirection: "none",
+              roundness: 0.5,
+            }
             : false,
           selectionWidth: 3,
           shadow: {
@@ -615,7 +615,8 @@ export default function SubscribedAccountsPage() {
   };
 
   return (
-    <div className="min-h-screen text-white flex flex-col bg-transparent items-center justify-center p-8 relative overflow-hidden">
+    <div className="min-h-screen text-white flex flex-col bg-transparent items-center justify-center relative overflow-hidden">
+      {/* Background Particles */}
       <div
         className="absolute inset-0 pointer-events-none animate-pulse-drift"
         style={{
@@ -635,14 +636,12 @@ export default function SubscribedAccountsPage() {
             </span>
             <button
               onClick={() => setIsPlayable(!isPlayable)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                isPlayable ? "bg-blue-500" : "bg-gray-600"
-              }`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isPlayable ? "bg-blue-500" : "bg-gray-600"
+                }`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  isPlayable ? "translate-x-6" : "translate-x-1"
-                }`}
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isPlayable ? "translate-x-6" : "translate-x-1"
+                  }`}
               />
             </button>
             <span className="text-sm text-gray-300 font-medium">Play Mode</span>
@@ -679,28 +678,43 @@ export default function SubscribedAccountsPage() {
                       "inset 0 0 25px rgba(55, 65, 81, 0.6), 0 0 20px rgba(55, 65, 81, 0.5)",
                   }}
                 >
-                  <div className="absolute top-4 left-4 bg-[#323442]/10 backdrop-blur-md p-2 rounded-lg shadow-lg z-10 border border-gray-800 flex space-x-2">
-                    <button
-                      onClick={handleZoomIn}
-                      className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-800/70 hover:bg-gray-700 transition-colors"
-                      title="Zoom In"
-                    >
-                      <span className="text-lg">+</span>
-                    </button>
-                    <button
-                      onClick={handleZoomOut}
-                      className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-800/70 hover:bg-gray-700 transition-colors"
-                      title="Zoom Out"
-                    >
-                      <span className="text-lg">-</span>
-                    </button>
-                    <button
-                      onClick={handleFitNetwork}
-                      className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-800/70 hover:bg-gray-700 transition-colors"
-                      title="Fit View"
-                    >
-                      <span className="text-sm">⤢</span>
-                    </button>
+                  {/* Controls overlay */}
+                  <div className="flex justify-between items-center p-4">
+                    <div className="flex gap-2 w-fit text-sm sm:text-base top-4 left-4 bg-[#323442]/10 backdrop-blur-md p-2 rounded-lg shadow-lg z-10 border border-gray-800">
+                      <button
+                        onClick={handleZoomIn}
+                        className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-800/70 hover:bg-gray-700 transition-colors"
+                        title="Zoom In"
+                      >
+                        <span className="text-lg">+</span>
+                      </button>
+                      <button
+                        onClick={handleZoomOut}
+                        className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-800/70 hover:bg-gray-700 transition-colors"
+                        title="Zoom Out"
+                      >
+                        <span className="text-lg">-</span>
+                      </button>
+                      <button
+                        onClick={handleFitNetwork}
+                        className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-800/70 hover:bg-gray-700 transition-colors"
+                        title="Fit View"
+                      >
+                        <span className="text-sm">⤢</span>
+                      </button>
+                    </div>
+                    <div className="bg-[#323442]/10 px-4 py-2 rounded-full shadow-lg border border-gray-800">
+                      <p className="text-gray-300 font-semibold flex items-center text-sm sm:text-base">
+                        <span className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
+                        {graphData.nodes.length > 1 ? (
+                          <span >
+                            {graphData.nodes.length - 1} Connected Accounts
+                          </span>
+                        ) : (
+                          <span>No connections</span>
+                        )}
+                      </p>
+                    </div>
                   </div>
 
                   <div className="absolute bottom-4 right-4 bg-gradient-to-r from-gray-900 to-gray-900 p-4 rounded-lg shadow-lg text-sm transform transition-all duration-300 hover:scale-105">
@@ -729,18 +743,7 @@ export default function SubscribedAccountsPage() {
                   </div>
                 </div>
 
-                <div className="absolute top-4 right-4 z-10 bg-[#323442]/10 px-4 py-2 rounded-full shadow-lg border border-gray-800">
-                  <p className="text-gray-300 font-semibold flex items-center">
-                    <span className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
-                    {graphData.nodes.length > 1 ? (
-                      <span>
-                        {graphData.nodes.length - 1} Connected Accounts
-                      </span>
-                    ) : (
-                      <span>No connections</span>
-                    )}
-                  </p>
-                </div>
+
               </div>
 
               {selectedNode &&

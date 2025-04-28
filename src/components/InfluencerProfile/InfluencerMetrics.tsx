@@ -115,7 +115,7 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
   }
 
   const { userData, twitterHandle, subscribers } = influencer;
-  const { publicMetrics, userProfileUrl, verified, mindshare } = userData;
+  const { publicMetrics, userProfileUrl, mindshare } = userData;
 
   const socialMetrics = [
     { label: "Followers", value: publicMetrics.followers_count?.toLocaleString() },
@@ -146,7 +146,7 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
       display: userData.convictionVsHype,
       max: 10,
       isPercentage: false,
-      colors: { left: "bg-amber-600", right: "bg-violet-600" }, 
+      colors: { left: "bg-amber-600", right: "bg-violet-600" },
       labels: { left: "Conviction", right: "Hype" },
     },
     {
@@ -155,7 +155,7 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
       display: userData.memeVsInstitutional,
       max: 10,
       isPercentage: false,
-      colors: { left: "bg-pink-600", right: "bg-teal-500" }, 
+      colors: { left: "bg-pink-600", right: "bg-teal-500" },
       labels: { left: "Meme", right: "Institutional" },
     },
   ];
@@ -188,88 +188,59 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="max-w-6xl mx-auto my-6 bg-gray-950/90 backdrop-blur-md p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-800/50"
+      className="max-w-7xl mx-auto my-6 p-6 md:p-8"
     >
       {/* Header Section */}
-      <div className="flex items-center gap-4 mb-8">
-        <motion.div
-          whileHover={{ scale: 1.1, rotate: 5 }}
-          transition={{ type: "spring", stiffness: 300 }}
-          className="relative w-24 h-24"
-        >
-          <Image
-            src={userProfileUrl}
-            alt={twitterHandle}
-            width={500}
-            height={500}
-            className="rounded-full border-2 border-gray-700 shadow-lg"
-            priority
-          />
-          {verified && (
-            <span className="absolute -top-2 -right-2 bg-blue-600 rounded-full p-1.5 shadow-md">
-              <svg className="w-4 h-4" fill="white" viewBox="0 0 24 24">
-                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </span>
-          )}
-        </motion.div>
-        <div className="flex w-full gap-4 justify-between items-center">
+      <div className="font-leagueSpartan flex justify-between items-center gap-4 mb-8 bg-profile-header rounded-xl py-6 px-10" style={{border: "1px solid #6C7077"}}>
+        <div className="flex items-center gap-4">
+          <motion.div
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            transition={{ type: "spring", stiffness: 300 }}
+            className="relative w-24 h-24"
+          >
+            <Image
+              src={userProfileUrl}
+              alt={twitterHandle}
+              width={500}
+              height={500}
+              className="rounded-full border-2 border-gray-700 shadow-lg"
+              priority
+            />
+          </motion.div>
           <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">{twitterHandle}</h1>
+            <div className="flex">
+              <h1 className="font-leagueSpartan text-2xl font-bold text-white tracking-tight">{twitterHandle}</h1>
+              <div className="relative font-medium text-gray-300 bg-[#14896E] px-3 py-1 rounded-md h-fit left-2 -top-2">
+                <div className="flex items-center justify-center text-sm ">
+                  {subscribers.length} Subscribers
+                </div>
+              </div>
+            </div>
             <p className="text-sm text-gray-400">@{userData.username}</p>
           </div>
-          <div className="flex items-center gap-4">
-            <Link
-              href={`https://x.com/${userData.username}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-300 hover:text-white transition-colors"
-              title={`Visit @${userData.username} on X`}
-            >
-              <svg
-                className="w-6 h-6"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-              </svg>
-            </Link>
-            <div className="font-medium text-gray-300 bg-gray-800 px-2 py-1 rounded-xl">
-              <div className="flex items-center justify-center text-2xl font-bold">
-                {subscribers.length}
-              </div>
-              <div className="text-sm flex items-center">Subscribers</div>
-            </div>
-
-          </div>
         </div>
-      </div>
 
-      {/* Social Metrics */}
-      <div className="mb-10">
-        <h2 className="text-lg font-semibold text-white mb-5">Social Metrics</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {socialMetrics.map((metric, index) => (
-            <motion.div
-              key={metric.label}
-              className="relative overflow-hidden p-4 bg-gray-900/50 rounded-xl border border-gray-800/50 hover:bg-gray-900/80 transition-all duration-300"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1, duration: 0.4 }}
-              whileHover={{ scale: 1.03 }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-0 hover:opacity-100 transition-opacity duration-300" />
-              <p className="text-xs text-gray-400">{metric.label}</p>
-              <p className="text-lg font-semibold text-white">{metric.value}</p>
-            </motion.div>
-          ))}
+        <div className="flex items-end gap-3 ">
+          <div className="flex gap-8">
+            {socialMetrics.map((metric, index) => (
+              <motion.div
+                key={metric.label}
+                className="text-center"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1, duration: 0.4 }}
+              >
+                <p className="text-3xl font-semibold text-white">{metric.value}</p>
+                <p className="text-sm text-gray-400">{metric.label}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Influence Metrics */}
-      <div className="mb-10">
-        <h2 className="text-lg font-semibold text-white mb-5">Influence Metrics</h2>
+      <div className="mb-10 bg-[#0E1725] py-12 px-10 rounded-xl">
+        <h2 className="text-lg font-semibold text-white mb-5 font-leagueSpartan">Influence Metrics</h2>
         <div className="space-y-6">
           {influenceMetrics.map((metric, index) => (
             <motion.div

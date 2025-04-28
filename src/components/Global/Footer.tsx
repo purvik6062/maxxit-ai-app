@@ -5,7 +5,7 @@ import Link from "next/link";
 
 const Footer = () => {
   return (
-    <footer className="mx-4 mb-4 rounded-2xl bg-cover bg-center flex flex-col justify-end px-4 sm:px-6 bg-footer-background relative z-4 min-h-[160px] sm:min-h-[180px] md:min-h-[200px]">
+    <footer className="mx-4 mb-4 rounded-2xl bg-cover bg-center flex flex-col justify-end px-4 sm:px-6 bg-footer relative z-4 min-h-[160px] sm:min-h-[180px] md:min-h-[200px]">
       <div className="sm:ps-5 sm:block flex justify-center sm:pt-0 pt-8">
         <Image 
           src="/img/maxxit_logo.svg" 
