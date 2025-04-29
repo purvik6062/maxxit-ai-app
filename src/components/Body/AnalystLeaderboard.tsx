@@ -112,10 +112,6 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
     setCurrentPage(1);
   }, [searchText, effectiveSortField, sortDirection]);
 
-  useEffect(() => {
-    setRefreshData(refreshData);
-  }, [refreshData, setRefreshData]);
-
   const toggleStats = (handle: string) => {
     setShowStats((prev) => ({ ...prev, [handle]: !prev[handle] }));
   };

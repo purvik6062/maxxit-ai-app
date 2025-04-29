@@ -134,11 +134,55 @@ const CosmicWebInfluencerGraph: React.FC = () => {
   useEffect(() => {
     const fetchInfluencers = async () => {
       try {
+        // Check if we're in a browser environment where localStorage is available
+        if (typeof window !== 'undefined') {
+          // Check if data exists in localStorage and is not expired
+          try {
+            const cachedData = localStorage.getItem('topWeeklyInfluencers');
+            
+            if (cachedData) {
+              const { data, timestamp } = JSON.parse(cachedData);
+              const now = new Date().getTime();
+              const cacheTime = new Date(timestamp).getTime();
+              const daysDiff = (now - cacheTime) / (1000 * 60 * 60 * 24);
+              
+              // If cache is less than 7 days old, use it
+              if (daysDiff < 7) {
+                setInfluencers(data.influencers);
+                setTotalProfit(data.totalProfit);
+                setLoading(false);
+                return;
+              } else {
+                // Remove expired cache
+                localStorage.removeItem('topWeeklyInfluencers');
+              }
+            }
+          } catch (e) {
+            console.error("Error accessing localStorage:", e);
+            // Continue to fetch from API if localStorage fails
+          }
+        }
+        
+        // If no valid cache or not in browser, fetch from API
         const response = await fetch("/api/top-weekly-influencers");
         if (!response.ok) {
           throw new Error("Failed to fetch influencers");
         }
         const data: ApiResponse = await response.json();
+        
+        // Store in localStorage with timestamp if available
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('topWeeklyInfluencers', JSON.stringify({
+              data,
+              timestamp: new Date().toISOString()
+            }));
+          } catch (e) {
+            console.error("Error writing to localStorage:", e);
+            // Continue even if localStorage fails
+          }
+        }
+        
         setInfluencers(data.influencers);
         setTotalProfit(data.totalProfit);
         setLoading(false);
