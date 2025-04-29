@@ -25,14 +25,9 @@ export async function POST(request: NextRequest) {
     const influencer = await influencersCollection.findOne({
       twitterHandle: username,
     });
-    
-    console.log("Found influencer:", influencer ? { 
-      id: influencer._id.toString(), 
-      twitterHandle: influencer.twitterHandle 
-    } : "Not found");
-    
+
     let userId = null;
-    
+
     // Update or create influencer record with wallet address
     if (influencer) {
       await influencersCollection.updateOne(
@@ -41,35 +36,6 @@ export async function POST(request: NextRequest) {
       );
       userId = influencer._id.toString();
       console.log("Updated influencer wallet address, userId:", userId);
-    } else {
-      console.log("No influencer found for twitterHandle:", username, "Creating new record");
-      // Create a minimal influencer record when one doesn't exist
-      const result = await influencersCollection.insertOne({
-        twitterHandle: username,
-        walletAddress,
-        subscribers: [],
-        tweets: [],
-        userData: {
-          username,
-          verified: false,
-          publicMetrics: {
-            followers_count: 0,
-            following_count: 0,
-            tweet_count: 0
-          },
-          userProfileUrl: "",
-          mindshare: 0,
-          herdedVsHidden: 0,
-          convictionVsHype: 0,
-          memeVsInstitutional: 0
-        },
-        processedTweetIds: [],
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
-      
-      userId = result.insertedId.toString();
-      console.log("Created new influencer record with userId:", userId);
     }
 
     // Now handle the ctxbt_tweets collection (original functionality)
@@ -115,6 +81,17 @@ export async function POST(request: NextRequest) {
       );
       let subscriberCount = validActiveSubscribers.length;
 
+
+      let latestPayoutAmount = 0;
+
+      // Get latest payout information if available
+      if (influencer && influencer.monthlyPayouts && influencer.monthlyPayouts.length > 0) {
+        const latestPayout = influencer.monthlyPayouts.reduce((latest, current) =>
+          new Date(current.updatedAt) > new Date(latest.updatedAt) ? current : latest
+        );
+        latestPayoutAmount = latestPayout?.payout ?? 0;
+      }
+
       const shouldUpdateCredit =
         tweetsCount > 0 && // Only update if there are tweets
         (!creditExpiry || new Date(creditExpiry) < currentDate);
@@ -148,6 +125,7 @@ export async function POST(request: NextRequest) {
         creditAmount,
         tweetsCount,
         creditExpiry: creditExpiry?.toISOString(),
+        latestPayout: latestPayoutAmount,
         userId: userId || existingUser._id.toString(),
       });
     } else {
@@ -171,6 +149,7 @@ export async function POST(request: NextRequest) {
         creditAmount: 0,
         tweetsCount: 0,
         creditExpiry: null,
+        latestPayout: 0,
         userId: userId || insertResult.insertedId.toString(),
       });
     }
