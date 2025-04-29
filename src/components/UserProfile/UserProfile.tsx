@@ -65,7 +65,11 @@ const UserProfile = () => {
   };
 
   useEffect(() => {
-    if (!session?.user?.id) return;
+    if (!session?.user?.id) {
+      setError("Please connect with your X account to view your profile.");
+      setLoading(false);
+      return;
+    };
 
     const fetchData = async () => {
       try {

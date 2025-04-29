@@ -13,7 +13,7 @@ export default function RedeemCreditsPage() {
       description:
         "Follow our X account to stay updated with the latest features and updates",
       credits: 100,
-      frequency: "weekly",
+      frequency: "monthly",
       icon: FaXTwitter,
       action: "https://x.com/MaxxitAI",
     },
