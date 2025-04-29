@@ -10,7 +10,7 @@ interface PageProps {
 async function page({ params }: PageProps) {
   const { id } = await params;
   return (
-    <div>
+    <div className="py-4 px-5">
       <InfluencerMetrics influencerId={id} />
       <SignalStats influencerId={id} />
     </div>

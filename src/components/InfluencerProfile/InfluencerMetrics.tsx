@@ -25,11 +25,10 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
       return;
     }
 
-    // Validate if the ID is possibly a valid ObjectId
     const idString = Array.isArray(id) ? id[0] : id;
     const isValidMongoID = /^[0-9a-fA-F]{24}$/.test(idString);
     console.log("ID validation:", { id: idString, isValidMongoID });
-    
+
     const fetchInfluencer = async () => {
       try {
         setLoading(true);
@@ -68,29 +67,29 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto p-6 md:p-8">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="w-24 h-24 bg-gray-800 rounded-full animate-pulse" />
-          <div className="flex w-full gap-4 justify-between">
+      <div className="max-w-6xl mx-auto p-4 sm:p-6 md:p-8">
+        <div className="flex flex-col sm:flex-row items-center gap-4 mb-6 sm:mb-8">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-gray-800 rounded-full animate-pulse" />
+          <div className="flex w-full flex-col sm:flex-row sm:gap-4 sm:justify-between">
             <div>
-              <div className="h-6 w-40 bg-gray-800 rounded animate-pulse mb-2" />
+              <div className="h-6 w-32 sm:w-40 bg-gray-800 rounded animate-pulse mb-2" />
               <div className="h-4 w-20 bg-gray-800 rounded animate-pulse" />
             </div>
-            <div className="h-12 w-24 bg-gray-800 rounded-xl animate-pulse" />
+            <div className="h-10 w-20 sm:h-12 sm:w-24 bg-gray-800 rounded-xl animate-pulse mt-4 sm:mt-0" />
           </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8 sm:mb-10">
           {[...Array(6)].map((_, index) => (
             <div
               key={index}
-              className="h-20 bg-gray-800 rounded-xl animate-pulse"
+              className="h-16 sm:h-20 bg-gray-800 rounded-xl animate-pulse"
             />
           ))}
         </div>
         <div className="space-y-6">
           {[...Array(4)].map((_, index) => (
             <div key={index} className="flex flex-col">
-              <div className="h-4 w-32 bg-gray-800 rounded animate-pulse mb-2" />
+              <div className="h-4 w-24 sm:w-32 bg-gray-800 rounded animate-pulse mb-2" />
               <div className="h-2 w-full bg-gray-800 rounded animate-pulse" />
             </div>
           ))}
@@ -101,11 +100,15 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
 
   if (error) {
     return (
-      <div className="max-w-6xl mx-auto p-6 md:p-8 text-center">
-        <p>{error}</p>
-        <h2 className="text-xl font-semibold text-blue-500">Influencer Profile</h2>
-        <p className="text-gray-400 mt-4">Your influencer profile is being set up. Please check back soon to see your metrics.</p>
-        <p className="text-gray-400 mt-2">It may take a few moments for your profile data to be processed.</p>
+      <div className="max-w-6xl mx-auto p-4 sm:p-6 md:p-8 text-center">
+        <p className="text-base sm:text-lg text-red-500">{error}</p>
+        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-blue-500 mt-4">Influencer Profile</h2>
+        <p className="text-sm sm:text-base text-gray-400 mt-2 sm:mt-4">
+          Your influencer profile is being set up. Please check back soon to see your metrics.
+        </p>
+        <p className="text-sm sm:text-base text-gray-400 mt-2">
+          It may take a few moments for your profile data to be processed.
+        </p>
       </div>
     );
   }
@@ -167,7 +170,7 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
 
     return (
       <div className="w-full flex flex-col gap-1">
-        <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+        <div className="h-1.5 sm:h-2 bg-gray-800 rounded-full overflow-hidden">
           <div className="flex h-full w-full">
             <div
               className={`${leftColor} h-full transition-all duration-300`}
@@ -188,15 +191,18 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="max-w-7xl mx-auto my-6 p-6 md:p-8"
+      className="max-w-7xl mx-auto my-4"
     >
       {/* Header Section */}
-      <div className="font-leagueSpartan flex justify-between items-center gap-4 mb-8 bg-profile-header rounded-xl py-6 px-10" style={{border: "1px solid #6C7077"}}>
-        <div className="flex items-center gap-4">
+      <div
+        className="font-leagueSpartan flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 sm:mb-8 bg-profile-header rounded-xl py-4 sm:py-6 px-6 sm:px-10"
+        style={{ border: "1px solid #6C7077" }}
+      >
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
           <motion.div
             whileHover={{ scale: 1.1, rotate: 5 }}
             transition={{ type: "spring", stiffness: 300 }}
-            className="relative w-24 h-24"
+            className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24"
           >
             <Image
               src={userProfileUrl}
@@ -207,21 +213,39 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
               priority
             />
           </motion.div>
-          <div>
-            <div className="flex">
-              <h1 className="font-leagueSpartan text-2xl font-bold text-white tracking-tight">{twitterHandle}</h1>
+          <div className="text-center sm:text-left">
+            <div className="flex flex-col sm:flex-row items-center gap-2">
+              <h1 className="font-leagueSpartan text-lg sm:text-xl md:text-2xl font-bold text-white tracking-tight">
+                {twitterHandle}
+              </h1>
               <div className="relative font-medium text-gray-300 bg-[#14896E] px-3 py-1 rounded-md h-fit left-2 -top-2">
-                <div className="flex items-center justify-center text-sm ">
-                  {subscribers.length} Subscribers
-                </div>
+                {subscribers.length} Subscribers
               </div>
             </div>
-            <p className="text-sm text-gray-400">@{userData.username}</p>
+            <div className="flex items-center justify-center sm:justify-start gap-2">
+              <p className="text-xs sm:text-sm text-gray-400">@{userData.username}</p>
+              <div><Link
+                href={`https://x.com/${userData.username}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-300 hover:text-white transition-colors"
+                title={`Visit @${userData.username} on X`}
+              >
+                <svg
+                  className="w-3 h-3"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                </svg>
+              </Link></div>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-end gap-3 ">
-          <div className="flex gap-8">
+        <div className="flex justify-center sm:justify-end w-full sm:w-auto mt-4 sm:mt-0">
+          <div className="grid grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {socialMetrics.map((metric, index) => (
               <motion.div
                 key={metric.label}
@@ -230,8 +254,8 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1, duration: 0.4 }}
               >
-                <p className="text-3xl font-semibold text-white">{metric.value}</p>
-                <p className="text-sm text-gray-400">{metric.label}</p>
+                <p className="text-lg sm:text-xl md:text-2xl font-semibold text-white">{metric.value}</p>
+                <p className="text-xs sm:text-sm text-gray-400">{metric.label}</p>
               </motion.div>
             ))}
           </div>
@@ -239,9 +263,11 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
       </div>
 
       {/* Influence Metrics */}
-      <div className="mb-10 bg-[#0E1725] py-12 px-10 rounded-xl">
-        <h2 className="text-lg font-semibold text-white mb-5 font-leagueSpartan">Influence Metrics</h2>
-        <div className="space-y-6">
+      <div className="mb-8 sm:mb-10 bg-[#0E1725] py-8 sm:py-10 px-6 sm:px-10 rounded-xl">
+        <h2 className="text-base sm:text-lg md:text-xl font-semibold text-white mb-4 sm:mb-5 font-leagueSpartan">
+          Influence Metrics
+        </h2>
+        <div className="space-y-4 sm:space-y-6">
           {influenceMetrics.map((metric, index) => (
             <motion.div
               key={metric.label}
@@ -251,12 +277,12 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
               transition={{ delay: index * 0.1, duration: 0.4 }}
             >
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-gray-300">{metric.label}</span>
+                <span className="text-xs sm:text-sm text-gray-300">{metric.label}</span>
               </div>
               {metric.isPercentage ? (
-                <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+                <div className="w-full h-1.5 sm:h-2 bg-gray-800 rounded-full overflow-hidden">
                   <motion.div
-                    className="h-2 bg-gradient-to-r from-blue-500 to-fuchsia-500 rounded-full"
+                    className="h-full bg-gradient-to-r from-blue-500 to-fuchsia-500 rounded-full"
                     initial={{ width: 0 }}
                     animate={{ width: `${metric.value}%` }}
                     transition={{ delay: index * 0.1 + 0.2, duration: 0.6, ease: "easeOut" }}
