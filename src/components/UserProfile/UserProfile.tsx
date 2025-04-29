@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import ApiCredentialsSection from "./ApiCredentialSection";
 import { useCredits } from "@/context/CreditsContext";
 import UserSignals from "./UserSignals";
+import Link from "next/link";
 
 // Reusable UI components for different states
 const LoadingState = () => (
