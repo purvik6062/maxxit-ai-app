@@ -83,6 +83,15 @@ interface UserDataContextType {
   refreshData: () => Promise<void>;
 }
 
+interface CachedData {
+  agents: EnhancedAgent[];
+  timestamp: number;
+}
+
+// Cache expiration time (3 days in milliseconds)
+const CACHE_EXPIRATION = 3 * 24 * 60 * 60 * 1000;
+const CACHE_KEY = 'analyst_influencers_data_cache';
+
 // Create context with default values
 const UserDataContext = createContext<UserDataContextType>({
   agents: [],
@@ -91,11 +100,6 @@ const UserDataContext = createContext<UserDataContextType>({
   error: null,
   refreshData: async () => {},
 });
-
-// Cache keys
-const CACHE_KEY = "user_profile_data";
-const CACHE_TIMESTAMP_KEY = "user_profile_data_timestamp";
-const CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -221,38 +225,53 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
     []
   );
 
+  // Function to save data to localStorage
+  const saveToCache = useCallback((agentsData: EnhancedAgent[]) => {
+    try {
+      const cacheData: CachedData = {
+        agents: agentsData,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+    } catch (error) {
+      console.error('Failed to save data to localStorage:', error);
+    }
+  }, []);
+
   // Function to check if cache is valid
-  // const isCacheValid = (): boolean => {
-  //   const timestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
-  //   if (!timestamp) return false;
-    
-  //   const cachedTime = parseInt(timestamp, 10);
-  //   const currentTime = new Date().getTime();
-    
-  //   return currentTime - cachedTime < CACHE_EXPIRY;
-  // };
+  const getValidCache = useCallback((): CachedData | null => {
+    try {
+      const cachedDataString = localStorage.getItem(CACHE_KEY);
+      if (!cachedDataString) return null;
+
+      const cachedData: CachedData = JSON.parse(cachedDataString);
+      const now = Date.now();
+      
+      // Check if cache is expired (older than 3 days)
+      if (now - cachedData.timestamp > CACHE_EXPIRATION) {
+        localStorage.removeItem(CACHE_KEY);
+        return null;
+      }
+      
+      return cachedData;
+    } catch (error) {
+      console.error('Failed to retrieve or parse cached data:', error);
+      localStorage.removeItem(CACHE_KEY);
+      return null;
+    }
+  }, []);
 
   // Function to fetch data from API
   const fetchUserProfileData = useCallback(
     async (forceRefresh = false): Promise<void> => {
       // Check cache first if not forcing refresh
-      // if (!forceRefresh) {
-      //   const cachedData = localStorage.getItem(CACHE_KEY);
-      //   if (cachedData && isCacheValid()) {
-      //     try {
-      //       const parsedData = JSON.parse(cachedData) as UserResponse[];
-      //       setRawData(parsedData);
-      //       const signalsTokensData = await fetchSignalsAndTokensData(parsedData);
-      //       const impactFactorData = await fetchImpactFactorData(parsedData.map(user => user.twitterHandle));
-      //       const heartbeatData = await fetchHeartbeatData(parsedData.map(user => user.twitterHandle));
-      //       setAgents(await mapToEnhancedAgents(parsedData, signalsTokensData, impactFactorData, heartbeatData));
-      //       return;
-      //     } catch (e) {
-      //       console.error("Error parsing cached data:", e);
-      //       // Continue to fetch if cache parsing fails
-      //     }
-      //   }
-      // }
+      if (!forceRefresh) {
+        const cachedData = getValidCache();
+        if (cachedData) {
+          setAgents(cachedData.agents);
+          return;
+        }
+      }
 
       setLoadingUmd(true);
       setError(null);
@@ -270,20 +289,20 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
           data.map((user) => user.twitterHandle)
         );
 
-        // Save to state
-        setRawData(data);
-        setAgents(
-          await mapToEnhancedAgents(
-            data,
-            signalsTokensData,
-            impactFactorData,
-            heartbeatData
-          )
+        // Get enhanced agents
+        const enhancedAgents = await mapToEnhancedAgents(
+          data,
+          signalsTokensData,
+          impactFactorData,
+          heartbeatData
         );
 
-        // Save to cache
-        // localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-        // localStorage.setItem(CACHE_TIMESTAMP_KEY, String(new Date().getTime()));
+        // Save to state
+        setRawData(data);
+        setAgents(enhancedAgents);
+
+        // Save to localStorage cache
+        saveToCache(enhancedAgents);
       } catch (err) {
         console.error("Failed to fetch user profile data:", err);
         setError(err);
@@ -291,7 +310,7 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
         setLoadingUmd(false);
       }
     },
-    []
+    [mapToEnhancedAgents, getValidCache, saveToCache]
   );
 
   // Function to refresh data (can be called from components)
@@ -301,10 +320,6 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Initial data load on component mount
   useEffect(() => {
-    // Clear localStorage on hard or soft refresh
-    // localStorage.removeItem(CACHE_KEY);
-    // localStorage.removeItem(CACHE_TIMESTAMP_KEY);
-  
     fetchUserProfileData();
   }, [fetchUserProfileData]);
 
