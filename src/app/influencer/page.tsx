@@ -37,13 +37,13 @@ export default function Influencer() {
   const [hasWallet, setHasWallet] = useState(false);
   const [activeSections, setActiveSections] = useState({
     metrics: true,
-    signals: true
+    signals: true,
   });
 
   const toggleSection = (section) => {
-    setActiveSections(prev => ({
+    setActiveSections((prev) => ({
       ...prev,
-      [section]: !prev[section]
+      [section]: !prev[section],
     }));
   };
 
@@ -70,13 +70,13 @@ export default function Influencer() {
             console.log("Setting userId:", data.userId);
             setUserId(data.userId);
           }
-          
+
           // Check if user has a wallet address already
           if (data.walletAddress) {
             setWalletAddress(data.walletAddress);
             setSubmitSuccess(true);
             setHasWallet(true);
-            
+
             // Set additional data if available
             if (data.subscriberCount) setSubscriberCount(data.subscriberCount);
             if (data.creditAmount) setCreditAmount(data.creditAmount);
@@ -131,7 +131,7 @@ export default function Influencer() {
       });
       const data = await response.json();
       console.log("save-wallet API response:", data);
-      
+
       if (data.success) {
         setSubmitSuccess(true);
         setHasWallet(true);
@@ -139,7 +139,7 @@ export default function Influencer() {
         setCreditAmount(data.creditAmount || 0);
         setCreditExpiry(data.creditExpiry || null);
         setTweetsCount(data.tweetsCount || 0);
-        
+
         // Set the userId if it's returned and not already set
         if (data.userId) {
           console.log("Setting userId from save-wallet response:", data.userId);
@@ -162,12 +162,12 @@ export default function Influencer() {
 
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
   };
 
   return (
     <>
-      <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-900 to-gray-950">
+      <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {session ? (
             <div className="w-full backdrop-blur-xl bg-white/5 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-8 border border-white/10">
@@ -178,14 +178,19 @@ export default function Influencer() {
                 </div>
 
                 {/* Profile Image Container */}
-                <motion.div 
+                <motion.div
                   className="relative"
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.5 }}
                 >
                   <img
-                    src={session.user?.image.replace(/_normal(?=\.(jpg|jpeg|png|gif|webp))/i, "") || "/default-avatar.png"}
+                    src={
+                      session.user?.image.replace(
+                        /_normal(?=\.(jpg|jpeg|png|gif|webp))/i,
+                        ""
+                      ) || "/default-avatar.png"
+                    }
                     alt={`${session.user?.name}'s profile`}
                     className="relative w-28 h-28 rounded-full border-4 border-gradient-to-r from-blue-500 to-cyan-500 shadow-lg mb-6 object-cover transform transition-all duration-500 hover:scale-110"
                   />
@@ -203,7 +208,7 @@ export default function Influencer() {
 
                 {/* User Existence Status */}
                 {loading === true ? (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="flex items-center gap-1 mt-4 text-white/80"
@@ -212,7 +217,7 @@ export default function Influencer() {
                     <p className="text-gray-300">Checking your status...</p>
                   </motion.div>
                 ) : userExists ? (
-                  <motion.div 
+                  <motion.div
                     className="mt-6 w-full"
                     variants={fadeIn}
                     initial="hidden"
@@ -239,7 +244,12 @@ export default function Influencer() {
                             <div className="mt-4 py-3 px-4 bg-amber-900/20 border border-amber-700/30 rounded-lg">
                               <p className="text-amber-400 flex items-start">
                                 <InfoIcon className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
-                                <span>You haven't mentioned "Maxxit" or our platform-related keywords in your tweets yet. Please do so to earn a portion of the amount from your subscribers.</span>
+                                <span>
+                                  You haven't mentioned "Maxxit" or our
+                                  platform-related keywords in your tweets yet.
+                                  Please do so to earn a portion of the amount
+                                  from your subscribers.
+                                </span>
                               </p>
                             </div>
                           </>
@@ -261,14 +271,18 @@ export default function Influencer() {
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                               <div className="bg-gray-900/50 p-4 rounded-lg border border-gray-800">
-                                <p className="text-gray-400 text-xs uppercase">Subscribers</p>
+                                <p className="text-gray-400 text-xs uppercase">
+                                  Subscribers
+                                </p>
                                 <p className="text-xl font-semibold text-white flex items-center">
                                   <FaUserCheck className="text-blue-400 mr-2" />
                                   {subscriberCount}
                                 </p>
                               </div>
                               <div className="bg-gray-900/50 p-4 rounded-lg border border-gray-800">
-                                <p className="text-gray-400 text-xs uppercase">Credit Amount</p>
+                                <p className="text-gray-400 text-xs uppercase">
+                                  Credit Amount
+                                </p>
                                 <p className="text-xl font-semibold text-white flex items-center">
                                   <DollarSign className="text-green-400 mr-2" />
                                   ${creditAmount}
@@ -276,9 +290,13 @@ export default function Influencer() {
                               </div>
                               {creditExpiry && (
                                 <div className="bg-gray-900/50 p-4 rounded-lg border border-gray-800">
-                                  <p className="text-gray-400 text-xs uppercase">Valid Until</p>
+                                  <p className="text-gray-400 text-xs uppercase">
+                                    Valid Until
+                                  </p>
                                   <p className="text-xl font-semibold text-white">
-                                    {new Date(creditExpiry).toLocaleDateString()}
+                                    {new Date(
+                                      creditExpiry
+                                    ).toLocaleDateString()}
                                   </p>
                                 </div>
                               )}
@@ -287,7 +305,7 @@ export default function Influencer() {
                         )}
                       </div>
                     ) : (
-                      <motion.div 
+                      <motion.div
                         className="bg-gradient-to-r from-teal-500/10 to-cyan-500/10 p-6 rounded-xl border border-teal-400/30 shadow-lg mb-8"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -319,29 +337,35 @@ export default function Influencer() {
                         </button>
                       </motion.div>
                     )}
-                    
+
                     {/* Integration of Influencer Metrics and Table when user exists */}
                     {userId && submitSuccess && (
                       <div className="mt-8 space-y-6">
                         {/* Metrics Section */}
                         <div className="bg-gray-900/50 rounded-xl border border-gray-800/50 overflow-hidden">
-                          <div 
+                          <div
                             className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-800/30 transition-colors"
-                            onClick={() => toggleSection('metrics')}
+                            onClick={() => toggleSection("metrics")}
                           >
                             <div className="flex items-center">
                               <BarChart3 className="w-5 h-5 text-blue-400 mr-2" />
-                              <h2 className="text-lg font-semibold text-white">Influencer Metrics</h2>
+                              <h2 className="text-lg font-semibold text-white">
+                                Influencer Metrics
+                              </h2>
                             </div>
-                            <ChevronDown 
-                              className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${activeSections.metrics ? 'transform rotate-180' : ''}`} 
+                            <ChevronDown
+                              className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${
+                                activeSections.metrics
+                                  ? "transform rotate-180"
+                                  : ""
+                              }`}
                             />
                           </div>
-                          
+
                           {activeSections.metrics && (
-                            <motion.div 
+                            <motion.div
                               initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
+                              animate={{ opacity: 1, height: "auto" }}
                               exit={{ opacity: 0, height: 0 }}
                               transition={{ duration: 0.3 }}
                             >
@@ -349,26 +373,32 @@ export default function Influencer() {
                             </motion.div>
                           )}
                         </div>
-                        
+
                         {/* Signals Section */}
                         <div className="bg-gray-900/50 rounded-xl border border-gray-800/50 overflow-hidden">
-                          <div 
+                          <div
                             className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-800/30 transition-colors"
-                            onClick={() => toggleSection('signals')}
+                            onClick={() => toggleSection("signals")}
                           >
                             <div className="flex items-center">
                               <LineChart className="w-5 h-5 text-green-400 mr-2" />
-                              <h2 className="text-lg font-semibold text-white">Trading Signals</h2>
+                              <h2 className="text-lg font-semibold text-white">
+                                Trading Signals
+                              </h2>
                             </div>
-                            <ChevronDown 
-                              className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${activeSections.signals ? 'transform rotate-180' : ''}`} 
+                            <ChevronDown
+                              className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${
+                                activeSections.signals
+                                  ? "transform rotate-180"
+                                  : ""
+                              }`}
                             />
                           </div>
-                          
+
                           {activeSections.signals && (
-                            <motion.div 
+                            <motion.div
                               initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
+                              animate={{ opacity: 1, height: "auto" }}
                               exit={{ opacity: 0, height: 0 }}
                               transition={{ duration: 0.3 }}
                             >
@@ -380,7 +410,7 @@ export default function Influencer() {
                     )}
                   </motion.div>
                 ) : (
-                  <motion.div 
+                  <motion.div
                     className="mt-4 text-center"
                     variants={fadeIn}
                     initial="hidden"
@@ -416,7 +446,7 @@ export default function Influencer() {
               </div>
             </div>
           ) : (
-            <motion.div 
+            <motion.div
               className="text-center relative"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -454,13 +484,15 @@ export default function Influencer() {
                     </div>
                     <div className="flex items-start gap-2 p-3 bg-gray-800/50 rounded-lg border border-gray-700/50 hover:bg-gray-800 transition-colors">
                       <FaUserCheck className="w-5 h-5 text-cyan-300 mt-1" />
-                      <p>Connect your X account to verify you are a valid user</p>
+                      <p>
+                        Connect your X account to verify you are a valid user
+                      </p>
                     </div>
                     <div className="flex items-start gap-2 p-3 bg-gray-800/50 rounded-lg border border-gray-700/50 hover:bg-gray-800 transition-colors">
                       <UserPlus className="w-5 h-5 text-cyan-300 mt-1" />
                       <p>
-                        You will need to add yourself as an influencer through our
-                        platform to be eligible for earnings
+                        You will need to add yourself as an influencer through
+                        our platform to be eligible for earnings
                       </p>
                     </div>
                     <div className="flex items-start gap-2 p-3 bg-gray-800/50 rounded-lg border border-gray-700/50 hover:bg-gray-800 transition-colors">
