@@ -90,6 +90,7 @@ export async function GET() {
           ...influencer,
           recentWeekSignals: signals.length,
           recentWeekTokens: uniqueTokens.size,
+          specialties: ['Crypto Analysis', 'Trading Signals'] // Default specialties
         };
       })
     );
@@ -99,10 +100,21 @@ export async function GET() {
       0
     );
 
-    return NextResponse.json({
-      influencers: influencersWithSignals.filter(Boolean),
-      totalProfit,
-    });
+    // Set cache headers for 7 days (604800 seconds)
+    const headers = {
+      'Cache-Control': 'public, max-age=604800, s-maxage=604800, stale-while-revalidate=86400',
+    };
+
+    return NextResponse.json(
+      {
+        influencers: influencersWithSignals.filter(Boolean),
+        totalProfit,
+      },
+      { 
+        status: 200,
+        headers 
+      }
+    );
   } catch (error) {
     console.error("Error fetching influencers:", error);
     return NextResponse.json(

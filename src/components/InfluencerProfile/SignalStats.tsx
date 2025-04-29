@@ -140,7 +140,7 @@ function SignalStats({ influencerId }: SignalStatsProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="max-w-6xl mx-auto my-6 bg-gray-950/90 backdrop-blur-md p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-800/50"
+      className="max-w-7xl mx-auto my-6 bg-[#0E1725] backdrop-blur-md p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-800/50"
     >
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
         <div>

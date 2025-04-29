@@ -74,8 +74,14 @@ export default function SubscribedAccountsPage() {
 
   useEffect(() => {
     const fetchSubscribedAccounts = async () => {
-      if (!session?.user?.id) return;
+      if (!session?.user?.id) {
+        setError("Please connect your X account to view your subscriptions.");
+        setGraphData({ nodes: [], edges: [] }); // Clear previous data
+        setLoading(false);
+        return;
+      };
       setLoading(true);
+      setError(null);
       try {
         const response = await fetch(
           `/api/get-subscribed-accounts?twitterId=${session.user.id}`
@@ -138,9 +144,9 @@ export default function SubscribedAccountsPage() {
 
           setGraphData({ nodes, edges });
         }
-      } catch (error) {
+      } catch (err: any) {
         console.error("Error fetching subscribed accounts:", error);
-        setError("Failed to fetch subscribed accounts");
+        setError(err.message);
       } finally {
         setLoading(false);
       }
