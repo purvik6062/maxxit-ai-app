@@ -88,8 +88,8 @@ interface CachedData {
   timestamp: number;
 }
 
-// Cache expiration time (3 days in milliseconds)
-const CACHE_EXPIRATION = 3 * 24 * 60 * 60 * 1000;
+// Cache expiration time (1 hour in milliseconds)
+const CACHE_EXPIRATION = 1 * 60 * 60 * 1000;
 const CACHE_KEY = 'analyst_influencers_data_cache';
 
 // Create context with default values
