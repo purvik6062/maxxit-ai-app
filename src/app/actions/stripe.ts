@@ -1,8 +1,8 @@
-// src/app/actions/stripe.ts
 "use server";
 import { stripe } from "@/lib/stripe";
 
 export async function createCheckoutSession(
+  twitterId: string, // Changed from userId to twitterId
   planName: string,
   price: number,
   credits: string,
@@ -22,9 +22,10 @@ export async function createCheckoutSession(
       },
     ],
     mode: "payment",
-    success_url: `${process.env.NEXT_PUBLIC_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+    success_url: `${process.env.NEXT_PUBLIC_URL}/pricing?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${process.env.NEXT_PUBLIC_URL}/pricing`,
     metadata: {
+      twitterId, // Store twitterId in metadata
       credits,
       promoCode: promoCode || "",
     },

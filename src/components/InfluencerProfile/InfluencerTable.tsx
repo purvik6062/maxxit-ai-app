@@ -209,7 +209,7 @@ function InfluencerTable({ influencerId }: InfluencerTableProps) {
       {/* Previous/Next Navigation */}
       <div className="flex items-center justify-between px-2 py-4">
         <div className="text-sm text-gray-400">
-          Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)} of{" "}
+          Showing {(page - 1) * limit} to {Math.min(page * limit, total)} of{" "}
           {total} results
         </div>
         <div className="flex items-center space-x-2">

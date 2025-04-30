@@ -6,6 +6,7 @@ import { X, CreditCard, Bitcoin } from "lucide-react";
 import { createCheckoutSession } from "@/app/actions/stripe";
 import { stripePromise } from "@/lib/stripeClient";
 import { createPortal } from "react-dom";
+import { useSession } from "next-auth/react";
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ export default function PaymentModal({
   planPrice,
   planCredits,
 }: PaymentModalProps) {
+  const { data: session } = useSession(); // Get session data
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     "credit" | "crypto" | null
   >(null);
@@ -83,9 +85,16 @@ export default function PaymentModal({
   };
 
   const handleProceed = async () => {
+    // Check if the user is logged in
+    if (!session?.user?.id) {
+      alert("Please log in to proceed with payment.");
+      return;
+    }
+
     if (selectedPaymentMethod === "credit") {
       try {
         const checkoutSession = await createCheckoutSession(
+          session.user.id, // Use twitterId from session
           planName,
           finalPrice,
           planCredits,
