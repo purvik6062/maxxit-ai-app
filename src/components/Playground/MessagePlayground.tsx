@@ -44,7 +44,7 @@ const MessagePlayground = () => {
     });
 
     try {
-      const response = await fetch("https://ogxbt.xmutant.xyz/infer", {
+      const response = await fetch("https://ogxbt.maxxit.ai/infer", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
