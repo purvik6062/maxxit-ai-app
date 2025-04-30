@@ -61,12 +61,7 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: linear-gradient(
-    to bottom right,
-    rgba(0, 10, 20, 0.95),
-    rgba(10, 20, 40, 0.95)
-  );
-  opacity: 0.9;
+  background: linear-gradient(to bottom right, #040714, #04091b);
 }
 
 @keyframes rotate {
@@ -78,7 +73,8 @@
   }
 }
 
-html, body {
+html,
+body {
   font-family: var(--font-league-spartan) !important;
 }
 
@@ -231,7 +227,7 @@ html, body {
 }
 
 body {
-  @apply bg-[#161b2e] text-white;
+  @apply bg-[#020617] text-white;
 }
 /* #1f263b */
 /* #161b2e */

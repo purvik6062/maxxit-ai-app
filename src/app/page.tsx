@@ -207,7 +207,7 @@ const HomePage: React.FC = () => {
 
           <div className="p-[1px] bg-gradient-to-r from-cyan-900 to-blue-900 rounded-xl mt-[2rem]">
             {/* Add Influencer Button - Floating */}
-            <div className="fixed bottom-[0.9rem] right-3 z-10">
+            <div className="fixed bottom-[0.9rem] right-3 z-20">
               <button
                 ref={addInfluencerButtonRef}
                 onClick={() => setIsModalOpen(true)}

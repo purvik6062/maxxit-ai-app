@@ -461,8 +461,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
 
     const animateCarousel = (currentTime: number) => {
       const deltaTime = currentTime - lastTime;
-      // Update rotation at a controlled rate (e.g., 60 FPS)
-      if (deltaTime > 16.67) { // Approximately 60 FPS
+      if (deltaTime > 16.67) { 
         setRotation((prev) => prev + rotationSpeed);
         lastTime = currentTime;
       }

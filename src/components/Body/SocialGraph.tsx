@@ -203,7 +203,7 @@ export default function SubscribedAccountsPage() {
     }
 
     // Create stars
-    const starCount = 200;
+    const starCount = 400;
     const stars = Array.from({ length: starCount }, () => new Star());
 
     // Animation loop
@@ -486,11 +486,11 @@ export default function SubscribedAccountsPage() {
         edges: {
           smooth: isPlayable
             ? {
-                enabled: true,
-                type: "continuous",
-                forceDirection: "none",
-                roundness: 0.5,
-              }
+              enabled: true,
+              type: "continuous",
+              forceDirection: "none",
+              roundness: 0.5,
+            }
             : false,
           selectionWidth: 3,
           shadow: {
@@ -674,14 +674,12 @@ export default function SubscribedAccountsPage() {
             </span>
             <button
               onClick={() => setIsPlayable(!isPlayable)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                isPlayable ? "bg-blue-500" : "bg-gray-600"
-              }`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isPlayable ? "bg-blue-500" : "bg-gray-600"
+                }`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  isPlayable ? "translate-x-6" : "translate-x-1"
-                }`}
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isPlayable ? "translate-x-6" : "translate-x-1"
+                  }`}
               />
             </button>
             <span className="text-sm text-gray-300 font-medium">Play Mode</span>
@@ -800,16 +798,15 @@ export default function SubscribedAccountsPage() {
                 )}
             </div>
           </div>
-        )}
+        )} 
       </div>
 
       <style jsx>{`
         .starfield {
           background: radial-gradient(
             ellipse at center,
-            #1e1e2e 0%,
-            #0f172a 70%,
-            #000000 100%
+            #2f3657 0%,
+            #020617 50%
           );
           overflow: hidden;
         }
