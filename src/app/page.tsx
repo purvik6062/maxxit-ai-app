@@ -236,7 +236,7 @@ const HomePage: React.FC = () => {
           </div>
         </main>
 
-        <div className="px-6 py-8">
+        <div className="">
           <SocialGraph />
         </div>
 

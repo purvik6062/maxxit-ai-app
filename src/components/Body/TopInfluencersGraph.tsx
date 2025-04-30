@@ -139,13 +139,13 @@ const CosmicWebInfluencerGraph: React.FC = () => {
           // Check if data exists in localStorage and is not expired
           try {
             const cachedData = localStorage.getItem('topWeeklyInfluencers');
-            
+
             if (cachedData) {
               const { data, timestamp } = JSON.parse(cachedData);
               const now = new Date().getTime();
               const cacheTime = new Date(timestamp).getTime();
               const daysDiff = (now - cacheTime) / (1000 * 60 * 60 * 24);
-              
+
               // If cache is less than 7 days old, use it
               if (daysDiff < 7) {
                 setInfluencers(data.influencers);
@@ -162,14 +162,14 @@ const CosmicWebInfluencerGraph: React.FC = () => {
             // Continue to fetch from API if localStorage fails
           }
         }
-        
+
         // If no valid cache or not in browser, fetch from API
         const response = await fetch("/api/top-weekly-influencers");
         if (!response.ok) {
           throw new Error("Failed to fetch influencers");
         }
         const data: ApiResponse = await response.json();
-        
+
         // Store in localStorage with timestamp if available
         if (typeof window !== 'undefined') {
           try {
@@ -182,7 +182,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
             // Continue even if localStorage fails
           }
         }
-        
+
         setInfluencers(data.influencers);
         setTotalProfit(data.totalProfit);
         setLoading(false);
@@ -455,12 +455,22 @@ const CosmicWebInfluencerGraph: React.FC = () => {
   // Carousel Rotation
   useEffect(() => {
     let animationFrameId: number;
+    let lastTime = performance.now();
     const isMobile = window.innerWidth <= 768;
-    const animateCarousel = () => {
-      setRotation((prev) => prev + (isMobile ? 0.2 : 0.3));
+    const rotationSpeed = isMobile ? 0.2 : 0.3;
+
+    const animateCarousel = (currentTime: number) => {
+      const deltaTime = currentTime - lastTime;
+      // Update rotation at a controlled rate (e.g., 60 FPS)
+      if (deltaTime > 16.67) { // Approximately 60 FPS
+        setRotation((prev) => prev + rotationSpeed);
+        lastTime = currentTime;
+      }
       animationFrameId = requestAnimationFrame(animateCarousel);
     };
-    animateCarousel();
+
+    animationFrameId = requestAnimationFrame(animateCarousel);
+
     return () => cancelAnimationFrame(animationFrameId);
   }, []);
 
