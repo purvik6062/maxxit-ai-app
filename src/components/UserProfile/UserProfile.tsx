@@ -40,7 +40,7 @@ const EmptyState = ({ title, message }: { title: string; message: string }) => (
 );
 
 const UserProfile = () => {
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const [profile, setProfile] = useState<UserProfileType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +49,9 @@ const UserProfile = () => {
     "subscriptions" | "api" | "signals"
   >("subscriptions");
   const { credits, updateCredits } = useCredits();
+
+  console.log("session", session);
+  console.log("sessionStatus", sessionStatus);
 
   const handleApiKeyUpdate = (newKey: string) => {
     setApiKey(newKey);
@@ -66,11 +69,17 @@ const UserProfile = () => {
   };
 
   useEffect(() => {
+    // Only proceed when session status is no longer loading
+    if (sessionStatus === 'loading') {
+      return;
+    }
+
+    // Check if user is authenticated after session has loaded
     if (!session?.user?.id) {
       setError("Please connect with your X account to view your profile.");
       setLoading(false);
       return;
-    };
+    }
 
     const fetchData = async () => {
       try {
@@ -120,10 +129,11 @@ const UserProfile = () => {
     };
 
     fetchData();
-  }, [session?.user?.id, credits]);
+  }, [session?.user?.id, credits, sessionStatus]);
 
   // Early returns for different states
-  if (!session?.user?.id)
+  if (sessionStatus === 'loading') return <LoadingState />;
+  if (!session?.user?.id && sessionStatus === 'unauthenticated')
     return (
       <EmptyState
         title="Not Logged In"
