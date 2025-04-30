@@ -9,7 +9,7 @@ function FooterLabel() {
       alt="image"
       width={900} 
       height={900} 
-      className="md:px-16 sm:px-10 px-6 lg:-mb-[1.5rem] md:-mb-5 sm:-mb-3 -mb-2"
+      className="pt-10 md:px-16 sm:px-10 px-6 lg:-mb-[1.5rem] md:-mb-5 sm:-mb-3 -mb-2"
     /></div>
   )
 }

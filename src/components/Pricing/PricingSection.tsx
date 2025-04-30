@@ -83,7 +83,7 @@ export default function PricingSection() {
         <div className="p-1 bg-gradient-to-r rounded-xl mb-16">
           <div className="backdrop-blur-sm rounded-lg border border-gray-800/30 shadow-xl overflow-hidden">
             {/* <div className="p-6"> */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {pricingPlans.map((plan) => (
                   <PricingCard
                     key={plan.name}

@@ -49,6 +49,7 @@ export default function SubscribedAccountsPage() {
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const networkRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const networkInstance = useRef<Network | null>(null);
   const nodesDataSet = useRef<DataSet<any> | null>(null);
   const edgesDataSet = useRef<DataSet<any> | null>(null);
@@ -76,10 +77,10 @@ export default function SubscribedAccountsPage() {
     const fetchSubscribedAccounts = async () => {
       if (!session?.user?.id) {
         setError("Please connect your X account to view your subscriptions.");
-        setGraphData({ nodes: [], edges: [] }); // Clear previous data
+        setGraphData({ nodes: [], edges: [] });
         setLoading(false);
         return;
-      };
+      }
       setLoading(true);
       setError(null);
       try {
@@ -145,7 +146,7 @@ export default function SubscribedAccountsPage() {
           setGraphData({ nodes, edges });
         }
       } catch (err: any) {
-        console.error("Error fetching subscribed accounts:", error);
+        console.error("Error fetching subscribed accounts:", err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -156,6 +157,83 @@ export default function SubscribedAccountsPage() {
   }, [session?.user?.id, credits, isPlayable]);
 
   useEffect(() => {
+    if (!canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Set canvas size
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    // Star class
+    class Star {
+      x: number;
+      y: number;
+      radius: number;
+      opacity: number;
+      twinkleSpeed: number;
+      twinklePhase: number;
+
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.radius = Math.random() * 1.5 + 0.5;
+        this.opacity = 0.5;
+        this.twinkleSpeed = Math.random() * 0.02 + 0.01;
+        this.twinklePhase = Math.random() * Math.PI * 2;
+      }
+
+      update(time: number) {
+        this.opacity = 0.5 + Math.sin(time * this.twinkleSpeed + this.twinklePhase) * 0.3;
+      }
+
+      draw() {
+        if (!ctx) return;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+        ctx.fill();
+      }
+    }
+
+    // Create stars
+    const starCount = 400;
+    const stars = Array.from({ length: starCount }, () => new Star());
+
+    // Animation loop
+    let startTime = Date.now();
+    const animate = () => {
+      if (!ctx || !canvas) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const currentTime = (Date.now() - startTime) / 1000;
+      stars.forEach((star) => {
+        star.update(currentTime);
+        star.draw();
+      });
+
+      animationRef.current = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    // Cleanup
+    return () => {
+      window.removeEventListener("resize", resizeCanvas);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
@@ -164,7 +242,7 @@ export default function SubscribedAccountsPage() {
     };
   }, [credits, isPlayable]);
 
-  const startSignalAnimation = (centralPos, surroundingNodeIds, positions) => {
+  const startSignalAnimation = (centralPos: any, surroundingNodeIds: string[], positions: any) => {
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
       animationRef.current = null;
@@ -187,15 +265,15 @@ export default function SubscribedAccountsPage() {
     });
 
     // Get central node data
-    const centralNodeData = nodesDataSet.current.get(session.user.id);
-    const centralRadius = centralNodeData.size; // Size is radius in vis.js for circular shapes
+    const centralNodeData = nodesDataSet.current?.get(session?.user?.id);
+    const centralRadius = centralNodeData?.size;
 
     // Create or update temporary nodes
     const tempNodeIds = surroundingNodeIds.map((nodeId, index) => {
       const tempNodeId = `temp-${index}`;
       const nodePos = positions[nodeId];
-      const nodeData = nodesDataSet.current.get(nodeId);
-      const nodeRadius = nodeData.size; // Size is radius
+      const nodeData = nodesDataSet.current?.get(nodeId);
+      const nodeRadius = nodeData?.size;
 
       // Calculate direction vector D
       const D_x = centralPos.x - nodePos.x;
@@ -204,22 +282,18 @@ export default function SubscribedAccountsPage() {
 
       let startX, startY, endX, endY;
       if (d > 0) {
-        // Start position: edge of surrounding node towards central node
         startX = nodePos.x + (D_x / d) * nodeRadius;
         startY = nodePos.y + (D_y / d) * nodeRadius;
-        // End position: edge of central node towards surrounding node
         endX = centralPos.x - (D_x / d) * centralRadius;
         endY = centralPos.y - (D_y / d) * centralRadius;
       } else {
-        // Fallback for co-located nodes (unlikely)
         startX = nodePos.x;
         startY = nodePos.y;
         endX = centralPos.x;
         endY = centralPos.y;
       }
 
-      // Add or update temp node with start and end positions
-      if (nodesDataSet.current.get(tempNodeId)) {
+      if (nodesDataSet.current?.get(tempNodeId)) {
         nodesDataSet.current.update({
           id: tempNodeId,
           x: startX,
@@ -231,7 +305,7 @@ export default function SubscribedAccountsPage() {
           hidden: false,
         });
       } else {
-        nodesDataSet.current.add({
+        nodesDataSet.current?.add({
           id: tempNodeId,
           x: startX,
           y: startY,
@@ -265,13 +339,12 @@ export default function SubscribedAccountsPage() {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / animationDuration, 1);
 
-      // Update temporary node positions
       tempNodeIds.forEach((tempNodeId) => {
-        const tempNode = nodesDataSet.current.get(tempNodeId);
+        const tempNode = nodesDataSet.current?.get(tempNodeId);
         if (tempNode) {
           const newX = tempNode.startX + (tempNode.endX - tempNode.startX) * progress;
           const newY = tempNode.startY + (tempNode.endY - tempNode.startY) * progress;
-          nodesDataSet.current.update({
+          nodesDataSet.current?.update({
             id: tempNodeId,
             x: newX,
             y: newY,
@@ -282,17 +355,14 @@ export default function SubscribedAccountsPage() {
       if (progress < 1) {
         animationRef.current = requestAnimationFrame(animate);
       } else {
-        // Hide temp nodes instantly at the edge
         tempNodeIds.forEach((tempNodeId) => {
-          nodesDataSet.current.update({
+          nodesDataSet.current?.update({
             id: tempNodeId,
             hidden: true,
           });
         });
 
-        // Reset and restart after delay
         setTimeout(() => {
-          // Reset surrounding nodes shadow
           surroundingNodeIds.forEach((nodeId) => {
             if (nodesDataSet.current) {
               nodesDataSet.current.update({
@@ -308,11 +378,10 @@ export default function SubscribedAccountsPage() {
             }
           });
 
-          // Reset temp nodes to starting positions
           tempNodeIds.forEach((tempNodeId) => {
-            const tempNode = nodesDataSet.current.get(tempNodeId);
+            const tempNode = nodesDataSet.current?.get(tempNodeId);
             if (tempNode) {
-              nodesDataSet.current.update({
+              nodesDataSet.current?.update({
                 id: tempNodeId,
                 x: tempNode.startX,
                 y: tempNode.startY,
@@ -321,7 +390,6 @@ export default function SubscribedAccountsPage() {
             }
           });
 
-          // Reapply glow effect
           surroundingNodeIds.forEach((nodeId) => {
             if (nodesDataSet.current) {
               nodesDataSet.current.update({
@@ -337,7 +405,6 @@ export default function SubscribedAccountsPage() {
             }
           });
 
-          // Restart animation
           startTime = Date.now();
           animationRef.current = requestAnimationFrame(animate);
         }, 1000);
@@ -347,7 +414,7 @@ export default function SubscribedAccountsPage() {
     animationRef.current = requestAnimationFrame(animate);
   };
 
-  const startCentralPulse = (centralNodeId) => {
+  const startCentralPulse = (centralNodeId: string) => {
     let start = Date.now();
     const duration = 2000;
 
@@ -497,7 +564,7 @@ export default function SubscribedAccountsPage() {
         if (params.nodes.length > 0) {
           const nodeId = params.nodes[0];
           setSelectedNode(nodeId);
-          if (nodeId !== session.user.id && nodeId !== "current-user") {
+          if (nodeId !== session?.user?.id && nodeId !== "current-user") {
             window.open(`https://twitter.com/${nodeId}`, "_blank");
           }
         } else {
@@ -522,20 +589,18 @@ export default function SubscribedAccountsPage() {
         setZoomLevel(newScale);
       });
 
-      let shadowInterval = null;
-
       networkInstance.current.once("stabilizationIterationsDone", function () {
-        networkInstance.current.fit({
+        networkInstance.current?.fit({
           animation: { duration: 1000, easingFunction: "easeInOutQuad" },
         });
 
-        networkInstance.current.setOptions({ physics: isPlayable });
+        networkInstance.current?.setOptions({ physics: isPlayable });
 
-        const positions = networkInstance.current.getPositions();
-        const centralNodeId = session.user.id;
-        const centralPos = positions[centralNodeId];
+        const positions = networkInstance.current?.getPositions();
+        const centralNodeId = session?.user?.id;
+        const centralPos = positions?.[centralNodeId];
 
-        if (!isPlayable) {
+        if (!isPlayable && centralNodeId && centralPos) {
           const surroundingNodeIds = graphData.nodes
             .filter((node) => node.id !== centralNodeId)
             .map((node) => node.id);
@@ -546,39 +611,11 @@ export default function SubscribedAccountsPage() {
           }
         } else {
           const surroundingNodeIds = graphData.nodes
-            .filter((node) => node.id !== session.user.id)
+            .filter((node) => node.id !== session?.user?.id)
             .map((node) => node.id);
 
           if (surroundingNodeIds.length > 0 && nodesDataSet.current) {
-            // shadowInterval = setInterval(() => {
-            //   surroundingNodeIds.forEach((nodeId) => {
-            //     nodesDataSet.current.update({
-            //       id: nodeId,
-            //       shadow: {
-            //         enabled: true,
-            //         color: stringToColor(nodeId),
-            //         size: 70,
-            //         x: 0,
-            //         y: 0,
-            //       },
-            //     });
-            //   });
-
-            //   setTimeout(() => {
-            //     surroundingNodeIds.forEach((nodeId) => {
-            //       nodesDataSet.current.update({
-            //         id: nodeId,
-            //         shadow: {
-            //           enabled: true,
-            //           color: "rgba(0,0,0,0.5)",
-            //           size: 10,
-            //           x: 0,
-            //           y: 0,
-            //         },
-            //       });
-            //     });
-            //   }, 2500);
-            // }, 5000);
+            // Optional: Add shadow interval logic if needed
           }
         }
       });
@@ -622,14 +659,9 @@ export default function SubscribedAccountsPage() {
 
   return (
     <div className="min-h-screen text-white flex flex-col bg-transparent items-center justify-center relative overflow-hidden">
-      {/* Background Particles */}
-      <div
-        className="absolute inset-0 pointer-events-none animate-pulse-drift"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.4' fill-rule='evenodd'%3E%3Ccircle cx='5' cy='5' r='2'/%3E%3Ccircle cx='35' cy='35' r='2'/%3E%3C/g%3E%3C/svg%3E")`,
-          filter: "blur(1px) brightness(1.8)",
-        }}
-      />
+      <div className="absolute inset-0 pointer-events-none starfield">
+        <canvas ref={canvasRef} className="absolute inset-0" />
+      </div>
 
       <div className="w-full max-w-7xl z-10 relative p-4">
         <div className="text-center mb-8">
@@ -684,7 +716,6 @@ export default function SubscribedAccountsPage() {
                       "inset 0 0 25px rgba(55, 65, 81, 0.6), 0 0 20px rgba(55, 65, 81, 0.5)",
                   }}
                 >
-                  {/* Controls overlay */}
                   <div className="flex justify-between items-center p-4">
                     <div className="flex gap-2 w-fit text-sm sm:text-base top-4 left-4 bg-[#323442]/10 backdrop-blur-md p-2 rounded-lg shadow-lg z-10 border border-gray-800">
                       <button
@@ -713,7 +744,7 @@ export default function SubscribedAccountsPage() {
                       <p className="text-gray-300 font-semibold flex items-center text-sm sm:text-base">
                         <span className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
                         {graphData.nodes.length > 1 ? (
-                          <span >
+                          <span>
                             {graphData.nodes.length - 1} Connected Accounts
                           </span>
                         ) : (
@@ -748,12 +779,10 @@ export default function SubscribedAccountsPage() {
                     </p>
                   </div>
                 </div>
-
-
               </div>
 
               {selectedNode &&
-                selectedNode !== session.user.id &&
+                selectedNode !== session?.user?.id &&
                 selectedNode !== "current-user" && (
                   <div className="mt-6 bg-[#323442]/10 p-5 rounded-xl border border-gray-800 shadow-xl animate-pop-up w-fit">
                     <p className="text-gray-300 text-lg">
@@ -769,10 +798,83 @@ export default function SubscribedAccountsPage() {
                 )}
             </div>
           </div>
-        )}
+        )} 
       </div>
 
       <style jsx>{`
+        .starfield {
+          background: radial-gradient(
+            ellipse at center,
+            #2f3657 0%,
+            #020617 50%
+          );
+          overflow: hidden;
+        }
+
+        .starfield::before,
+        .starfield::after {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: 
+            radial-gradient(
+              2px 2px at 20px 50px,
+              rgba(255, 255, 255, 0.8),
+              transparent
+            ),
+            radial-gradient(
+              1px 1px at 80px 120px,
+              rgba(255, 255, 255, 0.6),
+              transparent
+            ),
+            radial-gradient(
+              1px 1px at 150px 80px,
+              rgba(255, 255, 255, 0.7),
+              transparent
+            ),
+            radial-gradient(
+              2px 2px at 200px 200px,
+              rgba(255, 255, 255, 0.5),
+              transparent
+            );
+          background-size: 300px 300px;
+          opacity: 0.6;
+        }
+
+        .starfield::after {
+          background: 
+            radial-gradient(
+              1px 1px at 50px 100px,
+              rgba(255, 255, 255, 0.9),
+              transparent
+            ),
+            radial-gradient(
+              2px 2px at 120px 60px,
+              rgba(255, 255, 255, 0.7),
+              transparent
+            ),
+            radial-gradient(
+              1px 1px at 180px 150px,
+              rgba(255, 255, 255, 0.6),
+              transparent
+            );
+          background-size: 400px 400px;
+          opacity: 0.4;
+          animation: twinkle 10s infinite alternate;
+        }
+
+        @keyframes twinkle {
+          0% {
+            opacity: 0.4;
+          }
+          100% {
+            opacity: 0.6;
+          }
+        }
+
         @keyframes pulse {
           0%,
           100% {

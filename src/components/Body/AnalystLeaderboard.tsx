@@ -87,10 +87,10 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [userSortField, setUserSortField] = useState<SortField | null>(null);
   const router = useRouter();
-  
+
   // This function will be used in the search input
   const [localSearchText, setLocalSearchText] = useState(searchText);
-  
+
   // In App Router, we need a different approach to update the URL
   const handleSearchChange = (value: string) => {
     setLocalSearchText(value);
@@ -174,10 +174,10 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
   const getSortedAndFilteredAgents = () => {
     const filtered = localSearchText
       ? agents.filter(
-          (agent) =>
-            agent.name.toLowerCase().includes(localSearchText.toLowerCase()) ||
-            agent.twitterHandle.toLowerCase().includes(localSearchText.toLowerCase())
-        )
+        (agent) =>
+          agent.name.toLowerCase().includes(localSearchText.toLowerCase()) ||
+          agent.twitterHandle.toLowerCase().includes(localSearchText.toLowerCase())
+      )
       : agents;
 
     return [...filtered].sort((a, b) => {
@@ -322,7 +322,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
           </div>
           <p className="text-sm text-slate-400">{description}</p>
         </div>
-        
+
         <div className="w-full sm:w-auto min-w-[280px]">
           <div className="relative font-leagueSpartan">
             <div className="flex items-center bg-gray-800 rounded-full border border-solid border-gray-200 focus-within:border-blue-500 overflow-hidden">
@@ -355,7 +355,11 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
               <div className="w-2 h-2 rounded-full bg-cyan-500/70 absolute animate-ping"></div>
             </div>
             <span className="text-xs sm:text-sm text-cyan-500">
-              Data updated • {new Date().toLocaleDateString()}
+              Data updated • {new Date().toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+              })}
             </span>
           </div>
           <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2 sm:mt-0 items-center">
@@ -368,8 +372,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             <div
               onClick={() => sortAgents(primaryField)}
               className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${effectiveSortField === primaryField
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+                ? "bg-blue-900/50 text-blue-300"
+                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
                 }`}
             >
               {React.createElement(primaryIcon, { size: 12 })}
@@ -384,8 +388,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             <div
               onClick={() => sortAgents("mindshare")}
               className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${userSortField === "mindshare"
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+                ? "bg-blue-900/50 text-blue-300"
+                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
                 }`}
             >
               <BarChart2 size={12} />
@@ -400,8 +404,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             <div
               onClick={() => sortAgents("followers")}
               className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${userSortField === "followers"
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+                ? "bg-blue-900/50 text-blue-300"
+                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
                 }`}
             >
               <Users size={12} />
@@ -416,8 +420,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             <div
               onClick={() => sortAgents("herdedVsHidden")}
               className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${userSortField === "herdedVsHidden"
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+                ? "bg-blue-900/50 text-blue-300"
+                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
                 }`}
             >
               <span>Herded-Hidden</span>
@@ -431,8 +435,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             <div
               onClick={() => sortAgents("convictionVsHype")}
               className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${userSortField === "convictionVsHype"
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+                ? "bg-blue-900/50 text-blue-300"
+                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
                 }`}
             >
               <span>Conviction-Hype</span>
@@ -446,8 +450,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             <div
               onClick={() => sortAgents("memeVsInstitutional")}
               className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${userSortField === "memeVsInstitutional"
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+                ? "bg-blue-900/50 text-blue-300"
+                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
                 }`}
             >
               <span>Meme-Institutional</span>
@@ -479,10 +483,10 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             <div
               key={agent.twitterHandle}
               className={`impact-card top-card relative overflow-hidden rounded-lg border ${rank === 1
-                  ? "border-yellow-500/30"
-                  : rank === 2
-                    ? "border-gray-400/30"
-                    : "border-amber-700/30"
+                ? "border-yellow-500/30"
+                : rank === 2
+                  ? "border-gray-400/30"
+                  : "border-amber-700/30"
                 } bg-gradient-to-br from-gray-900/80 via-gray-900/60 to-blue-900/20 backdrop-blur-sm min-w-0`}
               onClick={() => router.push(`/influencer/${cleanHandle}`)}
               style={{ cursor: "pointer" }}
@@ -503,10 +507,10 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                       <div className="absolute inset-0.5 rounded-full bg-gray-900/80"></div>
                       <FaTrophy
                         className={`relative w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 ${rank === 1
-                            ? "text-yellow-300"
-                            : rank === 2
-                              ? "text-gray-300"
-                              : "text-amber-700"
+                          ? "text-yellow-300"
+                          : rank === 2
+                            ? "text-gray-300"
+                            : "text-amber-700"
                           }`}
                       />
                     </div>
@@ -619,8 +623,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                 )}
                 <div
                   className={`transition-all duration-300 overflow-hidden ${showStats[agent.twitterHandle]
-                      ? "max-h-[500px] opacity-100 mb-3 sm:mb-4"
-                      : "max-h-0 opacity-0"
+                    ? "max-h-[500px] opacity-100 mb-3 sm:mb-4"
+                    : "max-h-0 opacity-0"
                     }`}
                 >
                   <div className="grid grid-cols-3 gap-1 sm:gap-2 mb-2 sm:mb-3">
@@ -736,8 +740,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                 </button>
                 <button
                   className={`w-full flex items-center justify-center gap-1 sm:gap-2 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs lg:text-sm font-medium ${isSubscribed || isCurrentlySubscribing
-                      ? "bg-green-600/30 text-green-300"
-                      : "bg-gradient-to-r from-blue-700 to-cyan-700 hover:from-cyan-700 hover:to-blue-800 text-white"
+                    ? "bg-green-600/30 text-green-300"
+                    : "bg-gradient-to-r from-blue-700 to-cyan-700 hover:from-cyan-700 hover:to-blue-800 text-white"
                     } transition-all duration-200 ${isCurrentlySubscribing ? "animate-pulse" : ""}`}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -930,8 +934,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                       <div className="w-24 flex justify-center">
                         <button
                           className={`flex items-center justify-center px-2 py-1.5 rounded-md text-xs w-full ${isSubscribed || isCurrentlySubscribing
-                              ? "bg-green-500/20 text-green-300"
-                              : "bg-blue-600/80 hover:bg-blue-700 text-white"
+                            ? "bg-green-500/20 text-green-300"
+                            : "bg-blue-600/80 hover:bg-blue-700 text-white"
                             } transition-all duration-200 whitespace-nowrap ${isCurrentlySubscribing ? "animate-pulse" : ""
                             }`}
                           onClick={(e) => {
