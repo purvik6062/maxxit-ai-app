@@ -32,6 +32,7 @@ export default function Influencer() {
   const [creditExpiry, setCreditExpiry] = useState(null);
   const [subscriberCount, setSubscriberCount] = useState(0);
   const [tweetsCount, setTweetsCount] = useState(0);
+  const [latestPayoutAmount, setLatestPayoutAmount] = useState(0);
   const [creditAmount, setCreditAmount] = useState(0);
   const [userId, setUserId] = useState("");
   const [hasWallet, setHasWallet] = useState(false);
@@ -82,6 +83,7 @@ export default function Influencer() {
             if (data.creditAmount) setCreditAmount(data.creditAmount);
             if (data.creditExpiry) setCreditExpiry(data.creditExpiry);
             if (data.tweetsCount) setTweetsCount(data.tweetsCount);
+            if (data.latestPayout) setLatestPayoutAmount(data.latestPayout);
           }
         }
       } catch (error) {
@@ -139,7 +141,8 @@ export default function Influencer() {
         setCreditAmount(data.creditAmount || 0);
         setCreditExpiry(data.creditExpiry || null);
         setTweetsCount(data.tweetsCount || 0);
-
+        setLatestPayoutAmount(data.latestPayout || 0);
+        
         // Set the userId if it's returned and not already set
         if (data.userId) {
           console.log("Setting userId from save-wallet response:", data.userId);
@@ -160,6 +163,13 @@ export default function Influencer() {
     }
   };
 
+  const handleRedeemPayout = () => {
+    toast.info("Redemption feature coming soon!", {
+      position: "top-center",
+      autoClose: 3000,
+    });
+  };
+
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
@@ -167,7 +177,7 @@ export default function Influencer() {
 
   return (
     <>
-      <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-transparent">
         <div className="max-w-7xl mx-auto">
           {session ? (
             <div className="w-full backdrop-blur-xl bg-white/5 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-8 border border-white/10">
@@ -252,6 +262,22 @@ export default function Influencer() {
                                 </span>
                               </p>
                             </div>
+
+                            {/* Monthly Payout Section (Zero Payout) */}
+                            <div className="mt-6 py-4 px-5 bg-gray-900/50 border border-gray-800/40 rounded-lg">
+                              <div className="flex flex-col items-center">
+                                <h3 className="text-lg font-medium text-gray-300 mb-2">Monthly Payout</h3>
+                                <p className="text-3xl font-bold text-white mb-3">${latestPayoutAmount.toFixed(2)}</p>
+                                <button
+                                  onClick={handleRedeemPayout}
+                                  className="px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg text-white font-medium hover:shadow-lg hover:from-purple-600 hover:to-blue-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  disabled={latestPayoutAmount <= 0}
+                                >
+                                  Redeem Payout
+                                </button>
+                                <p className="text-xs text-gray-400 mt-2">Start tweeting about Maxxit to earn payouts</p>
+                              </div>
+                            </div>
                           </>
                         ) : (
                           <>
@@ -300,6 +326,26 @@ export default function Influencer() {
                                   </p>
                                 </div>
                               )}
+                            </div>
+
+                            {/* Monthly Payout Section */}
+                            <div className="mt-6 p-5 bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-indigo-800/40 rounded-lg shadow-lg">
+                              <div className="flex flex-col items-center">
+                                <h3 className="text-lg font-medium text-indigo-300 mb-2">Monthly Payout Available</h3>
+                                <p className="text-4xl font-bold text-white mb-4 flex items-center">
+                                  <DollarSign className="h-8 w-8 text-green-400 mr-1" />
+                                  {latestPayoutAmount.toFixed(2)}
+                                </p>
+                                <button
+                                  onClick={handleRedeemPayout}
+                                  className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg text-white font-medium transform transition-all duration-300 hover:scale-105 hover:shadow-emerald-600/30 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                  disabled={latestPayoutAmount <= 0}
+                                >
+                                  <Wallet2 className="w-5 h-5" />
+                                  Redeem Your Payout
+                                </button>
+                                <p className="text-xs text-indigo-200 mt-3">Payments are processed within 24 hours</p>
+                              </div>
                             </div>
                           </>
                         )}

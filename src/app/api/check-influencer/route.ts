@@ -21,6 +21,14 @@ export async function POST(request: Request) {
 
     if (user) {
       // Return additional user data for the front-end
+      const monthlyPayouts = user.monthlyPayouts ?? [];
+      const latestPayout = monthlyPayouts.length > 0
+        ? monthlyPayouts.reduce((latest, current) =>
+            new Date(current.updatedAt) > new Date(latest.updatedAt) ? current : latest
+          )
+        : null;
+      const latestPayoutAmount = latestPayout?.payout ?? 0;
+
       return NextResponse.json({ 
         exists: true,
         userId: user._id.toString(),
@@ -28,7 +36,8 @@ export async function POST(request: Request) {
         subscriberCount: user.subscribers ? user.subscribers.length : 0,
         creditAmount: user.creditAmount || 0,
         creditExpiry: user.creditExpiry || null,
-        tweetsCount: user.tweets ? user.tweets.length : 0
+        tweetsCount: user.tweets ? user.tweets.length : 0,
+        latestPayout : latestPayoutAmount,
       }, { status: 200 });
     } else {
       return NextResponse.json({ exists: false }, { status: 200 });

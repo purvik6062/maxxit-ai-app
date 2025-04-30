@@ -504,6 +504,22 @@ const CosmicWebInfluencerGraph: React.FC = () => {
     }
   }, [rotation, influencers]);
 
+  function getCurrentWeekOfMonthLabel(date = new Date()): string {
+    const options: Intl.DateTimeFormatOptions = { month: 'long', year: 'numeric' };
+    const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+    const dayOfMonth = date.getDate();
+    const dayOfWeek = startOfMonth.getDay(); // 0 (Sun) - 6 (Sat)
+  
+    const adjustedDate = dayOfMonth + dayOfWeek;
+    const weekNumber = Math.ceil(adjustedDate / 7);
+  
+    const ordinal = (n: number) =>
+      n + (["th", "st", "nd", "rd"][(n % 10 > 3 || Math.floor(n % 100 / 10) === 1) ? 0 : n % 10]);
+  
+    const monthYear = date.toLocaleDateString('en-US', options); // ✅ fixed
+    return `Top Performing Cluster: ${ordinal(weekNumber)} Week of ${monthYear}`;
+  }
+  
   // Render loading state
   if (loading) {
     return (
@@ -574,7 +590,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
       </p>
 
       <div className="bg-gray-900/80 backdrop-blur-lg text-cyan-300 text-xs sm:text-base font-semibold py-2 px-4 sm:px-6 rounded-full shadow-[0_0_15px_rgba(0,255,255,0.5)] z-30 border border-cyan-500/50">
-        Top Performing Cluster: 1st Week of April
+      {getCurrentWeekOfMonthLabel(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))}
       </div>
       <div className="relative w-full max-w-7xl h-[500px] sm:h-[650px] text-center overflow-hidden z-20">
 
