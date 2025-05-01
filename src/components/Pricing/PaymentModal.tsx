@@ -23,7 +23,7 @@ export default function PaymentModal({
   planPrice,
   planCredits,
 }: PaymentModalProps) {
-  const { data: session } = useSession(); // Get session data
+  const { data: session } = useSession();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     "credit" | "crypto" | null
   >(null);
@@ -40,6 +40,9 @@ export default function PaymentModal({
 
   useEffect(() => {
     setFinalPrice(planPrice);
+    setDiscountApplied(false);
+    setPromoCode("");
+    setPromoCodeError("");
   }, [planPrice]);
 
   const paymentMethods = [
@@ -68,8 +71,12 @@ export default function PaymentModal({
       });
       const data = await response.json();
       if (data.valid) {
-        const discount = Math.min(planPrice * 0.5, 10); // 50% off up to $10
-        setFinalPrice(planPrice - discount);
+        const { discountPercentage, maxDiscount } = data;
+        const discountAmount = Math.min(
+          planPrice * (discountPercentage / 100),
+          maxDiscount || Infinity
+        );
+        setFinalPrice(planPrice - discountAmount);
         setDiscountApplied(true);
         setPromoCodeError("");
       } else {
@@ -85,7 +92,6 @@ export default function PaymentModal({
   };
 
   const handleProceed = async () => {
-    // Check if the user is logged in
     if (!session?.user?.id) {
       alert("Please log in to proceed with payment.");
       return;
@@ -94,7 +100,7 @@ export default function PaymentModal({
     if (selectedPaymentMethod === "credit") {
       try {
         const checkoutSession = await createCheckoutSession(
-          session.user.id, // Use twitterId from session
+          session.user.id,
           planName,
           finalPrice,
           planCredits,
