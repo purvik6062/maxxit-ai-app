@@ -2,6 +2,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import dbConnect from "src/utils/dbConnect";
+import { addCredits } from "src/utils/addCredits";
+import { ObjectId } from "mongodb";
+
+interface EarningRecord {
+  transactionId: ObjectId;
+  amount: number;
+  source: string;
+  description: string;
+  timestamp: Date;
+  purchaseId: string;
+  promoCode: string;
+  buyerTwitterId: string;
+}
 
 export async function POST(req: NextRequest) {
   const payload = await req.text();
@@ -17,70 +30,106 @@ export async function POST(req: NextRequest) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
-    const { promoCode, credits } = session.metadata;
-    const planPrice = session.amount_total / 100; // Convert cents to dollars
+    const { twitterId, credits, promoCode } = session.metadata;
+    const planPrice = session.amount_total / 100; // Final price in dollars
     const client = await dbConnect();
     const db = client.db("ctxbt-signal-flow");
 
-    if (promoCode) {
-      const promoCodeDoc = await db.collection("promoCodes").findOne({
-        promoCode,
-        isActive: true,
-      });
+    try {
+      if (!twitterId || !credits) {
+        throw new Error("Missing twitterId or credits in session metadata");
+      }
 
-      if (promoCodeDoc) {
-        const purchaseId = session.id; // Use Stripe session ID as purchase ID
-        await db.collection("promoCodeUsages").insertOne({
-          promoCodeId: promoCodeDoc._id,
-          userId: session.customer, // Adjust based on your auth system
-          purchaseId,
-          appliedAt: new Date(),
+      const user = await db.collection("users").findOne({ twitterId });
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      if (promoCode) {
+        const promoCodeDoc = await db.collection("promoCodes").findOne({
+          promoCode,
+          isActive: true,
         });
 
-        const incentive = planPrice * 0.1; // 10% incentive
-        // await addCredits(promoCodeDoc.influencerId, incentive); // commenting out to avoid adding credits directly for now
-        const influencerId = promoCodeDoc.influencerId;
+        if (promoCodeDoc) {
+          const purchaseId = session.id;
+          await db.collection("promoCodeUsages").insertOne({
+            promoCodeId: promoCodeDoc._id,
+            promoCode: promoCode,
+            buyerTwitterId: twitterId,
+            purchaseId,
+            appliedAt: new Date(),
+          });
 
-        // Update influencer earnings
-        await db.collection("influencerEarnings").updateOne(
-          { influencerId: influencerId },
-          {
-            $inc: {
-              totalEarnings: incentive,
-              availableEarnings: incentive,
-            },
-          },
-          { upsert: true }
-        );
+          const influencerEarningPercentage =
+            promoCodeDoc.influencerEarningPercentage || 10; // Default to 10%
+          const incentive = (planPrice * influencerEarningPercentage) / 100;
+          const influencerId = promoCodeDoc.influencerId;
+
+          const influencer = await db
+            .collection("users")
+            .findOne({ _id: influencerId });
+          if (influencer) {
+            await addCredits(
+              influencer.twitterId,
+              incentive,
+              "PROMO_CODE_INCENTIVE",
+              `Incentive from promo code ${promoCode} for purchase ${purchaseId}`
+            );
+
+            const earningRecord: EarningRecord = {
+              transactionId: new ObjectId(),
+              amount: incentive,
+              source: "PROMO_CODE_INCENTIVE",
+              description: `Incentive from promo code ${promoCode} for purchase ${purchaseId}`,
+              timestamp: new Date(),
+              purchaseId: session.id,
+              promoCode: promoCode,
+              buyerTwitterId: twitterId,
+            };
+
+            await db.collection("influencerEarnings").updateOne(
+              { influencerId: influencerId },
+              {
+                $inc: {
+                  totalEarnings: incentive,
+                  availableEarnings: incentive,
+                },
+                $push: {
+                  earningsHistory: earningRecord,
+                } as any,
+              },
+              { upsert: true }
+            );
+          }
+        }
       }
-    }
 
-    // Additional purchase processing logic here (e.g., credit assignment)
+      const creditsAmount = parseInt(credits, 10);
+      if (isNaN(creditsAmount) || creditsAmount <= 0) {
+        throw new Error("Invalid credits amount in metadata");
+      }
+
+      await addCredits(
+        twitterId,
+        creditsAmount,
+        "PLAN_PURCHASE",
+        `Purchased ${credits} credits for $${planPrice}`
+      );
+
+      return NextResponse.json({ received: true });
+    } catch (error) {
+      console.error("Webhook processing error:", error);
+      return NextResponse.json(
+        {
+          error: error instanceof Error ? error.message : "Processing error",
+        },
+        { status: 500 }
+      );
+    } finally {
+      await client.close();
+    }
   }
 
   return NextResponse.json({ received: true });
-}
-
-async function addCredits(userId: string, amount: number) {
-  const client = await dbConnect();
-  const db = client.db("ctxbt-signal-flow");
-  const creditedAt = new Date();
-  const batch = {
-    userId,
-    source: "PROMO_CODE_INCENTIVE",
-    amount,
-    remaining: amount,
-    creditedAt,
-    expiresAt: new Date(creditedAt.getTime() + 30 * 24 * 60 * 60 * 1000), // 30 days
-    isExpired: false,
-  };
-  const result = await db.collection("creditBatches").insertOne(batch);
-  await db.collection("creditTransactions").insertOne({
-    userId,
-    batchId: result.insertedId,
-    type: "CREDIT",
-    amount,
-    description: "Promo code incentive",
-    createdAt: creditedAt,
-  });
 }

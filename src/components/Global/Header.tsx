@@ -14,7 +14,7 @@ import "@rainbow-me/rainbowkit/styles.css";
 import Link from "next/link";
 import { useCredits } from "@/context/CreditsContext";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { motion } from 'framer-motion'; 
+import { motion } from 'framer-motion';
 import { usePathname } from "next/navigation";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -519,7 +519,7 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
         className={`fixed right-0 top-0 h-full w-[75%] max-w-xs bg-gradient-to-b from-[#101322] to-[#070915] border-l border-gray-700 shadow-2xl z-50 md:hidden transition-transform duration-300 ease-in-out transform ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
         <div className="flex justify-between items-center p-4 border-b border-gray-700">
-          <h2 className="text-lg font-bold text-gray-200">Menu</h2>
+          <div className="text-2xl font-napzerRounded bg-gradient-to-b from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent">maxxit</div>
           <button
             onClick={() => setMobileMenuOpen(false)}
             className="p-1 rounded-full hover:bg-gray-800 text-gray-400 hover:text-white transition-colors"
@@ -551,13 +551,6 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
             </div>
           </div>
         )}
-
-        {/* Mobile search has been removed, replace with a title */}
-        <div className="px-4 py-3 border-b border-gray-700">
-          <div className="text-center">
-            <span className="text-gray-400 text-sm font-medium">Maxxit Menu</span>
-          </div>
-        </div>
 
         {/* Mobile navigation */}
         <nav className="py-2 font-leagueSpartan">

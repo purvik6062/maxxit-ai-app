@@ -190,7 +190,7 @@ function UserSignals({
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-[100px]">
               Status
             </th>
-            <th className="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider w-[60px]">
+            <th className="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider w-[100px]">
               View
             </th>
           </tr>
@@ -361,7 +361,7 @@ function UserSignals({
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider w-[100px]">
                   Status
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider w-[60px]">
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider w-[100px]">
                   View
                 </th>
               </tr>
@@ -381,7 +381,16 @@ function UserSignals({
                       {formatDate(signal.generatedAt)}
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-white whitespace-nowrap">
-                      {signal.signal_data.token}
+                      <div className="max-w-[120px] overflow-hidden text-ellipsis group relative">
+                        <span className="block overflow-hidden text-ellipsis whitespace-nowrap" title={signal.signal_data.token}>
+                          {signal.signal_data.token}
+                        </span>
+                        {signal.signal_data.token.length > 12 && (
+                          <span className="absolute left-0 top-full mt-1 z-20 hidden group-hover:block bg-gray-900 text-gray-100 text-xs rounded px-2 py-1 shadow-lg whitespace-normal max-w-xs">
+                            {signal.signal_data.token}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span

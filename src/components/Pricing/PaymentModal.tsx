@@ -6,6 +6,7 @@ import { X, CreditCard, Bitcoin } from "lucide-react";
 import { createCheckoutSession } from "@/app/actions/stripe";
 import { stripePromise } from "@/lib/stripeClient";
 import { createPortal } from "react-dom";
+import { useSession } from "next-auth/react";
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ export default function PaymentModal({
   planPrice,
   planCredits,
 }: PaymentModalProps) {
+  const { data: session } = useSession();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     "credit" | "crypto" | null
   >(null);
@@ -38,6 +40,9 @@ export default function PaymentModal({
 
   useEffect(() => {
     setFinalPrice(planPrice);
+    setDiscountApplied(false);
+    setPromoCode("");
+    setPromoCodeError("");
   }, [planPrice]);
 
   const paymentMethods = [
@@ -66,8 +71,12 @@ export default function PaymentModal({
       });
       const data = await response.json();
       if (data.valid) {
-        const discount = Math.min(planPrice * 0.5, 10); // 50% off up to $10
-        setFinalPrice(planPrice - discount);
+        const { discountPercentage, maxDiscount } = data;
+        const discountAmount = Math.min(
+          planPrice * (discountPercentage / 100),
+          maxDiscount || Infinity
+        );
+        setFinalPrice(planPrice - discountAmount);
         setDiscountApplied(true);
         setPromoCodeError("");
       } else {
@@ -83,9 +92,15 @@ export default function PaymentModal({
   };
 
   const handleProceed = async () => {
+    if (!session?.user?.id) {
+      alert("Please log in to proceed with payment.");
+      return;
+    }
+
     if (selectedPaymentMethod === "credit") {
       try {
         const checkoutSession = await createCheckoutSession(
+          session.user.id,
           planName,
           finalPrice,
           planCredits,

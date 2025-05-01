@@ -18,6 +18,8 @@ export async function POST(req: NextRequest) {
     if (promoCodeDoc) {
       return NextResponse.json({
         valid: true,
+        discountPercentage: promoCodeDoc.discountPercentage,
+        maxDiscount: promoCodeDoc.maxDiscount,
         influencerId: promoCodeDoc.influencerId,
       });
     } else {
@@ -30,4 +32,7 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+  // finally {
+  //   if (client) await client.close();
+  // }
 }
