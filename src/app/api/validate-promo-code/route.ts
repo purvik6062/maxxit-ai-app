@@ -31,7 +31,8 @@ export async function POST(req: NextRequest) {
       { valid: false, error: "Failed to validate promo code" },
       { status: 500 }
     );
-  } finally {
-    if (client) await client.close();
   }
+  // finally {
+  //   if (client) await client.close();
+  // }
 }
