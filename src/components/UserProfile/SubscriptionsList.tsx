@@ -100,7 +100,7 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
         <div className="p-4 md:p-6">
           {/* Mobile: Dropdown List */}
           <div className="sm:hidden space-y-3">
-            {(paginatedSubscriptions.length ? paginatedSubscriptions : Array(4).fill(null)).map(
+            {(paginatedSubscriptions.length ? paginatedSubscriptions.map(
               (sub, index) => {
                 const key = sub?.twitterHandle || `placeholder-${index}`;
                 const isOpen = openDropdown === key;
@@ -137,9 +137,8 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
                     </div>
                     {/* Dropdown Content */}
                     <div
-                      className={`overflow-hidden transition-all duration-300 ${
-                        isOpen ? "max-h-40 p-3" : "max-h-0"
-                      }`}
+                      className={`overflow-hidden transition-all duration-300 ${isOpen ? "max-h-40 p-3" : "max-h-0"
+                        }`}
                     >
                       <div className="space-y-2">
                         <div className="flex items-center text-[#4b5563]">
@@ -159,10 +158,10 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
                           <span className="text-sm font-medium text-[#111827]">
                             {sub?.expiryDate
                               ? new Date(sub.expiryDate).toLocaleDateString("en-US", {
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "numeric",
-                                })
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              })
                               : "Apr 23, 2025"}
                           </span>
                         </div>
@@ -180,12 +179,16 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
                   </div>
                 );
               }
-            )}
+            ) : (
+              <div className="text-center text-[#4b5563] text-base">
+                You haven't subscribed to any user yet
+              </div>
+            ))}
           </div>
 
           {/* Tablet/Desktop: Grid Layout */}
           <div className="hidden sm:grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {(paginatedSubscriptions.length ? paginatedSubscriptions : Array(4).fill(null)).map(
+            {(paginatedSubscriptions.length ? paginatedSubscriptions.map(
               (sub, index) => (
                 <div
                   key={sub?.twitterHandle || `placeholder-${index}`}
@@ -219,10 +222,10 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
                     <span className="text-sm font-medium text-[#111827]">
                       {sub?.expiryDate
                         ? new Date(sub.expiryDate).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          })
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })
                         : "Apr 23, 2025"}
                     </span>
                   </div>
@@ -237,6 +240,11 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
                   </div>
                 </div>
               )
+            ) : (
+              <div className="text-center text-[#4b5563] text-base">
+                You haven't subscribed to any user yet
+              </div>
+            )
             )}
           </div>
         </div>
@@ -248,11 +256,10 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
           <div className="flex items-center space-x-2">
             {/* Previous Button */}
             <button
-              className={`bg-[#1C2333] border border-[rgba(206,212,218,0.15)] rounded-md p-2 text-[#AAC9FA] text-sm font-medium transition-colors ${
-                currentPage === 1
-                  ? "opacity-50 cursor-not-allowed"
-                  : "hover:bg-[#AAC9FA] hover:text-[#1C2333]"
-              }`}
+              className={`bg-[#1C2333] border border-[rgba(206,212,218,0.15)] rounded-md p-2 text-[#AAC9FA] text-sm font-medium transition-colors ${currentPage === 1
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-[#AAC9FA] hover:text-[#1C2333]"
+                }`}
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
             >
@@ -264,11 +271,10 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
               typeof page === "number" ? (
                 <button
                   key={page}
-                  className={`px-3 py-1 h-full text-sm font-medium rounded-md border border-[rgba(206,212,218,0.15)] transition-colors ${
-                    currentPage === page
-                      ? "bg-[#AAC9FA] text-[#1C2333]"
-                      : "bg-[#1C2333] text-[#AAC9FA] hover:bg-[#AAC9FA] hover:text-[#1C2333]"
-                  }`}
+                  className={`px-3 py-1 h-full text-sm font-medium rounded-md border border-[rgba(206,212,218,0.15)] transition-colors ${currentPage === page
+                    ? "bg-[#AAC9FA] text-[#1C2333]"
+                    : "bg-[#1C2333] text-[#AAC9FA] hover:bg-[#AAC9FA] hover:text-[#1C2333]"
+                    }`}
                   onClick={() => handlePageChange(page)}
                 >
                   {page}
@@ -285,11 +291,10 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
 
             {/* Next Button */}
             <button
-              className={`bg-[#1C2333] border border-[rgba(206,212,218,0.15)] rounded-md p-2 text-[#AAC9FA] text-sm font-medium transition-colors ${
-                currentPage === totalPages
-                  ? "opacity-50 cursor-not-allowed"
-                  : "hover:bg-[#AAC9FA] hover:text-[#1C2333]"
-              }`}
+              className={`bg-[#1C2333] border border-[rgba(206,212,218,0.15)] rounded-md p-2 text-[#AAC9FA] text-sm font-medium transition-colors ${currentPage === totalPages
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-[#AAC9FA] hover:text-[#1C2333]"
+                }`}
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
             >
