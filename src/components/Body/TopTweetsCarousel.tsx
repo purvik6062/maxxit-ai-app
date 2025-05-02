@@ -20,7 +20,6 @@ interface Influencer {
 interface Tweet {
   id: string
   influencer: Influencer
-  tweetUrl: string
   coin: string
   tokenId: string
   positive: boolean
@@ -104,26 +103,6 @@ export default function CarouselHorizontal() {
       console.error('Error formatting date:', error)
       return dateString
     }
-  }
-
-  // Extract tweet ID from tweet URL
-  const getTweetId = (tweetUrl: string) => {
-    try {
-      // Handle common Twitter URL formats
-      const matches = tweetUrl.match(/twitter\.com\/\w+\/status\/(\d+)/) || 
-                      tweetUrl.match(/x\.com\/\w+\/status\/(\d+)/)
-      return matches ? matches[1] : null
-    } catch (error) {
-      console.error("Error extracting tweet ID:", error)
-      return null
-    }
-  }
-
-  // Create Twitter Web Intent URL
-  const getTwitterIntentUrl = (tweetUrl: string) => {
-    const tweetId = getTweetId(tweetUrl)
-    if (!tweetId) return null
-    return `https://twitter.com/intent/tweet?in_reply_to=${tweetId}`
   }
 
   if (loading) {
@@ -214,28 +193,10 @@ export default function CarouselHorizontal() {
                   </div>
                 </div>
 
-                {/* Twitter embedded placeholder with link */}
-                {getTweetId(tweet.tweetUrl) ? (
-                  <a 
-                    href={tweet.tweetUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="block mb-4 bg-[#13192a] hover:bg-[#1a2338] rounded-md p-3 text-center transition-colors"
-                  >
-                    <div className="flex items-center justify-center text-white/80 mb-1">
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      <span className="text-lg mt-[4px]">View Tweet</span>
-                    </div>
-                    {/* <div className="text-xs text-white/50 truncate">
-                      {tweet.tweetUrl}
-                    </div> */}
-                  </a>
-                ) : null}
-
                 {/* Coin info and trading data */}
                 <div className="flex items-center justify-between bg-[#0a101f]/50 rounded-lg p-3">
                   <div>
-                    <div className="flex flex-col space-y-1 mt-1">
+                    <div className="flex flex-col space-y-1 mt-1 text-left">
                       <div className="text-sm">
                         <span className="text-purple-400 font-medium">Coin: </span>
                         <span className="text-white/80">{tweet.coin}</span>
