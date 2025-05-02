@@ -7,18 +7,17 @@ import { useCredits } from "@/context/CreditsContext";
 import { UserDataProvider } from "@/context/UserDataContext";
 import { IoPersonAdd } from "react-icons/io5";
 import { LuWandSparkles } from "react-icons/lu";
-import { Heart, Sparkles } from "lucide-react";
+import { Car, Heart, Sparkles } from "lucide-react";
 import {
   Header,
   Footer,
-  Mindshare,
   TopInfluencersGraph,
-  ShareButton,
 } from "../components/index";
 import SocialGraph from "@/components/Body/SocialGraph";
 import AnalystLeaderboard from "@/components/Body/AnalystLeaderboard";
 import TabNavigation from "@/components/Body/TabNavigation";
 import AddInfluencerModal from "../components/Body/AddInfluencerModal";
+import TopTweetsCarousel from "@/components/Body/TopTweetsCarousel";
 import { useSession } from "next-auth/react";
 import { FaCheck } from "react-icons/fa";
 
@@ -91,7 +90,7 @@ const HomePage: React.FC = () => {
         }
 
         setSubscribedHandles((prev) => [...prev, cleanHandle]);
-        
+
         // Success notification with additional message about signals
         toast(
           <div className="bg-gray-900/95 backdrop-blur-sm border border-blue-500/20 rounded-lg p-4 shadow-lg relative overflow-hidden">
@@ -123,7 +122,7 @@ const HomePage: React.FC = () => {
             icon: false
           }
         );
-        
+
         await updateCredits();
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Failed to subscribe", {
@@ -182,16 +181,17 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#020617]">
-      {/* <Header searchText={searchText} setSearchText={setSearchText} /> */}
-
       <div>
         <TopInfluencersGraph />
-        {/* <ShareButton /> */}
+      </div>
+
+      <div className="py-8">
+        <TopTweetsCarousel />
       </div>
 
       <UserDataProvider>
         <main className="flex-grow px-6 py-6 max-w-7xl mx-auto w-full">
-          <div className="mb-6 text-center mt-16">
+          <div className="mb-6 text-center mt-12">
             <h2 className="text-xl md:text-2xl font-bold text-white mb-2">
               <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
                 Analyst Rankings
@@ -239,10 +239,6 @@ const HomePage: React.FC = () => {
         <div className="">
           <SocialGraph />
         </div>
-
-        {/* <div className="px-6 py-8 flex justify-center">
-          <Mindshare />
-        </div> */}
 
         <AddInfluencerModal
           isOpen={isModalOpen}

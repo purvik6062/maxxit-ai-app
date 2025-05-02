@@ -9,6 +9,7 @@ import {
   FaChevronUp,
   FaChevronLeft,
   FaChevronRight,
+  FaUser,
 } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import {
@@ -26,6 +27,7 @@ import {
   Search,
 } from "lucide-react";
 import { LuWandSparkles } from "react-icons/lu";
+import { useSession } from "next-auth/react";
 import { RiPulseLine } from "react-icons/ri";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
@@ -87,6 +89,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
   const PAGE_SIZE = 7;
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [userSortField, setUserSortField] = useState<SortField | null>(null);
+  const { data: session, status: sessionStatus } = useSession();
   const router = useRouter();
 
   // This function will be used in the search input
@@ -228,6 +231,201 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
     });
   };
 
+  const renderCurrentUserCard = (agent) => {
+    const rank =
+      sortedAgents.findIndex((a) => a.twitterHandle === agent.twitterHandle) +
+      1;
+    const cleanHandle = agent.twitterHandle.replace("@", "");
+    const isSubscribed = subscribedHandles.includes(cleanHandle);
+    const isCurrentlySubscribing = subscribingHandle === cleanHandle;
+    const creditCost = renderCreditCost(agent.impactFactor || 0);
+    const isCurrentUser =
+      session?.user?.username &&
+      cleanHandle.toLowerCase() ===
+        session.user.username.replace("@", "").toLowerCase();
+
+    return (
+      <div
+        key={agent.twitterHandle}
+        className={`impact-card list-item relative ${
+          isCurrentUser
+            ? "bg-gradient-to-br from-gray-900 via-blue-950/80 to-gray-900 border-blue-500/60 shadow-[0_0_15px_rgba(59,130,246,0.4)] hover:scale-[1.01] hover:shadow-[0_0_25px_rgba(59,130,246,0.7)]"
+            : "bg-gray-900/50 border-gray-800/50 hover:bg-cyan-950"
+        } backdrop-blur-sm border rounded-lg overflow-hidden transition-all duration-200 hover:cursor-pointer`}
+        onClick={() => router.push(`/influencer/${cleanHandle}`)}
+      >
+        {/* Animated Background Effect */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(59,130,246,0.15),transparent_70%)] z-0"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(6,182,212,0.1),transparent_70%)] z-0"></div>
+        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-10 -mt-10 opacity-70 group-hover:opacity-90 transition-opacity duration-500"></div>
+
+        {/* Glowing border effect on hover */}
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-blue-500/0 via-blue-400/20 to-cyan-500/0 blur-md"></div>
+
+        {/* Desktop Layout (md and above) */}
+        <div className="hidden lg:flex px-6 py-3 items-center gap-6 relative z-10">
+          <div className="flex items-center flex-shrink-0 w-[240px] group-hover:translate-x-1 transition-transform duration-300">
+            <div className="w-7 h-7 flex items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-400 text-white text-xs font-semibold mr-4 flex-shrink-0 shadow-md">
+              {rank}
+            </div>
+            {agent.twitterHandle && (
+              <div className="relative w-10 h-10 mr-3 flex-shrink-0 transition-all duration-300 group-hover:scale-105">
+                <img
+                  src={
+                    agent.profileUrl?.trim().length > 0
+                      ? agent.profileUrl
+                      : `https://picsum.photos/seed/${encodeURIComponent(
+                          agent.twitterHandle
+                        )}/64/64`
+                  }
+                  alt={agent.name}
+                  className="w-full h-full object-cover rounded-full border-2 border-blue-400/50 shadow-[0_0_10px_rgba(59,130,246,0.4)]"
+                />
+                {agent.verified && (
+                  <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full p-1 border border-gray-900 shadow-lg">
+                    <FaCheck className="w-2 h-2 text-white" />
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="flex-grow overflow-hidden">
+              <h4 className="text-sm font-semibold text-white truncate tracking-wide">
+                {agent.name}{" "}
+                {isCurrentUser && (
+                  <span className="text-blue-300 font-medium">(You)</span>
+                )}
+              </h4>
+              <p className="text-xs text-blue-300/80 truncate">
+                {agent.twitterHandle}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-4 flex-grow min-w-0 px-2 group-hover:opacity-90 transition-opacity">
+            <div className="w-1/3 text-center">
+              {renderMetricIndicator(
+                agent.herdedVsHidden || 0,
+                "bg-gradient-to-r from-red-400 to-red-500",
+                "bg-gradient-to-r from-cyan-400 to-cyan-500"
+              )}
+            </div>
+            <div className="w-1/3 text-center">
+              {renderMetricIndicator(
+                agent.convictionVsHype || 0,
+                "bg-gradient-to-r from-green-400 to-green-500",
+                "bg-gradient-to-r from-rose-400 to-rose-500"
+              )}
+            </div>
+            <div className="w-1/3 text-center">
+              {renderMetricIndicator(
+                agent.memeVsInstitutional || 0,
+                "bg-gradient-to-r from-yellow-300 to-amber-400",
+                "bg-gradient-to-r from-gray-100 to-gray-200"
+              )}
+            </div>
+          </div>
+          <div className="flex items-center justify-end gap-4 flex-shrink-0 w-[385px]">
+            <div className="w-16 text-right">
+              {agent.mindshare > 0 ? (
+                <p className="text-blue-300 text-sm font-medium group-hover:text-blue-200 transition-colors">
+                  {agent.mindshare != null
+                    ? `${agent.mindshare.toFixed(2)}%`
+                    : "--"}
+                </p>
+              ) : (
+                <span className="text-sm text-blue-400">--</span>
+              )}
+            </div>
+            <div className="w-20 text-right">
+              {agent.followers > 0 ? (
+                <p className="text-gray-300 text-sm group-hover:text-white transition-colors">
+                  {agent.followers != null
+                    ? formatFollowersCount(agent.followers)
+                    : "--"}
+                </p>
+              ) : (
+                <span className="text-sm text-gray-100">--</span>
+              )}
+            </div>
+            <div className="w-14 text-right">
+              <p className="text-blue-400 text-sm font-medium group-hover:text-blue-300 transition-colors">
+                {agent[primaryField] ?? "--"}
+              </p>
+            </div>
+            <div className="w-16 text-right">
+              <p className="text-amber-300 text-sm font-medium group-hover:text-amber-200 transition-colors">
+                {creditCost}
+              </p>
+            </div>
+            <div className="w-8 flex justify-center">
+              <Link
+                href={`https://x.com/${cleanHandle}`}
+                target="_blank"
+                onClick={(e) => e.stopPropagation()}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-blue-300 hover:bg-blue-900/50 transition-colors duration-200"
+                title="View Profile"
+              >
+                <FaExternalLinkAlt className="w-3 h-3" />
+              </Link>
+            </div>
+            <div className="w-24 flex justify-center">
+              <button
+                className={`flex items-center justify-center px-3 py-1.5 rounded-lg text-xs w-full transition-all duration-300 whitespace-nowrap shadow-md ${
+                  isSubscribed || isCurrentlySubscribing
+                    ? "bg-gradient-to-r from-green-600/50 to-green-500/50 text-green-200 border border-green-500/30"
+                    : "bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-600 hover:to-blue-500 text-white border border-blue-500/50 hover:shadow-[0_0_15px_rgba(59,130,246,0.4)]"
+                } ${isCurrentlySubscribing ? "animate-pulse" : ""}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!isSubscribed && !isCurrentlySubscribing) {
+                    onSubscribe(agent.twitterHandle, agent.impactFactor || 0);
+                  }
+                }}
+                disabled={isSubscribed || isCurrentlySubscribing}
+              >
+                {isCurrentlySubscribing ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : isSubscribed ? (
+                  <>
+                    <FaCrown
+                      size={13}
+                      className="mr-1.5 flex-shrink-0 text-yellow-300"
+                    />
+                    <span>Subscribed</span>
+                  </>
+                ) : (
+                  <>
+                    <FaCrown
+                      size={13}
+                      className="mr-1.5 flex-shrink-0 text-yellow-300"
+                    />
+                    <span>Subscribe</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+        {/* Mobile Layout (below md) */}
+        <div className="lg:hidden">
+          <MobileAnalystCard
+            agent={
+              isCurrentUser ? { ...agent, name: `${agent.name} (You)` } : agent
+            }
+            rank={rank}
+            subscribedHandles={subscribedHandles}
+            subscribingHandle={subscribingHandle}
+            onSubscribe={onSubscribe}
+            primaryField={primaryField}
+            primaryLabel={primaryLabel}
+            formatFollowersCount={formatFollowersCount}
+            renderMetricIndicator={renderMetricIndicator}
+            isCurrentUser={isCurrentUser}
+          />
+        </div>
+      </div>
+    );
+  };
+
   const loading = loadingUmd;
 
   if (loading) {
@@ -265,19 +463,20 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
 
   const sortedAgents = getSortedAndFilteredAgents();
 
-  if (sortedAgents.length === 0 && searchText) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <SearchX className="w-10 h-10 text-gray-500 mb-3" />
-        <h3 className="text-lg font-medium text-gray-300 mb-2">
-          No analysts found
-        </h3>
-        <p className="text-gray-400 text-xs">
-          Try adjusting your search criteria
-        </p>
-      </div>
-    );
-  }
+  // Check if the current user is in the agents list
+  const currentUserHandle = session?.user?.username?.toLowerCase();
+  const currentUserAgentIndex = currentUserHandle
+    ? sortedAgents.findIndex(
+        (agent) =>
+          agent.twitterHandle.toLowerCase().replace("@", "") ===
+          currentUserHandle.replace("@", "")
+      )
+    : -1;
+
+  const currentUserAgent =
+    currentUserAgentIndex >= 0 ? sortedAgents[currentUserAgentIndex] : null;
+  const currentUserRank =
+    currentUserAgentIndex >= 0 ? currentUserAgentIndex + 1 : null;
 
   const topAgents = sortedAgents.slice(0, 3);
   const remainingAgents = sortedAgents.slice(3);
@@ -487,8 +686,16 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
         </div>
       </div>
 
-      {/* Top 3 agents */}
+      {topAgents.length === 0 && sortedAgents.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-12 text-center mt-4">
+          <SearchX className="w-10 h-10 text-gray-500 mb-3" />
+          <h3 className="text-lg font-medium text-gray-300 mb-2">
+            No analysts found
+          </h3>
+        </div>
+      )}
 
+      {/* Top 3 agents */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6">
         {topAgents.map((agent, index) => {
           const rank = index + 1;
@@ -807,17 +1014,20 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
         })}
       </div>
 
+      {currentUserAgent && currentPage === 1 && (
+        <div className="mb-6">
+          <h3 className="ml-[10px] text-base sm:text-lg font-semibold text-gray-300 mb-3 sm:mb-4 flex items-center">
+            <span className="mr-2">
+              <FaUser></FaUser>
+            </span>
+            Your Analytics
+          </h3>
+          {renderCurrentUserCard(currentUserAgent)}
+        </div>
+      )}
+
       {paginatedAgents.length > 0 && (
         <div className="mt-6 sm:mt-8">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-300 mb-3 sm:mb-4 flex items-center">
-            <span className="mr-2 text-blue-400/70">↕</span>
-            Other Analysts
-            {effectiveSortField !== primaryField && (
-              <span className="text-xs sm:text-sm ml-2 font-extralight text-cyan-300">
-                (sorted by {userSortField})
-              </span>
-            )}
-          </h3>
           <div className="px-4 py-2 flex items-center gap-3 md:gap-4 text-xs text-gray-300 border-b border-gray-800/50 mb-2">
             <div className="flex items-center flex-shrink-0 w-[30%] sm:w-[25%] md:w-[240px]">
               <span className="w-6 text-center mr-3 flex-shrink-0">#</span>
@@ -855,12 +1065,19 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
               const isSubscribed = subscribedHandles.includes(cleanHandle);
               const isCurrentlySubscribing = subscribingHandle === cleanHandle;
               // const creditCost = renderCreditCost(agent.impactFactor || 0);
+              const isCurrentUser =
+                session?.user?.username &&
+                cleanHandle.toLowerCase() ===
+                  session.user.username.replace("@", "").toLowerCase();
               const creditCost = agent?.subscriptionPrice;
-              console.log("creditCost", creditCost);
               return (
                 <div
                   key={agent.twitterHandle}
-                  className="impact-card list-item relative bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-lg overflow-hidden transition-all hover:bg-cyan-950 duration-200 hover:cursor-pointer"
+                  className={`impact-card list-item relative ${
+                    isCurrentUser
+                      ? "bg-gradient-to-br from-gray-900 via-blue-950/80 to-gray-900 border-blue-500/60 shadow-[0_0_15px_rgba(59,130,246,0.4)] hover:scale-[1.01] hover:shadow-[0_0_25px_rgba(59,130,246,0.7)]"
+                      : "bg-gray-900/50 border-gray-800/50 hover:bg-cyan-950"
+                  } backdrop-blur-sm border rounded-lg overflow-hidden transition-all duration-200 hover:cursor-pointer`}
                   onClick={() => router.push(`/influencer/${cleanHandle}`)}
                 >
                   {/* Desktop Layout (md and above) */}
@@ -891,7 +1108,12 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                       )}
                       <div className="flex-grow overflow-hidden">
                         <h4 className="text-sm font-medium text-white truncate">
-                          {agent.name}
+                          {agent.name}{" "}
+                          {isCurrentUser && (
+                            <span className="text-blue-300 font-medium">
+                              (You)
+                            </span>
+                          )}
                         </h4>
                         <p className="text-xs text-gray-500 truncate">
                           {agent.twitterHandle}
@@ -1011,7 +1233,11 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                   {/* Mobile Layout (below md) */}
                   <div className="lg:hidden">
                     <MobileAnalystCard
-                      agent={agent}
+                      agent={
+                        isCurrentUser
+                          ? { ...agent, name: `${agent.name} (You)` }
+                          : agent
+                      }
                       rank={rank}
                       subscribedHandles={subscribedHandles}
                       subscribingHandle={subscribingHandle}
@@ -1020,6 +1246,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                       primaryLabel={primaryLabel}
                       formatFollowersCount={formatFollowersCount}
                       renderMetricIndicator={renderMetricIndicator}
+                      isCurrentUser={isCurrentUser}
                     />
                   </div>
                 </div>

@@ -32,6 +32,7 @@ interface MobileAnalystCardProps {
   primaryLabel: string;
   formatFollowersCount: (num?: number) => string;
   renderMetricIndicator: (value: number, leftColor: string, rightColor: string) => React.ReactNode;
+  isCurrentUser?: boolean;
 }
 
 const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
@@ -44,10 +45,12 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
   primaryLabel,
   formatFollowersCount,
   renderMetricIndicator,
+  isCurrentUser = false,
 }) => {
   const cleanHandle = agent.twitterHandle.replace("@", "");
   const isSubscribed = subscribedHandles.includes(cleanHandle);
   const isCurrentlySubscribing = subscribingHandle === cleanHandle;
+  const creditCost = Math.floor((agent.impactFactor || 0) * 10);
 
   // State for dropdown
   const [isExpanded, setIsExpanded] = useState(false);
@@ -133,7 +136,9 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
       {/* Header Section */}
       <div className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-900/50 to-blue-900/20">
         <div className="flex items-center gap-3">
-          <div className="w-6 h-6 flex items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 text-white text-xs font-bold flex-shrink-0">
+          <div className={`w-6 h-6 flex items-center justify-center rounded-full ${
+            isCurrentUser ? "bg-blue-700 text-white" : "bg-gray-800 text-gray-400"
+          } text-xs font-bold flex-shrink-0`}>
             {rank}
           </div>
           {agent.twitterHandle && (
@@ -145,7 +150,9 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
                     : `https:// picsum.photos/seed/${encodeURIComponent(agent.twitterHandle)}/40/40`
                 }
                 alt={agent.name}
-                className="w-full h-full object-cover rounded-full border border-gray-700/30"
+                className={`w-full h-full object-cover rounded-full border ${
+                  isCurrentUser ? "border-blue-500" : "border-gray-700/50"
+                }`}
               />
               {agent.verified && (
                 <div className="absolute -bottom-0.5 -right-0.5 bg-blue-500 rounded-full p-0.5 border border-gray-900">
@@ -155,8 +162,17 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
             </div>
           )}
           <div className="flex-grow overflow-hidden">
-            <h4 className="text-sm font-semibold text-white truncate">{agent.name}</h4>
-            <p className="text-xs text-gray-400 truncate">{agent.twitterHandle}</p>
+            <h4 className={`text-sm font-semibold text-white truncate ${
+              isCurrentUser ? "text-blue-300" : ""
+            }`}>
+              {agent.name}
+              {isCurrentUser && <span className="ml-1 text-[10px] text-blue-400">(You)</span>}
+            </h4>
+            <p className={`text-xs text-gray-400 truncate ${
+              isCurrentUser ? "" : ""
+            }`}>
+              {agent.twitterHandle}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">

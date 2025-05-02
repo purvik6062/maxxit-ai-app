@@ -69,91 +69,31 @@ const NavItem: React.FC<NavItemProps> = ({ item, isActive, onClick, isMobile = f
   );
 };
 
-interface SearchInputProps {
-  searchText: string;
-  setSearchText: (text: string) => void;
-  showSearchInput: boolean;
-  toggleSearchInput?: () => void;
-  isMobile?: boolean;
-}
-
-const SearchInput: React.FC<SearchInputProps> = ({
-  searchText,
-  setSearchText,
-  showSearchInput,
-  toggleSearchInput,
-  isMobile = false
-}) => {
-  if (isMobile) {
-    return (
-      <div className="relative font-leagueSpartan">
-        <input
-          type="text"
-          placeholder="Search accounts..."
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          className="w-full px-4 py-2 rounded-full text-white text-sm bg-gray-800/60 border border-gray-700 focus:border-blue-500 focus:outline-none"
-        />
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-          {searchText ? (
-            <button onClick={() => setSearchText("")} className="text-gray-400 hover:text-red-400">
-              <X className="w-4 h-4" />
-            </button>
-          ) : (
-            <Search className="text-gray-400 w-4 h-4" />
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  if (showSearchInput) {
-    return (
-      <div className="relative flex items-center rounded-full transition-all duration-300 font-leagueSpartan">
-        <input
-          id="search-input"
-          type="text"
-          placeholder="Search accounts"
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          className="w-full !placeholder:font-leagueSpartan placeholder:text-sm !border-none !outline-none px-4 py-2 rounded-full text-white "
-        />
-        <div className="absolute right-3 flex space-x-2">
-          {searchText && (
-            <button onClick={() => setSearchText("")} className="text-gray-400 hover:text-red-400">
-              <X className="w-4 h-4" />
-            </button>
-          )}
-          <button onClick={toggleSearchInput} className="text-gray-400 hover:text-white">
-            <Search className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <button
-      onClick={toggleSearchInput}
-      className="flex items-center justify-center w-8 h-8 text-gray-300 hover:text-white hover:bg-gray-800 rounded-full"
-    >
-      <Search className="w-5 h-5" />
-    </button>
-  );
-};
-
 interface CreditsDisplayProps {
-  credits: number;
+  credits: number | null;
+  isLoading: boolean;
   isMobile?: boolean;
 }
 
-const CreditsDisplay: React.FC<CreditsDisplayProps> = ({ credits, isMobile = false }) => {
+const CreditsDisplay: React.FC<CreditsDisplayProps> = ({ credits, isLoading, isMobile = false }) => {
+  if (isLoading) {
+    // Loading state
+    return (
+      <div className={`flex items-center ${isMobile ? 'px-4 py-2 rounded-lg bg-gradient-to-r from-blue-900/30 to-blue-800/20 border border-blue-500/30' : 'hidden md:flex px-2 sm:px-3 py-1 rounded-full bg-gradient-to-r from-blue-500/20 to-blue-700/20 border border-blue-500/50'}`}>
+        <div className="animate-pulse flex items-center">
+          <div className={`h-4 w-12 bg-blue-400/30 rounded ${isMobile ? 'ml-auto' : ''}`}></div>
+          {!isMobile && <span className="text-white font-normal text-xs sm:text-sm ml-1">Credits</span>}
+        </div>
+      </div>
+    );
+  }
+
   if (isMobile) {
     return (
       <div className="flex items-center justify-between px-4 py-2 rounded-lg bg-gradient-to-r from-blue-900/30 to-blue-800/20 border border-blue-500/30">
         <span className="text-gray-300 font-medium text-sm">Available Credits</span>
         <span className="text-blue-400 font-bold text-lg">
-          {credits}
+          {credits ?? 0}
         </span>
       </div>
     );
@@ -162,7 +102,7 @@ const CreditsDisplay: React.FC<CreditsDisplayProps> = ({ credits, isMobile = fal
   return (
     <div className="hidden md:block px-2 sm:px-3 py-1 rounded-full bg-gradient-to-r from-blue-500/20 to-blue-700/20 border border-blue-500/50">
       <span className="text-blue-400 font-bold text-xs sm:text-sm">
-        {credits} <span className="text-white font-normal">Credits</span>
+        {credits ?? 0} <span className="text-white font-normal">Credits</span>
       </span>
     </div>
   );
@@ -174,22 +114,16 @@ interface HeaderProps {
   setSearchText: (text: string) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
+const Header: React.FC<HeaderProps> = () => {
   const pathname = usePathname();
-  const [view, setView] = useState("overview");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false);
   const [telegramUsername, setTelegramUsername] = useState("");
-  const [showTokens, setShowTokens] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [telegramStep, setTelegramStep] = useState(1);
-  const [tweetLink, setTweetLink] = useState(
-    "https://x.com/triggerxnetwork/status/1908126605110636929"
-  );
-  const { credits, updateCredits } = useCredits();
+  const { credits, updateCredits, isLoadingCredits } = useCredits();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { data: session } = useSession();
-  const [hasRegistered, setHasRegistered] = useState(false);
+  const { data: session, status: sessionStatus } = useSession();
   const [showSearchInput, setShowSearchInput] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -262,67 +196,24 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
     };
   }, [isModalOpen, isTelegramModalOpen]);
 
-  // Check if user has registered
-  useEffect(() => {
-    const hasRegisteredPreviously = localStorage.getItem("hasRegistered");
-    if (hasRegisteredPreviously === "true") {
-      setShowTokens(true);
-      setHasRegistered(true);
-    }
-
-    const fetchUserData = async () => {
-      if (!session || !session.user?.id) return;
-
-      try {
-        const response = await fetch(
-          `/api/get-user?twitterId=${session.user.id}`
-        );
-
-        if (response.status === 404) {
-          setShowTokens(false);
-          setHasRegistered(false);
-          localStorage.removeItem("hasRegistered");
-          return;
-        }
-
-        const data = await response.json();
-        console.log("data::", data);
-        if (data.success) {
-          setShowTokens(true);
-          setHasRegistered(true);
-          localStorage.setItem("hasRegistered", "true");
-        } else {
-          setShowTokens(false);
-          setHasRegistered(false);
-          localStorage.removeItem("hasRegistered");
-        }
-        setIsTelegramModalOpen(false);
-      } catch (error) {
-        console.error("Failed to fetch user data:", error);
-        setShowTokens(false);
-        setHasRegistered(false);
-        localStorage.removeItem("hasRegistered");
-      }
-    };
-
-    fetchUserData();
-  }, [session]);
-
   // Show welcome toast for new users with credits
   useEffect(() => {
-    const hasShownWelcomeToast = localStorage.getItem("hasShownWelcomeToast");
-
-    if (credits === 500 && !hasShownWelcomeToast) {
-      toast.info(
-        "🎉 Welcome! Explore our prediction markets with your 500 free credits",
-        {
-          position: "top-center",
-          autoClose: 7000,
-          hideProgressBar: false,
-        }
-      );
-
-      localStorage.setItem("hasShownWelcomeToast", "true");
+    // Only show welcome toast when credits are loaded and equal to 500
+    if (credits === 500) {
+      const hasShownWelcomeToast = sessionStorage.getItem("hasShownWelcomeToast");
+      
+      if (!hasShownWelcomeToast) {
+        toast.info(
+          "🎉 Welcome! Explore our prediction markets with your 500 free credits",
+          {
+            position: "top-center",
+            autoClose: 7000,
+            hideProgressBar: false,
+          }
+        );
+        
+        sessionStorage.setItem("hasShownWelcomeToast", "true");
+      }
     }
   }, [credits]);
 
@@ -343,10 +234,28 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
         autoClose: 3000,
         hideProgressBar: false,
       });
-    } else {
-      setIsTelegramModalOpen(true);
-      setTelegramStep(1);
+      return;
     }
+    
+    if (sessionStatus === 'loading' || isLoadingCredits) {
+      // Don't open modal if we're still loading user data
+      return;
+    }
+    
+    if (credits !== null) {
+      // User already has credits, no need to register
+      toast.info("You already have credits!", {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+      });
+      return;
+    }
+    
+    // Open the telegram registration modal
+    setIsTelegramModalOpen(true);
+    setTelegramStep(1);
+    setErrorMessage(null);
   };
 
   const handleLater = () => {
@@ -378,10 +287,6 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
         throw new Error(data.error?.message || "Registration failed");
       }
 
-      setHasRegistered(true);
-      setShowTokens(true);
-      localStorage.setItem("hasRegistered", "true");
-
       toast.success("Success! 500 Credits added to your account", {
         position: "top-center",
         autoClose: 4000,
@@ -393,6 +298,17 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
           updateCredits();
         },
       });
+      
+      // Immediately update credits to show the user
+      updateCredits();
+      
+      // Close modal after successful registration
+      setTimeout(() => {
+        setIsTelegramModalOpen(false);
+        setTelegramStep(1);
+        setTelegramUsername("");
+      }, 1000);
+      
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Registration failed";
@@ -434,31 +350,18 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
           <div className="font-leagueSpartan flex items-center space-x-2 sm:space-x-4">
             {/* Credits Display */}
 
-            {/* <motion.button
-              onClick={toggleTheme}
-              className="mr-2 p-2 rounded-full bg-background/80 border border-accent/20 hover:bg-accent/10 transition-colors flex items-center justify-center"
-              aria-label="Toggle theme"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ 
-                rotate: 180, 
-                scale: 0.9,
-                backgroundColor: theme === 'dark' ? 'rgba(124, 58, 237, 0.2)' : 'rgba(109, 40, 217, 0.2)'
-              }}
-            >
-              {theme === 'dark' ? (
-                <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                </svg>
-              ) : (
-                <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-                </svg>
-              )}
-            </motion.button> */}
-
-            {showTokens ? (
-              <CreditsDisplay credits={credits} />
+            {/* Conditional rendering for credits/get credits button */}
+            {sessionStatus === 'loading' ? (
+              // Loading state while session is being determined
+              <div className="w-20 h-8 bg-gray-800/80 rounded-full animate-pulse"></div>
+            ) : !session ? (
+              // Not logged in - don't show any credits or get credits button
+              null
+            ) : credits !== null ? (
+              // User is logged in and has credits (registered)
+              <CreditsDisplay credits={credits} isLoading={isLoadingCredits} />
             ) : (
+              // User is logged in but not registered (no credits)
               <button
                 className="px-3 py-1 bg-blue-500 text-white text-sm rounded-full hover:bg-blue-600 transition whitespace-nowrap"
                 onClick={handleTelemodal}
@@ -468,7 +371,10 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
             )}
 
             {/* Login/Profile */}
-            {!session ? (
+            {sessionStatus === 'loading' ? (
+              // Loading state for login button/profile
+              <div className="w-24 h-8 bg-gray-800/80 rounded-full animate-pulse"></div>
+            ) : !session ? (
               <button
                 onClick={() => signIn("twitter")}
                 className="flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-100 text-black rounded-full text-xs sm:text-sm font-medium"
@@ -569,14 +475,26 @@ const Header: React.FC<HeaderProps> = ({ searchText, setSearchText }) => {
         </nav>
 
         {/* Credits in mobile */}
-        {showTokens && (
+        {session && credits !== null && (
           <div className="px-4 py-3 mt-auto border-t border-gray-700 md:hidden font-leagueSpartan">
-            <CreditsDisplay credits={credits} isMobile={true} />
+            <CreditsDisplay credits={credits} isLoading={isLoadingCredits} isMobile={true} />
+          </div>
+        )}
+
+        {/* Get Credits button in mobile if logged in but not registered */}
+        {session && credits === null && !isLoadingCredits && (
+          <div className="px-4 py-3 mt-auto border-t border-gray-700 md:hidden font-leagueSpartan">
+            <button
+              onClick={handleTelemodal}
+              className="w-full px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition flex items-center justify-center"
+            >
+              Get Credits
+            </button>
           </div>
         )}
 
         {/* Login in mobile if not logged in */}
-        {!session && (
+        {!session && sessionStatus !== 'loading' && (
           <div className="px-4 py-3 mt-auto border-t border-gray-700 font-leagueSpartan">
             <button
               onClick={() => {

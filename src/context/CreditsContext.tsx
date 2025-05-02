@@ -5,11 +5,13 @@ import { useSession } from "next-auth/react";
 interface CreditsContextType {
   credits: number | null; // Can be number or null if not yet loaded
   updateCredits: () => Promise<void>; // Function to refresh credits
+  isLoadingCredits: boolean; // Flag to track loading state
 }
 
 const CreditsContext = createContext<CreditsContextType>({
   credits: null,
   updateCredits: async () => {}, // Default empty function
+  isLoadingCredits: false,
 });
 
 interface CreditsProviderProps {
@@ -20,6 +22,7 @@ export const CreditsProvider: React.FC<CreditsProviderProps> = ({
   children,
 }) => {
   const [credits, setCredits] = useState<number | null>(null);
+  const [isLoadingCredits, setIsLoadingCredits] = useState(false);
   const { data: session } = useSession();
 
   const updateCredits = async () => {
@@ -28,6 +31,7 @@ export const CreditsProvider: React.FC<CreditsProviderProps> = ({
       return;
     }
 
+    setIsLoadingCredits(true);
     try {
       const response = await fetch(
         `/api/get-user?twitterId=${session.user.id}`
@@ -46,6 +50,8 @@ export const CreditsProvider: React.FC<CreditsProviderProps> = ({
     } catch (error) {
       console.error("Error fetching credits:", error);
       setCredits(null);
+    } finally {
+      setIsLoadingCredits(false);
     }
   };
 
@@ -56,6 +62,7 @@ export const CreditsProvider: React.FC<CreditsProviderProps> = ({
   const value: CreditsContextType = {
     credits,
     updateCredits,
+    isLoadingCredits,
   };
 
   return (
