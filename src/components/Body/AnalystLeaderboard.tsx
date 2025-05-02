@@ -60,6 +60,7 @@ interface Agent {
   subscribers?: string[];
   signals?: number;
   tokens?: number;
+  subscriptionPrice?: number;
 }
 
 interface AnalystLeaderboardProps {
@@ -174,10 +175,12 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
   const getSortedAndFilteredAgents = () => {
     const filtered = localSearchText
       ? agents.filter(
-        (agent) =>
-          agent.name.toLowerCase().includes(localSearchText.toLowerCase()) ||
-          agent.twitterHandle.toLowerCase().includes(localSearchText.toLowerCase())
-      )
+          (agent) =>
+            agent.name.toLowerCase().includes(localSearchText.toLowerCase()) ||
+            agent.twitterHandle
+              .toLowerCase()
+              .includes(localSearchText.toLowerCase())
+        )
       : agents;
 
     return [...filtered].sort((a, b) => {
@@ -235,7 +238,9 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             <div className="absolute inset-0 rounded-full border-2 border-blue-500/30 animate-ping"></div>
             <Loader2 className="w-12 h-12 text-blue-500/70 animate-spin absolute inset-0" />
           </div>
-          <h3 className="text-lg font-medium text-gray-200 mb-1">Loading Data</h3>
+          <h3 className="text-lg font-medium text-gray-200 mb-1">
+            Loading Data
+          </h3>
           <p className="text-gray-400 text-xs">
             {mode === "impact"
               ? "Analyzing crypto market influence..."
@@ -250,7 +255,9 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <AlertCircle className="w-10 h-10 text-red-400 mb-3" />
-        <h3 className="text-lg font-medium text-red-200 mb-2">Failed to load rankings</h3>
+        <h3 className="text-lg font-medium text-red-200 mb-2">
+          Failed to load rankings
+        </h3>
         <p className="text-red-300/80 text-xs max-w-md">{error}</p>
       </div>
     );
@@ -262,8 +269,12 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <SearchX className="w-10 h-10 text-gray-500 mb-3" />
-        <h3 className="text-lg font-medium text-gray-300 mb-2">No analysts found</h3>
-        <p className="text-gray-400 text-xs">Try adjusting your search criteria</p>
+        <h3 className="text-lg font-medium text-gray-300 mb-2">
+          No analysts found
+        </h3>
+        <p className="text-gray-400 text-xs">
+          Try adjusting your search criteria
+        </p>
       </div>
     );
   }
@@ -335,7 +346,10 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
               />
               <div className="px-3 flex">
                 {localSearchText ? (
-                  <button onClick={() => handleSearchChange("")} className="text-gray-400 hover:text-red-400">
+                  <button
+                    onClick={() => handleSearchChange("")}
+                    className="text-gray-400 hover:text-red-400"
+                  >
                     <X className="w-4 h-4" />
                   </button>
                 ) : (
@@ -355,10 +369,11 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
               <div className="w-2 h-2 rounded-full bg-cyan-500/70 absolute animate-ping"></div>
             </div>
             <span className="text-xs sm:text-sm text-cyan-500">
-              Data updated • {new Date().toLocaleDateString('en-GB', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
+              Data updated •{" "}
+              {new Date().toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
               })}
             </span>
           </div>
@@ -371,10 +386,11 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             </div>
             <div
               onClick={() => sortAgents(primaryField)}
-              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${effectiveSortField === primaryField
-                ? "bg-blue-900/50 text-blue-300"
-                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-                }`}
+              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${
+                effectiveSortField === primaryField
+                  ? "bg-blue-900/50 text-blue-300"
+                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+              }`}
             >
               {React.createElement(primaryIcon, { size: 12 })}
               <span>{mode === "impact" ? "Impact" : "Heartbeat"}</span>
@@ -387,10 +403,11 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             </div>
             <div
               onClick={() => sortAgents("mindshare")}
-              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${userSortField === "mindshare"
-                ? "bg-blue-900/50 text-blue-300"
-                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-                }`}
+              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${
+                userSortField === "mindshare"
+                  ? "bg-blue-900/50 text-blue-300"
+                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+              }`}
             >
               <BarChart2 size={12} />
               <span>Mindshare</span>
@@ -403,10 +420,11 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             </div>
             <div
               onClick={() => sortAgents("followers")}
-              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${userSortField === "followers"
-                ? "bg-blue-900/50 text-blue-300"
-                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-                }`}
+              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${
+                userSortField === "followers"
+                  ? "bg-blue-900/50 text-blue-300"
+                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+              }`}
             >
               <Users size={12} />
               <span>Followers</span>
@@ -419,10 +437,11 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             </div>
             <div
               onClick={() => sortAgents("herdedVsHidden")}
-              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${userSortField === "herdedVsHidden"
-                ? "bg-blue-900/50 text-blue-300"
-                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-                }`}
+              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${
+                userSortField === "herdedVsHidden"
+                  ? "bg-blue-900/50 text-blue-300"
+                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+              }`}
             >
               <span>Herded-Hidden</span>
               {userSortField === "herdedVsHidden" &&
@@ -434,10 +453,11 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             </div>
             <div
               onClick={() => sortAgents("convictionVsHype")}
-              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${userSortField === "convictionVsHype"
-                ? "bg-blue-900/50 text-blue-300"
-                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-                }`}
+              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${
+                userSortField === "convictionVsHype"
+                  ? "bg-blue-900/50 text-blue-300"
+                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+              }`}
             >
               <span>Conviction-Hype</span>
               {userSortField === "convictionVsHype" &&
@@ -449,10 +469,11 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             </div>
             <div
               onClick={() => sortAgents("memeVsInstitutional")}
-              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${userSortField === "memeVsInstitutional"
-                ? "bg-blue-900/50 text-blue-300"
-                : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-                }`}
+              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${
+                userSortField === "memeVsInstitutional"
+                  ? "bg-blue-900/50 text-blue-300"
+                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
+              }`}
             >
               <span>Meme-Institutional</span>
               {userSortField === "memeVsInstitutional" &&
@@ -477,41 +498,46 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
           const subscribers = agent.subscribers?.length || 0;
           const signals = agent.signals || 0;
           const tokens = agent.tokens || 0;
-          const creditCost = renderCreditCost(agent.impactFactor || 0);
+          // const creditCost = renderCreditCost(agent.impactFactor || 0);
+          const creditCost = agent.subscriptionPrice;
 
           return (
             <div
               key={agent.twitterHandle}
-              className={`impact-card top-card relative overflow-hidden rounded-lg border ${rank === 1
-                ? "border-yellow-500/30"
-                : rank === 2
+              className={`impact-card top-card relative overflow-hidden rounded-lg border ${
+                rank === 1
+                  ? "border-yellow-500/30"
+                  : rank === 2
                   ? "border-gray-400/30"
                   : "border-amber-700/30"
-                } bg-gradient-to-br from-gray-900/80 via-gray-900/60 to-blue-900/20 backdrop-blur-sm min-w-0`}
+              } bg-gradient-to-br from-gray-900/80 via-gray-900/60 to-blue-900/20 backdrop-blur-sm min-w-0`}
               onClick={() => router.push(`/influencer/${cleanHandle}`)}
               style={{ cursor: "pointer" }}
             >
               <div className="absolute -right-4 -top-4 w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24">
                 <div
-                  className={`absolute inset-0 bg-gradient-to-br ${medalColors[rank - 1]
-                    } opacity-50 rotate-45`}
+                  className={`absolute inset-0 bg-gradient-to-br ${
+                    medalColors[rank - 1]
+                  } opacity-50 rotate-45`}
                 ></div>
               </div>
               <div className="p-3 sm:p-4 lg:p-5">
                 <div className="flex justify-between items-start mb-2 sm:mb-3">
                   <div className="flex items-center gap-2 sm:gap-3">
                     <div
-                      className={`relative flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 rounded-full bg-gradient-to-br ${medalColors[rank - 1]
-                        } p-0.5`}
+                      className={`relative flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 rounded-full bg-gradient-to-br ${
+                        medalColors[rank - 1]
+                      } p-0.5`}
                     >
                       <div className="absolute inset-0.5 rounded-full bg-gray-900/80"></div>
                       <FaTrophy
-                        className={`relative w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 ${rank === 1
-                          ? "text-yellow-300"
-                          : rank === 2
+                        className={`relative w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 ${
+                          rank === 1
+                            ? "text-yellow-300"
+                            : rank === 2
                             ? "text-gray-300"
                             : "text-amber-700"
-                          }`}
+                        }`}
                       />
                     </div>
                     <div>
@@ -526,8 +552,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                                 agent.profileUrl?.trim().length > 0
                                   ? agent.profileUrl
                                   : `https://picsum.photos/seed/${encodeURIComponent(
-                                    agent.twitterHandle
-                                  )}/40/40`
+                                      agent.twitterHandle
+                                    )}/40/40`
                               }
                               alt={agent.name}
                               className="w-full h-full object-cover rounded-full border border-gray-700/50"
@@ -560,7 +586,9 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                 <div className="h-1 sm:h-1.5 w-full bg-gray-800 rounded-full mb-2 sm:mb-3 overflow-hidden">
                   <div
                     className={`h-full bg-gradient-to-r ${progressBarClass} rounded-full progress-bar-fill`}
-                    style={{ width: `${Math.min(agent[primaryField] || 0, 100)}%` }}
+                    style={{
+                      width: `${Math.min(agent[primaryField] || 0, 100)}%`,
+                    }}
                   ></div>
                 </div>
                 {agent.mindshare >= 0 && (
@@ -615,17 +643,19 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                       className="group relative overflow-hidden flex items-center justify-center gap-1 sm:gap-2 w-full py-1.5 sm:py-2 lg:py-3 text-[10px] sm:text-xs lg:text-sm font-medium rounded-lg z-10 bg-gradient-to-r from-gray-900 to-gray-700 hover:from-gray-800 hover:to-gray-700 text-white transition-all duration-300 shadow-md"
                     >
                       <span className="relative z-10 flex items-center gap-1 sm:gap-2 group-hover:translate-x-1 transition-transform duration-300">
-                        View Profile <FaExternalLinkAlt className="text-[8px] sm:text-xs" />
+                        View Profile{" "}
+                        <FaExternalLinkAlt className="text-[8px] sm:text-xs" />
                       </span>
                       <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 via-blue-400/20 to-blue-600/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                     </Link>
                   </div>
                 )}
                 <div
-                  className={`transition-all duration-300 overflow-hidden ${showStats[agent.twitterHandle]
-                    ? "max-h-[500px] opacity-100 mb-3 sm:mb-4"
-                    : "max-h-0 opacity-0"
-                    }`}
+                  className={`transition-all duration-300 overflow-hidden ${
+                    showStats[agent.twitterHandle]
+                      ? "max-h-[500px] opacity-100 mb-3 sm:mb-4"
+                      : "max-h-0 opacity-0"
+                  }`}
                 >
                   <div className="grid grid-cols-3 gap-1 sm:gap-2 mb-2 sm:mb-3">
                     <div className="flex flex-col items-center justify-center bg-blue-900/20 rounded-lg p-1 sm:p-2 border border-blue-700/20">
@@ -739,10 +769,13 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                   )}
                 </button>
                 <button
-                  className={`w-full flex items-center justify-center gap-1 sm:gap-2 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs lg:text-sm font-medium ${isSubscribed || isCurrentlySubscribing
-                    ? "bg-green-600/30 text-green-300"
-                    : "bg-gradient-to-r from-blue-700 to-cyan-700 hover:from-cyan-700 hover:to-blue-800 text-white"
-                    } transition-all duration-200 ${isCurrentlySubscribing ? "animate-pulse" : ""}`}
+                  className={`w-full flex items-center justify-center gap-1 sm:gap-2 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs lg:text-sm font-medium ${
+                    isSubscribed || isCurrentlySubscribing
+                      ? "bg-green-600/30 text-green-300"
+                      : "bg-gradient-to-r from-blue-700 to-cyan-700 hover:from-cyan-700 hover:to-blue-800 text-white"
+                  } transition-all duration-200 ${
+                    isCurrentlySubscribing ? "animate-pulse" : ""
+                  }`}
                   onClick={(e) => {
                     e.stopPropagation();
                     if (!isSubscribed && !isCurrentlySubscribing) {
@@ -821,8 +854,9 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
               const cleanHandle = agent.twitterHandle.replace("@", "");
               const isSubscribed = subscribedHandles.includes(cleanHandle);
               const isCurrentlySubscribing = subscribingHandle === cleanHandle;
-              const creditCost = renderCreditCost(agent.impactFactor || 0);
-
+              // const creditCost = renderCreditCost(agent.impactFactor || 0);
+              const creditCost = agent?.subscriptionPrice;
+              console.log("creditCost", creditCost);
               return (
                 <div
                   key={agent.twitterHandle}
@@ -842,8 +876,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                               agent.profileUrl?.trim().length > 0
                                 ? agent.profileUrl
                                 : `https://picsum.photos/seed/${encodeURIComponent(
-                                  agent.twitterHandle
-                                )}/40/40`
+                                    agent.twitterHandle
+                                  )}/40/40`
                             }
                             alt={agent.name}
                             className="w-full h-full object-cover rounded-full border border-gray-700/50"
@@ -933,11 +967,13 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                       </div>
                       <div className="w-24 flex justify-center">
                         <button
-                          className={`flex items-center justify-center px-2 py-1.5 rounded-md text-xs w-full ${isSubscribed || isCurrentlySubscribing
-                            ? "bg-green-500/20 text-green-300"
-                            : "bg-blue-600/80 hover:bg-blue-700 text-white"
-                            } transition-all duration-200 whitespace-nowrap ${isCurrentlySubscribing ? "animate-pulse" : ""
-                            }`}
+                          className={`flex items-center justify-center px-2 py-1.5 rounded-md text-xs w-full ${
+                            isSubscribed || isCurrentlySubscribing
+                              ? "bg-green-500/20 text-green-300"
+                              : "bg-blue-600/80 hover:bg-blue-700 text-white"
+                          } transition-all duration-200 whitespace-nowrap ${
+                            isCurrentlySubscribing ? "animate-pulse" : ""
+                          }`}
                           onClick={(e) => {
                             e.stopPropagation();
                             if (!isSubscribed && !isCurrentlySubscribing) {
@@ -1005,7 +1041,9 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
               </button>
               <div className="px-4 py-1.5 sm:px-5 sm:py-2 bg-gray-800 bg-opacity-80 backdrop-blur-md rounded-full text-white font-medium shadow-lg text-xs sm:text-sm">
                 <span className="text-gray-400">Page </span>
-                <span className="text-blue-400 mx-1 font-bold">{currentPage}</span>
+                <span className="text-blue-400 mx-1 font-bold">
+                  {currentPage}
+                </span>
                 <span className="text-gray-400">of </span>
                 <span className="text-blue-400 font-bold">{totalPages}</span>
               </div>

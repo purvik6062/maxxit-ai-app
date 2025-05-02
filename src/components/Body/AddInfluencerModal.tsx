@@ -140,6 +140,7 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
           handle: formattedHandle,
           impactFactor: null,
           heartbeat: null,
+          subscriptionPrice: 100,
           createdAt: new Date().toISOString(),
           twitterId: session.user.id,
           sessionUserhandle: isSessionUserhandlePresent

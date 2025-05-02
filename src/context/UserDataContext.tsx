@@ -56,6 +56,7 @@ interface UserResponse {
   tweetScoutScore?: number;
   tweetScoutData?: TweetScoutData;
   createdAt?: string;
+  subscriptionPrice?: number;
 }
 
 export interface EnhancedAgent {
@@ -73,6 +74,7 @@ export interface EnhancedAgent {
   subscribers: string[];
   signals: number;
   tokens: number;
+  subscriptionPrice?: number;
 }
 
 interface UserDataContextType {
@@ -90,7 +92,7 @@ interface CachedData {
 
 // Cache expiration time (1 hour in milliseconds)
 const CACHE_EXPIRATION = 1 * 60 * 60 * 1000;
-const CACHE_KEY = 'analyst_influencers_data_cache';
+const CACHE_KEY = "analyst_influencers_data_cache";
 
 // Create context with default values
 const UserDataContext = createContext<UserDataContextType>({
@@ -212,6 +214,7 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
         heartbeat: heartbeatData[user.twitterHandle] ?? 0,
         mindshare: user.userData.mindshare ?? 0,
         followers: user.userData.publicMetrics.followers_count ?? 0,
+        subscriptionPrice: user.subscriptionPrice ?? 0,
         profileUrl: user.userData.userProfileUrl || "",
         verified: user.userData.verified || false,
         herdedVsHidden: user.userData.herdedVsHidden ?? 1,
@@ -230,11 +233,11 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const cacheData: CachedData = {
         agents: agentsData,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
       localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
     } catch (error) {
-      console.error('Failed to save data to localStorage:', error);
+      console.error("Failed to save data to localStorage:", error);
     }
   }, []);
 
@@ -246,16 +249,16 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const cachedData: CachedData = JSON.parse(cachedDataString);
       const now = Date.now();
-      
+
       // Check if cache is expired (older than 3 days)
       if (now - cachedData.timestamp > CACHE_EXPIRATION) {
         localStorage.removeItem(CACHE_KEY);
         return null;
       }
-      
+
       return cachedData;
     } catch (error) {
-      console.error('Failed to retrieve or parse cached data:', error);
+      console.error("Failed to retrieve or parse cached data:", error);
       localStorage.removeItem(CACHE_KEY);
       return null;
     }
