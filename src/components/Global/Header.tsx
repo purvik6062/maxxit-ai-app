@@ -924,7 +924,7 @@ const Header: React.FC<HeaderProps> = () => {
             <div className="bg-[#111528] rounded-lg p-4 mb-6 border border-gray-800">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
                 <span className="inline-block w-6 h-6 rounded-full bg-blue-500 text-white text-sm flex items-center justify-center mr-2">
-                  1
+                  0
                 </span>
                 Complete your registration
               </h3>
@@ -968,20 +968,7 @@ const Header: React.FC<HeaderProps> = () => {
                 className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white rounded-lg font-medium transition-all duration-200"
               >
                 Connect Telegram
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="ml-2"
-                >
-                  <path d="M8 5h8l4 8-4 8H8l-4-8 4-8Z" />
-                </svg>
+                <FaTelegram size={20} className="text-white ml-3" />
               </button>
             </div>
           </motion.div>
@@ -1076,7 +1063,7 @@ const Header: React.FC<HeaderProps> = () => {
                   </h4>
                   <ol className="space-y-2 text-sm text-gray-300">
                     <li className="flex items-start">
-                      <span className="flex items-center justify-center w-5 h-5 bg-blue-500/20 text-blue-400 rounded-full mr-2 text-xs font-bold flex-shrink-0">
+                      <span className="flex items-center justify-center w-5 h-5 bg-blue-500/20 text-blue-400 rounded-full mr-2 text-xs font-bold flex-shrink-0 pt-1">
                         1
                       </span>
                       <span>
@@ -1108,7 +1095,7 @@ const Header: React.FC<HeaderProps> = () => {
                       </span>
                     </li>
                     <li className="flex items-start">
-                      <span className="flex items-center justify-center w-5 h-5 bg-blue-500/20 text-blue-400 rounded-full mr-2 text-xs font-bold flex-shrink-0">
+                      <span className="flex items-center justify-center w-5 h-5 bg-blue-500/20 text-blue-400 rounded-full mr-2 text-xs font-bold flex-shrink-0 pt-1">
                         2
                       </span>
                       <span>
@@ -1174,7 +1161,7 @@ const Header: React.FC<HeaderProps> = () => {
                 </div>
 
                 <div className="mb-4">
-                  <h4 className="text-white font-medium mb-2 flex items-center gap-2">
+                  <h4 className="text-white font-medium mb-2 flex items-center gap-2 font-leagueSpartan">
                     <FaTelegram className="text-blue-400" size={18} />
                     Enter Your Telegram Username
                   </h4>
@@ -1186,13 +1173,13 @@ const Header: React.FC<HeaderProps> = () => {
                     </p>
                     <ol className="text-sm text-gray-300 space-y-2 pl-1">
                       <li className="flex items-start gap-2">
-                        <span className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5 text-xs text-blue-400 font-medium">
+                        <span className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5 text-xs text-blue-400 font-medium pt-1">
                           1
                         </span>
                         <span>Open your Telegram app</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5 text-xs text-blue-400 font-medium">
+                        <span className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5 text-xs text-blue-400 font-medium pt-1">
                           2
                         </span>
                         <span>
@@ -1201,12 +1188,12 @@ const Header: React.FC<HeaderProps> = () => {
                         </span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5 text-xs text-blue-400 font-medium">
+                        <span className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5 text-xs text-blue-400 font-medium pt-1">
                           3
                         </span>
                         <span>
-                          Scroll down to find your username (it will appear as{" "}
-                          <strong>@username</strong>)
+                          Find your username in "My Profile" section (it will
+                          appear as <strong>@username</strong>)
                         </span>
                       </li>
                     </ol>
@@ -1221,9 +1208,13 @@ const Header: React.FC<HeaderProps> = () => {
                     Your Telegram Username
                   </label>
                   <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-700 rounded-lg blur opacity-25 group-hover:opacity-40 transition duration-200"></div>
-                    <div className="relative flex items-center bg-gray-800 rounded-lg border border-blue-500/30 focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-400 transition duration-200 overflow-hidden">
-                      <span className="pl-4 text-blue-400 font-medium">@</span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/40 to-blue-600/40 rounded-lg blur-sm opacity-30 group-hover:opacity-50 transition duration-300"></div>
+                    <div className="relative flex items-center bg-gray-900/90 rounded-lg transition duration-300 overflow-hidden border border-blue-500/40 group-hover:border-blue-400/70 focus-within:border-blue-400 shadow-md hover:shadow-lg">
+                      <div className="pl-4 pr-1 text-blue-400 font-medium text-lg flex items-center">
+                        <div className="w-6 h-6 bg-blue-500/20 rounded-full flex items-center justify-center pt-1">
+                          <span>@</span>
+                        </div>
+                      </div>
                       <input
                         id="telegram-username"
                         type="text"
@@ -1233,12 +1224,9 @@ const Header: React.FC<HeaderProps> = () => {
                           const value = e.target.value.replace("@", "").trim();
                           setTelegramUsername(value.toLowerCase());
                         }}
-                        placeholder="your_username"
-                        className="w-full px-2 py-3.5 bg-gray-800 text-white focus:outline-none placeholder-gray-500"
+                        placeholder="username"
+                        className="w-[70%] px-2 py-4 bg-transparent text-white focus:outline-none placeholder-gray-500 font-medium"
                       />
-                      <div className="pr-4 text-gray-400">
-                        <FaTelegram size={20} className="text-blue-400" />
-                      </div>
                     </div>
                   </div>
                   <div className="text-sm text-gray-400 mt-2 flex items-center gap-1.5">
