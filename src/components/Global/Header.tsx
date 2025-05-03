@@ -6,7 +6,7 @@ import { OctagonAlert } from "lucide-react";
 import { IoShieldCheckmark } from "react-icons/io5";
 import { MdCancel } from "react-icons/md";
 import { GiConfirmed } from "react-icons/gi";
-import { FaXTwitter } from "react-icons/fa6";
+import { FaXTwitter, FaTelegram } from "react-icons/fa6";
 import "react-toastify/dist/ReactToastify.css";
 import {
   Search,
@@ -1153,14 +1153,12 @@ const Header: React.FC<HeaderProps> = () => {
                     className="flex-1 flex items-center justify-center gap-1 rounded-lg border border-gray-600 px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-800"
                   >
                     <span>Cancel</span>{" "}
-                    <MdCancel color="rgb(250, 109, 109)" size={15} />
                   </button>
                   <button
                     onClick={() => setTelegramStep(2)}
                     className="flex-1 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-3 text-sm font-medium text-white hover:from-blue-600 hover:to-blue-800 flex items-center justify-center gap-1"
                   >
                     <span>I've Done This</span>{" "}
-                    <GiConfirmed color="rgb(135, 255, 135)" size={15} />
                   </button>
                 </div>
               </div>
@@ -1175,30 +1173,104 @@ const Header: React.FC<HeaderProps> = () => {
                   <p className="text-sm text-gray-300">Step 2 of 2</p>
                 </div>
 
-                <div className="relative">
-                  <div className="flex items-center bg-gray-800 rounded-lg border border-gray-700 focus-within:ring-2 focus-within:ring-blue-500/20">
-                    <span className="pl-4 text-gray-400">@</span>
-                    <input
-                      type="text"
-                      value={telegramUsername}
-                      onChange={(e) => {
-                        // Auto-remove @ and trim spaces
-                        const value = e.target.value.replace("@", "").trim();
-                        setTelegramUsername(value.toLowerCase());
-                      }}
-                      placeholder="your_username"
-                      className="w-full px-2 py-3 rounded-lg bg-gray-800 text-white focus:outline-none"
-                    />
+                <div className="mb-4">
+                  <h4 className="text-white font-medium mb-2 flex items-center gap-2">
+                    <FaTelegram className="text-blue-400" size={18} />
+                    Enter Your Telegram Username
+                  </h4>
+
+                  <div className="bg-blue-900/20 p-4 rounded-lg border border-blue-500/30 mb-4">
+                    <p className="text-sm text-blue-100 mb-3">
+                      Not sure what your Telegram username is? Follow these
+                      steps:
+                    </p>
+                    <ol className="text-sm text-gray-300 space-y-2 pl-1">
+                      <li className="flex items-start gap-2">
+                        <span className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5 text-xs text-blue-400 font-medium">
+                          1
+                        </span>
+                        <span>Open your Telegram app</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5 text-xs text-blue-400 font-medium">
+                          2
+                        </span>
+                        <span>
+                          Go to <strong>Settings</strong> (tap on the hamburger
+                          menu ☰)
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5 text-xs text-blue-400 font-medium">
+                          3
+                        </span>
+                        <span>
+                          Scroll down to find your username (it will appear as{" "}
+                          <strong>@username</strong>)
+                        </span>
+                      </li>
+                    </ol>
                   </div>
-                  <div className="text-sm text-gray-400 mt-2 flex items-center gap-1">
-                    <OctagonAlert size={15} color="red" />{" "}
-                    <span>Must match exactly with your Telegram username</span>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="telegram-username"
+                    className="text-sm font-medium text-blue-300 mb-2 block"
+                  >
+                    Your Telegram Username
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-700 rounded-lg blur opacity-25 group-hover:opacity-40 transition duration-200"></div>
+                    <div className="relative flex items-center bg-gray-800 rounded-lg border border-blue-500/30 focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-400 transition duration-200 overflow-hidden">
+                      <span className="pl-4 text-blue-400 font-medium">@</span>
+                      <input
+                        id="telegram-username"
+                        type="text"
+                        value={telegramUsername}
+                        onChange={(e) => {
+                          // Auto-remove @ and trim spaces
+                          const value = e.target.value.replace("@", "").trim();
+                          setTelegramUsername(value.toLowerCase());
+                        }}
+                        placeholder="your_username"
+                        className="w-full px-2 py-3.5 bg-gray-800 text-white focus:outline-none placeholder-gray-500"
+                      />
+                      <div className="pr-4 text-gray-400">
+                        <FaTelegram size={20} className="text-blue-400" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-400 mt-2 flex items-center gap-1.5">
+                    <OctagonAlert size={14} className="text-amber-400" />
+                    <span>
+                      Enter <strong>exactly</strong> as shown in your Telegram
+                      settings (without the @)
+                    </span>
                   </div>
                 </div>
 
                 {errorMessage && (
-                  <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-                    <p className="text-red-400 text-sm">{errorMessage}</p>
+                  <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                    <p className="text-red-400 text-sm flex items-start gap-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-red-400 flex-shrink-0 mt-0.5"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                      </svg>
+                      {errorMessage}
+                    </p>
                   </div>
                 )}
 
@@ -1212,7 +1284,7 @@ const Header: React.FC<HeaderProps> = () => {
                   <button
                     onClick={handleSubmit}
                     disabled={isSubmitting || !telegramUsername}
-                    className="flex-1 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-3 text-sm font-medium text-white hover:from-blue-600 hover:to-blue-800 disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="flex-1 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-3 text-sm font-medium text-white hover:from-blue-600 hover:to-blue-800 disabled:opacity-70 disabled:cursor-not-allowed transition duration-200"
                   >
                     {isSubmitting ? (
                       <div className="flex items-center justify-center gap-2">
