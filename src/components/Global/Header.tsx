@@ -923,7 +923,7 @@ const Header: React.FC<HeaderProps> = () => {
 
             <div className="bg-[#111528] rounded-lg p-4 mb-6 border border-gray-800">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                <span className="inline-block w-6 h-6 rounded-full bg-blue-500 text-white text-sm items-center justify-center mr-2">
+                <span className="inline-block w-6 h-6 rounded-full bg-blue-500 text-white text-sm flex items-center justify-center mr-2">
                   1
                 </span>
                 Complete your registration
@@ -943,7 +943,7 @@ const Header: React.FC<HeaderProps> = () => {
 
               <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0 bg-blue-500/20 rounded-full p-1.5">
-                  <span className="flex items-center justify-center w-4 h-4 text-blue-400">
+                  <span className="flex items-center justify-center pt-1 w-4 h-4 text-blue-400">
                     2
                   </span>
                 </div>
