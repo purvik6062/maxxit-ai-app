@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { ProfileHeader } from "./ProfileHeader";
 import { SubscriptionsList } from "./SubscriptionsList";
 import type { UserProfile as UserProfileType } from "./types";
-import { Loader2, Eye, EyeOff, Copy, Key } from "lucide-react";
+import { Loader2, Eye, EyeOff, Copy, Key, AlertCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import ApiCredentialsSection from "./ApiCredentialSection";
@@ -49,6 +49,7 @@ const UserProfile = () => {
     "subscriptions" | "api" | "signals"
   >("subscriptions");
   const { credits, updateCredits } = useCredits();
+  const [showRegistrationPrompt, setShowRegistrationPrompt] = useState(false);
 
   console.log("session", session);
   console.log("sessionStatus", sessionStatus);
@@ -70,7 +71,7 @@ const UserProfile = () => {
 
   useEffect(() => {
     // Only proceed when session status is no longer loading
-    if (sessionStatus === 'loading') {
+    if (sessionStatus === "loading") {
       return;
     }
 
@@ -92,6 +93,12 @@ const UserProfile = () => {
         const profileResult = await profileResponse.json();
 
         if (!profileResult.success) {
+          if (profileResult.error?.message === "User not found") {
+            // User is logged in with Twitter but hasn't completed Telegram registration
+            setShowRegistrationPrompt(true);
+            setLoading(false);
+            return;
+          }
           throw new Error("Failed to fetch user profile");
         }
 
@@ -117,6 +124,7 @@ const UserProfile = () => {
 
         setProfile(newProfile);
         setApiKey(apiKeyResult.success ? apiKeyResult.data.apiKey : null);
+        setShowRegistrationPrompt(false);
       } catch (err) {
         setError(
           err instanceof Error
@@ -132,8 +140,8 @@ const UserProfile = () => {
   }, [session?.user?.id, credits, sessionStatus]);
 
   // Early returns for different states
-  if (sessionStatus === 'loading') return <LoadingState />;
-  if (!session?.user?.id && sessionStatus === 'unauthenticated')
+  if (sessionStatus === "loading") return <LoadingState />;
+  if (!session?.user?.id && sessionStatus === "unauthenticated")
     return (
       <EmptyState
         title="Not Logged In"
@@ -142,6 +150,128 @@ const UserProfile = () => {
     );
   if (loading) return <LoadingState />;
   if (error) return <ErrorState message={error} />;
+  if (showRegistrationPrompt) {
+    return (
+      <div className="min-h-screen pt-12 pb-16 px-4">
+        <div className="max-w-lg mx-auto bg-gradient-to-b from-gray-900 to-[#070915] rounded-xl p-6 shadow-xl border border-blue-500/30">
+          <div className="text-center mb-6">
+            <div className="bg-blue-500/10 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4">
+              <AlertCircle size={32} className="text-blue-400" />
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-2">
+              Registration Incomplete
+            </h1>
+            <p className="text-gray-300">
+              You need to complete your registration to access your profile.
+            </p>
+          </div>
+
+          <div className="bg-[#111528] rounded-lg p-4 my-6 border border-gray-800">
+            <h3 className="text-lg font-semibold text-white mb-4">
+              Registration Steps
+            </h3>
+
+            <div className="flex items-start space-x-3 mb-5">
+              <div className="flex-shrink-0 bg-green-500/20 rounded-full p-1.5 mt-0.5">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-green-500"
+                >
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-white font-medium">
+                  Step 1: Twitter/X Login
+                </p>
+                <p className="text-sm text-gray-400">Successfully completed</p>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0 bg-amber-500/20 rounded-full p-1.5 mt-0.5">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-amber-400"
+                >
+                  <path d="M12 9v4" />
+                  <path d="M12 16h.01" />
+                  <path d="M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2s10 4.477 10 10z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-white font-medium">
+                  Step 2: Connect Telegram
+                </p>
+                <p className="text-sm text-gray-400">
+                  Required to activate your account
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 mt-6">
+            <Link
+              href="/"
+              className="flex-1 text-center px-6 py-3 rounded-lg border border-gray-700 text-gray-300 hover:bg-gray-800 transition"
+            >
+              Back to Home
+            </Link>
+            <button
+              onClick={() => {
+                // Direct user to the header's registration flow by showing a toast
+                toast.custom(
+                  (t) => (
+                    <div
+                      className={`px-6 py-4 bg-gray-800 rounded-lg shadow-lg border border-blue-500/30 ${
+                        t.visible ? "animate-enter" : "animate-leave"
+                      }`}
+                    >
+                      <p className="text-white mb-2">
+                        Click on "Complete Setup" in the top bar to continue
+                        registration.
+                      </p>
+                      <div className="flex justify-end">
+                        <button
+                          onClick={() => toast.dismiss(t.id)}
+                          className="px-3 py-1 bg-blue-600 rounded hover:bg-blue-700 text-white text-sm"
+                        >
+                          Got it
+                        </button>
+                      </div>
+                    </div>
+                  ),
+                  {
+                    duration: 10000,
+                    position: "top-center",
+                  }
+                );
+              }}
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white rounded-lg font-medium"
+            >
+              Complete Registration
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
   if (!profile)
     return (
       <EmptyState
@@ -177,28 +307,31 @@ const UserProfile = () => {
                 <div className="grid grid-cols-3 w-full">
                   <button
                     onClick={() => setActiveSection("subscriptions")}
-                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all ${activeSection === "subscriptions"
+                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all ${
+                      activeSection === "subscriptions"
                         ? "bg-[#1a2234] text-white font-medium shadow-inner"
                         : "text-[#8ba1bc] hover:text-white"
-                      }`}
+                    }`}
                   >
                     Subscriptions
                   </button>
                   <button
                     onClick={() => setActiveSection("signals")}
-                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all mx-1 ${activeSection === "signals"
+                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all mx-1 ${
+                      activeSection === "signals"
                         ? "bg-[#1a2234] text-white font-medium shadow-inner"
                         : "text-[#8ba1bc] hover:text-white"
-                      }`}
+                    }`}
                   >
                     Signals
                   </button>
                   <button
                     onClick={() => setActiveSection("api")}
-                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all ${activeSection === "api"
+                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all ${
+                      activeSection === "api"
                         ? "bg-[#1a2234] text-white font-medium shadow-inner"
                         : "text-[#8ba1bc] hover:text-white"
-                      }`}
+                    }`}
                   >
                     API Access
                   </button>

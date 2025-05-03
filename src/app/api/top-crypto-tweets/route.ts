@@ -51,7 +51,6 @@ export async function GET() {
           if (!sortedResults.length) return null;
 
           const result = sortedResults[0];
-          console.log("result", result);
 
           // No need to fetch tweet content anymore - just pass the tweet URL
           return {
