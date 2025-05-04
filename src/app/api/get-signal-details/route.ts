@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "src/utils/dbConnect";
 import { MongoClient, ObjectId } from "mongodb";
+import crypto from "crypto";
 
 // Define the same interface as in get-user-signals for consistency
 interface SignalData {
@@ -29,6 +30,7 @@ interface SignalData {
     tokenMentioned?: string;
     tokenId?: string;
     ipfsLink?: string;
+    encryptedTwitterId?: string;
   };
   generatedAt: string;
   subscribers?: Array<{
@@ -39,6 +41,21 @@ interface SignalData {
   messageSent?: boolean;
   backtestingDone?: boolean;
   hasExited?: boolean;
+}
+
+// Helper function to generate encrypted Twitter ID from tweet URL
+function encryptTwitterId(tweetUrl: string, twitterHandle: string): string {
+  try {
+    // Create a simple hash of the Twitter handle and URL combination
+    const data = `${twitterHandle}:${tweetUrl}`;
+    const hash = crypto.createHash('sha256').update(data).digest('hex');
+    
+    // Return a shortened version of the hash (first 16 characters)
+    return hash
+  } catch (error) {
+    console.error("Error encrypting Twitter ID:", error);
+    return "encrypted-id-error";
+  }
 }
 
 // Helper function to fetch data from IPFS link
@@ -94,6 +111,12 @@ export async function GET(request: Request): Promise<Response> {
         { status: 404 }
       );
     }
+    
+    // Generate encrypted Twitter ID from tweet URL
+    const twitterHandle = signal.twitterHandle || signal.signal_data.twitterHandle || "";
+    if (signal.tweet_link && twitterHandle) {
+      signal.signal_data.encryptedTwitterId = encryptTwitterId(signal.tweet_link, twitterHandle);
+    }
 
     // Find backtesting result for this signal
     let backtestingResult = null;
@@ -116,6 +139,11 @@ export async function GET(request: Request): Promise<Response> {
       // Check if this is an exited trade - verify Final Exit Price exists and is not empty
       const hasExitPrice = backtestingResult["Final Exit Price"] && 
                          backtestingResult["Final Exit Price"] !== "";
+      
+      // Get IPFS link from backtesting result if available
+      if (backtestingResult["IPFS Link"] && !signal.signal_data.ipfsLink) {
+        signal.signal_data.ipfsLink = backtestingResult["IPFS Link"];
+      }
       
       if (!hasExitPrice) {
         // This has backtesting data but hasn't exited
