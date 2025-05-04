@@ -1,8 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { useParams } from "next/navigation";
-import { useRouter } from "@bprogress/next/app";
 import InfluencerProfileHeader from "./InfluencerProfileHeader";
 import { toast } from "react-toastify";
 import { useSession } from "next-auth/react";
@@ -10,13 +8,11 @@ import { useCredits } from "@/context/CreditsContext";
 import { FaCheck } from "react-icons/fa";
 
 interface InfluencerMetricsProps {
-  influencerId?: string;
+  influencerId?: string | string[];
 }
 
 function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
-  const params = useParams();
-  const router = useRouter();
-  const id = influencerId || params?.id;
+  const id = influencerId;
   const [influencer, setInfluencer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

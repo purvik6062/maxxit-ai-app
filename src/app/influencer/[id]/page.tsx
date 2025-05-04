@@ -1,19 +1,13 @@
 "use client";
 import React from "react";
 import SignalStats from "@/components/InfluencerProfile/SignalStats";
-// import InfluencerTable from "@/components/InfluencerProfile/InfluencerTable";
 import InfluencerMetrics from "@/components/InfluencerProfile/InfluencerMetrics";
+import { useParams } from "next/navigation";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-interface PageProps {
-  params: {
-    id: string;
-  };
-}
-
-function Page({ params }: PageProps) {
-  const { id } = params;
+function Page() {
+  const { id } = useParams();
 
   return (
     <div className="py-4 px-5">
