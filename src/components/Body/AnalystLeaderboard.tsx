@@ -11,7 +11,7 @@ import {
   FaChevronRight,
   FaUser,
 } from "react-icons/fa";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@bprogress/next/app";
 import {
   HeartPulse,
   TrendingUp,
@@ -69,7 +69,7 @@ interface AnalystLeaderboardProps {
   mode: Mode;
   subscribedHandles: string[];
   subscribingHandle: string | null;
-  onSubscribe: (handle: string, impactFactor: number) => void;
+  onSubscribe: (agent: Agent) => void;
   setRefreshData: (refresh: () => void) => void;
   searchText: string;
 }
@@ -377,7 +377,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                 onClick={(e) => {
                   e.stopPropagation();
                   if (!isSubscribed && !isCurrentlySubscribing) {
-                    onSubscribe(agent.twitterHandle, agent.impactFactor || 0);
+                    onSubscribe(agent);
                   }
                 }}
                 disabled={isSubscribed || isCurrentlySubscribing}
@@ -986,7 +986,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                   onClick={(e) => {
                     e.stopPropagation();
                     if (!isSubscribed && !isCurrentlySubscribing) {
-                      onSubscribe(agent.twitterHandle, agent.impactFactor || 0);
+                      onSubscribe(agent);
                     }
                   }}
                   disabled={isSubscribed || isCurrentlySubscribing}
@@ -1033,14 +1033,14 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
               <span className="w-6 text-center mr-3 flex-shrink-0">#</span>
               <span className="flex-grow truncate pr-1">Analyst</span>
             </div>
-            <div className="flex items-center justify-between gap-2 md:gap-4 flex-grow min-w-0 px-1">
+            <div className="hidden lg:flex items-center justify-between gap-2 md:gap-4 flex-grow min-w-0 px-1">
               <span className="w-1/3 text-center truncate">Herded/Hidden</span>
               <span className="w-1/3 text-center truncate">
                 Conviction/Hype
               </span>
               <span className="w-1/3 text-center truncate">Meme/Inst.</span>
             </div>
-            <div className="flex items-center justify-end gap-2 md:gap-3 flex-shrink-0 w-auto sm:w-[300px] md:w-[385px]">
+            <div className="hidden lg:flex items-center justify-end gap-2 md:gap-3 flex-shrink-0 w-auto sm:w-[300px] md:w-[385px]">
               <span className="w-16 text-right hidden sm:inline-block">
                 Mindshare
               </span>
@@ -1199,10 +1199,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                           onClick={(e) => {
                             e.stopPropagation();
                             if (!isSubscribed && !isCurrentlySubscribing) {
-                              onSubscribe(
-                                agent.twitterHandle,
-                                agent.impactFactor || 0
-                              );
+                              onSubscribe(agent);
                             }
                           }}
                           disabled={isSubscribed || isCurrentlySubscribing}

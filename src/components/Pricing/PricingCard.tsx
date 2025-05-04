@@ -1,10 +1,12 @@
 "use client";
 
-import { CheckIcon, XIcon } from "lucide-react";
+import { CheckIcon, XIcon, AlertTriangleIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import PaymentModal from "./PaymentModal";
 import Link from "next/link";
+import { useCredits } from "@/context/CreditsContext";
+import { useSession } from "next-auth/react";
 
 interface PricingCardProps {
   name: string;
@@ -25,10 +27,19 @@ export default function PricingCard({
 }: PricingCardProps) {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const { credits, isLoadingCredits } = useCredits();
+  const { data: session, status: sessionStatus } = useSession();
 
   const handleCtaClick = () => {
     setIsPaymentModalOpen(true);
   };
+
+  // Determine if registration is needed
+  const isRegistrationNeeded =
+    session &&
+    sessionStatus === "authenticated" &&
+    credits === null &&
+    !isLoadingCredits;
 
   return (
     <>
@@ -81,7 +92,15 @@ export default function PricingCard({
             <p className="mt-4 text-gray-600 text-sm h-8">{description}</p>
           </div>
 
-          <div className="p-8 pt-0">
+          <div className="p-8 pt-0 relative">
+            {/* Registration warning for paid plans */}
+            {name !== "Free" && isRegistrationNeeded && (
+              <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-amber-100 text-amber-800 text-xs font-medium px-2 py-1 rounded flex items-center">
+                <AlertTriangleIcon size={12} className="mr-1" />
+                Registration required
+              </div>
+            )}
+
             {name === "Free" ? (
               <Link href="/redeem-credits">
                 <button className="w-full py-3 px-6 rounded-3xl font-medium transition-all duration-200 bg-gradient-to-r bg-[#1C2333] text-white hover:shadow-lg hover:shadow-black-500/30">

@@ -1,9 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PricingCard from "./PricingCard";
+import { useCredits } from "@/context/CreditsContext";
+import { useSession } from "next-auth/react";
+import { AlertTriangle } from "lucide-react";
 
 export default function PricingSection() {
+  const { credits, isLoadingCredits } = useCredits();
+  const { data: session, status: sessionStatus } = useSession();
+  const [showRegistrationBanner, setShowRegistrationBanner] = useState(false);
+
+  // Check if user is logged in but not registered
+  useEffect(() => {
+    if (
+      sessionStatus === "authenticated" &&
+      credits === null &&
+      !isLoadingCredits
+    ) {
+      setShowRegistrationBanner(true);
+    } else {
+      setShowRegistrationBanner(false);
+    }
+  }, [sessionStatus, credits, isLoadingCredits]);
+
+  // Trigger onboarding modal
+  const triggerOnboarding = () => {
+    const event = new CustomEvent("showOnboarding");
+    window.dispatchEvent(event);
+  };
+
   const pricingPlans = [
     {
       name: "Free",
@@ -68,6 +94,35 @@ export default function PricingSection() {
   return (
     <section className="py-20 px-6 font-leagueSpartan">
       <div className="max-w-6xl mx-auto">
+        {/* Registration Required Banner */}
+        {showRegistrationBanner && (
+          <div className="mb-12 rounded-xl overflow-hidden border border-amber-500/30 bg-gradient-to-r from-amber-900/30 to-amber-800/20 backdrop-blur-sm">
+            <div className="px-6 py-4 flex flex-col sm:flex-row items-center gap-4">
+              <div className="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full bg-amber-500/20">
+                <AlertTriangle className="w-6 h-6 text-amber-400" />
+              </div>
+
+              <div className="flex-grow text-center sm:text-left">
+                <h3 className="text-lg font-semibold text-white mb-1">
+                  Complete Registration Required
+                </h3>
+                <p className="text-gray-300 text-sm">
+                  You need to complete your account setup before purchasing any
+                  plans. This ensures your credits are properly assigned to your
+                  account.
+                </p>
+              </div>
+
+              <button
+                onClick={triggerOnboarding}
+                className="flex-shrink-0 px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-lg text-sm font-medium transition-all duration-200"
+              >
+                Complete Setup
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
             <span className="bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent font-napzerRounded">
@@ -83,19 +138,19 @@ export default function PricingSection() {
         <div className="p-1 bg-gradient-to-r rounded-xl mb-16">
           <div className="backdrop-blur-sm rounded-lg border border-gray-800/30 shadow-xl overflow-hidden">
             {/* <div className="p-6"> */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {pricingPlans.map((plan) => (
-                  <PricingCard
-                    key={plan.name}
-                    name={plan.name}
-                    price={plan.price}
-                    description={plan.description}
-                    features={plan.features}
-                    ctaText={plan.ctaText}
-                    popular={plan.popular}
-                  />
-                ))}
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {pricingPlans.map((plan) => (
+                <PricingCard
+                  key={plan.name}
+                  name={plan.name}
+                  price={plan.price}
+                  description={plan.description}
+                  features={plan.features}
+                  ctaText={plan.ctaText}
+                  popular={plan.popular}
+                />
+              ))}
+            </div>
             {/* </div> */}
           </div>
         </div>

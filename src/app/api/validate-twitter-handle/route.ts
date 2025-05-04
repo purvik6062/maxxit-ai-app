@@ -58,7 +58,7 @@ export async function POST(request: Request) {
         {
           success: false,
           error: {
-            message: "Register yourself first to receive 500 free credits!",
+            message: "Register yourself first!",
           },
         },
         { status: 400 }

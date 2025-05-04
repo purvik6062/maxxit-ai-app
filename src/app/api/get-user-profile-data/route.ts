@@ -10,7 +10,6 @@ export async function GET(request: Request) {
     const collection = db.collection("influencers");
 
     const users = await collection.find({}).toArray();
-    console.log("userssssssss");
 
     return NextResponse.json(users, { status: 200 });
   } catch (error) {

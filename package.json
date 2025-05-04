@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@bprogress/next": "^3.2.12",
     "@gsap/react": "^2.1.2",
     "@popperjs/core": "^2.11.8",
     "@radix-ui/react-slot": "^1.2.0",

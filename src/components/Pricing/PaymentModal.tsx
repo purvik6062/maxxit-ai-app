@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, CreditCard, Bitcoin } from "lucide-react";
+import { X, CreditCard, Bitcoin, AlertCircle } from "lucide-react";
 import { createCheckoutSession } from "@/app/actions/stripe";
 import { stripePromise } from "@/lib/stripeClient";
 import { createPortal } from "react-dom";
 import { useSession } from "next-auth/react";
+import { useCredits } from "@/context/CreditsContext";
+import Link from "next/link";
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -24,6 +26,7 @@ export default function PaymentModal({
   planCredits,
 }: PaymentModalProps) {
   const { data: session } = useSession();
+  const { credits, isLoadingCredits } = useCredits();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     "credit" | "crypto" | null
   >(null);
@@ -32,6 +35,7 @@ export default function PaymentModal({
   const [discountApplied, setDiscountApplied] = useState(false);
   const [finalPrice, setFinalPrice] = useState(planPrice);
   const [mounted, setMounted] = useState(false);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -92,8 +96,15 @@ export default function PaymentModal({
   };
 
   const handleProceed = async () => {
+    // Check if the user is logged in
     if (!session?.user?.id) {
       alert("Please log in to proceed with payment.");
+      return;
+    }
+
+    // Check if user is registered (has completed Telegram authentication)
+    if (credits === null && !isLoadingCredits) {
+      setShowRegistrationModal(true);
       return;
     }
 
@@ -120,6 +131,80 @@ export default function PaymentModal({
       console.log("Crypto payment selected for", planName);
     }
   };
+
+  // Registration Required Modal
+  if (showRegistrationModal) {
+    return createPortal(
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+        onClick={() => setShowRegistrationModal(false)}
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl shadow-2xl overflow-hidden border border-amber-500/30 max-w-md w-full mx-4 p-6"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex flex-col items-center text-center">
+            <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mb-4">
+              <AlertCircle className="w-8 h-8 text-amber-400" />
+            </div>
+
+            <h2 className="text-2xl font-bold text-white mb-2">
+              Registration Required
+            </h2>
+
+            <p className="text-gray-300 mb-6">
+              You need to complete your registration before purchasing any
+              plans. This includes connecting your Telegram account.
+            </p>
+
+            <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700 mb-6 w-full">
+              <h3 className="text-white font-medium mb-2">
+                Why is this required?
+              </h3>
+              <p className="text-gray-400 text-sm">
+                Completing registration allows us to:
+              </p>
+              <ul className="text-gray-400 text-sm list-disc list-inside mt-2">
+                <li>Ensure your credits are properly assigned</li>
+                <li>Provide important updates about your subscription</li>
+                <li>Secure your account and purchases</li>
+              </ul>
+            </div>
+
+            <div className="flex flex-col w-full gap-3">
+              <button
+                onClick={() => {
+                  setShowRegistrationModal(false);
+                  onClose();
+                  // Redirect to header's registration flow through custom event
+                  const event = new CustomEvent("showOnboarding");
+                  window.dispatchEvent(event);
+                }}
+                className="w-full px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-lg font-medium"
+              >
+                Complete Registration
+              </button>
+
+              <button
+                onClick={() => setShowRegistrationModal(false)}
+                className="w-full px-6 py-3 border border-gray-700 text-gray-300 hover:bg-gray-800 rounded-lg transition-all duration-200 text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>,
+      document.body
+    );
+  }
 
   const modalContent = (
     <motion.div
@@ -214,6 +299,14 @@ export default function PaymentModal({
               </motion.button>
             ))}
           </div>
+          {credits === null && !isLoadingCredits && (
+            <div className="mt-6 p-3 rounded-lg bg-amber-900/20 border border-amber-800/40">
+              <p className="text-amber-300 text-sm flex items-start">
+                <AlertCircle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
+                Registration required before purchasing
+              </p>
+            </div>
+          )}
           {selectedPaymentMethod && (
             <div className="mt-6">
               {selectedPaymentMethod === "credit" && (

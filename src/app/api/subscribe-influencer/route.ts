@@ -10,7 +10,8 @@ const DEFAULT_IMPACT_FACTOR = 1;
 export async function POST(request: Request): Promise<Response> {
   let client: MongoClient;
   try {
-    const { twitterId, influencerHandle, subscriptionFee } = await request.json();
+    const { twitterId, influencerHandle, subscriptionFee } =
+      await request.json();
 
     // Remove @ from the handle if it exists
     const cleanHandle = influencerHandle.replace("@", "");
@@ -44,14 +45,14 @@ export async function POST(request: Request): Promise<Response> {
         const user = await usersCollection.findOne({ twitterId });
 
         if (!user) {
-          throw new Error(
-            "Register yourself first to receive 500 free credits!"
-          );
+          throw new Error("Register yourself first!");
         }
 
         // 2. Check if user has enough credits for the subscription fee
         if (user.credits < subscriptionFee) {
-          throw new Error(`Insufficient credits. This subscription requires ${subscriptionFee} credits.`);
+          throw new Error(
+            `Insufficient credits. This subscription requires ${subscriptionFee} credits.`
+          );
         }
 
         // Get user's telegram ID and clean it (remove @ if exists)
@@ -117,20 +118,26 @@ export async function POST(request: Request): Promise<Response> {
           },
           { session }
         );
-        
+
         // 5. Log the subscription transaction
-        await transactionsCollection.insertOne({
-          userId: user._id,
-          twitterId: user.twitterId,
-          twitterUsername: user.twitterUsername,
-          type: "SUBSCRIPTION",
-          amount: -subscriptionFee,
-          influencerHandle: cleanHandle,
-          impactFactor: existingInfluencer?.impactFactor || DEFAULT_IMPACT_FACTOR,
-          description: `Subscription to influencer @${cleanHandle} (Impact Factor: ${existingInfluencer?.impactFactor || DEFAULT_IMPACT_FACTOR})`,
-          expiryDate: expiryDate,
-          timestamp: subscriptionDate
-        }, { session });
+        await transactionsCollection.insertOne(
+          {
+            userId: user._id,
+            twitterId: user.twitterId,
+            twitterUsername: user.twitterUsername,
+            type: "SUBSCRIPTION",
+            amount: -subscriptionFee,
+            influencerHandle: cleanHandle,
+            impactFactor:
+              existingInfluencer?.impactFactor || DEFAULT_IMPACT_FACTOR,
+            description: `Subscription to influencer @${cleanHandle} (Impact Factor: ${
+              existingInfluencer?.impactFactor || DEFAULT_IMPACT_FACTOR
+            })`,
+            expiryDate: expiryDate,
+            timestamp: subscriptionDate,
+          },
+          { session }
+        );
       });
 
       return NextResponse.json({
