@@ -32,6 +32,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ 
         exists: true,
         userId: user._id.toString(),
+        username: user.twitterHandle,
         walletAddress: user.walletAddress || null,
         subscriberCount: user.subscribers ? user.subscribers.length : 0,
         creditAmount: user.creditAmount || 0,
