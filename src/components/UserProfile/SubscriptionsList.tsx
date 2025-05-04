@@ -1,8 +1,17 @@
 import React, { useState } from "react";
-import { Calendar, TrendingUp, BarChart2, Users, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Calendar,
+  TrendingUp,
+  BarChart2,
+  Users,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { FaXTwitter } from "react-icons/fa6";
 import type { Subscription } from "./types";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@bprogress/next/app";
 
 interface SubscriptionsListProps {
   subscriptions: Subscription[];
@@ -13,7 +22,10 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null); // Track open dropdown
   const pageSize = 8; // Number of subscriptions per page
-  const totalLeads = subscriptions.reduce((acc, sub) => acc + (sub.leadsCount || 0), 0);
+  const totalLeads = subscriptions.reduce(
+    (acc, sub) => acc + (sub.leadsCount || 0),
+    0
+  );
   const totalPages = Math.ceil(subscriptions.length / pageSize);
 
   // Calculate subscriptions for the current page
@@ -71,7 +83,9 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
           <h3 className="text-xl md:text-2xl font-bold text-[#AAC9FA]">
             Subscribe Accounts
           </h3>
-          <p className="text-[#8ba1bc] mt-1">Manage your active subscriptions</p>
+          <p className="text-[#8ba1bc] mt-1">
+            Manage your active subscriptions
+          </p>
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-6 w-full md:w-auto">
           <div className="flex items-center space-x-3">
@@ -80,7 +94,9 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
             </div>
             <div>
               <p className="text-sm text-[#818791]">Active subscriptions</p>
-              <p className="text-xl font-semibold text-[#AAC9FA]">{subscriptions.length || 7}</p>
+              <p className="text-xl font-semibold text-[#AAC9FA]">
+                {subscriptions.length || 7}
+              </p>
             </div>
           </div>
           <div className="flex items-center space-x-3">
@@ -89,7 +105,9 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
             </div>
             <div>
               <p className="text-sm text-[#818791]">Total Leads</p>
-              <p className="text-xl font-semibold text-[#AAC9FA]">{totalLeads || 274}</p>
+              <p className="text-xl font-semibold text-[#AAC9FA]">
+                {totalLeads || 274}
+              </p>
             </div>
           </div>
         </div>
@@ -100,8 +118,8 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
         <div className="p-4 md:p-6">
           {/* Mobile: Dropdown List */}
           <div className="sm:hidden space-y-3">
-            {(paginatedSubscriptions.length ? paginatedSubscriptions.map(
-              (sub, index) => {
+            {paginatedSubscriptions.length ? (
+              paginatedSubscriptions.map((sub, index) => {
                 const key = sub?.twitterHandle || `placeholder-${index}`;
                 const isOpen = openDropdown === key;
                 return (
@@ -137,15 +155,19 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
                     </div>
                     {/* Dropdown Content */}
                     <div
-                      className={`overflow-hidden transition-all duration-300 ${isOpen ? "max-h-40 p-3" : "max-h-0"
-                        }`}
+                      className={`overflow-hidden transition-all duration-300 ${
+                        isOpen ? "max-h-40 p-3" : "max-h-0"
+                      }`}
                     >
                       <div className="space-y-2">
                         <div className="flex items-center text-[#4b5563]">
                           <FaXTwitter className="w-3.5 h-3.5 mr-1" />
                           <span
                             className="text-sm cursor-pointer hover:underline"
-                            onClick={() => sub?.twitterHandle && handleCardClick(sub.twitterHandle)}
+                            onClick={() =>
+                              sub?.twitterHandle &&
+                              handleCardClick(sub.twitterHandle)
+                            }
                           >
                             @{sub?.twitterHandle || "Lorem ipsum"}
                           </span>
@@ -157,11 +179,14 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
                           </div>
                           <span className="text-sm font-medium text-[#111827]">
                             {sub?.expiryDate
-                              ? new Date(sub.expiryDate).toLocaleDateString("en-US", {
-                                year: "numeric",
-                                month: "short",
-                                day: "numeric",
-                              })
+                              ? new Date(sub.expiryDate).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                  }
+                                )
                               : "Apr 23, 2025"}
                           </span>
                         </div>
@@ -178,22 +203,24 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
                     </div>
                   </div>
                 );
-              }
+              })
             ) : (
               <div className="text-center text-[#4b5563] text-base">
                 You haven't subscribed to any user yet
               </div>
-            ))}
+            )}
           </div>
 
           {/* Tablet/Desktop: Grid Layout */}
           <div className="hidden sm:grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {(paginatedSubscriptions.length ? paginatedSubscriptions.map(
-              (sub, index) => (
+            {paginatedSubscriptions.length ? (
+              paginatedSubscriptions.map((sub, index) => (
                 <div
                   key={sub?.twitterHandle || `placeholder-${index}`}
                   className="flex flex-col bg-[#E4EFFF] border border-[rgba(206,212,218,0.5)] rounded-md p-4 shadow-sm cursor-pointer hover:scale-[1.01] transition-transform duration-200 ease-in-out"
-                  onClick={() => sub?.twitterHandle && handleCardClick(sub.twitterHandle)}
+                  onClick={() =>
+                    sub?.twitterHandle && handleCardClick(sub.twitterHandle)
+                  }
                 >
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4 gap-2">
                     <div className="flex items-center space-x-3">
@@ -206,7 +233,9 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
                         </h4>
                         <div className="flex items-center text-[#4b5563]">
                           <FaXTwitter className="w-3.5 h-3.5 mr-1" />
-                          <span className="text-sm">@{sub?.twitterHandle || "Lorem ipsum"}</span>
+                          <span className="text-sm">
+                            @{sub?.twitterHandle || "Lorem ipsum"}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -222,10 +251,10 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
                     <span className="text-sm font-medium text-[#111827]">
                       {sub?.expiryDate
                         ? new Date(sub.expiryDate).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })
                         : "Apr 23, 2025"}
                     </span>
                   </div>
@@ -239,12 +268,11 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
                     </span>
                   </div>
                 </div>
-              )
+              ))
             ) : (
               <div className="text-center text-[#4b5563] text-base">
                 You haven't subscribed to any user yet
               </div>
-            )
             )}
           </div>
         </div>
@@ -256,10 +284,11 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
           <div className="flex items-center space-x-2">
             {/* Previous Button */}
             <button
-              className={`bg-[#1C2333] border border-[rgba(206,212,218,0.15)] rounded-md p-2 text-[#AAC9FA] text-sm font-medium transition-colors ${currentPage === 1
-                ? "opacity-50 cursor-not-allowed"
-                : "hover:bg-[#AAC9FA] hover:text-[#1C2333]"
-                }`}
+              className={`bg-[#1C2333] border border-[rgba(206,212,218,0.15)] rounded-md p-2 text-[#AAC9FA] text-sm font-medium transition-colors ${
+                currentPage === 1
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-[#AAC9FA] hover:text-[#1C2333]"
+              }`}
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
             >
@@ -271,10 +300,11 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
               typeof page === "number" ? (
                 <button
                   key={page}
-                  className={`px-3 py-1 h-full text-sm font-medium rounded-md border border-[rgba(206,212,218,0.15)] transition-colors ${currentPage === page
-                    ? "bg-[#AAC9FA] text-[#1C2333]"
-                    : "bg-[#1C2333] text-[#AAC9FA] hover:bg-[#AAC9FA] hover:text-[#1C2333]"
-                    }`}
+                  className={`px-3 py-1 h-full text-sm font-medium rounded-md border border-[rgba(206,212,218,0.15)] transition-colors ${
+                    currentPage === page
+                      ? "bg-[#AAC9FA] text-[#1C2333]"
+                      : "bg-[#1C2333] text-[#AAC9FA] hover:bg-[#AAC9FA] hover:text-[#1C2333]"
+                  }`}
                   onClick={() => handlePageChange(page)}
                 >
                   {page}
@@ -291,10 +321,11 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
 
             {/* Next Button */}
             <button
-              className={`bg-[#1C2333] border border-[rgba(206,212,218,0.15)] rounded-md p-2 text-[#AAC9FA] text-sm font-medium transition-colors ${currentPage === totalPages
-                ? "opacity-50 cursor-not-allowed"
-                : "hover:bg-[#AAC9FA] hover:text-[#1C2333]"
-                }`}
+              className={`bg-[#1C2333] border border-[rgba(206,212,218,0.15)] rounded-md p-2 text-[#AAC9FA] text-sm font-medium transition-colors ${
+                currentPage === totalPages
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-[#AAC9FA] hover:text-[#1C2333]"
+              }`}
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
             >

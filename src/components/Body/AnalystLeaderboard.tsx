@@ -11,7 +11,7 @@ import {
   FaChevronRight,
   FaUser,
 } from "react-icons/fa";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@bprogress/next/app";
 import {
   HeartPulse,
   TrendingUp,

@@ -1,20 +1,21 @@
+"use client";
+import React from "react";
 import SignalStats from "@/components/InfluencerProfile/SignalStats";
-// import InfluencerTable from "@/components/InfluencerProfile/InfluencerTable";
 import InfluencerMetrics from "@/components/InfluencerProfile/InfluencerMetrics";
-interface PageProps {
-  params: Promise<{
-    id: string;
-  }>;
-}
+import { useParams } from "next/navigation";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-async function page({ params }: PageProps) {
-  const { id } = await params;
+function Page() {
+  const { id } = useParams();
+
   return (
     <div className="py-4 px-5">
+      <ToastContainer />
       <InfluencerMetrics influencerId={id} />
       <SignalStats influencerId={id} />
     </div>
   );
 }
 
-export default page;
+export default Page;

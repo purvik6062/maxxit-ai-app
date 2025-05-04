@@ -18,6 +18,7 @@ import {
 import { format } from "date-fns";
 import { TableSkeleton } from "../ui/table-skeleton";
 import { FaExternalLinkAlt } from "react-icons/fa";
+import Link from "next/link";
 
 interface InfluencerTableProps {
   influencerId: string;
@@ -67,12 +68,15 @@ function InfluencerTable({ influencerId, userName }: InfluencerTableProps) {
 
   useEffect(() => {
     const fetchSignals = async () => {
-      // if (!userName) return;
+      if (!userName) {
+        console.log("No username");
+        return;
+      }
 
       try {
         setLoading(true);
         const response = await fetch(
-          `/api/get-influencer-signals?twitterAccount=314Davinci86890&page=${pagination.currentPage}&limit=${pagination.limit}&filterType=${filterType}`
+          `/api/get-influencer-signals?twitterAccount=${userName}&page=${pagination.currentPage}&limit=${pagination.limit}&filterType=${filterType}`
         );
 
         if (!response.ok) {
@@ -250,7 +254,7 @@ function InfluencerTable({ influencerId, userName }: InfluencerTableProps) {
                   Status
                 </TableHead>
                 <TableHead className="py-4 px-6 text-center text-sm font-semibold text-gray-200 bg-gradient-to-l from-gray-900 to-gray-800">
-                  Tweet
+                  View
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -372,15 +376,14 @@ function InfluencerTable({ influencerId, userName }: InfluencerTableProps) {
                         </span>
                       </TableCell>
                       <TableCell className="py-3 px-3 text-center">
-                        <a
-                          href={signal.Tweet}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <Link
+                          href={`/signal-details/${signal._id}`}
                           className="inline-flex p-1.5 rounded text-gray-400 hover:text-blue-300 hover:bg-gray-700/50 transition-colors"
-                          title="View Tweet"
+                          title="View Signal Details"
+                          aria-label="View Signal Details"
                         >
                           <FaExternalLinkAlt className="w-3.5 h-3.5" />
-                        </a>
+                        </Link>
                       </TableCell>
                     </TableRow>
                   );

@@ -69,9 +69,8 @@ export default function Influencer() {
         setUserExists(data.exists);
         if (data.exists) {
           if (data.userId) {
-            console.log("Setting userId:", data.userId);
             setUserId(data.userId);
-            setUserName(data.twitterHandle);
+            setUserName(data.username);
           }
 
           // Check if user has a wallet address already
@@ -144,7 +143,7 @@ export default function Influencer() {
         setCreditExpiry(data.creditExpiry || null);
         setTweetsCount(data.tweetsCount || 0);
         setLatestPayoutAmount(data.latestPayout || 0);
-        
+
         // Set the userId if it's returned and not already set
         if (data.userId) {
           console.log("Setting userId from save-wallet response:", data.userId);
@@ -268,8 +267,12 @@ export default function Influencer() {
                             {/* Monthly Payout Section (Zero Payout) */}
                             <div className="mt-6 py-4 px-5 bg-gray-900/50 border border-gray-800/40 rounded-lg">
                               <div className="flex flex-col items-center">
-                                <h3 className="text-lg font-medium text-gray-300 mb-2">Monthly Payout</h3>
-                                <p className="text-3xl font-bold text-white mb-3">${latestPayoutAmount.toFixed(2)}</p>
+                                <h3 className="text-lg font-medium text-gray-300 mb-2">
+                                  Monthly Payout
+                                </h3>
+                                <p className="text-3xl font-bold text-white mb-3">
+                                  ${latestPayoutAmount.toFixed(2)}
+                                </p>
                                 <button
                                   onClick={handleRedeemPayout}
                                   className="px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg text-white font-medium hover:shadow-lg hover:from-purple-600 hover:to-blue-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -277,7 +280,9 @@ export default function Influencer() {
                                 >
                                   Redeem Payout
                                 </button>
-                                <p className="text-xs text-gray-400 mt-2">Start tweeting about Maxxit to earn payouts</p>
+                                <p className="text-xs text-gray-400 mt-2">
+                                  Start tweeting about Maxxit to earn payouts
+                                </p>
                               </div>
                             </div>
                           </>
@@ -333,7 +338,9 @@ export default function Influencer() {
                             {/* Monthly Payout Section */}
                             <div className="mt-6 p-5 bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-indigo-800/40 rounded-lg shadow-lg">
                               <div className="flex flex-col items-center">
-                                <h3 className="text-lg font-medium text-indigo-300 mb-2">Monthly Payout Available</h3>
+                                <h3 className="text-lg font-medium text-indigo-300 mb-2">
+                                  Monthly Payout Available
+                                </h3>
                                 <p className="text-4xl font-bold text-white mb-4 flex items-center">
                                   <DollarSign className="h-8 w-8 text-green-400 mr-1" />
                                   {latestPayoutAmount.toFixed(2)}
@@ -346,7 +353,9 @@ export default function Influencer() {
                                   <Wallet2 className="w-5 h-5" />
                                   Redeem Your Payout
                                 </button>
-                                <p className="text-xs text-indigo-200 mt-3">Payments are processed within 24 hours</p>
+                                <p className="text-xs text-indigo-200 mt-3">
+                                  Payments are processed within 24 hours
+                                </p>
                               </div>
                             </div>
                           </>
@@ -450,7 +459,10 @@ export default function Influencer() {
                               exit={{ opacity: 0, height: 0 }}
                               transition={{ duration: 0.3 }}
                             >
-                              <InfluencerTable influencerId={userId} userName={userName} />
+                              <InfluencerTable
+                                influencerId={userId}
+                                userName={userName}
+                              />
                             </motion.div>
                           )}
                         </div>
