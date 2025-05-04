@@ -25,6 +25,7 @@ interface Agent {
   subscribers?: string[];
   signals?: number;
   tokens?: number;
+  subscriptionPrice?: number;
 }
 
 interface MobileAnalystCardProps {
@@ -59,7 +60,7 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
   const cleanHandle = agent.twitterHandle.replace("@", "");
   const isSubscribed = subscribedHandles.includes(cleanHandle);
   const isCurrentlySubscribing = subscribingHandle === cleanHandle;
-  const creditCost = Math.floor((agent.impactFactor || 0) * 10);
+  const creditCost = agent.subscriptionPrice || Math.floor((agent.impactFactor || 0) * 10);
 
   // State for dropdown
   const [isExpanded, setIsExpanded] = useState(false);
@@ -150,6 +151,15 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
             </p>
           </div>
         );
+      case "credits":
+        return (
+          <div className="bg-amber-900/20 rounded-lg p-2 border border-amber-700/20">
+            <span className="text-[10px] text-amber-400">Credits</span>
+            <p className="text-xs font-semibold text-amber-300">
+              {creditCost || "--"}
+            </p>
+          </div>
+        );
       default:
         return null;
     }
@@ -165,14 +175,13 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
       animate="visible"
     >
       {/* Header Section */}
-      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-900/50 to-blue-900/20">
+      <div className="flex items-center justify-between px-2 py-4 bg-gradient-to-r from-gray-900/50 to-blue-900/20">
         <div className="flex items-center gap-3">
           <div
-            className={`w-6 h-6 flex items-center justify-center rounded-full ${
-              isCurrentUser
-                ? "bg-blue-700 text-white"
-                : "bg-gray-800 text-gray-400"
-            } text-xs font-bold flex-shrink-0`}
+            className={`w-6 h-6 flex items-center justify-center rounded-full ${isCurrentUser
+              ? "bg-blue-700 text-white"
+              : "bg-gray-800 text-gray-400"
+              } text-xs font-bold flex-shrink-0`}
           >
             {rank}
           </div>
@@ -183,13 +192,12 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
                   agent.profileUrl?.trim().length > 0
                     ? agent.profileUrl
                     : `https:// picsum.photos/seed/${encodeURIComponent(
-                        agent.twitterHandle
-                      )}/40/40`
+                      agent.twitterHandle
+                    )}/40/40`
                 }
                 alt={agent.name}
-                className={`w-full h-full object-cover rounded-full border ${
-                  isCurrentUser ? "border-blue-500" : "border-gray-700/50"
-                }`}
+                className={`w-full h-full object-cover rounded-full border ${isCurrentUser ? "border-blue-500" : "border-gray-700/50"
+                  }`}
               />
               {agent.verified && (
                 <div className="absolute -bottom-0.5 -right-0.5 bg-blue-500 rounded-full p-0.5 border border-gray-900">
@@ -200,9 +208,8 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
           )}
           <div className="flex-grow overflow-hidden">
             <h4
-              className={`text-sm font-semibold text-white truncate ${
-                isCurrentUser ? "text-blue-300" : ""
-              }`}
+              className={`text-[13px] sm:text-sm font-semibold text-white truncate ${isCurrentUser ? "text-blue-300" : ""
+                }`}
             >
               {agent.name}
               {isCurrentUser && (
@@ -210,9 +217,8 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
               )}
             </h4>
             <p
-              className={`text-xs text-gray-400 truncate ${
-                isCurrentUser ? "" : ""
-              }`}
+              className={`text-xs text-gray-400 truncate ${isCurrentUser ? "" : ""
+                }`}
             >
               {agent.twitterHandle}
             </p>
@@ -261,10 +267,11 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
             {renderMetric("convictionVsHype")}
             {/* Meme vs Institutional */}
             {renderMetric("memeVsInstitutional")}
-            {/* Mindshare and Followers (Side by Side) */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Mindshare, Followers and Credits (Side by Side) */}
+            <div className="grid grid-cols-3 gap-3">
               {renderMetric("mindshare")}
               {renderMetric("followers")}
+              {renderMetric("credits")}
             </div>
           </div>
 
@@ -281,13 +288,11 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
               <div className="absolute inset-0 bg-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </Link>
             <button
-              className={`group flex-1 flex items-center justify-center px-4 py-2 rounded-lg text-xs ${
-                isSubscribed || isCurrentlySubscribing
-                  ? "bg-green-500/20 text-green-300"
-                  : "bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white"
-              } transition-all duration-200 relative overflow-hidden ${
-                isCurrentlySubscribing ? "animate-pulse" : ""
-              }`}
+              className={`group flex-1 flex items-center justify-center px-4 py-2 rounded-lg text-xs ${isSubscribed || isCurrentlySubscribing
+                ? "bg-green-500/20 text-green-300"
+                : "bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white"
+                } transition-all duration-200 relative overflow-hidden ${isCurrentlySubscribing ? "animate-pulse" : ""
+                }`}
               onClick={(e) => {
                 e.stopPropagation();
                 if (!isSubscribed && !isCurrentlySubscribing) {
@@ -306,7 +311,7 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
               ) : (
                 <>
                   <FaCrown size={12} className="mr-1 flex-shrink-0" />
-                  Subscribe
+                  Subscribe {creditCost ? `(${creditCost})` : ""}
                 </>
               )}
               <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
