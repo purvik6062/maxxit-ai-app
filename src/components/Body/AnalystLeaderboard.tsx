@@ -69,7 +69,7 @@ interface AnalystLeaderboardProps {
   mode: Mode;
   subscribedHandles: string[];
   subscribingHandle: string | null;
-  onSubscribe: (handle: string, impactFactor: number) => void;
+  onSubscribe: (agent: Agent) => void;
   setRefreshData: (refresh: () => void) => void;
   searchText: string;
 }
@@ -377,7 +377,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                 onClick={(e) => {
                   e.stopPropagation();
                   if (!isSubscribed && !isCurrentlySubscribing) {
-                    onSubscribe(agent.twitterHandle, agent.impactFactor || 0);
+                    onSubscribe(agent);
                   }
                 }}
                 disabled={isSubscribed || isCurrentlySubscribing}
@@ -986,7 +986,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                   onClick={(e) => {
                     e.stopPropagation();
                     if (!isSubscribed && !isCurrentlySubscribing) {
-                      onSubscribe(agent.twitterHandle, agent.impactFactor || 0);
+                      onSubscribe(agent);
                     }
                   }}
                   disabled={isSubscribed || isCurrentlySubscribing}
@@ -1199,10 +1199,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                           onClick={(e) => {
                             e.stopPropagation();
                             if (!isSubscribed && !isCurrentlySubscribing) {
-                              onSubscribe(
-                                agent.twitterHandle,
-                                agent.impactFactor || 0
-                              );
+                              onSubscribe(agent);
                             }
                           }}
                           disabled={isSubscribed || isCurrentlySubscribing}

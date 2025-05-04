@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
           success: false,
           error: {
             message:
-              "Please register yourself first to receive 500 free credits!",
+              "Please register yourself first!",
           },
         },
         { status: 404 }

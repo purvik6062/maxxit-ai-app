@@ -35,6 +35,7 @@ export default function Influencer() {
   const [latestPayoutAmount, setLatestPayoutAmount] = useState(0);
   const [creditAmount, setCreditAmount] = useState(0);
   const [userId, setUserId] = useState("");
+  const [userName, setUserName] = useState("");
   const [hasWallet, setHasWallet] = useState(false);
   const [activeSections, setActiveSections] = useState({
     metrics: true,
@@ -70,6 +71,7 @@ export default function Influencer() {
           if (data.userId) {
             console.log("Setting userId:", data.userId);
             setUserId(data.userId);
+            setUserName(data.twitterHandle);
           }
 
           // Check if user has a wallet address already
@@ -448,7 +450,7 @@ export default function Influencer() {
                               exit={{ opacity: 0, height: 0 }}
                               transition={{ duration: 0.3 }}
                             >
-                              <InfluencerTable influencerId={userId} />
+                              <InfluencerTable influencerId={userId} userName={userName} />
                             </motion.div>
                           )}
                         </div>

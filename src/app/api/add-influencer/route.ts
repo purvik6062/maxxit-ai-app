@@ -119,7 +119,7 @@ export async function POST(request: Request) {
 
           if (!user) {
             throw new Error(
-              "Register yourself first to receive 500 free credits!"
+              "Register yourself first!"
             );
           }
 
