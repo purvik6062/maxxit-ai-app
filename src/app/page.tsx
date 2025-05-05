@@ -9,7 +9,6 @@ import { IoPersonAdd } from "react-icons/io5";
 import { LuWandSparkles } from "react-icons/lu";
 import { Car, Heart, Sparkles } from "lucide-react";
 import { Header, Footer, TopInfluencersGraph } from "../components/index";
-import SocialGraph from "@/components/Body/SocialGraph";
 import AnalystLeaderboard from "@/components/Body/AnalystLeaderboard";
 import TabNavigation from "@/components/Body/TabNavigation";
 import AddInfluencerModal from "../components/Body/AddInfluencerModal";
@@ -253,10 +252,6 @@ const HomePage: React.FC = () => {
             </div>
           </div>
         </main>
-
-        <div className="">
-          <SocialGraph />
-        </div>
 
         {/* Subscription Confirmation Modal */}
         {showSubscribeModal && currentAgent && (
