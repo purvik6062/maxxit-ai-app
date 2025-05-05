@@ -137,7 +137,7 @@ export default function CarouselHorizontal() {
   return (
     <div className="w-full overflow-hidden bg-[#020617] py-8 mt-[3rem]">
       <div className="container mx-auto px-4 mb-6 flex flex-col gap-[0.5rem] items-center justify-center">
-        <h2 className="text-3xl font-bold text-white/90">Top Weekly Crypto Tweets</h2>
+        <h2 className="text-3xl font-bold text-white/90">Top Weekly Signal Providers</h2>
         <p className="text-white/60 text-lg mt-[4px]">Latest insights from leading crypto influencers</p>
       </div>
 
@@ -206,7 +206,7 @@ export default function CarouselHorizontal() {
                         <span className="text-white/70">{tweet.tokenId}</span>
                       </div>
                       <div className="text-xs text-white/60 mt-1">
-                        <span className="text-orange-300/80 font-medium">Tweet Date: </span>
+                        <span className="text-orange-300/80 font-medium">Signal Date: </span>
                         <span className="bg-[#1a2035] px-2 py-1 rounded-full">{formatDate(tweet.timestamp)}</span>
                       </div>
                     </div>

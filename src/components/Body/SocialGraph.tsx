@@ -58,6 +58,7 @@ export default function SubscribedAccountsPage() {
   const [showTooltip, setShowTooltip] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [isPlayable, setIsPlayable] = useState(false);
+  const [showScrollHelper, setShowScrollHelper] = useState(false);
 
   const stringToColor = (str: string) => {
     let hash = 2166136261;
@@ -155,6 +156,23 @@ export default function SubscribedAccountsPage() {
 
     fetchSubscribedAccounts();
   }, [session?.user?.id, credits, isPlayable]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!networkRef.current) return;
+      const rect = networkRef.current.getBoundingClientRect();
+      setShowScrollHelper(
+        rect.top < window.innerHeight && rect.bottom > 0
+      );
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Check on initial load
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -553,6 +571,9 @@ export default function SubscribedAccountsPage() {
           zoomView: false,
           dragView: false,
           dragNodes: isPlayable ? true : false,
+          mouseWheel: {
+            enabled: false,
+          },
         },
         height: "680px",
         width: "100%",
@@ -658,7 +679,7 @@ export default function SubscribedAccountsPage() {
   };
 
   return (
-    <div className="min-h-screen text-white flex flex-col bg-transparent items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen text-white flex flex-col bg-transparent items-center justify-center relative overflow-y-auto">
       <div className="absolute inset-0 pointer-events-none starfield">
         <canvas ref={canvasRef} className="absolute inset-0" />
       </div>
@@ -710,7 +731,7 @@ export default function SubscribedAccountsPage() {
             <div className="w-full">
               <div className="relative w-full">
                 <div
-                  className="w-full rounded-xl overflow-hidden bg-[#323442]/10 backdrop-blur-lg border border-gray-800 shadow-2xl"
+                  className="w-full rounded-xl overflow-visible bg-[#323442]/10 backdrop-blur-lg border border-gray-800 shadow-2xl"
                   style={{
                     boxShadow:
                       "inset 0 0 25px rgba(55, 65, 81, 0.6), 0 0 20px rgba(55, 65, 81, 0.5)",
@@ -754,7 +775,7 @@ export default function SubscribedAccountsPage() {
                     </div>
                   </div>
 
-                  <div className="absolute bottom-4 right-4 bg-gradient-to-r from-gray-900 to-gray-900 p-4 rounded-lg shadow-lg text-sm transform transition-all duration-300 hover:scale-105">
+                  <div className="absolute bottom-4 right-4 bg-gradient-to-r from-gray-900 to-gray-900 p-4 rounded-lg shadow-lg text-sm transform transition-all duration-300 hover:scale-105 z-20">
                     <p className="font-semibold text-blue-200 mb-2">
                       Network Legend
                     </p>
@@ -770,7 +791,8 @@ export default function SubscribedAccountsPage() {
 
                   <div
                     ref={networkRef}
-                    className="w-full h-[680px] overflow-hidden"
+                    className="w-full h-[680px] touch-action-pan-y"
+                    style={{ touchAction: 'pan-y' }}
                   />
 
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none">
@@ -800,6 +822,44 @@ export default function SubscribedAccountsPage() {
           </div>
         )} 
       </div>
+
+      {showScrollHelper && (
+        <>
+          <div className="fixed bottom-28 right-[21px] z-50 animate-bounce">
+            <button 
+              onClick={() => {
+                window.scrollTo({
+                  top: 0,
+                  behavior: 'smooth'
+                });
+              }} 
+              className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full shadow-lg flex items-center justify-center"
+              aria-label="Scroll to top"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+              </svg>
+            </button>
+          </div>
+          <div className="fixed bottom-20 right-[21px] z-50 animate-bounce">
+            <button 
+              onClick={() => {
+                const graphBottom = networkRef.current?.getBoundingClientRect().bottom || 0;
+                window.scrollTo({
+                  top: window.scrollY + graphBottom + 20,
+                  behavior: 'smooth'
+                });
+              }} 
+              className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full shadow-lg flex items-center justify-center"
+              aria-label="Scroll down"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </button>
+          </div>
+        </>
+      )}
 
       <style jsx>{`
         .starfield {
@@ -864,6 +924,10 @@ export default function SubscribedAccountsPage() {
           background-size: 400px 400px;
           opacity: 0.4;
           animation: twinkle 10s infinite alternate;
+        }
+
+        .touch-action-pan-y {
+          touch-action: pan-y;
         }
 
         @keyframes twinkle {
