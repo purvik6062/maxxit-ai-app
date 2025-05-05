@@ -1,17 +1,9 @@
-import React, { useState } from "react";
-import {
-  Calendar,
-  TrendingUp,
-  BarChart2,
-  Users,
-  ChevronLeft,
-  ChevronRight,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Calendar, TrendingUp, BarChart2, Users, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, TrendingDown } from "lucide-react";
 import { FaXTwitter } from "react-icons/fa6";
-import type { Subscription } from "./types";
+import type { Subscription, WeeklyStats } from "./types";
 import { useRouter } from "@bprogress/next/app";
+import { useSession } from "next-auth/react";
 
 interface SubscriptionsListProps {
   subscriptions: Subscription[];
@@ -19,14 +11,40 @@ interface SubscriptionsListProps {
 
 export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
   const router = useRouter();
+  const { data: session } = useSession();
   const [currentPage, setCurrentPage] = useState(1);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null); // Track open dropdown
+  const [weeklyStats, setWeeklyStats] = useState<WeeklyStats | null>(null);
+  const [loading, setLoading] = useState(true);
   const pageSize = 8; // Number of subscriptions per page
   const totalLeads = subscriptions.reduce(
     (acc, sub) => acc + (sub.leadsCount || 0),
     0
   );
   const totalPages = Math.ceil(subscriptions.length / pageSize);
+
+  // Fetch weekly stats
+  useEffect(() => {
+    const fetchWeeklyStats = async () => {
+      if (!session?.user?.id) return;
+      
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/get-user-weekly-stats?twitterId=${session.user.id}`);
+        const result = await response.json();
+        
+        if (result.success && result.data.weeklyStats) {
+          setWeeklyStats(result.data.weeklyStats);
+        }
+      } catch (error) {
+        console.error("Error fetching weekly stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWeeklyStats();
+  }, [session?.user?.id]);
 
   // Calculate subscriptions for the current page
   const paginatedSubscriptions = subscriptions.slice(
@@ -76,38 +94,98 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
   };
 
   return (
-    <div className="font-leagueSpartan">
+    <div className="font-leagueSpartan">      
       {/* Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 md:p-6 bg-[#1C2333] border border-[rgba(206,212,218,0.15)] rounded-md mb-6">
-        <div>
-          <h3 className="text-xl md:text-2xl font-bold text-[#AAC9FA]">
-            Subscribe Accounts
-          </h3>
-          <p className="text-[#8ba1bc] mt-1">
-            Manage your active subscriptions
-          </p>
-        </div>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-6 w-full md:w-auto">
-          <div className="flex items-center space-x-3">
-            <div className="bg-[#1a1f29] border border-[rgba(206,212,218,0.15)] rounded-md p-2">
-              <Users className="w-5 h-5 text-[#8ba1bc]" />
+      <div className="p-4 md:p-6 bg-[#1C2333] border border-[rgba(206,212,218,0.15)] rounded-md mb-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-5">
+          <div>
+            <h3 className="text-xl md:text-2xl font-bold text-[#AAC9FA]">
+              Subscribed Accounts
+            </h3>
+            <p className="text-[#8ba1bc] mt-1">Manage your active subscriptions</p>
+          </div>
+
+          {loading && (
+            <div className="w-1/2 md:w-auto flex-shrink-0">
+              <div className="h-5 bg-gray-700 rounded w-24 mb-2 animate-pulse"></div>
+              <div className="h-7 bg-gray-700 rounded w-16 animate-pulse"></div>
             </div>
-            <div>
-              <p className="text-sm text-[#818791]">Active subscriptions</p>
-              <p className="text-xl font-semibold text-[#AAC9FA]">
-                {subscriptions.length || 7}
-              </p>
+          )}
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {/* Active Subscriptions */}
+          <div className="bg-[#0D1321] border border-[rgba(206,212,218,0.15)] rounded-md p-3">
+            <div className="flex items-center space-x-3">
+              <div className="bg-[#1a1f29] border border-[rgba(206,212,218,0.15)] rounded-md p-2">
+                <Users className="w-5 h-5 text-[#8ba1bc]" />
+              </div>
+              <div>
+                <p className="text-sm text-[#818791]">Active Subscriptions</p>
+                <p className="text-xl font-semibold text-[#AAC9FA]">
+                  {weeklyStats?.activeSubscriptions || subscriptions.length || 0}
+                </p>
+              </div>
             </div>
           </div>
-          <div className="flex items-center space-x-3">
-            <div className="bg-[#1a1f29] border border-[rgba(206,212,218,0.15)] rounded-md p-2">
-              <BarChart2 className="w-5 h-5 text-[#8ba1bc]" />
+
+          {/* Total Leads */}
+          <div className="bg-[#0D1321] border border-[rgba(206,212,218,0.15)] rounded-md p-3">
+            <div className="flex items-center space-x-3">
+              <div className="bg-[#1a1f29] border border-[rgba(206,212,218,0.15)] rounded-md p-2">
+                <BarChart2 className="w-5 h-5 text-[#8ba1bc]" />
+              </div>
+              <div>
+                <p className="text-sm text-[#818791]">Total Leads</p>
+                <p className="text-xl font-semibold text-[#AAC9FA]">{totalLeads || 0}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-[#818791]">Total Leads</p>
-              <p className="text-xl font-semibold text-[#AAC9FA]">
-                {totalLeads || 274}
-              </p>
+          </div>
+
+          {/* Weekly Signals */}
+          <div className="bg-[#0D1321] border border-[rgba(206,212,218,0.15)] rounded-md p-3">
+            <div className="flex items-center space-x-3">
+              <div className="bg-[#1a1f29] border border-[rgba(206,212,218,0.15)] rounded-md p-2">
+                <TrendingUp className="w-5 h-5 text-[#8ba1bc]" />
+              </div>
+              <div>
+                <p className="text-sm text-[#818791]">Weekly Signals</p>
+                {loading ? (
+                  <div className="h-7 bg-gray-700 rounded w-16 animate-pulse mt-1"></div>
+                ) : (
+                  <p className="text-xl font-semibold text-[#AAC9FA]">
+                    {weeklyStats?.totalLeads || 0}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Weekly P&L */}
+          <div className="bg-[#0D1321] border border-[rgba(206,212,218,0.15)] rounded-md p-3">
+            <div className="flex items-center space-x-3">
+              <div className={`bg-[#1a1f29] border border-[rgba(206,212,218,0.15)] rounded-md p-2 ${weeklyStats?.totalPnL && weeklyStats.totalPnL >= 0 ? 'bg-green-500/10' : weeklyStats?.totalPnL ? 'bg-red-500/10' : ''}`}>
+                {weeklyStats?.totalPnL && weeklyStats.totalPnL < 0 ? (
+                  <TrendingDown className="w-5 h-5 text-red-400" />
+                ) : (
+                  <TrendingUp className="w-5 h-5 text-green-400" />
+                )}
+              </div>
+              <div>
+                <p className="text-sm text-[#818791]">Weekly P&L</p>
+                {loading ? (
+                  <div className="h-7 bg-gray-700 rounded w-16 animate-pulse mt-1"></div>
+                ) : (
+                  <>
+                    <p className={`text-xl font-semibold ${weeklyStats?.totalPnL && weeklyStats.totalPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {weeklyStats?.totalPnL 
+                        ? `${weeklyStats.totalPnL >= 0 ? '+' : ''}${weeklyStats.totalPnL}%` 
+                        : "N/A"}
+                  </p>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>

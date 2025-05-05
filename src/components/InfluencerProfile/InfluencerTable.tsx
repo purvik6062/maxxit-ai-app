@@ -76,7 +76,7 @@ function InfluencerTable({ influencerId, userName }: InfluencerTableProps) {
       try {
         setLoading(true);
         const response = await fetch(
-          `/api/get-influencer-signals?twitterAccount=${userName}&page=${pagination.currentPage}&limit=${pagination.limit}&filterType=${filterType}`
+          `/api/get-influencer-signals?twitterAccount=314Davinci86890&page=${pagination.currentPage}&limit=${pagination.limit}&filterType=${filterType}`
         );
 
         if (!response.ok) {

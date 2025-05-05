@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "src/utils/dbConnect";
 import { MongoClient, ObjectId } from "mongodb";
+import crypto from "crypto";
 
 // Define the same interface as in get-user-signals for consistency
 interface SignalData {
@@ -29,6 +30,7 @@ interface SignalData {
     tokenMentioned?: string;
     tokenId?: string;
     ipfsLink?: string;
+    encryptedTwitterId?: string;
   };
   generatedAt: string;
   subscribers?: Array<{
@@ -63,6 +65,21 @@ interface BacktestingSignalData {
   "Final P&L"?: string;
   Reasoning?: string;
   "IPFS Link"?: string;
+}
+
+// Helper function to generate encrypted Twitter ID from tweet URL
+function encryptTwitterId(tweetUrl: string, twitterHandle: string): string {
+  try {
+    // Create a simple hash of the Twitter handle and URL combination
+    const data = `${twitterHandle}:${tweetUrl}`;
+    const hash = crypto.createHash('sha256').update(data).digest('hex');
+    
+    // Return a shortened version of the hash (first 16 characters)
+    return hash
+  } catch (error) {
+    console.error("Error encrypting Twitter ID:", error);
+    return "encrypted-id-error";
+  }
 }
 
 // Helper function to fetch data from IPFS link
@@ -183,6 +200,12 @@ export async function GET(request: Request): Promise<Response> {
         { success: false, error: { message: "Signal not found" } },
         { status: 404 }
       );
+    }
+    
+    // Generate encrypted Twitter ID from tweet URL
+    const twitterHandle = signal.twitterHandle || signal.signal_data.twitterHandle || "";
+    if (signal.tweet_link && twitterHandle) {
+      signal.signal_data.encryptedTwitterId = encryptTwitterId(signal.tweet_link, twitterHandle);
     }
 
     // If this is a regular signal (not from backtesting collection), process it as before

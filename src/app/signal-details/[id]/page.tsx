@@ -2,74 +2,60 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import {
-  Loader2,
-  ChevronLeft,
-  ExternalLink,
-  Eye,
-  AlertTriangle,
-  ArrowUpCircle,
-  ArrowDownCircle,
-  PauseCircle,
-  Clock,
-  Target,
-  TrendingUp,
-  TrendingDown,
-  DollarSign,
-  Info,
-  BarChart2,
-} from "lucide-react";
+import { Loader2, ChevronLeft, ExternalLink, Eye, AlertTriangle, ArrowUpCircle, ArrowDownCircle, PauseCircle, Clock, Target, TrendingUp, TrendingDown, DollarSign, Info, BarChart2, Twitter, Copy, Check } from "lucide-react";
 import Link from "next/link";
 
 interface SignalDetails {
-  _id: string;
-  twitterHandle: string;
-  coin: string;
-  signal_data: {
-    token: string;
-    signal: string;
-    currentPrice: number;
-    targets: number[];
-    stopLoss: number;
-    timeline?: string;
-    maxExitTime?: string;
-    tradeTip?: string;
-    tweet_id?: string;
-    tweet_link?: string;
-    tweet_timestamp?: string;
-    priceAtTweet?: number;
-    exitValue?: number | null;
-    exitPnL?: string | null;
-    bestStrategy?: string;
-    twitterHandle?: string;
-    tokenMentioned?: string;
-    tokenId?: string;
-    ipfsLink?: string;
-  };
-  generatedAt: string;
-  tweet_link: string;
-  backtestingDone?: boolean;
-  hasExited?: boolean;
-  backtestingData?: {
-    "Coin ID": string;
-    "Entry Price": string;
-    "Exit Price": number | null;
-    "P&L": string | null;
-    Reasoning: string;
-    SL: string;
-    "Signal Generation Date": string;
-    "Signal Type": string;
-    TP1: string;
-    TP2: string;
-  };
+    _id: string;
+    twitterHandle: string;
+    coin: string;
+    signal_data: {
+        token: string;
+        signal: string;
+        currentPrice: number;
+        targets: number[];
+        stopLoss: number;
+        timeline?: string;
+        maxExitTime?: string;
+        tradeTip?: string;
+        tweet_id?: string;
+        tweet_link?: string;
+        tweet_timestamp?: string;
+        priceAtTweet?: number;
+        exitValue?: number | null;
+        exitPnL?: string | null;
+        bestStrategy?: string;
+        twitterHandle?: string;
+        tokenMentioned?: string;
+        tokenId?: string;
+        ipfsLink?: string;
+        encryptedTwitterId?: string;
+    };
+    generatedAt: string;
+    tweet_link: string;
+    backtestingDone?: boolean;
+    hasExited?: boolean;
+    backtestingData?: {
+        "Coin ID": string;
+        "Entry Price": string;
+        "Exit Price": number | null;
+        "P&L": string | null;
+        "Reasoning": string;
+        "SL": string;
+        "Signal Generation Date": string;
+        "Signal Type": string;
+        "TP1": string;
+        "TP2": string;
+    };
 }
 
 export default function SignalDetailsPage() {
-  const { id } = useParams();
-  const [signal, setSignal] = useState<SignalDetails | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<string>("overview");
+    const { id } = useParams();
+    const [signal, setSignal] = useState<SignalDetails | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState<string>("overview");
+    const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const fetchSignalDetails = async () => {
@@ -96,10 +82,24 @@ export default function SignalDetailsPage() {
       }
     };
 
-    if (id) {
-      fetchSignalDetails();
-    }
-  }, [id]);
+        if (id) {
+            fetchSignalDetails();
+        }
+    }, [id]);
+
+    const copyToClipboard = async (text: string) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopied(true);
+
+            // Reset after 2 seconds
+            setTimeout(() => {
+                setCopied(false);
+            }, 2000);
+        } catch (err) {
+            console.error('Failed to copy text:', err);
+        }
+    };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -281,68 +281,71 @@ export default function SignalDetailsPage() {
             )}
           </div>
 
-          {/* Overview tab */}
-          {activeTab === "overview" && (
-            <div className="p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Left column - Basic Info */}
-                <div className="lg:col-span-1">
-                  <div className="bg-[#111827]/50 rounded-lg p-4">
-                    <h3 className="text-md font-semibold text-white mb-4 flex items-center gap-2">
-                      <Info className="h-4 w-4 text-blue-400" />
-                      Signal Information
-                    </h3>
-                    <div className="space-y-4">
-                      <div>
-                        <p className="text-xs text-gray-400 mb-1">Token</p>
-                        <p className="text-sm text-white font-medium">
-                          {signal.signal_data.token}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-400 mb-1">
-                          Date Generated
-                        </p>
-                        <p className="text-sm text-white">
-                          {formatDate(signal.generatedAt)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-400 mb-1">
-                          Twitter Handle
-                        </p>
-                        <p className="text-sm text-white">
-                          @
-                          {signal.twitterHandle ||
-                            signal.signal_data.twitterHandle}
-                        </p>
-                      </div>
-                      <hr className="border-gray-700 my-3" />
-                      <div className="flex flex-col gap-2">
-                        <a
-                          href={signal.tweet_link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1.5 px-3 py-2 bg-[#1a2535] rounded hover:bg-[#1e2c3d] transition-colors"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                          View Tweet
-                        </a>
-                        {signal.signal_data.ipfsLink && (
-                          <a
-                            href={signal.signal_data.ipfsLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1.5 px-3 py-2 bg-[#1a2535] rounded hover:bg-[#1e2c3d] transition-colors"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                            View IPFS Data
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                    {/* Overview tab */}
+                    {activeTab === "overview" && (
+                        <div className="p-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                {/* Left column - Basic Info */}
+                                <div className="lg:col-span-1">
+                                    <div className="bg-[#111827]/50 rounded-lg p-4">
+                                        <h3 className="text-md font-semibold text-white mb-4 flex items-center gap-2">
+                                            <Info className="h-4 w-4 text-blue-400" />
+                                            Signal Information
+                                        </h3>
+                                        <div className="space-y-4">
+                                            <div>
+                                                <p className="text-xs text-gray-400 mb-1">Token</p>
+                                                <p className="text-sm text-white font-medium">{signal.signal_data.token}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-gray-400 mb-1">Date Generated</p>
+                                                <p className="text-sm text-white">{formatDate(signal.generatedAt)}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-gray-400 mb-1">Twitter Handle</p>
+                                                <p className="text-sm text-white">@{signal.twitterHandle || signal.signal_data.twitterHandle}</p>
+                                            </div>
+                                            {signal.signal_data.encryptedTwitterId && (
+                                                <div>
+                                                    <p className="text-xs text-gray-400 mb-1">Encrypted ID</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="text-sm text-white font-mono bg-[#1a2535] py-1 px-2 rounded">
+                                                            {signal.signal_data.encryptedTwitterId}
+                                                        </p>
+                                                        <button
+                                                            onClick={() => copyToClipboard(signal.signal_data.encryptedTwitterId || '')}
+                                                            className="p-1.5 hover:bg-[#2a374e] bg-[#1a2535] rounded cursor-pointer"
+                                                            title={copied ? "Copied!" : "Copy to clipboard"}
+                                                        >
+                                                            {copied ? (
+                                                                <Check className="h-4 w-4 text-green-400" />
+                                                            ) : (
+                                                                <Copy className="h-4 w-4 text-blue-400" />
+                                                            )}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            <hr className="border-gray-700 my-3" />
+                                            <div>
+                                                <p className="text-xs text-gray-400 mb-2">View on IPFS</p>
+                                                <div className="flex flex-col gap-2">
+                                                    {signal.signal_data.ipfsLink && (
+                                                        <a
+                                                            href={signal.signal_data.ipfsLink}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1.5 px-3 py-2 bg-[#1a2535] rounded hover:bg-[#1e2c3d] transition-colors"
+                                                        >
+                                                            <ExternalLink className="h-4 w-4" />
+                                                            View
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
                 {/* Right column - Trading Info */}
                 <div className="lg:col-span-2">
@@ -538,20 +541,32 @@ export default function SignalDetailsPage() {
                     </div>
                   </div>
 
-                  {signal.backtestingData["Reasoning"] && (
-                    <div className="bg-[#111827]/50 rounded-lg p-4">
-                      <h3 className="text-md font-semibold text-white mb-4 flex items-center gap-2">
-                        <TrendingDown className="h-4 w-4 text-blue-400" />
-                        Trading Analysis
-                      </h3>
-                      <p className="text-sm text-gray-300 whitespace-pre-line">
-                        {signal.backtestingData["Reasoning"]}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+                                {signal.backtestingData["Reasoning"] && (
+                                    <div className="bg-[#111827]/50 rounded-lg p-4">
+                                        <h3 className="text-md font-semibold text-white mb-4 flex items-center gap-2">
+                                            <TrendingDown className="h-4 w-4 text-blue-400" />
+                                            Trading Analysis
+                                        </h3>
+                                        <p className="text-sm text-gray-300 whitespace-pre-line">{signal.backtestingData["Reasoning"]}</p>
+
+                                        {signal.signal_data.ipfsLink && (
+                                            <div className="mt-4">
+                                                <a
+                                                    href={signal.signal_data.ipfsLink}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1.5 px-3 py-2 bg-[#1a2535] w-fit rounded hover:bg-[#1e2c3d] transition-colors"
+                                                >
+                                                    <ExternalLink className="h-4 w-4" />
+                                                    View Complete IPFS Data
+                                                </a>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
 
           {/* Trade Tips tab */}
           {activeTab === "tips" && signal.signal_data.tradeTip && (
