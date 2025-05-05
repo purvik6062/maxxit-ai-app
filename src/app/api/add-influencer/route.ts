@@ -43,6 +43,7 @@ export async function POST(request: Request) {
       heartbeat,
       createdAt,
       twitterId,
+      subscriptionPrice,
       sessionUserhandle,
     } = body;
 
@@ -73,7 +74,7 @@ export async function POST(request: Request) {
 
       // Define apiData at a higher scope to use throughout the function
       let apiData: any = null;
-      
+
       // Fetch data from TweetScout API only if the influencer doesn't exist
       if (!existingInfluencer) {
         try {
@@ -118,9 +119,7 @@ export async function POST(request: Request) {
           const user = await usersCollection.findOne({ twitterId });
 
           if (!user) {
-            throw new Error(
-              "Register yourself first!"
-            );
+            throw new Error("Register yourself first!");
           }
 
           if (user.credits < SUBSCRIPTION_COST) {
@@ -164,7 +163,10 @@ export async function POST(request: Request) {
             } = apiData;
 
             // Clean avatar URL
-            const userProfileUrl = rawAvatarUrl.replace(/_normal(?=\.(jpg|jpeg|png|gif|webp))/i, "");    
+            const userProfileUrl = rawAvatarUrl.replace(
+              /_normal(?=\.(jpg|jpeg|png|gif|webp))/i,
+              ""
+            );
 
             // Prepare publicMetrics
             const publicMetrics = {
@@ -209,6 +211,7 @@ export async function POST(request: Request) {
                 isProcessing: false,
                 lastProcessed: new Date(),
                 userData,
+                subscriptionPrice,
                 tweetScoutData: apiData, // Store the raw API data directly here
                 createdAt: new Date(createdAt),
               },
@@ -246,7 +249,6 @@ export async function POST(request: Request) {
         await session.endSession();
       }
     }
-
   } catch (error) {
     console.error("❌ /api/add-influencer failed:", error);
     return NextResponse.json(
