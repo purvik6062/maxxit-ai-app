@@ -61,7 +61,7 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: linear-gradient(to bottom right, #040714, #04091b);
+  /* background: linear-gradient(to bottom right, #040714, #04091b); */
 }
 
 @keyframes rotate {

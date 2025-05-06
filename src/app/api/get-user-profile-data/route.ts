@@ -9,9 +9,31 @@ export async function GET(request: Request) {
     const db = client.db("ctxbt-signal-flow");
     const collection = db.collection("influencers");
 
-    const users = await collection.find({}).toArray();
+    // Only fetch the fields that are actually used by the application
+    const users = await collection.find({}, {
+      projection: {
+        name: 1,
+        twitterHandle: 1,
+        subscriptionPrice: 1,
+        subscribers: 1, // We'll use this for counting later
+        // Include only the necessary userData fields
+        "userData.mindshare": 1,
+        "userData.publicMetrics.followers_count": 1,
+        "userData.userProfileUrl": 1,
+        "userData.verified": 1,
+        "userData.herdedVsHidden": 1,
+        "userData.convictionVsHype": 1,
+        "userData.memeVsInstitutional": 1,
+      }
+    }).toArray();
 
-    return NextResponse.json(users, { status: 200 });
+    // Transform the data to include subscribers count instead of the entire array
+    const transformedUsers = users.map(user => ({
+      ...user,
+      subscribers: user.subscribers ? user.subscribers.length : 0
+    }));
+
+    return NextResponse.json(transformedUsers, { status: 200 });
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch users" },

@@ -55,10 +55,9 @@ const NavItem: React.FC<NavItemProps> = ({
             px-3 lg:px-4 py-2 text-xs sm:text-sm font-medium inline-block 
             transition-colors duration-200
             ${hasBorders ? "border-l border-r border-gray-700" : ""}
-            ${
-              isActive
-                ? "bg-[#E4EFFF] text-[#393B49]"
-                : "text-gray-300 hover:bg-gray-800"
+            ${isActive
+              ? "bg-[#E4EFFF] text-[#393B49]"
+              : "text-gray-300 hover:bg-gray-800"
             }
           `}
         >
@@ -72,11 +71,10 @@ const NavItem: React.FC<NavItemProps> = ({
   return (
     <Link href={path} onClick={onClick}>
       <span
-        className={`flex items-center px-4 py-3 text-sm font-medium ${
-          isActive
-            ? "bg-blue-900/30 text-blue-100 border-l-2 border-blue-400"
-            : "text-gray-300 hover:bg-gray-800"
-        }`}
+        className={`flex items-center px-4 py-3 text-sm font-medium ${isActive
+          ? "bg-blue-900/30 text-blue-100 border-l-2 border-blue-400"
+          : "text-gray-300 hover:bg-gray-800"
+          }`}
       >
         {label}
         {isActive && (
@@ -104,17 +102,15 @@ const CreditsDisplay: React.FC<CreditsDisplayProps> = ({
     // Loading state
     return (
       <div
-        className={`flex items-center ${
-          isMobile
-            ? "px-4 py-2 rounded-lg bg-gradient-to-r from-blue-900/30 to-blue-800/20 border border-blue-500/30"
-            : "hidden md:flex px-2 sm:px-3 py-1 rounded-full bg-gradient-to-r from-blue-500/20 to-blue-700/20 border border-blue-500/50"
-        }`}
+        className={`flex items-center ${isMobile
+          ? "px-4 py-2 rounded-lg bg-gradient-to-r from-blue-900/30 to-blue-800/20 border border-blue-500/30"
+          : "hidden md:flex px-2 sm:px-3 py-1 rounded-full bg-gradient-to-r from-blue-500/20 to-blue-700/20 border border-blue-500/50"
+          }`}
       >
         <div className="animate-pulse flex items-center">
           <div
-            className={`h-4 w-12 bg-blue-400/30 rounded ${
-              isMobile ? "ml-auto" : ""
-            }`}
+            className={`h-4 w-12 bg-blue-400/30 rounded ${isMobile ? "ml-auto" : ""
+              }`}
           ></div>
           {!isMobile && (
             <span className="text-white font-normal text-xs sm:text-sm ml-1">
@@ -508,19 +504,23 @@ const Header: React.FC<HeaderProps> = () => {
       <ToastContainer />
       <div className="mx-auto px-2 sm:px-4 py-2">
         <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <img
-              src="/img/maxxit_logo.svg"
-              alt="Maxxit"
-              className="h-7 sm:h-8"
-            />
-            <div className="text-2xl font-napzerRounded bg-gradient-to-b from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent">
-              maxxit
-            </div>
-          </Link>
+          {/* Left section - Logo */}
+          <div className="flex-1 flex justify-start">
+            <Link href="/" className="flex items-center gap-2">
+              <img
+                src="/img/maxxit_logo.svg"
+                alt="Maxxit"
+                className="h-7 sm:h-8"
+              />
+              <div className="text-2xl font-napzerRounded bg-gradient-to-b from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent">
+                maxxit
+              </div>
+            </Link>
+          </div>
 
-          {/* Desktop Navigation Links */}
-          <nav className="font-leagueSpartan hidden md:flex bg-[#101322B3] rounded-full items-center border border-gray-700 overflow-hidden">
+          {/* Center section - Desktop Navigation */}
+          <div>
+          <nav className="font-leagueSpartan hidden lg:flex  bg-[#101322B3] rounded-full items-center border border-gray-700 overflow-hidden flex-1 justify-center">
             {NAVIGATION_ITEMS.map((item) => (
               <NavItem
                 key={item.id}
@@ -529,99 +529,99 @@ const Header: React.FC<HeaderProps> = () => {
               />
             ))}
           </nav>
+          </div>
 
-          {/* Right section - credits and login */}
-          <div className="font-leagueSpartan flex items-center space-x-2 sm:space-x-4">
+          {/* Right section - Credits and Login */}
+          <div className="font-leagueSpartan flex items-center space-x-2 sm:space-x-4 flex-1 justify-end">
             {/* Credits Display */}
-
-            {/* Conditional rendering for credits/get credits button */}
-            {sessionStatus === "loading" ? (
-              // Loading state while session is being determined
-              <div className="w-20 h-8 bg-gray-800/80 rounded-full animate-pulse"></div>
-            ) : !session ? null : isLoadingCredits ? (
-              // Show a loading skeleton while credits are being fetched
-              <div className="flex items-center bg-gray-800/60 px-2 sm:px-3 py-1 rounded-lg animate-pulse">
-                <div className="w-6 h-6 rounded-full bg-gray-700/80 mr-2"></div>
-                <div className="h-4 w-16 bg-gray-700/80 rounded"></div>
-              </div>
-            ) : credits !== null ? (
-              // User is logged in and has credits (registered)
-              <CreditsDisplay credits={credits} isLoading={isLoadingCredits} />
-            ) : (
-              // User is logged in but not registered (no credits) - only show when we're sure credits are null
-              <button
-                ref={completeSetupButtonRef}
-                className="px-3 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm rounded-full hover:from-blue-600 hover:to-blue-700 transition whitespace-nowrap flex items-center gap-1 animate-pulse max-w-[160px] truncate"
-                onClick={() => setShowOnboardingModal(true)}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-yellow-300 flex-shrink-0"
-                >
-                  <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
-                  <path d="M12 17v-6" />
-                  <path d="M9 14h6" />
-                </svg>
-                <span className="truncate">Complete Setup</span>
-              </button>
-            )}
-
-            {/* Login/Profile */}
-            {sessionStatus === "loading" ? (
-              // Loading state for login button/profile
-              <div className="w-24 h-8 bg-gray-800/80 rounded-full animate-pulse"></div>
-            ) : !session ? (
-              <button
-                onClick={() => signIn("twitter")}
-                className="flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-100 text-black rounded-full text-xs sm:text-sm font-medium"
-              >
-                Login with <FaXTwitter className="ml-1" size={14} />
-              </button>
-            ) : (
-              <div className="flex items-center bg-gray-800/60 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-gray-700">
-                <img
-                  src={
-                    session.user?.image.replace(
-                      /_normal(?=\.(jpg|jpeg|png|gif|webp))/i,
-                      ""
-                    ) || "/default-avatar.png"
-                  }
-                  alt="Profile"
-                  className="w-6 h-6 sm:w-7 sm:h-7 rounded-full mr-1 sm:mr-2 border border-blue-400"
-                />
-                <span className="text-gray-200 text-xs sm:text-sm font-medium hidden sm:inline">
-                  @{session.user?.username || session.user?.name}
-                </span>
+            <div className="hidden md:flex items-center space-x-2 sm:space-x-4">
+              {sessionStatus === "loading" ? (
+                // Loading state while session is being determined
+                <div className="w-20 h-8 bg-gray-800/80 rounded-full animate-pulse hidden md:flex"></div>
+              ) : !session ? null : isLoadingCredits ? (
+                // Show a loading skeleton while credits are being fetched
+                <div className="flex items-center bg-gray-800/60 px-2 sm:px-3 py-1 rounded-lg animate-pulse">
+                  <div className="w-6 h-6 rounded-full bg-gray-700/80 mr-2"></div>
+                  <div className="h-4 w-16 bg-gray-700/80 rounded"></div>
+                </div>
+              ) : credits !== null ? (
+                // User is logged in and has credits (registered)
+                <CreditsDisplay credits={credits} isLoading={isLoadingCredits} />
+              ) : (
+                // User is logged in but not registered (no credits) - only show when we're sure credits are null
                 <button
-                  onClick={() => signOut({ callbackUrl: "/" })}
-                  className="ml-1 sm:ml-2 p-1 sm:p-1.5 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-full"
-                  title="Sign out"
+                  ref={completeSetupButtonRef}
+                  className="px-3 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm rounded-full hover:from-blue-600 hover:to-blue-700 transition whitespace-nowrap flex items-center gap-1 animate-pulse max-w-[160px] truncate"
+                  onClick={() => setShowOnboardingModal(true)}
                 >
-                  <LogOut size={12} className="sm:hidden" />
-                  <LogOut size={14} className="hidden sm:block" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-yellow-300 flex-shrink-0"
+                  >
+                    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+                    <path d="M12 17v-6" />
+                    <path d="M9 14h6" />
+                  </svg>
+                  <span className="truncate">Complete Setup</span>
                 </button>
-              </div>
-            )}
+              )}
+
+              {/* Login/Profile */}
+              {sessionStatus === "loading" ? (
+                // Loading state for login button/profile
+                <div className="w-24 h-8 bg-gray-800/80 rounded-full animate-pulse"></div>
+              ) : !session ? (
+                <button
+                  onClick={() => signIn("twitter")}
+                  className="flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-100 text-black rounded-full text-xs sm:text-sm font-medium"
+                >
+                  Login with <FaXTwitter className="ml-1" size={14} />
+                </button>
+              ) : (
+                <div className="flex items-center bg-gray-800/60 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-gray-700">
+                  <img
+                    src={
+                      session.user?.image.replace(
+                        /_normal(?=\.(jpg|jpeg|png|gif|webp))/i,
+                        ""
+                      ) || "/default-avatar.png"
+                    }
+                    alt="Profile"
+                    className="w-6 h-6 sm:w-7 sm:h-7 rounded-full mr-1 sm:mr-2 border border-blue-400"
+                  />
+                  <span className="text-gray-200 text-xs sm:text-sm font-medium hidden sm:inline">
+                    @{session.user?.username || session.user?.name}
+                  </span>
+                  <button
+                    onClick={() => signOut({ callbackUrl: "/" })}
+                    className="ml-1 sm:ml-2 p-1 sm:p-1.5 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-full"
+                    title="Sign out"
+                  >
+                    <LogOut size={12} className="sm:hidden" />
+                    <LogOut size={14} className="hidden sm:block" />
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Mobile menu button */}
             <button
-              className="md:hidden flex items-center justify-center p-1.5 text-gray-300 hover:text-white bg-[#101322B3] rounded-full border border-gray-700 transition-colors duration-200 hover:bg-gray-800"
+              className="lg:hidden flex items-center justify-center p-1.5 text-gray-300 hover:text-white bg-[#101322B3] rounded-full border border-gray-700 transition-colors duration-200 hover:bg-gray-800"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
             >
               <Menu
                 size={18}
-                className={`transform transition-transform duration-300 ${
-                  mobileMenuOpen ? "rotate-90" : "rotate-0"
-                }`}
+                className={`transform transition-transform duration-300 ${mobileMenuOpen ? "rotate-90" : "rotate-0"
+                  }`}
               />
             </button>
           </div>
@@ -630,17 +630,15 @@ const Header: React.FC<HeaderProps> = () => {
 
       {/* Mobile menu */}
       <div
-        className={`fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300 ${
-          mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 ${mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
         onClick={() => setMobileMenuOpen(false)}
       />
 
       <div
         ref={menuRef}
-        className={`fixed right-0 top-0 h-full w-[75%] max-w-xs bg-gradient-to-b from-[#101322] to-[#070915] border-l border-gray-700 shadow-2xl z-50 md:hidden transition-transform duration-300 ease-in-out transform ${
-          mobileMenuOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed right-0 top-0 h-full w-[75%] max-w-xs bg-gradient-to-b from-[#101322] to-[#070915] border-l border-gray-700 shadow-2xl z-50 lg:hidden transition-transform duration-300 ease-in-out transform ${mobileMenuOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         <div className="flex justify-between items-center p-4 border-b border-gray-700">
           <div className="text-2xl font-napzerRounded bg-gradient-to-b from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent">
@@ -708,7 +706,7 @@ const Header: React.FC<HeaderProps> = () => {
                 <h4 className="font-medium text-white text-sm">
                   Complete Registration
                 </h4>
-                <p className="text-xs text-gray-300 mt-1 mb-3">
+                <p className="text-4xl text-gray-300 mt-1 mb-3">
                   Connect with Telegram to activate your account and receive 500
                   FREE credits
                 </p>

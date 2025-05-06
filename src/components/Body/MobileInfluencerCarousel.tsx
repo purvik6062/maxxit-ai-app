@@ -1,12 +1,12 @@
 "use client";
 import React from "react";
 import { motion } from "framer-motion";
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { EffectCards, Autoplay } from 'swiper/modules';
+import { Swiper, SwiperSlide } from "swiper/react";
+import { EffectCards } from "swiper/modules";
 
 // Import Swiper styles
-import 'swiper/css';
-import 'swiper/css/effect-cards';
+import "swiper/css";
+import "swiper/css/effect-cards";
 
 export type Influencer = {
   id: string;
@@ -18,7 +18,6 @@ export type Influencer = {
   specialties?: string[];
 };
 
-// Custom styles for the cards effect
 const swiperCardStyles = `
   .swiper-cards {
     overflow: visible;
@@ -29,52 +28,75 @@ const swiperCardStyles = `
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
     transform-style: preserve-3d;
     transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .swiper-slide:not(.swiper-slide-active) {
+    box-shadow: 0 0 15px 2px rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  .swiper-slide:not(.swiper-slide-active)::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    background: transparent;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 10px 1px rgba(255, 255, 255, 0.2);
+    z-index: -1;
   }
   .swiper-slide-active {
     transform: translateY(-8px);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
   }
+  .blurred-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    filter: blur(20px);
+    opacity: 0.3;
+    z-index: -1;
+  }
 `;
 
 interface MobileInfluencerCarouselProps {
   influencers: Influencer[];
-  onSlideChange: (influencer: Influencer) => void;
 }
 
 const MobileInfluencerCarousel: React.FC<MobileInfluencerCarouselProps> = ({
   influencers,
-  onSlideChange
 }) => {
+  console.log("Influencers:", influencers);
+
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: swiperCardStyles }} />
-      <div className="w-full px-4 pt-20 pb-4 z-20 mx-auto" style={{ maxWidth: "min(400px, 90vw)" }}>
+      <div
+        className="w-full px-4 pt-20 pb-4 z-20 mx-auto"
+        style={{ maxWidth: "min(400px, 90vw)" }}
+      >
         <Swiper
-          effect={'cards'}
+          effect={"cards"}
           grabCursor={true}
-          modules={[EffectCards, Autoplay]}
+          modules={[EffectCards]}
+          // loop={true}
           className="w-full h-[320px] xs:h-[340px] sm:h-[360px]"
-          autoplay={{
-            delay: 5000,
-            disableOnInteraction: false,
-            pauseOnMouseEnter: true,
-          }}
-          speed={800}
-          onSlideChange={(swiper) => {
-            onSlideChange(influencers[swiper.activeIndex % influencers.length]);
-          }}
-          loop={true}
-          cardsEffect={{
-            slideShadows: true,
-            perSlideOffset: 10,
-            perSlideRotate: 2,
-            rotate: true,
-          }}
         >
-          {influencers.map((influencer) => (
-            <SwiperSlide key={influencer.id} className="backdrop-blur-md rounded-xl border border-gray-700/60 overflow-hidden">
+          {influencers.slice(0, 6).map((influencer) => (
+            <SwiperSlide
+              key={influencer.id}
+              className="backdrop-blur-md rounded-xl border border-gray-700/60 overflow-hidden"
+            >
+              <div
+                className="blurred-background"
+                style={{ backgroundImage: `url(${influencer.avatar})` }}
+              />
               <motion.div
-                className="w-full h-full flex flex-col items-center justify-center p-4"
+                className="w-full h-full flex flex-col items-center justify-center p-4 relative"
                 initial={{ opacity: 0.9 }}
                 whileInView={{ opacity: 1 }}
                 transition={{ duration: 0.5 }}
@@ -103,7 +125,7 @@ const MobileInfluencerCarousel: React.FC<MobileInfluencerCarouselProps> = ({
                     {influencer.name}
                   </h3>
                   <p className="text-xs text-gray-400 text-center">
-                    {influencer.specialties?.join(', ') || 'Crypto Analysis'}
+                    {influencer.specialties?.join(", ") || "Crypto Analysis"}
                   </p>
                 </motion.div>
 
@@ -137,7 +159,7 @@ const MobileInfluencerCarousel: React.FC<MobileInfluencerCarouselProps> = ({
                   className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-20 h-1.5 bg-gradient-to-r from-cyan-500/20 via-cyan-400/20 to-gray-700/20 rounded-full"
                   animate={{
                     width: ["20%", "30%", "20%"],
-                    opacity: [0.5, 0.7, 0.5]
+                    opacity: [0.5, 0.7, 0.5],
                   }}
                   transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                 />
@@ -150,4 +172,4 @@ const MobileInfluencerCarousel: React.FC<MobileInfluencerCarouselProps> = ({
   );
 };
 
-export default MobileInfluencerCarousel; 
+export default React.memo(MobileInfluencerCarousel);

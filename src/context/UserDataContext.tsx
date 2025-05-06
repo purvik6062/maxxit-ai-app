@@ -7,16 +7,12 @@ import React, {
   useMemo,
 } from "react";
 
-// Import the types from your existing code
+// Simplified interfaces based on the data we actually need
 interface PublicMetrics {
   followers_count: number;
-  following_count: number;
-  tweet_count: number;
 }
 
 interface UserData {
-  userId: string;
-  username: string;
   verified: boolean;
   publicMetrics: PublicMetrics;
   userProfileUrl: string;
@@ -26,37 +22,13 @@ interface UserData {
   memeVsInstitutional: number;
 }
 
-interface TweetScoutData {
-  id?: string;
-  name?: string;
-  screen_name?: string;
-  description?: string;
-  followers_count?: number;
-  friends_count?: number;
-  register_date?: string;
-  tweets_count?: number;
-  banner?: string;
-  verified?: boolean;
-  avatar?: string;
-  can_dm?: boolean;
-}
-
+// Optimized UserResponse interface with only the fields we need
 interface UserResponse {
   _id: string;
   name: string;
   twitterHandle: string;
-  impactFactor: number | null;
-  heartbeat: number | null;
-  subscribers: string[];
-  tweets: any[];
-  processedTweetIds: string[];
-  updatedAt: string;
-  isProcessing: boolean;
-  lastProcessed: string;
+  subscribers: number; // Now a number instead of array
   userData: UserData;
-  tweetScoutScore?: number;
-  tweetScoutData?: TweetScoutData;
-  createdAt?: string;
   subscriptionPrice?: number;
 }
 
@@ -155,11 +127,11 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
         });
         if (!response.ok) throw new Error("Failed to fetch impact factor data");
         const data = await response.json();
-        console.time("fetchImpactFactorData");
+        console.timeEnd("fetchImpactFactorData");
         return data;
       } catch (err) {
         console.error("Error fetching impact factor data:", err);
-        console.time("fetchImpactFactorData");
+        console.timeEnd("fetchImpactFactorData");
         return handles.reduce((acc, handle) => {
           acc[handle] = 0;
           return acc;
@@ -182,7 +154,7 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
         });
 
         const data = await response.json();
-        console.time("fetchHeartbeatData");
+        console.timeEnd("fetchHeartbeatData");
 
         if (!response.ok || !data.success) {
           throw new Error(
@@ -193,7 +165,7 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
         return data.data;
       } catch (err) {
         console.error("Error fetching heartbeat data:", err);
-        console.time("fetchHeartbeatData");
+        console.timeEnd("fetchHeartbeatData");
         return {};
       }
     },
@@ -211,18 +183,17 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
       return users.map((user) => ({
         name: user.name,
         twitterHandle: user.twitterHandle,
-        impactFactor:
-          impactFactorData[user.twitterHandle] ?? user.impactFactor ?? 0,
+        impactFactor: impactFactorData[user.twitterHandle] ?? 0,
         heartbeat: heartbeatData[user.twitterHandle] ?? 0,
-        mindshare: user.userData.mindshare ?? 0,
-        followers: user.userData.publicMetrics.followers_count ?? 0,
+        mindshare: user.userData?.mindshare ?? 0,
+        followers: user.userData?.publicMetrics?.followers_count ?? 0,
         subscriptionPrice: user.subscriptionPrice ?? 0,
-        profileUrl: user.userData.userProfileUrl || "",
-        verified: user.userData.verified || false,
-        herdedVsHidden: user.userData.herdedVsHidden ?? 1,
-        convictionVsHype: user.userData.convictionVsHype ?? 1,
-        memeVsInstitutional: user.userData.memeVsInstitutional ?? 1,
-        subscribers: user.subscribers.length || 0,
+        profileUrl: user.userData?.userProfileUrl || "",
+        verified: user.userData?.verified || false,
+        herdedVsHidden: user.userData?.herdedVsHidden ?? 1,
+        convictionVsHype: user.userData?.convictionVsHype ?? 1,
+        memeVsInstitutional: user.userData?.memeVsInstitutional ?? 1,
+        subscribers: user.subscribers ?? 0,
         signals: signalsTokensData[user.twitterHandle]?.signals || 0,
         tokens: signalsTokensData[user.twitterHandle]?.tokens || 0,
       }));

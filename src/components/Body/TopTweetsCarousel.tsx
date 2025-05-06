@@ -123,7 +123,7 @@ export default function CarouselHorizontal() {
 
   if (tweets.length === 0) {
     return (
-      <div className="w-full overflow-hidden bg-[#020617] py-8">
+      <div className="w-full overflow-hidden py-8">
         <div className="container mx-auto px-4 mb-6 flex justify-center">
           <div className="text-white/60 text-lg">No tweets available</div>
         </div>
