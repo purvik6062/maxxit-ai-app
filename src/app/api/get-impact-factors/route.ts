@@ -17,10 +17,17 @@ export async function POST(request: Request) {
       );
     }
 
+    const query = { account: { $in: handles } };
+    const impactData = await collection.find(query).toArray();
+    
+    const impactMap = impactData.reduce((acc, item) => {
+      acc[item.account] = Math.round(item.impactFactor * 10) / 10;
+      return acc;
+    }, {});
+    
     const result: Record<string, number> = {};
     for (const handle of handles) {
-      const impactData = await collection.findOne({ account: handle });
-      result[handle] = impactData ? Math.round(impactData.impactFactor * 10) / 10 : 0;
+      result[handle] = impactMap[handle] || 0;
     }
 
     return NextResponse.json(result, { status: 200 });
