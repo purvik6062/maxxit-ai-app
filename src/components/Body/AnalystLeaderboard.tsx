@@ -59,7 +59,7 @@ interface Agent {
   herdedVsHidden?: number;
   convictionVsHype?: number;
   memeVsInstitutional?: number;
-  subscribers?: string[];
+  subscribers?: number;
   signals?: number;
   tokens?: number;
   subscriptionPrice?: number;
@@ -702,7 +702,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
           const cleanHandle = agent.twitterHandle.replace("@", "");
           const isSubscribed = subscribedHandles.includes(cleanHandle);
           const isCurrentlySubscribing = subscribingHandle === cleanHandle;
-          const subscribers = agent.subscribers?.length || 0;
+          const subscribers = agent.subscribers || 0;
           const signals = agent.signals || 0;
           const tokens = agent.tokens || 0;
           // const creditCost = renderCreditCost(agent.impactFactor || 0);
@@ -891,6 +891,79 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                       <span className="text-[10px] sm:text-xs lg:text-sm font-semibold text-white">
                         {tokens}
                       </span>
+                    </div>
+                  </div>
+                  <div className="relative h-24 mb-4 hidden md:block">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-full h-full max-w-[120px] max-h-[120px] relative">
+                        <div className="absolute inset-0 border-2 border-blue-800/30 rounded-full"></div>
+                        <div className="absolute inset-[20%] border-2 border-blue-800/20 rounded-full"></div>
+                        <div className="absolute inset-[40%] border-2 border-blue-800/10 rounded-full"></div>
+                        <div className="absolute top-0 left-1/2 h-1/2 w-0.5 bg-blue-800/20 -translate-x-1/2"></div>
+                        <div className="absolute top-1/2 left-0 h-0.5 w-1/2 bg-blue-800/20"></div>
+                        <div className="absolute bottom-0 left-1/2 h-1/2 w-0.5 bg-blue-800/20 -translate-x-1/2"></div>
+                        <div className="absolute top-1/2 right-0 h-0.5 w-1/2 bg-blue-800/20"></div>
+                        <div
+                          className="absolute rounded-full w-2 h-2 bg-blue-400"
+                          style={{
+                            top: `${(100 - subscribers) / 2}%`,
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                            boxShadow: "0 0 5px rgba(96, 165, 250, 0.7)",
+                          }}
+                        ></div>
+                        <div
+                          className="absolute rounded-full w-2 h-2 bg-cyan-400"
+                          style={{
+                            top: "50%",
+                            left: `${signals / 2}%`,
+                            transform: "translate(-50%, -50%)",
+                            boxShadow: "0 0 5px rgba(34, 211, 238, 0.7)",
+                          }}
+                        ></div>
+                        <div
+                          className="absolute rounded-full w-2 h-2 bg-blue-300"
+                          style={{
+                            bottom: `${(100 - tokens) / 2}%`,
+                            left: "50%",
+                            transform: "translate(-50%, 50%)",
+                            boxShadow:
+                              mode === "impact"
+                                ? "0 0 5px rgba(147, 197, 253, 0.7)"
+                                : "0 0 5px rgba(239, 68, 68, 0.7)",
+                          }}
+                        ></div>
+                        <div
+                          className="absolute rounded-full w-2 h-2 bg-blue-500"
+                          style={{
+                            top: "50%",
+                            right: `${100 - (agent[primaryField] || 0)}%`,
+                            transform: "translate(50%, -50%)",
+                            boxShadow: "0 0 5px rgba(59, 130, 246, 0.7)",
+                          }}
+                        ></div>
+                        <svg className="absolute inset-0 w-full h-full">
+                          <polygon
+                            points={`50,${(100 - subscribers) / 2} 
+                                    ${signals / 2},50 
+                                    50,${100 - (100 - tokens) / 2} 
+                                    ${
+                                      100 - (100 - (agent[primaryField] || 0))
+                                    },50`}
+                            fill={
+                              mode === "impact"
+                                ? "rgba(59, 130, 246, 0.2)"
+                                : "rgba(239, 68, 68, 0.2)"
+                            }
+                            stroke={
+                              mode === "impact"
+                                ? "rgba(59, 130, 246, 0.6)"
+                                : "rgba(239, 68, 68, 0.6)"
+                            }
+                            strokeWidth="1"
+                          />
+                        </svg>
+                      </div>
                     </div>
                   </div>
                   <div className="p-2 sm:p-3 space-y-2 sm:space-y-3 bg-gray-900/30 rounded-lg border border-gray-800/20 mb-2 sm:mb-3">

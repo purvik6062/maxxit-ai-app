@@ -25,14 +25,19 @@ export async function POST(request: Request): Promise<Response> {
       .find({ twitterHandle: { $in: handles } })
       .toArray();
 
+    // Initialize result with default values for all handles
+    const result: Record<string, number> = {};
+    handles.forEach(handle => {
+      result[handle] = 0; // Default value
+    });
+
     // Map the data to a simple object with handle as key and score as value
-    const result = heartbeatData.reduce((acc, doc) => {
+    heartbeatData.forEach(doc => {
       // Scale the score to 0-100 range (assuming max raw score is 1000 for simplicity)
       // Adjust the max value based on actual data if needed
       const scaledScore = Math.min(Math.max((doc.score / 1000) * 100, 0), 100);
-      acc[doc.twitterHandle] = parseFloat(scaledScore.toFixed(1)); // Round to 1 decimal
-      return acc;
-    }, {});
+      result[doc.twitterHandle] = parseFloat(scaledScore.toFixed(1)); // Round to 1 decimal
+    });
 
     return NextResponse.json({
       success: true,

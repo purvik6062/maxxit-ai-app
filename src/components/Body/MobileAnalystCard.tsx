@@ -22,7 +22,7 @@ interface Agent {
   herdedVsHidden?: number;
   convictionVsHype?: number;
   memeVsInstitutional?: number;
-  subscribers?: string[];
+  subscribers?: number;
   signals?: number;
   tokens?: number;
   subscriptionPrice?: number;

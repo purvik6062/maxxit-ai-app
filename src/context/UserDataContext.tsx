@@ -4,6 +4,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useMemo,
 } from "react";
 
 // Import the types from your existing code
@@ -71,7 +72,7 @@ export interface EnhancedAgent {
   herdedVsHidden: number;
   convictionVsHype: number;
   memeVsInstitutional: number;
-  subscribers: string[];
+  subscribers: number;
   signals: number;
   tokens: number;
   subscriptionPrice?: number;
@@ -112,100 +113,101 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
   const [error, setError] = useState<any>(null);
 
   // Function to fetch Signals and Tokens data from trading-signals collection
-  const fetchSignalsAndTokensData = async (
-    agentsData: UserResponse[]
-  ): Promise<Record<string, { signals: number; tokens: number }>> => {
-    const result: Record<string, { signals: number; tokens: number }> = {};
-    try {
-      const response = await fetch("/api/get-signals-tokens-data", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          handles: agentsData.map((agent) => agent.twitterHandle),
-        }),
-      });
-      if (!response.ok)
-        throw new Error("Failed to fetch signals and tokens data");
-      const data = await response.json();
-      Object.keys(data).forEach((handle) => {
-        result[handle] = {
-          signals: data[handle].signals || 0,
-          tokens: data[handle].tokens || 0,
-        };
-      });
-    } catch (err) {
-      console.error("Error fetching signals and tokens data:", err);
-      agentsData.forEach((agent) => {
-        result[agent.twitterHandle] = { signals: 0, tokens: 0 };
-      });
-    }
-    return result;
-  };
+  const fetchSignalsAndTokensData = useCallback(
+    async (handles: string[]): Promise<Record<string, { signals: number; tokens: number }>> => {
+      console.time("fetchSignalsAndTokensData");
+      try {
+        const response = await fetch("/api/get-signals-tokens-data", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ handles }),
+        });
+        if (!response.ok)
+          throw new Error("Failed to fetch signals and tokens data");
+        const data = await response.json();
+        console.timeEnd("fetchSignalsAndTokensData");
+        return data;
+      } catch (err) {
+        console.error("Error fetching signals and tokens data:", err);
+        console.timeEnd("fetchSignalsAndTokensData");
+        return handles.reduce((acc, handle) => {
+          acc[handle] = { signals: 0, tokens: 0 };
+          return acc;
+        }, {} as Record<string, { signals: number; tokens: number }>);
+      }
+    },
+    []
+  );
 
   // Function to fetch Impact Factor data from impact_factors collection
-  const fetchImpactFactorData = async (
-    handles: string[]
-  ): Promise<Record<string, number>> => {
-    const result: Record<string, number> = {};
-    try {
-      const response = await fetch("/api/get-impact-factors", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ handles }),
-      });
-      if (!response.ok) throw new Error("Failed to fetch impact factor data");
-      const data = await response.json();
-      Object.keys(data).forEach((handle) => {
-        result[handle] = data[handle] || 0;
-      });
-    } catch (err) {
-      console.error("Error fetching impact factor data:", err);
-      handles.forEach((handle) => {
-        result[handle] = 0;
-      });
-    }
-    return result;
-  };
-
-  const fetchHeartbeatData = async (
-    handles: string[]
-  ): Promise<Record<string, number>> => {
-    try {
-      const response = await fetch("/api/get-heartbeat-data", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ handles }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(
-          data.error?.message || "Failed to fetch heartbeat data"
-        );
+  const fetchImpactFactorData = useCallback(
+    async (handles: string[]): Promise<Record<string, number>> => {
+      console.time("fetchImpactFactorData");
+      try {
+        const response = await fetch("/api/get-impact-factors", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ handles }),
+        });
+        if (!response.ok) throw new Error("Failed to fetch impact factor data");
+        const data = await response.json();
+        console.time("fetchImpactFactorData");
+        return data;
+      } catch (err) {
+        console.error("Error fetching impact factor data:", err);
+        console.time("fetchImpactFactorData");
+        return handles.reduce((acc, handle) => {
+          acc[handle] = 0;
+          return acc;
+        }, {} as Record<string, number>);
       }
+    },
+    []
+  );
 
-      return data.data;
-    } catch (err) {
-      console.error("Error fetching heartbeat data:", err);
-      return {};
-    }
-  };
+  const fetchHeartbeatData = useCallback(
+    async (handles: string[]): Promise<Record<string, number>> => {
+      console.time("fetchHeartbeatData");
+      try {
+        const response = await fetch("/api/get-heartbeat-data", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ handles }),
+        });
+
+        const data = await response.json();
+        console.time("fetchHeartbeatData");
+
+        if (!response.ok || !data.success) {
+          throw new Error(
+            data.error?.message || "Failed to fetch heartbeat data"
+          );
+        }
+
+        return data.data;
+      } catch (err) {
+        console.error("Error fetching heartbeat data:", err);
+        console.time("fetchHeartbeatData");
+        return {};
+      }
+    },
+    []
+  );
 
   // Function to map raw API data to EnhancedAgent format
   const mapToEnhancedAgents = useCallback(
-    async (
+    (
       users: UserResponse[],
       signalsTokensData: Record<string, { signals: number; tokens: number }>,
       impactFactorData: Record<string, number>,
       heartbeatData: Record<string, number>
-    ): Promise<EnhancedAgent[]> => {
+    ): EnhancedAgent[] => {
       return users.map((user) => ({
         name: user.name,
         twitterHandle: user.twitterHandle,
@@ -220,7 +222,7 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
         herdedVsHidden: user.userData.herdedVsHidden ?? 1,
         convictionVsHype: user.userData.convictionVsHype ?? 1,
         memeVsInstitutional: user.userData.memeVsInstitutional ?? 1,
-        subscribers: user.subscribers || [],
+        subscribers: user.subscribers.length || 0,
         signals: signalsTokensData[user.twitterHandle]?.signals || 0,
         tokens: signalsTokensData[user.twitterHandle]?.tokens || 0,
       }));
@@ -250,7 +252,7 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
       const cachedData: CachedData = JSON.parse(cachedDataString);
       const now = Date.now();
 
-      // Check if cache is expired (older than 3 days)
+      // Check if cache is expired
       if (now - cachedData.timestamp > CACHE_EXPIRATION) {
         localStorage.removeItem(CACHE_KEY);
         return null;
@@ -276,32 +278,40 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       }
 
+      console.time("fetchUserProfileData_total");
       setLoadingUmd(true);
       setError(null);
 
       try {
+        // Fetch the user profile data first
+        console.time("fetchUserProfileData_api");
         const response = await fetch("/api/get-user-profile-data");
         if (!response.ok) throw new Error("Failed to fetch user profile data");
-
-        const data: UserResponse[] = await response.json();
-        const signalsTokensData = await fetchSignalsAndTokensData(data);
-        const impactFactorData = await fetchImpactFactorData(
-          data.map((user) => user.twitterHandle)
-        );
-        const heartbeatData = await fetchHeartbeatData(
-          data.map((user) => user.twitterHandle)
-        );
+        const userData: UserResponse[] = await response.json();
+        console.timeEnd("fetchUserProfileData_api");
+        
+        // Extract handles for parallel API requests
+        const handles = userData.map(user => user.twitterHandle);
+        
+        // Fetch all additional data in parallel
+        console.time("fetchUserProfileData_parallel");
+        const [signalsTokensData, impactFactorData, heartbeatData] = await Promise.all([
+          fetchSignalsAndTokensData(handles),
+          fetchImpactFactorData(handles),
+          fetchHeartbeatData(handles)
+        ]);
+        console.timeEnd("fetchUserProfileData_parallel");
 
         // Get enhanced agents
-        const enhancedAgents = await mapToEnhancedAgents(
-          data,
+        const enhancedAgents = mapToEnhancedAgents(
+          userData,
           signalsTokensData,
           impactFactorData,
           heartbeatData
         );
 
         // Save to state
-        setRawData(data);
+        setRawData(userData);
         setAgents(enhancedAgents);
 
         // Save to localStorage cache
@@ -310,10 +320,11 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
         console.error("Failed to fetch user profile data:", err);
         setError(err);
       } finally {
+        console.timeEnd("fetchUserProfileData_total");
         setLoadingUmd(false);
       }
     },
-    [mapToEnhancedAgents, getValidCache, saveToCache]
+    [fetchSignalsAndTokensData, fetchImpactFactorData, fetchHeartbeatData, mapToEnhancedAgents, getValidCache, saveToCache]
   );
 
   // Function to refresh data (can be called from components)
@@ -326,16 +337,17 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
     fetchUserProfileData();
   }, [fetchUserProfileData]);
 
+  // Memoize the context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    agents,
+    rawData,
+    loadingUmd,
+    error,
+    refreshData,
+  }), [agents, rawData, loadingUmd, error, refreshData]);
+
   return (
-    <UserDataContext.Provider
-      value={{
-        agents,
-        rawData,
-        loadingUmd,
-        error,
-        refreshData,
-      }}
-    >
+    <UserDataContext.Provider value={contextValue}>
       {children}
     </UserDataContext.Provider>
   );

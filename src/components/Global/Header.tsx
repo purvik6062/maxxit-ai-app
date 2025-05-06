@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { ToastContainer, toast } from "react-toastify";
 import { OctagonAlert } from "lucide-react";
 import { IoShieldCheckmark } from "react-icons/io5";
@@ -16,7 +15,6 @@ import {
   Menu,
   CheckCircle2,
 } from "lucide-react";
-import "@rainbow-me/rainbowkit/styles.css";
 // import "../../app/css/input.css";
 import Link from "next/link";
 import { useCredits } from "@/context/CreditsContext";

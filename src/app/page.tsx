@@ -9,6 +9,7 @@ import { IoPersonAdd } from "react-icons/io5";
 import { LuWandSparkles } from "react-icons/lu";
 import { Car, Heart, Sparkles } from "lucide-react";
 import { Header, Footer, TopInfluencersGraph } from "../components/index";
+import SocialGraph from "@/components/Body/SocialGraph";
 import AnalystLeaderboard from "@/components/Body/AnalystLeaderboard";
 import TabNavigation from "@/components/Body/TabNavigation";
 import AddInfluencerModal from "../components/Body/AddInfluencerModal";
@@ -209,7 +210,7 @@ const HomePage: React.FC = () => {
                 Analyst Rankings
               </span>
             </h2>
-            <p className="text-gray-400 max-w-2xl mx-auto text-sm">
+            <p className="text-white/60 text-base md:text-lg max-w-2xl mx-auto">
               Discover and follow top crypto analysts based on their impact and
               market sentiment
             </p>
@@ -252,6 +253,10 @@ const HomePage: React.FC = () => {
             </div>
           </div>
         </main>
+
+        {/* <div className="py-8">
+          <SocialGraph />
+        </div> */}
 
         {/* Subscription Confirmation Modal */}
         {showSubscribeModal && currentAgent && (

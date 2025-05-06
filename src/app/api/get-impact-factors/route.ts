@@ -17,10 +17,21 @@ export async function POST(request: Request) {
       );
     }
 
+    // Fetch all impact factors in a single query
+    const impactFactorsData = await collection.find({ 
+      account: { $in: handles } 
+    }).toArray();
+    
+    // Create a lookup map for faster access
+    const impactFactorMap = impactFactorsData.reduce((acc, data) => {
+      acc[data.account] = Math.round(data.impactFactor * 10) / 10;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    // Generate the result object, defaulting to 0 for handles without data
     const result: Record<string, number> = {};
     for (const handle of handles) {
-      const impactData = await collection.findOne({ account: handle });
-      result[handle] = impactData ? Math.round(impactData.impactFactor * 10) / 10 : 0;
+      result[handle] = impactFactorMap[handle] || 0;
     }
 
     return NextResponse.json(result, { status: 200 });
