@@ -431,13 +431,13 @@ const CosmicWebInfluencerGraph: React.FC = () => {
   // Render loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center font-sans relative overflow-hidden">
+      <div className="min-h-screen text-white flex flex-col items-center justify-center font-sans relative overflow-hidden">
         <canvas ref={canvasRef} className="canvas-background" />
         <div className="starfield relative">
           <div className="overlay" />
         </div>
         <motion.div
-          className="z-20 bg-gray-900/50 backdrop-blur-md rounded-xl border border-cyan-500/30 shadow-lg"
+          className="z-20 backdrop-blur-md rounded-xl border border-cyan-500/30 shadow-lg"
           animate={{
             scale: [1, 1.05, 1],
             boxShadow: [
@@ -465,15 +465,15 @@ const CosmicWebInfluencerGraph: React.FC = () => {
   // Render error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center font-sans relative overflow-hidden">
+      <div className="min-h-screen text-white flex flex-col items-center justify-center font-sans relative overflow-hidden">
         <canvas ref={canvasRef} className="canvas-background" />
         <div className="starfield relative">
           <div className="overlay" />
         </div>
-        <div className="bg-gray-900/70 backdrop-blur-md p-4 sm:p-6 rounded-xl border border-red-500/50 shadow-lg z-20">
+        <div className="backdrop-blur-md p-4 sm:p-6 rounded-xl border border-red-500/50 shadow-lg z-20">
           <p className="text-red-400 text-base sm:text-lg">{error}</p>
           <button
-            className="mt-4 px-4 sm:px-6 py-2 bg-gray-800 text-cyan-300 rounded-lg border border-cyan-500/30 hover:bg-gray-700 text-sm sm:text-base"
+            className="mt-4 px-4 sm:px-6 py-2 text-cyan-300 rounded-lg border border-cyan-500/30 hover:bg-gray-700 text-sm sm:text-base"
             onClick={() => window.location.reload()}
           >
             Retry
@@ -484,13 +484,13 @@ const CosmicWebInfluencerGraph: React.FC = () => {
   }
 
   return (
-    <div className="font-leagueSpartan min-h-screen bg-gray-900 text-white flex flex-col items-center justify-start sm:justify-center relative overflow-hidden">
+    <div className="font-leagueSpartan min-h-screen text-white flex flex-col items-center justify-start sm:justify-center relative overflow-hidden">
       <canvas ref={canvasRef} className="canvas-background" />
       <div className="starfield relative">
         <div className="overlay" />
       </div>
 
-      <h1 className="font-leagueSpartan text-2xl sm:text-4xl font-bold mb-2 mt-10 sm:mt-16 text-cyan-400 z-20">
+      <h1 className="font-leagueSpartan text-center text-2xl sm:text-4xl font-bold mb-2 mt-10 sm:mt-16 text-cyan-400 z-20">
         Crypto Influencer Constellation
       </h1>
       <p className="text-gray-300 mb-4 sm:mb-8 text-center max-w-xl sm:max-w-2xl text-sm sm:text-lg z-20 px-4">
@@ -498,19 +498,63 @@ const CosmicWebInfluencerGraph: React.FC = () => {
         insights.
       </p>
 
-      <div className="bg-gray-900/80 backdrop-blur-lg text-cyan-300 text-xs sm:text-base font-semibold py-2 px-4 sm:px-6 rounded-full shadow-[0_0_15px_rgba(0,255,255,0.5)] z-30 border border-cyan-500/50">
+      <div className="backdrop-blur-lg text-cyan-300 text-xs sm:text-base font-semibold py-2 px-4 sm:px-6 rounded-full shadow-[0_0_15px_rgba(0,255,255,0.5)] z-30 border border-cyan-500/50">
         {getCurrentWeekOfMonthLabel(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))}
       </div>
 
       {isMobile ? (
         // Mobile view
         <>
-          <MobileInfluencerCarousel influencers={influencers} onSlideChange={(influencer) => setFrontInfluencer(influencer)} />
+          <MobileInfluencerCarousel influencers={influencers} />
+
+
+          <div className="my-2">
+            <motion.div
+              className="flex items-center gap-2 text-cyan-300 text-sm sm:text-base font-leagueSpartan font-semibold text-center py-2 px-4 rounded-full backdrop-blur-sm]"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{
+                opacity: [0.6, 1, 0.6],
+                x: 0,
+                // boxShadow: [
+                //   "0 0 10px rgba(0, 255, 255, 0.3)",
+                //   "0 0 20px rgba(0, 255, 255, 0.5)",
+                //   "0 0 10px rgba(0, 255, 255, 0.3)",
+                // ],
+              }}
+              transition={{
+                opacity: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+                x: { duration: 0.5, ease: "easeOut" },
+                boxShadow: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+              }}
+            >
+              Swipe to View
+              <motion.svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                animate={{
+                  x: [0, 5, 0],
+                  opacity: [0.6, 1, 0.6],
+                }}
+                transition={{
+                  x: { duration: 1, repeat: Infinity, ease: "easeInOut" },
+                  opacity: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+                }}
+              >
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </motion.svg>
+            </motion.div>
+          </div>
 
           {/* Net ROI button below the carousel */}
-          <div className="mt-14 mb-8 z-30">
+          <div className="mt-10 mb-8 z-30">
             <motion.div
-              className="text-white text-xl font-bold px-4 py-2 rounded-lg bg-gray-900/50 backdrop-blur-sm"
+              className="text-white text-xl font-bold px-4 py-2 rounded-lg  backdrop-blur-sm"
               style={{ boxShadow: "0 0 20px rgba(0, 255, 255, 0.5)" }}
               animate={{
                 scale: [1, 1.05, 1],
@@ -525,6 +569,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
               Net ROI: {totalProfit.toFixed(2).toLocaleString()}%
             </motion.div>
           </div>
+
         </>
       ) : (
         // Desktop 3D carousel
@@ -566,7 +611,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
                       aria-label={`Profile image of ${influencer.name}`}
                     />
                     <motion.div
-                      className="absolute w-full bg-gray-900/80 text-cyan-300 text-xs font-semibold py-1.5 px-3 rounded-full border border-cyan-500/50 shadow-[0_0_10px_rgba(0,255,255,0.4)]"
+                      className="absolute w-full text-cyan-300 text-xs font-semibold py-1.5 px-3 rounded-full border border-cyan-500/50 shadow-[0_0_10px_rgba(0,255,255,0.4)]"
                       style={{
                         top: `${height + 5}px`,
                         transform: "translateZ(0px)",
@@ -585,7 +630,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
           </div>
           <div className="absolute top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-30">
             <motion.div
-              className="text-white text-xl md:text-3xl font-bold px-4 sm:px-6 py-2 sm:py-3 rounded-lg bg-gray-900/50 backdrop-blur-sm"
+              className="text-white text-xl md:text-3xl font-bold px-4 sm:px-6 py-2 sm:py-3 rounded-lg backdrop-blur-sm"
               style={{ boxShadow: "0 0 20px rgba(0, 255, 255, 0.5)" }}
               animate={{
                 scale: [1, 1.05, 1],

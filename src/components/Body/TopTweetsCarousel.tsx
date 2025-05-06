@@ -126,7 +126,7 @@ export default function CarouselHorizontal() {
 
   if (tweets.length === 0) {
     return (
-      <div className="w-full overflow-hidden bg-[#020617] py-8">
+      <div className="w-full overflow-hidden py-8">
         <div className="container mx-auto px-4 mb-6 flex justify-center">
           <div className="text-white/60 text-lg">No tweets available</div>
         </div>
@@ -135,7 +135,7 @@ export default function CarouselHorizontal() {
   }
 
   return (
-    <div className="w-full overflow-hidden bg-[#020617] py-8 mt-[3rem]">
+    <div className="w-full overflow-hidden py-8 mt-[3rem]">
       <div className="container mx-auto px-4 mb-6 flex flex-col gap-[0.5rem] items-center justify-center">
         <h2 className="text-3xl font-bold text-white/90">Top Weekly Signal Providers</h2>
         <p className="text-white/60 text-lg mt-[4px]">Latest insights from leading crypto influencers</p>
