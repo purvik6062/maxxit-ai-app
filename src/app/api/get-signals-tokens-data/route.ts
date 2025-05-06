@@ -15,18 +15,36 @@ export async function POST(request: Request) {
       );
     }
 
+    // Use a more efficient bulk query approach
+    const query = { twitterHandle: { $in: handles } };
+    const allSignals = await collection.find(query).toArray();
+    
+    // Process all signals at once
     const result: Record<string, { signals: number, tokens: number }> = {};
-    for (const handle of handles) {
-      const signalsData = await collection.find({ twitterHandle: handle }).toArray();
-      const uniqueTokens = new Set(signalsData.map(signal => signal.coin));
+    
+    // Initialize result with default values for all handles
+    handles.forEach(handle => {
+      result[handle] = { signals: 0, tokens: 0 };
+    });
+    
+    // Group signals by twitterHandle
+    const signalsByHandle: Record<string, any[]> = {};
+    allSignals.forEach(signal => {
+      if (!signalsByHandle[signal.twitterHandle]) {
+        signalsByHandle[signal.twitterHandle] = [];
+      }
+      signalsByHandle[signal.twitterHandle].push(signal);
+    });
+    
+    // Calculate signals and tokens for each handle
+    Object.keys(signalsByHandle).forEach(handle => {
+      const handleSignals = signalsByHandle[handle];
+      const uniqueTokens = new Set(handleSignals.map(signal => signal.coin));
       result[handle] = {
-        signals: signalsData.length,
+        signals: handleSignals.length,
         tokens: uniqueTokens.size
       };
-    }
-
-
-    // client.close();
+    });
 
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
