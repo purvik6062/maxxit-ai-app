@@ -208,7 +208,7 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
           )}
           <div className="flex-grow overflow-hidden">
             <h4
-              className={`text-[13px] sm:text-sm font-semibold text-white truncate ${isCurrentUser ? "text-blue-300" : ""
+              className={`text-[12px] max-w-16 xs:max-w-44 sm:max-w-52 md:max-w-full sm:text-sm font-semibold text-white truncate ${isCurrentUser ? "text-blue-300" : ""
                 }`}
             >
               {agent.name}
@@ -217,7 +217,7 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
               )}
             </h4>
             <p
-              className={`text-xs text-gray-400 truncate ${isCurrentUser ? "" : ""
+              className={`text-[11px] text-gray-400 truncate ${isCurrentUser ? "" : ""
                 }`}
             >
               {agent.twitterHandle}

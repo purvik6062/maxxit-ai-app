@@ -68,7 +68,7 @@ function InfluencerProfileHeader({
 
   return (
     <div
-      className="font-leagueSpartan flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 sm:mb-8 bg-profile-header rounded-xl py-4 sm:py-6 px-6 sm:px-10"
+      className="font-leagueSpartan flex flex-col md:flex-row justify-between items-center gap-4 mb-6 sm:mb-8 bg-profile-header rounded-xl py-4 sm:py-6 px-6 sm:px-10"
       style={{ border: "1px solid #6C7077" }}
     >
       <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">

@@ -70,7 +70,7 @@ interface MobileInfluencerCarouselProps {
 const MobileInfluencerCarousel: React.FC<MobileInfluencerCarouselProps> = ({
   influencers,
 }) => {
-  console.log("Influencers:", influencers);
+  // console.log("Influencers:", influencers);
 
   return (
     <>
