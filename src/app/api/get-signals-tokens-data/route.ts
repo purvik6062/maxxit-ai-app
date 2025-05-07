@@ -15,15 +15,19 @@ export async function POST(request: Request) {
       );
     }
 
-    // Fetch all signals for all handles in a single query
+    // Fetch all signals for all handles in a single query with projection
     const allSignals = await collection.find({ 
       twitterHandle: { $in: handles } 
+    }, {
+      projection: {
+        twitterHandle: 1,
+        coin: 1,
+        _id: 0 // Exclude _id to reduce payload size
+      }
     }).toArray();
     
-    // Group signals by handle
-    const result: Record<string, { signals: number, tokens: number }> = {};
-    
     // Create result structure with default values
+    const result: Record<string, { signals: number, tokens: number }> = {};
     handles.forEach(handle => {
       result[handle] = { signals: 0, tokens: 0 };
     });

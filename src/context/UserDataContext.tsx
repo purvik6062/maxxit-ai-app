@@ -30,6 +30,8 @@ interface UserResponse {
   subscribers: number; // Now a number instead of array
   userData: UserData;
   subscriptionPrice?: number;
+  impactFactor?: number; // Added from impact_factors collection
+  heartbeatScore?: number; // Added from heartbeat collection
 }
 
 export interface EnhancedAgent {
@@ -113,78 +115,17 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
     []
   );
 
-  // Function to fetch Impact Factor data from impact_factors collection
-  const fetchImpactFactorData = useCallback(
-    async (handles: string[]): Promise<Record<string, number>> => {
-      console.time("fetchImpactFactorData");
-      try {
-        const response = await fetch("/api/get-impact-factors", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ handles }),
-        });
-        if (!response.ok) throw new Error("Failed to fetch impact factor data");
-        const data = await response.json();
-        console.timeEnd("fetchImpactFactorData");
-        return data;
-      } catch (err) {
-        console.error("Error fetching impact factor data:", err);
-        console.timeEnd("fetchImpactFactorData");
-        return handles.reduce((acc, handle) => {
-          acc[handle] = 0;
-          return acc;
-        }, {} as Record<string, number>);
-      }
-    },
-    []
-  );
-
-  const fetchHeartbeatData = useCallback(
-    async (handles: string[]): Promise<Record<string, number>> => {
-      console.time("fetchHeartbeatData");
-      try {
-        const response = await fetch("/api/get-heartbeat-data", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ handles }),
-        });
-
-        const data = await response.json();
-        console.timeEnd("fetchHeartbeatData");
-
-        if (!response.ok || !data.success) {
-          throw new Error(
-            data.error?.message || "Failed to fetch heartbeat data"
-          );
-        }
-
-        return data.data;
-      } catch (err) {
-        console.error("Error fetching heartbeat data:", err);
-        console.timeEnd("fetchHeartbeatData");
-        return {};
-      }
-    },
-    []
-  );
-
   // Function to map raw API data to EnhancedAgent format
   const mapToEnhancedAgents = useCallback(
     (
       users: UserResponse[],
       signalsTokensData: Record<string, { signals: number; tokens: number }>,
-      impactFactorData: Record<string, number>,
-      heartbeatData: Record<string, number>
     ): EnhancedAgent[] => {
       return users.map((user) => ({
         name: user.name,
         twitterHandle: user.twitterHandle,
-        impactFactor: impactFactorData[user.twitterHandle] ?? 0,
-        heartbeat: heartbeatData[user.twitterHandle] ?? 0,
+        impactFactor: user.impactFactor ?? 0,
+        heartbeat: user.heartbeatScore ?? 0,
         mindshare: user.userData?.mindshare ?? 0,
         followers: user.userData?.publicMetrics?.followers_count ?? 0,
         subscriptionPrice: user.subscriptionPrice ?? 0,
@@ -264,21 +205,15 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
         // Extract handles for parallel API requests
         const handles = userData.map(user => user.twitterHandle);
         
-        // Fetch all additional data in parallel
+        // Fetch signals and tokens data
         console.time("fetchUserProfileData_parallel");
-        const [signalsTokensData, impactFactorData, heartbeatData] = await Promise.all([
-          fetchSignalsAndTokensData(handles),
-          fetchImpactFactorData(handles),
-          fetchHeartbeatData(handles)
-        ]);
+        const signalsTokensData = await fetchSignalsAndTokensData(handles);
         console.timeEnd("fetchUserProfileData_parallel");
 
         // Get enhanced agents
         const enhancedAgents = mapToEnhancedAgents(
           userData,
           signalsTokensData,
-          impactFactorData,
-          heartbeatData
         );
 
         // Save to state
@@ -295,7 +230,7 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
         setLoadingUmd(false);
       }
     },
-    [fetchSignalsAndTokensData, fetchImpactFactorData, fetchHeartbeatData, mapToEnhancedAgents, getValidCache, saveToCache]
+    [fetchSignalsAndTokensData, mapToEnhancedAgents, getValidCache, saveToCache]
   );
 
   // Function to refresh data (can be called from components)

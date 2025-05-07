@@ -51,7 +51,7 @@ export default function CarouselHorizontal() {
           }
         }
 
-        const response = await fetch('/api/top-crypto-tweets')
+        const response = await fetch('/api/top-crypto-tweets-data')
         if (!response.ok) {
           throw new Error('Failed to fetch tweets')
         }

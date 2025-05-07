@@ -72,7 +72,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
         }
 
         // If no valid cache or not in browser, fetch from API
-        const response = await fetch("/api/top-weekly-influencers");
+        const response = await fetch("/api/top-weekly-influencers-data");
         if (!response.ok) {
           throw new Error("Failed to fetch influencers");
         }
@@ -414,18 +414,8 @@ const CosmicWebInfluencerGraph: React.FC = () => {
 
   function getCurrentWeekOfMonthLabel(date = new Date()): string {
     const options: Intl.DateTimeFormatOptions = { month: 'long', year: 'numeric' };
-    const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-    const dayOfMonth = date.getDate();
-    const dayOfWeek = startOfMonth.getDay(); // 0 (Sun) - 6 (Sat)
-
-    const adjustedDate = dayOfMonth + dayOfWeek;
-    const weekNumber = Math.ceil(adjustedDate / 7);
-
-    const ordinal = (n: number) =>
-      n + (["th", "st", "nd", "rd"][(n % 10 > 3 || Math.floor(n % 100 / 10) === 1) ? 0 : n % 10]);
-
-    const monthYear = date.toLocaleDateString('en-US', options); // ✅ fixed
-    return `Top Performing Cluster: ${ordinal(weekNumber)} Week of ${monthYear}`;
+    const monthYear = date.toLocaleDateString('en-US', options);
+    return `Top Performing Cluster: ${monthYear}`;
   }
 
   // Render loading state
@@ -490,16 +480,16 @@ const CosmicWebInfluencerGraph: React.FC = () => {
         <div className="overlay" />
       </div>
 
-      <h1 className="font-leagueSpartan text-center text-2xl sm:text-4xl font-bold mb-2 mt-10 sm:mt-16 text-cyan-400 z-20">
+      <h1 className="font-leagueSpartan text-center sm:text-4xl mb-2 mt-10 sm:mt-16 text-cyan-400 z-20 text-2xl md:text-4xl font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
         Crypto Influencer Constellation
       </h1>
-      <p className="text-gray-300 mb-4 sm:mb-8 text-center max-w-xl sm:max-w-2xl text-sm sm:text-lg z-20 px-4">
+      <p className="text-gray-300 mb-4 sm:mb-8 text-center max-w-xl sm:max-w-3xl text-sm sm:text-lg z-20 px-4">
         Discover our top influencers shaping the crypto universe with their
-        insights.
+        insights, <span className="font-bold italic text-cyan-500">Updated weekly</span>
       </p>
 
-      <div className="backdrop-blur-lg text-cyan-300 text-xs sm:text-base font-semibold py-2 px-4 sm:px-6 rounded-full shadow-[0_0_15px_rgba(0,255,255,0.5)] z-30 border border-cyan-500/50">
-        {getCurrentWeekOfMonthLabel(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))}
+      <div className="backdrop-blur-lg text-xs sm:text-base font-semibold py-2 px-4 sm:px-6 rounded-full shadow-[0_0_15px_rgba(0,255,255,0.5)] z-30 border border-cyan-500/50 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
+        {getCurrentWeekOfMonthLabel()}
       </div>
 
       {isMobile ? (

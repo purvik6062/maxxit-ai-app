@@ -16,6 +16,8 @@ export async function GET(request: Request) {
         twitterHandle: 1,
         subscriptionPrice: 1,
         subscribers: 1, // We'll use this for counting later
+        impactFactor: 1, // Include impact factor field
+        heartbeatScore: 1, // Include heartbeat score field
         // Include only the necessary userData fields
         "userData.mindshare": 1,
         "userData.publicMetrics.followers_count": 1,
