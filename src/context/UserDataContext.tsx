@@ -47,9 +47,7 @@ export interface EnhancedAgent {
   convictionVsHype: number;
   memeVsInstitutional: number;
   subscribers: number;
-  signals: number;
-  tokens: number;
-  subscriptionPrice?: number;
+  subscriptionPrice: number;
 }
 
 interface UserDataContextType {
@@ -86,41 +84,9 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loadingUmd, setLoadingUmd] = useState<boolean>(false);
   const [error, setError] = useState<any>(null);
 
-  // Function to fetch Signals and Tokens data from trading-signals collection
-  const fetchSignalsAndTokensData = useCallback(
-    async (handles: string[]): Promise<Record<string, { signals: number; tokens: number }>> => {
-      console.time("fetchSignalsAndTokensData");
-      try {
-        const response = await fetch("/api/get-signals-tokens-data", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ handles }),
-        });
-        if (!response.ok)
-          throw new Error("Failed to fetch signals and tokens data");
-        const data = await response.json();
-        console.timeEnd("fetchSignalsAndTokensData");
-        return data;
-      } catch (err) {
-        console.error("Error fetching signals and tokens data:", err);
-        console.timeEnd("fetchSignalsAndTokensData");
-        return handles.reduce((acc, handle) => {
-          acc[handle] = { signals: 0, tokens: 0 };
-          return acc;
-        }, {} as Record<string, { signals: number; tokens: number }>);
-      }
-    },
-    []
-  );
-
   // Function to map raw API data to EnhancedAgent format
   const mapToEnhancedAgents = useCallback(
-    (
-      users: UserResponse[],
-      signalsTokensData: Record<string, { signals: number; tokens: number }>,
-    ): EnhancedAgent[] => {
+    (users: UserResponse[]): EnhancedAgent[] => {
       return users.map((user) => ({
         name: user.name,
         twitterHandle: user.twitterHandle,
@@ -135,8 +101,6 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
         convictionVsHype: user.userData?.convictionVsHype ?? 1,
         memeVsInstitutional: user.userData?.memeVsInstitutional ?? 1,
         subscribers: user.subscribers ?? 0,
-        signals: signalsTokensData[user.twitterHandle]?.signals || 0,
-        tokens: signalsTokensData[user.twitterHandle]?.tokens || 0,
       }));
     },
     []
@@ -195,26 +159,15 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
       setError(null);
 
       try {
-        // Fetch the user profile data first
+        // Fetch the user profile data
         console.time("fetchUserProfileData_api");
         const response = await fetch("/api/get-user-profile-data");
         if (!response.ok) throw new Error("Failed to fetch user profile data");
         const userData: UserResponse[] = await response.json();
         console.timeEnd("fetchUserProfileData_api");
         
-        // Extract handles for parallel API requests
-        const handles = userData.map(user => user.twitterHandle);
-        
-        // Fetch signals and tokens data
-        console.time("fetchUserProfileData_parallel");
-        const signalsTokensData = await fetchSignalsAndTokensData(handles);
-        console.timeEnd("fetchUserProfileData_parallel");
-
         // Get enhanced agents
-        const enhancedAgents = mapToEnhancedAgents(
-          userData,
-          signalsTokensData,
-        );
+        const enhancedAgents = mapToEnhancedAgents(userData);
 
         // Save to state
         setRawData(userData);
@@ -230,7 +183,7 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({
         setLoadingUmd(false);
       }
     },
-    [fetchSignalsAndTokensData, mapToEnhancedAgents, getValidCache, saveToCache]
+    [mapToEnhancedAgents, getValidCache, saveToCache]
   );
 
   // Function to refresh data (can be called from components)

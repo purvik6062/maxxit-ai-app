@@ -2,114 +2,127 @@ import { NextResponse } from "next/server";
 import dbConnect from "src/utils/dbConnect";
 
 export async function GET() {
-  console.time('top-crypto-tweets-data');
-  const client = await dbConnect();
+  console.time('top-crypto-tweets-api');
+  
   try {
-    // Get top 6 weekly influencers first
+    // Fetch top influencers via API call
     console.time('fetch-top-influencers');
-    const response = await fetch(`${process.env.NEXTAUTH_URL || ""}/api/top-weekly-influencers-data`);
-
+    const response = await fetch(
+      `${process.env.NEXTAUTH_URL || ""}/api/top-weekly-influencers-data`
+    );
+    
     if (!response.ok) {
       throw new Error(`Failed to fetch top weekly influencers: ${response.statusText}`);
     }
-
+    
     const { influencers } = await response.json();
     console.timeEnd('fetch-top-influencers');
+    
+    if (!influencers?.length) {
+      return NextResponse.json({ tweets: [] }, { status: 200 });
+    }
 
-    // Connect to databases
-    const backtestingDb = client.db("backtesting_db");
-    const backtestingCollection = backtestingDb.collection("backtesting_results_with_reasoning");
+    // Extract Twitter handles and create map in one pass
+    const twitterHandles = [];
+    const influencerMap = new Map();
+    
+    for (const influencer of influencers) {
+      if (influencer.name) {
+        twitterHandles.push(influencer.name);
+        influencerMap.set(influencer.name, influencer);
+      }
+    }
+    
+    if (twitterHandles.length === 0) {
+      return NextResponse.json({ tweets: [] }, { status: 200 });
+    }
 
-    // Get all influencer Twitter handles
-    const twitterHandles = influencers.map(influencer => influencer.name);
+    // Connect to database - only do this after confirming we have data to query
+    const client = await dbConnect();
+    const backtestingCollection = client
+      .db("backtesting_db")
+      .collection("backtesting_results_with_reasoning");
 
-    // Create a map for influencer data for quick access
-    const influencerMap = influencers.reduce((acc, influencer) => {
-      acc[influencer.name] = influencer;
-      return acc;
-    }, {});
-
-    // Fetch all backtesting results for these influencers in a single query with projection
+    // Fetch all backtesting results in a single query with minimal projection
     console.time('fetch-backtesting-results');
     const allResults = await backtestingCollection.find(
       { "Twitter Account": { $in: twitterHandles } },
       { 
-        projection: { 
-          "Twitter Account": 1, 
-          "Final P&L": 1, 
-          "Token Mentioned": 1, 
+        projection: {
+          "Twitter Account": 1,
+          "Final P&L": 1,
+          "Token Mentioned": 1,
           "Token ID": 1,
-          "Tweet Date": 1 
+          "Tweet Date": 1,
+          _id: 1
         } 
       }
     ).toArray();
     console.timeEnd('fetch-backtesting-results');
 
-    // Group results by Twitter Account
-    const resultsByInfluencer = {};
-    allResults.forEach(result => {
+    // Process results more efficiently using Map
+    const resultsByInfluencer = new Map();
+    
+    for (const result of allResults) {
       const account = result["Twitter Account"];
-      if (!resultsByInfluencer[account]) {
-        resultsByInfluencer[account] = [];
+      if (!resultsByInfluencer.has(account)) {
+        resultsByInfluencer.set(account, []);
       }
-      resultsByInfluencer[account].push(result);
-    });
-
-    // Process results for each influencer
-    const tweets = twitterHandles.map(handle => {
-      const influencer = influencerMap[handle];
-      const results = resultsByInfluencer[handle] || [];
       
-      if (!results.length) return null;
+      // Parse PnL value once during initial processing
+      let pnlValue;
+      try {
+        const pnlString = String(result["Final P&L"] || "0").replace('%', '');
+        pnlValue = parseFloat(pnlString);
+        if (isNaN(pnlValue)) pnlValue = 0;
+      } catch (e) {
+        pnlValue = 0;
+      }
+      
+      // Store pre-processed result with parsed PnL
+      resultsByInfluencer.get(account).push({
+        ...result,
+        parsedPnl: pnlValue
+      });
+    }
 
-      // Parse and sort results by PnL
-      const sortedResults = results
-        .map(result => {
-          let pnlValue;
-          try {
-            const pnlString = String(result["Final P&L"] || "0").replace('%', '');
-            pnlValue = parseFloat(pnlString);
-          } catch (e) {
-            pnlValue = 0;
-          }
-
-          return {
-            ...result,
-            parsedPnl: isNaN(pnlValue) ? 0 : pnlValue
-          };
-        })
-        .sort((a, b) => b.parsedPnl - a.parsedPnl);
-
-      if (!sortedResults.length) return null;
-
-      const result = sortedResults[0];
-
-      return {
-        id: result._id.toString(),
+    // Find the top result for each influencer
+    const tweets = [];
+    
+    for (const handle of twitterHandles) {
+      const results = resultsByInfluencer.get(handle);
+      if (!results || results.length === 0) continue;
+      
+      // Sort only the results for this influencer
+      results.sort((a, b) => b.parsedPnl - a.parsedPnl);
+      const topResult = results[0];
+      
+      tweets.push({
+        id: topResult._id.toString(),
         influencer: {
           name: handle,
           handle: handle,
-          avatar: influencer.avatar,
+          avatar: influencerMap.get(handle)?.avatar || "",
         },
-        coin: result["Token Mentioned"] || "",
-        tokenId: result["Token ID"] || "",
-        positive: result.parsedPnl > 0,
-        pnl: result.parsedPnl,
-        timestamp: result["Tweet Date"] || new Date().toISOString(),
-      };
-    }).filter(Boolean);
+        coin: topResult["Token Mentioned"] || "",
+        tokenId: topResult["Token ID"] || "",
+        positive: topResult.parsedPnl > 0,
+        pnl: topResult.parsedPnl,
+        timestamp: topResult["Tweet Date"] || new Date().toISOString(),
+      });
+    }
 
-    console.timeEnd('top-crypto-tweets-data');
+    console.timeEnd('top-crypto-tweets-api');
     return NextResponse.json(
       { tweets },
       { status: 200 }
     );
   } catch (error) {
     console.error("Error fetching crypto tweets:", error);
-    console.timeEnd('top-crypto-tweets-data');
+    console.timeEnd('top-crypto-tweets-api');
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Internal server error", message: error.message },
       { status: 500 }
     );
   }
-} 
+}
