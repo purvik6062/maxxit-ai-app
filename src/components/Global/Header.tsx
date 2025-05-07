@@ -520,15 +520,15 @@ const Header: React.FC<HeaderProps> = () => {
 
           {/* Center section - Desktop Navigation */}
           <div>
-          <nav className="font-leagueSpartan hidden lg:flex  bg-[#101322B3] rounded-full items-center border border-gray-700 overflow-hidden flex-1 justify-center">
-            {NAVIGATION_ITEMS.map((item) => (
-              <NavItem
-                key={item.id}
-                item={item}
-                isActive={activeLink === item.id}
-              />
-            ))}
-          </nav>
+            <nav className="font-leagueSpartan hidden lg:flex  bg-[#101322B3] rounded-full items-center border border-gray-700 overflow-hidden flex-1 justify-center">
+              {NAVIGATION_ITEMS.map((item) => (
+                <NavItem
+                  key={item.id}
+                  item={item}
+                  isActive={activeLink === item.id}
+                />
+              ))}
+            </nav>
           </div>
 
           {/* Right section - Credits and Login */}
@@ -597,7 +597,7 @@ const Header: React.FC<HeaderProps> = () => {
                     alt="Profile"
                     className="w-6 h-6 sm:w-7 sm:h-7 rounded-full mr-1 sm:mr-2 border border-blue-400"
                   />
-                  <span className="text-gray-200 text-xs sm:text-sm font-medium hidden sm:inline">
+                  <span className="text-gray-200 text-xs sm:text-sm font-medium hidden sm:inline truncate">
                     @{session.user?.username || session.user?.name}
                   </span>
                   <button
@@ -682,7 +682,7 @@ const Header: React.FC<HeaderProps> = () => {
         )}
 
         {/* Registration banner for unregistered users - only show when we're sure they're not registered */}
-        {session && credits === null && !isLoadingCredits && (
+        {/* {session && credits === null && !isLoadingCredits && (
           <div className="m-4 p-4 bg-blue-900/30 border border-blue-500/30 rounded-lg">
             <div className="flex items-start">
               <div className="shrink-0 bg-blue-500/20 p-2 rounded-full mr-3">
@@ -737,6 +737,36 @@ const Header: React.FC<HeaderProps> = () => {
               </div>
             </div>
           </div>
+        )} */}
+
+        {session && credits === null && !isLoadingCredits && (
+          <div className="px-4 py-3 mt-auto border-t border-gray-700 md:hidden font-leagueSpartan">
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setShowOnboardingModal(true);
+              }}
+              className="w-full px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-700 text-white text-sm rounded-lg hover:bg-blue-600 transition flex items-center justify-center gap-2"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-yellow-300"
+              >
+                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+                <path d="M12 17v-6" />
+                <path d="M9 14h6" />
+              </svg>
+              Complete Setup
+            </button>
+          </div>
         )}
 
         {/* Loading indicator for registration status */}
@@ -790,37 +820,6 @@ const Header: React.FC<HeaderProps> = () => {
               <div className="h-4 w-24 bg-gray-700/80 rounded"></div>
               <div className="h-5 w-10 bg-gray-700/80 rounded"></div>
             </div>
-          </div>
-        )}
-
-        {/* Get Credits button in mobile if logged in but not registered */}
-        {session && credits === null && !isLoadingCredits && (
-          <div className="px-4 py-3 mt-auto border-t border-gray-700 md:hidden font-leagueSpartan">
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                setShowOnboardingModal(true);
-              }}
-              className="w-full px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-700 text-white text-sm rounded-lg hover:bg-blue-600 transition flex items-center justify-center gap-2"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-yellow-300"
-              >
-                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
-                <path d="M12 17v-6" />
-                <path d="M9 14h6" />
-              </svg>
-              Complete Setup
-            </button>
           </div>
         )}
 
