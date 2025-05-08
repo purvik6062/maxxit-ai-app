@@ -4,6 +4,9 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import MobileInfluencerCarousel, { Influencer } from "./MobileInfluencerCarousel";
 import InfluencerDetails from "./InfluencerDetails";
+import { useSession } from "next-auth/react";
+import { toast } from "react-toastify";
+import { FaCheck } from "react-icons/fa";
 
 type ApiResponse = {
   influencers: Influencer[];
@@ -26,6 +29,16 @@ const CosmicWebInfluencerGraph: React.FC = () => {
   const [totalProfit, setTotalProfit] = useState<number>(0);
   const [isMobile, setIsMobile] = useState(false);
 
+  // Subscription states
+  const [subscribedHandles, setSubscribedHandles] = useState<string[]>([]);
+  const [subscribingHandle, setSubscribingHandle] = useState<string | null>(null);
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+  const [currentInfluencer, setCurrentInfluencer] = useState<Influencer | null>(null);
+  const { data: session } = useSession();
+
+  // Credits state (needed for subscription confirmation)
+  const [credits, setCredits] = useState<number | null>(null);
+
   // Check if device is mobile
   useEffect(() => {
     const checkIsMobile = () => {
@@ -37,6 +50,132 @@ const CosmicWebInfluencerGraph: React.FC = () => {
 
     return () => window.removeEventListener('resize', checkIsMobile);
   }, []);
+
+  // Fetch user credits
+  useEffect(() => {
+    const fetchUserCredits = async () => {
+      if (!session || !session.user?.id) return;
+
+      try {
+        const response = await fetch(
+          `/api/get-user?twitterId=${session.user.id}`
+        );
+        const data = await response.json();
+
+        if (data.success && data.data) {
+          setCredits(data.data.credits || 0);
+        }
+      } catch (error) {
+        console.error("Failed to fetch user credits:", error);
+      }
+    };
+
+    fetchUserCredits();
+  }, [session]);
+
+  // Fetch subscribed handles
+  useEffect(() => {
+    const fetchSubscribedHandles = async () => {
+      if (!session || !session.user?.id) return;
+
+      try {
+        const response = await fetch(
+          `/api/get-user?twitterId=${session.user.id}`
+        );
+        const data = await response.json();
+
+        if (data.success && data.data.subscribedAccounts) {
+          const handles = data.data.subscribedAccounts.map(
+            (account: { twitterHandle: string }) => account.twitterHandle
+          );
+          setSubscribedHandles(handles);
+        }
+      } catch (error) {
+        console.error("Failed to fetch subscribed handles:", error);
+      }
+    };
+
+    fetchSubscribedHandles();
+  }, [session]);
+
+  // Handle subscription initiation
+  const handleSubscribeInitiate = (influencer: Influencer) => {
+    if (!session || !session.user?.id) {
+      toast.error("Please login with Twitter/X first", {
+        position: "top-center",
+      });
+      return;
+    }
+
+    if (credits === null) {
+      toast.error("Please complete your registration first", {
+        position: "top-center",
+      });
+      return;
+    }
+
+    setCurrentInfluencer(influencer);
+    setShowSubscribeModal(true);
+  };
+
+  // Handle actual subscription
+  const handleSubscribe = async () => {
+    if (!session || !session.user?.id || !currentInfluencer) {
+      toast.error("Please login with Twitter/X first", {
+        position: "top-center",
+      });
+      return;
+    }
+
+    const cleanHandle = currentInfluencer.twitterHandle?.replace("@", "") || currentInfluencer.name;
+    setSubscribingHandle(cleanHandle);
+
+    const subscriptionFee = currentInfluencer.subscriptionPrice || 0;
+
+    try {
+      const response = await fetch("/api/subscribe-influencer", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          twitterId: session.user.id,
+          influencerHandle: cleanHandle,
+          subscriptionFee: subscriptionFee,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error?.message || "Failed to subscribe");
+      }
+
+      setSubscribedHandles((prev) => [...prev, cleanHandle]);
+
+      // Fetch updated credits
+      try {
+        const userResponse = await fetch(`/api/get-user?twitterId=${session.user.id}`);
+        const userData = await userResponse.json();
+        if (userData.success && userData.data) {
+          setCredits(userData.data.credits || 0);
+        }
+      } catch (error) {
+        console.error("Failed to fetch updated credits:", error);
+      }
+
+      setSubscribingHandle(null);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to subscribe",
+        {
+          position: "top-center",
+        }
+      );
+      setSubscribingHandle(null);
+      setShowSubscribeModal(false);
+    }
+  };
 
   // Fetch influencers from API
   useEffect(() => {
@@ -90,6 +229,8 @@ const CosmicWebInfluencerGraph: React.FC = () => {
             // Continue even if localStorage fails
           }
         }
+
+        console.log("influencer data: ", data.influencers);
 
         setInfluencers(data.influencers);
         setTotalProfit(data.totalProfit);
@@ -495,9 +636,12 @@ const CosmicWebInfluencerGraph: React.FC = () => {
       {isMobile ? (
         // Mobile view
         <>
-          <MobileInfluencerCarousel influencers={influencers} />
-
-
+          <MobileInfluencerCarousel
+            influencers={influencers}
+            subscribedHandles={subscribedHandles}
+            subscribingHandle={subscribingHandle}
+            onSubscribe={handleSubscribeInitiate}
+          />
           <div className="my-2">
             <motion.div
               className="flex items-center gap-2 text-cyan-300 text-sm sm:text-base font-leagueSpartan font-semibold text-center py-2 px-4 rounded-full backdrop-blur-sm]"
@@ -562,7 +706,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
 
         </>
       ) : (
-        // Desktop 3D carousel
+        // Desktop view with 3D visualization
         <div className="relative w-full max-w-7xl h-[500px] sm:h-[650px] text-center overflow-hidden z-20">
           <div className="absolute w-full h-full top-0 left-0 perspective-[800px] sm:perspective-[1200px] z-20">
             <div
@@ -638,6 +782,162 @@ const CosmicWebInfluencerGraph: React.FC = () => {
         </div>
       )}
       {!isMobile && <InfluencerDetails influencer={hoveredInfluencer || frontInfluencer} />}
+
+      {/* Subscription Confirmation Modal */}
+      {showSubscribeModal && currentInfluencer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 font-leagueSpartan">
+          <div
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => !subscribingHandle && setShowSubscribeModal(false)}
+          />
+          <div className="relative z-50 w-full max-w-md overflow-hidden rounded-xl bg-gradient-to-b from-gray-900 to-[#070915] p-6 shadow-2xl border border-blue-500/30">
+            {subscribingHandle ? (
+              // Subscribing state
+              <div className="text-center py-12">
+                <div className="inline-flex items-center justify-center mb-6">
+                  <svg
+                    className="animate-spin h-12 w-12 text-blue-500"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                </div>
+                <h2 className="text-xl font-bold text-white mb-2">
+                  Processing Subscription
+                </h2>
+                <p className="text-gray-400">
+                  Please wait while we process your subscription...
+                </p>
+              </div>
+            ) : subscribedHandles.includes(
+              currentInfluencer.twitterHandle?.replace("@", "") || currentInfluencer.name
+            ) ? (
+              // Success state
+              <div className="text-center py-6">
+                <div className="inline-flex items-center justify-center p-3 bg-green-500/15 rounded-full mb-4">
+                  <FaCheck className="w-10 h-10 text-green-500" />
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-2">
+                  Successfully Subscribed!
+                </h2>
+                <div className="h-1 w-24 bg-gradient-to-r from-green-500 to-green-700 mx-auto my-3 rounded-full"></div>
+                <p className="text-gray-300 mb-6 max-w-md mx-auto">
+                  You will now receive trading signals from{" "}
+                  <span className="font-semibold text-green-300">
+                    {currentInfluencer.name}
+                  </span>{" "}
+                  for one month.
+                </p>
+
+                <div className="bg-green-900/20 rounded-lg p-4 mb-6 border border-green-800/30">
+                  <p className="text-green-300 text-sm mb-3">
+                    We'll send you signals directly to your Telegram account.
+                    Make sure you have connected your Telegram account in your
+                    profile.
+                  </p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300">Credits Used:</span>
+                    <span className="text-lg font-medium text-yellow-400">
+                      {currentInfluencer.subscriptionPrice} Credits
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-gray-300">Remaining Balance:</span>
+                    <span className="text-lg font-medium text-blue-400">
+                      {credits} Credits
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowSubscribeModal(false)}
+                  className="w-full px-5 py-2.5 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg font-medium transition-all duration-200"
+                >
+                  Close
+                </button>
+              </div>
+            ) : (
+              // Initial state - confirmation
+              <>
+                <div className="text-center py-4">
+                  <div className="inline-flex items-center justify-center p-3 bg-blue-500/15 rounded-full mb-4">
+                    <img
+                      src={currentInfluencer.avatar}
+                      alt={currentInfluencer.name}
+                      className="w-12 h-12 rounded-full border-2 border-blue-400/50"
+                    />
+                  </div>
+                  <h2 className="text-2xl font-bold text-white mb-2">
+                    Subscribe to {currentInfluencer.name}
+                  </h2>
+                  <div className="h-1 w-24 bg-gradient-to-r from-blue-500 to-blue-700 mx-auto my-3 rounded-full"></div>
+                  <p className="text-gray-300 mb-6 max-w-md mx-auto">
+                    You will receive trading signals from this analyst
+                    directly to your Telegram for one month.
+                  </p>
+                </div>
+
+                <div className="bg-[#111528] rounded-lg p-4 mb-6 border border-gray-800">
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-gray-300">Subscription Fee:</span>
+                    <span className="text-xl font-bold text-yellow-400">
+                      {currentInfluencer.subscriptionPrice} Credits
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300">Your Balance:</span>
+                    <span className="text-lg font-medium text-blue-400">
+                      {credits} Credits
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <button
+                    onClick={() => setShowSubscribeModal(false)}
+                    className="px-4 py-2 text-gray-400 hover:text-white text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSubscribe}
+                    disabled={
+                      credits !== null &&
+                      credits < (currentInfluencer.subscriptionPrice || 0)
+                    }
+                    className={`flex items-center justify-center px-5 py-2.5 
+                      ${credits !== null &&
+                        credits < (currentInfluencer.subscriptionPrice || 0)
+                        ? "bg-red-700/50 text-red-300 cursor-not-allowed"
+                        : "bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white"
+                      } 
+                      rounded-lg font-medium transition-all duration-200`}
+                  >
+                    {credits !== null &&
+                      credits < (currentInfluencer.subscriptionPrice || 0)
+                      ? "Insufficient Credits"
+                      : "Confirm Subscription"}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

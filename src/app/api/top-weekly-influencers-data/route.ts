@@ -72,6 +72,7 @@ export async function GET() {
             twitterHandle: 1, 
             "userData.publicMetrics.followers_count": 1, 
             "userData.userProfileUrl": 1,
+            subscriptionPrice: 1,
             _id: 0
           } 
         }
@@ -128,6 +129,7 @@ export async function GET() {
         avatar: influencerDoc.userData?.userProfileUrl || "https://via.placeholder.com/150",
         recentWeekSignals: signalsByInfluencer.get(influencer.name) || 0,
         recentWeekTokens: tokensByInfluencer.get(influencer.name)?.size || 0,
+        subscriptionPrice: influencerDoc.subscriptionPrice,
         specialties: ['Crypto Analysis', 'Trading Signals'] // Default specialties
       };
     }).filter(Boolean);
