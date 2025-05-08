@@ -72,6 +72,7 @@ interface MobileInfluencerCarouselProps {
   subscribedHandles: string[];
   subscribingHandle: string | null;
   onSubscribe: (influencer: Influencer) => void;
+  isLoadingSubscriptionData?: boolean;
 }
 
 const MobileInfluencerCarousel: React.FC<MobileInfluencerCarouselProps> = ({
@@ -79,16 +80,14 @@ const MobileInfluencerCarousel: React.FC<MobileInfluencerCarouselProps> = ({
   subscribedHandles,
   subscribingHandle,
   onSubscribe,
+  isLoadingSubscriptionData = false,
 }) => {
-  console.log("Influencers:", influencers);
-  console.log("Subscribed handles: ", subscribedHandles);
-  console.log("Subscribing handles: ", subscribingHandle)
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: swiperCardStyles }} />
       <div
-        className="w-full px-4 pt-20 pb-4 z-20 mx-auto"
+        className="w-full px-4 pt-14 pb-4 z-20 mx-auto"
         style={{ maxWidth: "min(400px, 90vw)" }}
       >
         <Swiper
@@ -181,20 +180,27 @@ const MobileInfluencerCarousel: React.FC<MobileInfluencerCarouselProps> = ({
                     transition={{ delay: 0.3, duration: 0.3 }}
                   >
                     <button
-                      className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-medium ${isSubscribed || isCurrentlySubscribing
-                        ? "bg-gradient-to-r from-green-600/50 to-green-500/50 text-green-200 border border-green-500/30"
-                        : "bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-600 hover:to-blue-500 text-white border border-blue-500/50 hover:shadow-[0_0_15px_rgba(59,130,246,0.4)]"
-                        } transition-all duration-200 ${isCurrentlySubscribing ? "animate-pulse" : ""
+                      className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-medium ${isLoadingSubscriptionData
+                        ? "bg-gray-700/50 text-gray-300"
+                        : isSubscribed || isCurrentlySubscribing
+                          ? "bg-gradient-to-r from-green-600/50 to-green-500/50 text-green-200 border border-green-500/30"
+                          : "bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-600 hover:to-blue-500 text-white border border-blue-500/50 hover:shadow-[0_0_15px_rgba(59,130,246,0.4)]"
+                        } transition-all duration-200 ${isCurrentlySubscribing || isLoadingSubscriptionData ? "animate-pulse" : ""
                         }`}
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (!isSubscribed && !isCurrentlySubscribing && onSubscribe) {
+                        if (!isSubscribed && !isCurrentlySubscribing && !isLoadingSubscriptionData && onSubscribe) {
                           onSubscribe(influencer);
                         }
                       }}
-                      disabled={isSubscribed || isCurrentlySubscribing || !onSubscribe}
+                      disabled={isSubscribed || isCurrentlySubscribing || isLoadingSubscriptionData || !onSubscribe}
                     >
-                      {isCurrentlySubscribing ? (
+                      {isLoadingSubscriptionData ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Checking...</span>
+                        </>
+                      ) : isCurrentlySubscribing ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
                           <span>Subscribing...</span>

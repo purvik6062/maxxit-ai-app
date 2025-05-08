@@ -34,6 +34,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
   const [subscribingHandle, setSubscribingHandle] = useState<string | null>(null);
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
   const [currentInfluencer, setCurrentInfluencer] = useState<Influencer | null>(null);
+  const [isLoadingSubscriptionData, setIsLoadingSubscriptionData] = useState(true);
   const { data: session } = useSession();
 
   // Credits state (needed for subscription confirmation)
@@ -54,7 +55,10 @@ const CosmicWebInfluencerGraph: React.FC = () => {
   // Fetch user credits
   useEffect(() => {
     const fetchUserCredits = async () => {
-      if (!session || !session.user?.id) return;
+      if (!session || !session.user?.id) {
+        setIsLoadingSubscriptionData(false);
+        return;
+      }
 
       try {
         const response = await fetch(
@@ -76,7 +80,11 @@ const CosmicWebInfluencerGraph: React.FC = () => {
   // Fetch subscribed handles
   useEffect(() => {
     const fetchSubscribedHandles = async () => {
-      if (!session || !session.user?.id) return;
+      setIsLoadingSubscriptionData(true);
+      if (!session || !session.user?.id) {
+        setIsLoadingSubscriptionData(false);
+        return;
+      }
 
       try {
         const response = await fetch(
@@ -92,6 +100,8 @@ const CosmicWebInfluencerGraph: React.FC = () => {
         }
       } catch (error) {
         console.error("Failed to fetch subscribed handles:", error);
+      } finally {
+        setIsLoadingSubscriptionData(false);
       }
     };
 
@@ -641,6 +651,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
             subscribedHandles={subscribedHandles}
             subscribingHandle={subscribingHandle}
             onSubscribe={handleSubscribeInitiate}
+            isLoadingSubscriptionData={isLoadingSubscriptionData}
           />
           <div className="my-2">
             <motion.div
