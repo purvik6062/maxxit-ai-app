@@ -10,6 +10,7 @@ import ApiCredentialsSection from "./ApiCredentialSection";
 import { useCredits } from "@/context/CreditsContext";
 import UserSignals from "./UserSignals";
 import Link from "next/link";
+import ReferAndEarn from "./ReferAndEarn";
 
 // Reusable UI components for different states
 const LoadingState = () => (
@@ -46,7 +47,7 @@ const UserProfile = () => {
   const [error, setError] = useState<string | null>(null);
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<
-    "subscriptions" | "api" | "signals"
+    "subscriptions" | "api" | "signals" | "refer"
   >("subscriptions");
   const { credits, updateCredits } = useCredits();
   const [showRegistrationPrompt, setShowRegistrationPrompt] = useState(false);
@@ -304,7 +305,7 @@ const UserProfile = () => {
                 className="bg-[#0D1321] rounded-full p-1"
                 style={{ border: "1px solid #353940" }}
               >
-                <div className="grid grid-cols-3 w-full">
+                <div className="grid grid-cols-4 w-full">
                   <button
                     onClick={() => setActiveSection("subscriptions")}
                     className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all ${
@@ -335,6 +336,16 @@ const UserProfile = () => {
                   >
                     API Access
                   </button>
+                  <button
+                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all ${
+                      activeSection === "refer"
+                        ? "bg-[#1a2234] text-white font-medium shadow-inner"
+                        : "text-[#8ba1bc] hover:text-white"
+                    }`}
+                    onClick={() => setActiveSection("refer")}
+                  >
+                    Refer & Earn
+                  </button>
                 </div>
               </div>
             </div>
@@ -360,6 +371,7 @@ const UserProfile = () => {
                 profile={profile}
               />
             )}
+            {activeSection === "refer" && <ReferAndEarn />}
           </div>
         </div>
       </div>
