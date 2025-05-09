@@ -7,6 +7,7 @@ import InfluencerDetails from "./InfluencerDetails";
 import { useSession } from "next-auth/react";
 import { toast } from "react-toastify";
 import { FaCheck } from "react-icons/fa";
+import { useCredits } from "@/context/CreditsContext";
 
 type ApiResponse = {
   influencers: Influencer[];
@@ -36,9 +37,10 @@ const CosmicWebInfluencerGraph: React.FC = () => {
   const [currentInfluencer, setCurrentInfluencer] = useState<Influencer | null>(null);
   const [isLoadingSubscriptionData, setIsLoadingSubscriptionData] = useState(true);
   const { data: session } = useSession();
+  const { credits, updateCredits } = useCredits();
 
   // Credits state (needed for subscription confirmation)
-  const [credits, setCredits] = useState<number | null>(null);
+  // const [credits, setCredits] = useState<number | null>(null);
 
   // Check if device is mobile
   useEffect(() => {
@@ -51,31 +53,6 @@ const CosmicWebInfluencerGraph: React.FC = () => {
 
     return () => window.removeEventListener('resize', checkIsMobile);
   }, []);
-
-  // Fetch user credits
-  useEffect(() => {
-    const fetchUserCredits = async () => {
-      if (!session || !session.user?.id) {
-        setIsLoadingSubscriptionData(false);
-        return;
-      }
-
-      try {
-        const response = await fetch(
-          `/api/get-user?twitterId=${session.user.id}`
-        );
-        const data = await response.json();
-
-        if (data.success && data.data) {
-          setCredits(data.data.credits || 0);
-        }
-      } catch (error) {
-        console.error("Failed to fetch user credits:", error);
-      }
-    };
-
-    fetchUserCredits();
-  }, [session]);
 
   // Fetch subscribed handles
   useEffect(() => {
@@ -162,17 +139,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
       }
 
       setSubscribedHandles((prev) => [...prev, cleanHandle]);
-
-      // Fetch updated credits
-      try {
-        const userResponse = await fetch(`/api/get-user?twitterId=${session.user.id}`);
-        const userData = await userResponse.json();
-        if (userData.success && userData.data) {
-          setCredits(userData.data.credits || 0);
-        }
-      } catch (error) {
-        console.error("Failed to fetch updated credits:", error);
-      }
+      await updateCredits();
 
       setSubscribingHandle(null);
     } catch (error) {

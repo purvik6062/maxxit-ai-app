@@ -80,7 +80,7 @@ const MobileInfluencerCarousel: React.FC<MobileInfluencerCarouselProps> = ({
   subscribedHandles,
   subscribingHandle,
   onSubscribe,
-  isLoadingSubscriptionData = false,
+  isLoadingSubscriptionData,
 }) => {
 
   return (
