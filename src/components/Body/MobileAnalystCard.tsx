@@ -11,6 +11,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useLoginModal } from "@/context/LoginModalContext";
+import { useCredits } from "@/context/CreditsContext";
 
 interface Agent {
   twitterHandle: string;
@@ -61,6 +62,7 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
 }) => {
   const { data: session } = useSession();
   const { showLoginModal } = useLoginModal();
+  const { credits } = useCredits();
 
   const cleanHandle = agent.twitterHandle.replace("@", "");
   const isSubscribed = subscribedHandles.includes(cleanHandle);
@@ -178,6 +180,12 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
         "Please login to subscribe to this analyst",
         window.location.pathname
       );
+      return;
+    }
+
+    if (credits !== null && credits < creditCost) {
+      // Navigate to pricing page if insufficient credits
+      window.location.href = "/pricing";
       return;
     }
 
@@ -316,12 +324,19 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
               className={`group flex-1 flex items-center justify-center px-4 py-2 rounded-lg text-xs ${
                 isSubscribed || isCurrentlySubscribing
                   ? "bg-green-500/20 text-green-300"
+                  : credits !== null && credits < creditCost
+                  ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white"
                   : "bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white"
               } transition-all duration-200 relative overflow-hidden ${
                 isCurrentlySubscribing ? "animate-pulse" : ""
               }`}
               onClick={handleSubscribeClick}
               disabled={isSubscribed || isCurrentlySubscribing}
+              title={
+                credits !== null && credits < creditCost
+                  ? "Click to get more credits"
+                  : undefined
+              }
             >
               {isCurrentlySubscribing ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -330,10 +345,15 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
                   <FaCrown size={12} className="mr-1 flex-shrink-0" />
                   Subscribed
                 </>
+              ) : credits !== null && credits < creditCost ? (
+                <>
+                  <FaCrown size={12} className="mr-1 flex-shrink-0" />
+                  Get More Credits ({creditCost})
+                </>
               ) : (
                 <>
                   <FaCrown size={12} className="mr-1 flex-shrink-0" />
-                  Subscribe {creditCost ? `(${creditCost})` : ""}
+                  Subscribe ({creditCost})
                 </>
               )}
               <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

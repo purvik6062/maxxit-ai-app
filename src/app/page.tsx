@@ -17,6 +17,7 @@ import TopTweetsCarousel from "@/components/Body/TopTweetsCarousel";
 import { useSession } from "next-auth/react";
 import { FaCheck } from "react-icons/fa";
 import { useLoginModal } from "@/context/LoginModalContext";
+import Link from "next/link";
 
 const HomePage: React.FC = () => {
   const { updateCredits, credits } = useCredits();
@@ -384,6 +385,20 @@ const HomePage: React.FC = () => {
                         {credits} Credits
                       </span>
                     </div>
+                    {credits !== null &&
+                      credits < currentAgent.subscriptionPrice && (
+                        <div className="mt-4 p-3 rounded-lg bg-red-900/20 border border-red-800/30">
+                          <p className="text-red-300 text-sm mb-2">
+                            You don't have enough credits for this subscription.
+                          </p>
+                          <Link
+                            href="/pricing"
+                            className="inline-flex items-center justify-center w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg text-sm font-medium transition-all duration-200"
+                          >
+                            Get More Credits
+                          </Link>
+                        </div>
+                      )}
                   </div>
 
                   <div className="flex justify-between items-center">

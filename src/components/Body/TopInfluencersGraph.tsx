@@ -2,12 +2,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import MobileInfluencerCarousel, { Influencer } from "./MobileInfluencerCarousel";
+import MobileInfluencerCarousel, {
+  Influencer,
+} from "./MobileInfluencerCarousel";
 import InfluencerDetails from "./InfluencerDetails";
 import { useSession } from "next-auth/react";
 import { toast } from "react-toastify";
 import { FaCheck } from "react-icons/fa";
 import { useCredits } from "@/context/CreditsContext";
+import Link from "next/link";
 
 type ApiResponse = {
   influencers: Influencer[];
@@ -32,10 +35,15 @@ const CosmicWebInfluencerGraph: React.FC = () => {
 
   // Subscription states
   const [subscribedHandles, setSubscribedHandles] = useState<string[]>([]);
-  const [subscribingHandle, setSubscribingHandle] = useState<string | null>(null);
+  const [subscribingHandle, setSubscribingHandle] = useState<string | null>(
+    null
+  );
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
-  const [currentInfluencer, setCurrentInfluencer] = useState<Influencer | null>(null);
-  const [isLoadingSubscriptionData, setIsLoadingSubscriptionData] = useState(true);
+  const [currentInfluencer, setCurrentInfluencer] = useState<Influencer | null>(
+    null
+  );
+  const [isLoadingSubscriptionData, setIsLoadingSubscriptionData] =
+    useState(true);
   const { data: session } = useSession();
   const { credits, updateCredits } = useCredits();
 
@@ -49,9 +57,9 @@ const CosmicWebInfluencerGraph: React.FC = () => {
     };
 
     checkIsMobile();
-    window.addEventListener('resize', checkIsMobile);
+    window.addEventListener("resize", checkIsMobile);
 
-    return () => window.removeEventListener('resize', checkIsMobile);
+    return () => window.removeEventListener("resize", checkIsMobile);
   }, []);
 
   // Fetch subscribed handles
@@ -114,7 +122,9 @@ const CosmicWebInfluencerGraph: React.FC = () => {
       return;
     }
 
-    const cleanHandle = currentInfluencer.twitterHandle?.replace("@", "") || currentInfluencer.name;
+    const cleanHandle =
+      currentInfluencer.twitterHandle?.replace("@", "") ||
+      currentInfluencer.name;
     setSubscribingHandle(cleanHandle);
 
     const subscriptionFee = currentInfluencer.subscriptionPrice || 0;
@@ -159,10 +169,10 @@ const CosmicWebInfluencerGraph: React.FC = () => {
     const fetchInfluencers = async () => {
       try {
         // Check if we're in a browser environment where localStorage is available
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           // Check if data exists in localStorage and is not expired
           try {
-            const cachedData = localStorage.getItem('topWeeklyInfluencers');
+            const cachedData = localStorage.getItem("topWeeklyInfluencers");
 
             if (cachedData) {
               const { data, timestamp } = JSON.parse(cachedData);
@@ -178,7 +188,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
                 return;
               } else {
                 // Remove expired cache
-                localStorage.removeItem('topWeeklyInfluencers');
+                localStorage.removeItem("topWeeklyInfluencers");
               }
             }
           } catch (e) {
@@ -195,12 +205,15 @@ const CosmicWebInfluencerGraph: React.FC = () => {
         const data: ApiResponse = await response.json();
 
         // Store in localStorage with timestamp if available
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           try {
-            localStorage.setItem('topWeeklyInfluencers', JSON.stringify({
-              data,
-              timestamp: new Date().toISOString()
-            }));
+            localStorage.setItem(
+              "topWeeklyInfluencers",
+              JSON.stringify({
+                data,
+                timestamp: new Date().toISOString(),
+              })
+            );
           } catch (e) {
             console.error("Error writing to localStorage:", e);
             // Continue even if localStorage fails
@@ -389,8 +402,8 @@ const CosmicWebInfluencerGraph: React.FC = () => {
         const x = Math.random() * canvas.width;
         const y = isMilkyWay
           ? x * 0.4 +
-          (Math.random() * bandWidth - bandWidth / 2) +
-          canvas.height * 0.2
+            (Math.random() * bandWidth - bandWidth / 2) +
+            canvas.height * 0.2
           : Math.random() * canvas.height;
         const colorChoice = Math.random();
         let color: string;
@@ -531,8 +544,11 @@ const CosmicWebInfluencerGraph: React.FC = () => {
   }, [rotation, influencers, isMobile]);
 
   function getCurrentWeekOfMonthLabel(date = new Date()): string {
-    const options: Intl.DateTimeFormatOptions = { month: 'long', year: 'numeric' };
-    const monthYear = date.toLocaleDateString('en-US', options);
+    const options: Intl.DateTimeFormatOptions = {
+      month: "long",
+      year: "numeric",
+    };
+    const monthYear = date.toLocaleDateString("en-US", options);
     return `Top Performing Cluster: ${monthYear}`;
   }
 
@@ -603,7 +619,8 @@ const CosmicWebInfluencerGraph: React.FC = () => {
       </h1>
       <p className="text-gray-300 mb-4 sm:mb-8 text-center max-w-xl sm:max-w-3xl text-sm sm:text-lg z-20 px-4">
         Discover our top influencers shaping the crypto universe with their
-        insights, <span className="font-bold italic text-cyan-500">Updated weekly</span>
+        insights,{" "}
+        <span className="font-bold italic text-cyan-500">Updated weekly</span>
       </p>
 
       <div className="backdrop-blur-lg text-xs sm:text-base font-semibold py-2 px-4 sm:px-6 rounded-full shadow-[0_0_15px_rgba(0,255,255,0.5)] z-30 border border-cyan-500/50 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
@@ -681,7 +698,6 @@ const CosmicWebInfluencerGraph: React.FC = () => {
               Net ROI: {totalProfit.toFixed(2).toLocaleString()}%
             </motion.div>
           </div>
-
         </>
       ) : (
         // Desktop view with 3D visualization
@@ -690,7 +706,9 @@ const CosmicWebInfluencerGraph: React.FC = () => {
             <div
               ref={sliderRef}
               className="absolute top-[48%] left-1/2 w-0 h-0 [transform-style:preserve-3d] origin-center"
-              style={{ transform: `rotateX(${-20}deg) rotateY(${rotation}deg)` }}
+              style={{
+                transform: `rotateX(${-20}deg) rotateY(${rotation}deg)`,
+              }}
             >
               {influencers.map((influencer, index) => {
                 const baseAngle = index * (360 / influencers.length);
@@ -759,7 +777,9 @@ const CosmicWebInfluencerGraph: React.FC = () => {
           </div>
         </div>
       )}
-      {!isMobile && <InfluencerDetails influencer={hoveredInfluencer || frontInfluencer} />}
+      {!isMobile && (
+        <InfluencerDetails influencer={hoveredInfluencer || frontInfluencer} />
+      )}
 
       {/* Subscription Confirmation Modal */}
       {showSubscribeModal && currentInfluencer && (
@@ -802,8 +822,9 @@ const CosmicWebInfluencerGraph: React.FC = () => {
                 </p>
               </div>
             ) : subscribedHandles.includes(
-              currentInfluencer.twitterHandle?.replace("@", "") || currentInfluencer.name
-            ) ? (
+                currentInfluencer.twitterHandle?.replace("@", "") ||
+                  currentInfluencer.name
+              ) ? (
               // Success state
               <div className="text-center py-6">
                 <div className="inline-flex items-center justify-center p-3 bg-green-500/15 rounded-full mb-4">
@@ -864,8 +885,8 @@ const CosmicWebInfluencerGraph: React.FC = () => {
                   </h2>
                   <div className="h-1 w-24 bg-gradient-to-r from-blue-500 to-blue-700 mx-auto my-3 rounded-full"></div>
                   <p className="text-gray-300 mb-6 max-w-md mx-auto">
-                    You will receive trading signals from this analyst
-                    directly to your Telegram for one month.
+                    You will receive trading signals from this analyst directly
+                    to your Telegram for one month.
                   </p>
                 </div>
 
@@ -882,6 +903,20 @@ const CosmicWebInfluencerGraph: React.FC = () => {
                       {credits} Credits
                     </span>
                   </div>
+                  {credits !== null &&
+                    credits < (currentInfluencer.subscriptionPrice || 0) && (
+                      <div className="mt-4 p-3 rounded-lg bg-red-900/20 border border-red-800/30">
+                        <p className="text-red-300 text-sm mb-2">
+                          You don't have enough credits for this subscription.
+                        </p>
+                        <Link
+                          href="/pricing"
+                          className="inline-flex items-center justify-center w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg text-sm font-medium transition-all duration-200"
+                        >
+                          Get More Credits
+                        </Link>
+                      </div>
+                    )}
                 </div>
 
                 <div className="flex justify-between items-center">
@@ -898,15 +933,16 @@ const CosmicWebInfluencerGraph: React.FC = () => {
                       credits < (currentInfluencer.subscriptionPrice || 0)
                     }
                     className={`flex items-center justify-center px-5 py-2.5 
-                      ${credits !== null &&
+                      ${
+                        credits !== null &&
                         credits < (currentInfluencer.subscriptionPrice || 0)
-                        ? "bg-red-700/50 text-red-300 cursor-not-allowed"
-                        : "bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white"
+                          ? "bg-red-700/50 text-red-300 cursor-not-allowed"
+                          : "bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white"
                       } 
                       rounded-lg font-medium transition-all duration-200`}
                   >
                     {credits !== null &&
-                      credits < (currentInfluencer.subscriptionPrice || 0)
+                    credits < (currentInfluencer.subscriptionPrice || 0)
                       ? "Insufficient Credits"
                       : "Confirm Subscription"}
                   </button>
