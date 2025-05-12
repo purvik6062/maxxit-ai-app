@@ -51,6 +51,7 @@ const UserProfile = () => {
   const [activeSection, setActiveSection] = useState<
     "subscriptions" | "api" | "signals" | "refer"
   >("subscriptions");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { credits, updateCredits } = useCredits();
   const [showRegistrationPrompt, setShowRegistrationPrompt] = useState(false);
 
@@ -252,9 +253,8 @@ const UserProfile = () => {
                 toast.custom(
                   (t) => (
                     <div
-                      className={`px-6 py-4 bg-gray-800 rounded-lg shadow-lg border border-blue-500/30 ${
-                        t.visible ? "animate-enter" : "animate-leave"
-                      }`}
+                      className={`px-6 py-4 bg-gray-800 rounded-lg shadow-lg border border-blue-500/30 ${t.visible ? "animate-enter" : "animate-leave"
+                        }`}
                     >
                       <p className="text-white mb-2">
                         Click on "Complete Setup" in the top bar to continue
@@ -293,6 +293,14 @@ const UserProfile = () => {
       />
     );
 
+  // Map activeSection to display text
+  const sectionDisplayText = {
+    subscriptions: "Subscriptions",
+    signals: "Signals",
+    api: "API Access",
+    refer: "Refer & Earn",
+  };
+
   return (
     <div className="min-h-screen pb-[4rem]">
       <div className="py-6 md:py-12 px-4 sm:px-6 lg:px-8">
@@ -313,51 +321,109 @@ const UserProfile = () => {
           <div className="col-span-1 md:col-span-2 lg:col-span-3">
             {/* Toggle Buttons */}
             <div className="mb-6">
-              <div
-                className="bg-[#0D1321] rounded-full p-1"
-                style={{ border: "1px solid #353940" }}
-              >
-                <div className="grid grid-cols-4 w-full">
+              {/* Custom Dropdown for mobile screens */}
+              <div className="md:hidden">
+                <div className="bg-[#0D1321] rounded-full p-1 border border-[#353940]">
                   <button
-                    onClick={() => setActiveSection("subscriptions")}
-                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all ${
-                      activeSection === "subscriptions"
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="w-full flex justify-between items-center border border-[#353940] px-4 py-2.5 text-white text-sm font-medium rounded-full bg-[#0D1321] focus:outline-none"
+                    aria-expanded={isDropdownOpen}
+                    aria-haspopup="true"
+                  >
+                    <span>{sectionDisplayText[activeSection]}</span>
+                    <svg
+                      className={`w-4 h-4 transform transition-transform ${isDropdownOpen ? "rotate-180" : ""
+                        }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+                  {isDropdownOpen && (
+                    <div className="absolute w-[calc(100%-3rem)] flex flex-col gap-1 mt-2 p-1 bg-[#0D1321] border border-[#353940] rounded-lg shadow-lg z-50" style={{ border: "1px solid #353940" }}>
+                      {[
+                        { key: "subscriptions", label: "Subscriptions" },
+                        { key: "signals", label: "Signals" },
+                        { key: "api", label: "API Access" },
+                        { key: "refer", label: "Refer & Earn" },
+                      ].map((option) => (
+                        <button
+                          key={option.key}
+                          onClick={() => {
+                            setActiveSection(
+                              option.key as
+                              | "subscriptions"
+                              | "api"
+                              | "signals"
+                              | "refer"
+                            );
+                            setIsDropdownOpen(false);
+                          }}
+                          className={`w-full text-left px-4 py-2 text-sm font-medium rounded-lg ${activeSection === option.key
+                            ? "bg-[#1a2234] text-white"
+                            : "text-[#8ba1bc] hover:bg-[#1a2234] hover:text-white"
+                            }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Button grid for medium and larger screens */}
+              <div className="hidden md:block">
+                <div
+                  className="bg-[#0D1321] rounded-full p-1"
+                  style={{ border: "1px solid #353940" }}
+                >
+                  <div className="grid grid-cols-4 w-full">
+                    <button
+                      onClick={() => setActiveSection("subscriptions")}
+                      className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all ${activeSection === "subscriptions"
                         ? "bg-[#1a2234] text-white font-medium shadow-inner"
                         : "text-[#8ba1bc] hover:text-white"
-                    }`}
-                  >
-                    Subscriptions
-                  </button>
-                  <button
-                    onClick={() => setActiveSection("signals")}
-                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all mx-1 ${
-                      activeSection === "signals"
+                        }`}
+                    >
+                      Subscriptions
+                    </button>
+                    <button
+                      onClick={() => setActiveSection("signals")}
+                      className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all mx-1 ${activeSection === "signals"
                         ? "bg-[#1a2234] text-white font-medium shadow-inner"
                         : "text-[#8ba1bc] hover:text-white"
-                    }`}
-                  >
-                    Signals
-                  </button>
-                  <button
-                    onClick={() => setActiveSection("api")}
-                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all ${
-                      activeSection === "api"
+                        }`}
+                    >
+                      Signals
+                    </button>
+                    <button
+                      onClick={() => setActiveSection("api")}
+                      className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all ${activeSection === "api"
                         ? "bg-[#1a2234] text-white font-medium shadow-inner"
                         : "text-[#8ba1bc] hover:text-white"
-                    }`}
-                  >
-                    API Access
-                  </button>
-                  <button
-                    className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all ${
-                      activeSection === "refer"
+                        }`}
+                    >
+                      API Access
+                    </button>
+                    <button
+                      className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all ${activeSection === "refer"
                         ? "bg-[#1a2234] text-white font-medium shadow-inner"
                         : "text-[#8ba1bc] hover:text-white"
-                    }`}
-                    onClick={() => setActiveSection("refer")}
-                  >
-                    Refer & Earn
-                  </button>
+                        }`}
+                      onClick={() => setActiveSection("refer")}
+                    >
+                      Refer & Earn
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

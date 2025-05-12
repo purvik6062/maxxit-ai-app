@@ -114,7 +114,7 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 xs:grid-cols-2 xl:grid-cols-4 gap-4">
           {/* Active Subscriptions */}
           <div className="bg-[#0D1321] border border-[rgba(206,212,218,0.15)] rounded-md p-3">
             <div className="flex items-center space-x-3">
