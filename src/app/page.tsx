@@ -16,6 +16,7 @@ import AddInfluencerModal from "../components/Body/AddInfluencerModal";
 import TopTweetsCarousel from "@/components/Body/TopTweetsCarousel";
 import { useSession } from "next-auth/react";
 import { FaCheck } from "react-icons/fa";
+import { useLoginModal } from "@/context/LoginModalContext";
 
 const HomePage: React.FC = () => {
   const { updateCredits, credits } = useCredits();
@@ -37,6 +38,7 @@ const HomePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"impact" | "heartbeat">("impact");
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
   const [currentAgent, setCurrentAgent] = useState<any>(null);
+  const { showLoginModal } = useLoginModal();
 
   useEffect(() => {
     const fetchSubscribedHandles = async () => {
@@ -65,9 +67,7 @@ const HomePage: React.FC = () => {
   const handleSubscribeInitiate = useCallback(
     (agent: any) => {
       if (!session || !session.user?.id) {
-        toast.error("Please login with Twitter/X first", {
-          position: "top-center",
-        });
+        showLoginModal("Please login to subscribe", window.location.pathname);
         return;
       }
 
@@ -83,7 +83,7 @@ const HomePage: React.FC = () => {
       setCurrentAgent(agent);
       setShowSubscribeModal(true);
     },
-    [session, credits]
+    [session, credits, showLoginModal]
   );
 
   const handleSubscribe = useCallback(async () => {

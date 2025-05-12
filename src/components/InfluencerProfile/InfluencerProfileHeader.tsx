@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { FaCrown } from "react-icons/fa";
 import { Loader2 } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useLoginModal } from "@/context/LoginModalContext";
 
 interface InfluencerProfileHeaderProps {
   userProfileUrl: string;
@@ -35,6 +37,9 @@ function InfluencerProfileHeader({
   subscribedHandles = [],
   subscribingHandle = null,
 }: InfluencerProfileHeaderProps) {
+  const { data: session } = useSession();
+  const { showLoginModal } = useLoginModal();
+
   const socialMetrics = [
     {
       label: "Followers",
@@ -53,6 +58,14 @@ function InfluencerProfileHeader({
 
   // Create agent object to match the structure expected by onSubscribe
   const handleSubscribe = () => {
+    if (!session) {
+      showLoginModal(
+        "Please login to subscribe to this analyst",
+        window.location.pathname
+      );
+      return;
+    }
+
     if (onSubscribe) {
       const agent = {
         twitterHandle: username,

@@ -11,6 +11,9 @@ import { useState } from "react";
 import FooterLabel from "@/components/Global/FooterLabel";
 import BackgroundComponent from "@/components/ui/BackgroundComponent";
 import { usePathname } from "next/navigation";
+import { LoginModalProvider } from "@/context/LoginModalContext";
+import LoginModal from "@/components/Global/LoginModal";
+import { useLoginModal } from "@/context/LoginModalContext";
 // import CustomCursor from "@/components/Body/CustomCursor";
 // import ThemeProviderClient from "@/providers/ThemeProviderClient";
 
@@ -29,6 +32,19 @@ const napzerRounded = localFonts({
   ],
   variable: "--font-napzer-rounded",
 });
+
+// Wrapper component to use hooks
+const LoginModalWrapper = () => {
+  const { isOpen, message, callbackUrl, hideLoginModal } = useLoginModal();
+  return (
+    <LoginModal
+      isOpen={isOpen}
+      onClose={hideLoginModal}
+      message={message}
+      callbackUrl={callbackUrl}
+    />
+  );
+};
 
 export default function RootLayout({
   children,
@@ -54,19 +70,24 @@ export default function RootLayout({
             refetchOnWindowFocus={false}
           >
             <CreditsProvider>
-              <div className="relative isolate overflow-hidden">
-                {pathname !== "/" && (
-                  <div className="absolute inset-0 -z-10">
-                    <BackgroundComponent />
-                  </div>
-                )}
-                <Header searchText={searchText} setSearchText={setSearchText} />
-                <main>{children}</main>
-                {/* <CustomCursor /> */}
-                <FooterLabel />
-                <Footer />
-              </div>
-
+              <LoginModalProvider>
+                <div className="relative isolate overflow-hidden">
+                  {pathname !== "/" && (
+                    <div className="absolute inset-0 -z-10">
+                      <BackgroundComponent />
+                    </div>
+                  )}
+                  <Header
+                    searchText={searchText}
+                    setSearchText={setSearchText}
+                  />
+                  <main>{children}</main>
+                  {/* <CustomCursor /> */}
+                  <FooterLabel />
+                  <Footer />
+                  <LoginModalWrapper />
+                </div>
+              </LoginModalProvider>
             </CreditsProvider>
           </SessionProvider>
           {/* </ThemeProviderClient> */}

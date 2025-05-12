@@ -9,6 +9,8 @@ import {
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useSession } from "next-auth/react";
+import { useLoginModal } from "@/context/LoginModalContext";
 
 interface Agent {
   twitterHandle: string;
@@ -57,10 +59,14 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
   renderMetricIndicator,
   isCurrentUser = false,
 }) => {
+  const { data: session } = useSession();
+  const { showLoginModal } = useLoginModal();
+
   const cleanHandle = agent.twitterHandle.replace("@", "");
   const isSubscribed = subscribedHandles.includes(cleanHandle);
   const isCurrentlySubscribing = subscribingHandle === cleanHandle;
-  const creditCost = agent.subscriptionPrice || Math.floor((agent.impactFactor || 0) * 10);
+  const creditCost =
+    agent.subscriptionPrice || Math.floor((agent.impactFactor || 0) * 10);
 
   // State for dropdown
   const [isExpanded, setIsExpanded] = useState(false);
@@ -165,6 +171,21 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
     }
   };
 
+  const handleSubscribeClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!session) {
+      showLoginModal(
+        "Please login to subscribe to this analyst",
+        window.location.pathname
+      );
+      return;
+    }
+
+    if (!isSubscribed && !isCurrentlySubscribing) {
+      onSubscribe(agent);
+    }
+  };
+
   return (
     <motion.div
       className="impact-card list-item relative bg-gray-900/30 backdrop-blur-md border border-gray-800/20 rounded-xl overflow-hidden shadow-lg hover:shadow-blue-500/20 transition-shadow duration-300"
@@ -178,10 +199,11 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
       <div className="flex items-center justify-between px-2 py-4 bg-gradient-to-r from-gray-900/50 to-blue-900/20">
         <div className="flex items-center gap-3">
           <div
-            className={`w-6 h-6 flex items-center justify-center rounded-full ${isCurrentUser
-              ? "bg-blue-700 text-white"
-              : "bg-gray-800 text-gray-400"
-              } text-xs font-bold flex-shrink-0`}
+            className={`w-6 h-6 flex items-center justify-center rounded-full ${
+              isCurrentUser
+                ? "bg-blue-700 text-white"
+                : "bg-gray-800 text-gray-400"
+            } text-xs font-bold flex-shrink-0`}
           >
             {rank}
           </div>
@@ -192,12 +214,13 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
                   agent.profileUrl?.trim().length > 0
                     ? agent.profileUrl
                     : `https:// picsum.photos/seed/${encodeURIComponent(
-                      agent.twitterHandle
-                    )}/40/40`
+                        agent.twitterHandle
+                      )}/40/40`
                 }
                 alt={agent.name}
-                className={`w-full h-full object-cover rounded-full border ${isCurrentUser ? "border-blue-500" : "border-gray-700/50"
-                  }`}
+                className={`w-full h-full object-cover rounded-full border ${
+                  isCurrentUser ? "border-blue-500" : "border-gray-700/50"
+                }`}
               />
               {agent.verified && (
                 <div className="absolute -bottom-0.5 -right-0.5 bg-blue-500 rounded-full p-0.5 border border-gray-900">
@@ -208,8 +231,9 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
           )}
           <div className="flex-grow overflow-hidden">
             <h4
-              className={`text-[12px] max-w-16 xs:max-w-44 sm:max-w-52 md:max-w-full sm:text-sm font-semibold text-white truncate ${isCurrentUser ? "text-blue-300" : ""
-                }`}
+              className={`text-[12px] max-w-16 xs:max-w-44 sm:max-w-52 md:max-w-full sm:text-sm font-semibold text-white truncate ${
+                isCurrentUser ? "text-blue-300" : ""
+              }`}
             >
               {agent.name}
               {isCurrentUser && (
@@ -217,8 +241,9 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
               )}
             </h4>
             <p
-              className={`text-[11px] text-gray-400 truncate ${isCurrentUser ? "" : ""
-                }`}
+              className={`text-[11px] text-gray-400 truncate ${
+                isCurrentUser ? "" : ""
+              }`}
             >
               {agent.twitterHandle}
             </p>
@@ -288,17 +313,14 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
               <div className="absolute inset-0 bg-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </Link>
             <button
-              className={`group flex-1 flex items-center justify-center px-4 py-2 rounded-lg text-xs ${isSubscribed || isCurrentlySubscribing
-                ? "bg-green-500/20 text-green-300"
-                : "bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white"
-                } transition-all duration-200 relative overflow-hidden ${isCurrentlySubscribing ? "animate-pulse" : ""
-                }`}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!isSubscribed && !isCurrentlySubscribing) {
-                  onSubscribe(agent);
-                }
-              }}
+              className={`group flex-1 flex items-center justify-center px-4 py-2 rounded-lg text-xs ${
+                isSubscribed || isCurrentlySubscribing
+                  ? "bg-green-500/20 text-green-300"
+                  : "bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white"
+              } transition-all duration-200 relative overflow-hidden ${
+                isCurrentlySubscribing ? "animate-pulse" : ""
+              }`}
+              onClick={handleSubscribeClick}
               disabled={isSubscribed || isCurrentlySubscribing}
             >
               {isCurrentlySubscribing ? (

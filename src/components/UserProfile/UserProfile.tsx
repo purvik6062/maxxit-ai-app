@@ -11,6 +11,7 @@ import { useCredits } from "@/context/CreditsContext";
 import UserSignals from "./UserSignals";
 import Link from "next/link";
 import ReferAndEarn from "./ReferAndEarn";
+import { useLoginModal } from "@/context/LoginModalContext";
 
 // Reusable UI components for different states
 const LoadingState = () => (
@@ -42,6 +43,7 @@ const EmptyState = ({ title, message }: { title: string; message: string }) => (
 
 const UserProfile = () => {
   const { data: session, status: sessionStatus } = useSession();
+  const { showLoginModal } = useLoginModal();
   const [profile, setProfile] = useState<UserProfileType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +71,16 @@ const UserProfile = () => {
       }); // Update local profile credits
     }
   };
+
+  useEffect(() => {
+    // Show login modal if user is not authenticated
+    if (sessionStatus === "unauthenticated") {
+      showLoginModal(
+        "Please login to view your profile",
+        window.location.pathname
+      );
+    }
+  }, [sessionStatus, showLoginModal]);
 
   useEffect(() => {
     // Only proceed when session status is no longer loading
