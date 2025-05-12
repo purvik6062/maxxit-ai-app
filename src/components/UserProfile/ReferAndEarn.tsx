@@ -116,7 +116,7 @@ const ReferAndEarn = () => {
       </p>
 
       {promoCode ? (
-        <div className="bg-gray-900 p-4 rounded-md border border-gray-700 mb-6">
+        <div className="bg-gray-900 py-4 rounded-md border border-gray-700 mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-400">Your Promo Code</span>
             <button

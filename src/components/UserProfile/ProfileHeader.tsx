@@ -103,7 +103,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
             className="bg-[#131923] p-2 md:p-3 rounded-md text-white text-sm md:text-base"
             style={fieldBorderStyle}
           >
-            {credits !== null ? credits : profile.credits || "9999999"}
+            {credits !== null ? credits : profile.credits}
           </div>
         </div>
       </div>
