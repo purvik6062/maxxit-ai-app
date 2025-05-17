@@ -101,20 +101,50 @@ export async function GET(request: Request): Promise<Response> {
         exitedTradesCount++;
         
         // Extract numeric value from PnL string (e.g., "+12.45%" → 12.45)
-        const pnlValue = parseFloat(pnlString.replace(/[^-\d.]/g, ""));
-        const isProfit = !pnlString.includes("-");
+        // This matches the totalPnL.js approach - simply remove % and parse
+        const pnlValue = parseFloat(pnlString.replace('%', ''));
+        const isProfit = pnlValue >= 0;
         
         if (isProfit) {
           profitableTradesCount++;
         }
         
-        // Add to total (make negative if it's a loss)
-        totalPnL += isProfit ? pnlValue : -pnlValue;
+        // Add to total with the correct sign (already included in the parsed value)
+        totalPnL += pnlValue;
       }
     });
 
     // Count total leads (signals) for the week
     const totalLeads = weeklySignals.length;
+
+    // Create detailed signal objects with their PnL data
+    const weeklySignalsWithPnL = weeklySignals.map((signal: any) => {
+      const tweetLink = signal.tweet_link;
+      const coin = signal.coin;
+      const key = `${tweetLink}:${coin}`;
+      const backtestResult = backtestingMap.get(key);
+      
+      // Process PnL value to ensure consistent format
+      let pnlValue = null;
+      if (backtestResult && backtestResult["Final P&L"]) {
+        // Just store the raw percentage value, don't modify the sign
+        // This matches the totalPnL.js approach
+        pnlValue = backtestResult["Final P&L"];
+      }
+      
+      return {
+        id: signal._id.toString(),
+        coin: signal.coin,
+        twitterHandle: signal.twitterHandle,
+        tweetLink: signal.tweet_link,
+        timestamp: signal.signal_data?.tweet_timestamp,
+        direction: signal.signal_data?.signal_type || "unknown",
+        pnl: pnlValue,
+        entryPrice: backtestResult ? backtestResult["Entry Price"] : null,
+        exitPrice: backtestResult ? backtestResult["Final Exit Price"] : null,
+        status: backtestResult && backtestResult["Final Exit Price"] ? "exited" : "active"
+      };
+    });
 
     return NextResponse.json({
       success: true,
@@ -127,7 +157,8 @@ export async function GET(request: Request): Promise<Response> {
           totalPnL: parseFloat(totalPnL.toFixed(2)),
           weekStart: weekStart.toISOString(),
           weekEnd: weekEnd.toISOString(),
-        }
+        },
+        weeklySignalsWithPnL
       },
     });
   } catch (error) {

@@ -35,6 +35,35 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
         
         if (result.success && result.data.weeklyStats) {
           setWeeklyStats(result.data.weeklyStats);
+          
+          // Console log each signal with its PnL
+          if (result.data.weeklySignalsWithPnL && result.data.weeklySignalsWithPnL.length > 0) {
+            console.log("Weekly Signals with PnL details:", result.data.weeklySignalsWithPnL);
+            
+            // Calculate totals from the detailed data using the same approach as totalPnL.js
+            const totalSignals = result.data.weeklySignalsWithPnL.length;
+            const totalPnL = result.data.weeklySignalsWithPnL.reduce((sum, signal) => {
+              // Skip trades with no PnL value or invalid PnL format
+              if (!signal.pnl || typeof signal.pnl !== 'string') {
+                return sum;
+              }
+              
+              // Extract the numeric value from the percentage string
+              // Remove the % sign and convert to a number
+              const pnlValue = parseFloat(signal.pnl.replace('%', ''));
+              
+              // If parsing fails, don't add to the sum
+              if (isNaN(pnlValue)) {
+                return sum;
+              }
+              
+              return sum + pnlValue;
+            }, 0);
+            
+            console.log(`Total Signals: ${totalSignals}, Total PnL: ${totalPnL.toFixed(2)}%`);
+          } else {
+            console.log("No weekly signals with PnL data available");
+          }
         }
       } catch (error) {
         console.error("Error fetching weekly stats:", error);
@@ -180,9 +209,9 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
                   <>
                     <p className={`text-xl font-semibold ${weeklyStats?.totalPnL && weeklyStats.totalPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                       {weeklyStats?.totalPnL 
-                        ? `${weeklyStats.totalPnL >= 0 ? '+' : ''}${weeklyStats.totalPnL}%` 
+                        ? `${weeklyStats.totalPnL >= 0 ? '+' : ''}${weeklyStats.totalPnL.toFixed(2)}%` 
                         : "N/A"}
-                  </p>
+                    </p>
                   </>
                 )}
               </div>
@@ -274,7 +303,7 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
                             <span className="text-sm">Leads</span>
                           </div>
                           <span className="text-sm font-medium text-[#111827]">
-                            {sub?.leadsCount || 48}
+                            {sub?.leadsCount || 0}
                           </span>
                         </div>
                       </div>
@@ -342,7 +371,7 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
                       <span className="text-sm">Leads</span>
                     </div>
                     <span className="text-sm font-medium text-[#111827]">
-                      {sub?.leadsCount || 48}
+                      {sub?.leadsCount || 0}
                     </span>
                   </div>
                 </div>
