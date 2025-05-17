@@ -1,15 +1,15 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import Image from "next/image"
-import { Loader2 } from "lucide-react";
-import { ArrowUpRight, ArrowDownRight, ExternalLink } from "lucide-react"
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay } from 'swiper/modules';
+import { Loader2 } from "lucide-react"
+import { ArrowUpRight, ArrowDownRight } from "lucide-react"
+import { Swiper, SwiperSlide } from 'swiper/react'
+import { Autoplay } from 'swiper/modules'
 
 // Import Swiper styles
-import 'swiper/css';
-import 'swiper/css/autoplay';
+import 'swiper/css'
+import 'swiper/css/autoplay'
 
 interface Influencer {
   name: string
@@ -30,11 +30,11 @@ interface Tweet {
 export default function CarouselHorizontal() {
   const [tweets, setTweets] = useState<Tweet[]>([])
   const [loading, setLoading] = useState(true)
+  const swiperRef = useRef<any>(null) // Reference to Swiper instance
 
   useEffect(() => {
     const fetchTweets = async () => {
       try {
-        // Check if we have cached data in localStorage and it's not expired
         const cachedData = localStorage.getItem('cryptoTweetsCarousel')
         if (cachedData) {
           const { data, timestamp } = JSON.parse(cachedData)
@@ -42,25 +42,21 @@ export default function CarouselHorizontal() {
           const cacheTime = new Date(timestamp).getTime()
           const daysDiff = (now - cacheTime) / (1000 * 60 * 60 * 24)
           
-          // If cache is less than 7 days old, use it
           if (daysDiff < 7) {
             setTweets(data)
             setLoading(false)
             return
           } else {
-            // Remove expired cache
             localStorage.removeItem('cryptoTweetsCarousel')
           }
         }
 
-        // Fetch fresh data if no cache or cache expired
-        const response = await fetch('/api/top-crypto-tweets')
+        const response = await fetch('/api/top-crypto-tweets-data')
         if (!response.ok) {
           throw new Error('Failed to fetch tweets')
         }
         const data = await response.json()
         
-        // Save to localStorage with timestamp
         localStorage.setItem('cryptoTweetsCarousel', JSON.stringify({
           data: data.tweets,
           timestamp: new Date().toISOString()
@@ -77,27 +73,32 @@ export default function CarouselHorizontal() {
     fetchTweets()
   }, [])
 
-  // Duplicate the tweets to create a seamless loop
+  // Add resize event listener to restart autoplay
+  useEffect(() => {
+    const handleResize = () => {
+      if (swiperRef.current && swiperRef.current.autoplay) {
+        swiperRef.current.autoplay.start()
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   const duplicatedTweets = [...tweets, ...tweets, ...tweets]
 
-  // Format PnL value
   const formatPnL = (pnl: number) => {
     return pnl.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
 
-  // Format date to IST (DD-MM-YYYY)
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString)
-      
-      // Add 5 hours and 30 minutes to convert to IST
       date.setHours(date.getHours() + 5)
       date.setMinutes(date.getMinutes() + 30)
-      
       const day = date.getDate().toString().padStart(2, '0')
       const month = (date.getMonth() + 1).toString().padStart(2, '0')
       const year = date.getFullYear()
-      
       return `${day}-${month}-${year}`
     } catch (error) {
       console.error('Error formatting date:', error)
@@ -108,25 +109,21 @@ export default function CarouselHorizontal() {
   if (loading) {
     return (
       <div className="bg-transparent rounded-xl border border-gray-800/30 shadow-lg p-8 flex items-center justify-center">
-      <div className="text-center">
-        <div className="relative w-14 h-14 mb-4 mx-auto">
-          <div className="absolute inset-0 rounded-full border-2 border-blue-500/30 animate-ping"></div>
-          <Loader2 className="w-14 h-14 text-blue-500/70 animate-spin absolute inset-0" />
+        <div className="text-center">
+          <div className="relative w-14 h-14 mb-4 mx-auto">
+            <div className="absolute inset-0 rounded-full border-2 border-blue-500/30 animate-ping"></div>
+            <Loader2 className="w-14 h-14 text-blue-500/70 animate-spin absolute inset-0" />
+          </div>
+          <h3 className="text-xl font-medium text-gray-200 mb-1">Loading Data</h3>
+          <p className="text-gray-400 text-sm">Fetching Top Tweets...</p>
         </div>
-        <h3 className="text-xl font-medium text-gray-200 mb-1">
-          Loading Data
-        </h3>
-        <p className="text-gray-400 text-sm">
-          Fetching Top Tweets...
-        </p>
       </div>
-    </div>
-    );
+    )
   }
 
   if (tweets.length === 0) {
     return (
-      <div className="w-full overflow-hidden bg-[#020617] py-8">
+      <div className="w-full overflow-hidden py-8">
         <div className="container mx-auto px-4 mb-6 flex justify-center">
           <div className="text-white/60 text-lg">No tweets available</div>
         </div>
@@ -136,37 +133,39 @@ export default function CarouselHorizontal() {
 
   return (
     <div className="w-full overflow-hidden bg-[#020617] py-8 mt-[3rem]">
-      <div className="container mx-auto px-4 mb-6 flex flex-col gap-[0.5rem] items-center justify-center">
-        <h2 className="text-3xl font-bold text-white/90">Top Weekly Signal Providers</h2>
-        <p className="text-white/60 text-lg mt-[4px]">Latest insights from leading crypto influencers</p>
+      <div className="container mx-auto px-4 mb-6 flex flex-col gap-[0.5rem] items-center justify-center text-center md:text-left">
+        <h2 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
+          Top Weekly Signal Providers
+        </h2>
+        <p className="text-white/60 text-base md:text-lg mt-[4px]">Latest insights from leading crypto influencers</p>
       </div>
 
-      {/* Swiper Carousel */}
       <Swiper
         modules={[Autoplay]}
         spaceBetween={24}
         slidesPerView="auto"
         loop={true}
-        speed={8000} // Constant speed for the carousel
+        speed={6000} // Transition duration of 1 second
         autoplay={{
-          delay: 1, // Almost no delay between transitions
-          disableOnInteraction: false, // Don't stop on user interaction
-          reverseDirection: false, // Keep direction consistent
+          delay: 100, // 100ms delay between transitions
+          disableOnInteraction: false,
+          reverseDirection: false,
+          waitForTransition: true,
+          pauseOnMouseEnter: false,
         }}
         className="mySwiper py-4 mt-[2rem]"
-        allowTouchMove={false} // Disable touch events to maintain consistent speed
+        allowTouchMove={true}
+        onSwiper={(swiper) => {
+          swiperRef.current = swiper // Store Swiper instance in ref
+        }}
       >
         {duplicatedTweets.map((tweet, index) => (
-          <SwiperSlide 
-            key={`${tweet.id}-${index}`} 
-            className="w-[380px]" 
-            style={{ width: '380px' }}
+          <SwiperSlide
+            key={`${tweet.id}-${index}`}
+            className="!w-[280px] sm:!w-[320px] md:!w-[380px]"
           >
-            <div
-              className="flex-shrink-0 w-[380px] bg-gradient-to-br from-[#0a101f] to-[#020617] rounded-xl border border-[#1a2035] shadow-lg overflow-hidden"
-            >
+            <div className="flex-shrink-0 w-full bg-gradient-to-br from-[#0a101f] to-[#020617] rounded-xl border border-[#1a2035] shadow-lg overflow-hidden">
               <div className="p-5">
-                {/* Header with influencer info */}
                 <div className="flex items-center mb-4">
                   <div className="relative h-10 w-10 rounded-full overflow-hidden border border-[#1a2035]">
                     <Image
@@ -192,8 +191,6 @@ export default function CarouselHorizontal() {
                     </svg>
                   </div>
                 </div>
-
-                {/* Coin info and trading data */}
                 <div className="flex items-center justify-between bg-[#0a101f]/50 rounded-lg p-3">
                   <div>
                     <div className="flex flex-col space-y-1 mt-1 text-left">
@@ -212,7 +209,9 @@ export default function CarouselHorizontal() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-lg font-medium text-white"><span className="text-green-400">{formatPnL(tweet.pnl)}%</span></div>
+                    <div className="text-lg font-medium text-white">
+                      <span className="text-green-400">{formatPnL(tweet.pnl)}%</span>
+                    </div>
                     <div
                       className={`flex items-center font-medium justify-end text-sm ${tweet.positive ? "text-green-400" : "text-red-400"}`}
                     >
@@ -231,13 +230,10 @@ export default function CarouselHorizontal() {
         ))}
       </Swiper>
 
-      {/* Custom CSS for Swiper styling */}
       <style jsx global>{`
         .swiper-slide {
           width: auto;
         }
-        
-        /* Ensure animation is smooth */
         .swiper-wrapper {
           will-change: transform;
           backface-visibility: hidden;

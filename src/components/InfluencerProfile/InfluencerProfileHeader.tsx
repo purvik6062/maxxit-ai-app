@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { FaCrown } from "react-icons/fa";
 import { Loader2 } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useLoginModal } from "@/context/LoginModalContext";
 
 interface InfluencerProfileHeaderProps {
   userProfileUrl: string;
@@ -35,6 +37,9 @@ function InfluencerProfileHeader({
   subscribedHandles = [],
   subscribingHandle = null,
 }: InfluencerProfileHeaderProps) {
+  const { data: session } = useSession();
+  const { showLoginModal } = useLoginModal();
+
   const socialMetrics = [
     {
       label: "Followers",
@@ -53,6 +58,14 @@ function InfluencerProfileHeader({
 
   // Create agent object to match the structure expected by onSubscribe
   const handleSubscribe = () => {
+    if (!session) {
+      showLoginModal(
+        "Please login to subscribe to this analyst",
+        window.location.pathname
+      );
+      return;
+    }
+
     if (onSubscribe) {
       const agent = {
         twitterHandle: username,
@@ -68,7 +81,7 @@ function InfluencerProfileHeader({
 
   return (
     <div
-      className="font-leagueSpartan flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 sm:mb-8 bg-profile-header rounded-xl py-4 sm:py-6 px-6 sm:px-10"
+      className="font-leagueSpartan flex flex-col md:flex-row justify-between items-center gap-4 mb-6 sm:mb-8 bg-profile-header rounded-xl py-4 sm:py-6 px-6 sm:px-10"
       style={{ border: "1px solid #6C7077" }}
     >
       <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">

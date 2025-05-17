@@ -61,7 +61,7 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: linear-gradient(to bottom right, #040714, #04091b);
+  /* background: linear-gradient(to bottom right, #040714, #04091b); */
 }
 
 @keyframes rotate {
@@ -221,6 +221,34 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(
     to right,
+    rgba(58, 170, 195, 0.8),
+    rgba(118, 214, 245, 0.9)
+  );
+}
+
+/* Horizontal scrollbar */
+::-webkit-scrollbar:horizontal {
+  height: 4px; /* Decrease the height of the horizontal scrollbar */
+}
+
+/* Track for horizontal scrollbar (optional, to match existing style) */
+::-webkit-scrollbar-track:horizontal {
+  background: rgba(30, 30, 30, 0.4);
+}
+
+/* Thumb for horizontal scrollbar (optional, to match existing style) */
+::-webkit-scrollbar-thumb:horizontal {
+  background: linear-gradient(
+    to bottom,
+    /* Adjust gradient direction for horizontal */ rgba(110, 228, 244, 0.9),
+    rgba(87, 235, 251, 0.9)
+  );
+}
+
+/* Thumb hover for horizontal scrollbar */
+::-webkit-scrollbar-thumb:horizontal:hover {
+  background: linear-gradient(
+    to bottom,
     rgba(58, 170, 195, 0.8),
     rgba(118, 214, 245, 0.9)
   );

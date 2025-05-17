@@ -9,12 +9,15 @@ import { IoPersonAdd } from "react-icons/io5";
 import { LuWandSparkles } from "react-icons/lu";
 import { Car, Heart, Sparkles } from "lucide-react";
 import { Header, Footer, TopInfluencersGraph } from "../components/index";
+import SocialGraph from "@/components/Body/SocialGraph";
 import AnalystLeaderboard from "@/components/Body/AnalystLeaderboard";
 import TabNavigation from "@/components/Body/TabNavigation";
 import AddInfluencerModal from "../components/Body/AddInfluencerModal";
 import TopTweetsCarousel from "@/components/Body/TopTweetsCarousel";
 import { useSession } from "next-auth/react";
 import { FaCheck } from "react-icons/fa";
+import { useLoginModal } from "@/context/LoginModalContext";
+import Link from "next/link";
 
 const HomePage: React.FC = () => {
   const { updateCredits, credits } = useCredits();
@@ -36,6 +39,7 @@ const HomePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"impact" | "heartbeat">("impact");
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
   const [currentAgent, setCurrentAgent] = useState<any>(null);
+  const { showLoginModal } = useLoginModal();
 
   useEffect(() => {
     const fetchSubscribedHandles = async () => {
@@ -64,9 +68,7 @@ const HomePage: React.FC = () => {
   const handleSubscribeInitiate = useCallback(
     (agent: any) => {
       if (!session || !session.user?.id) {
-        toast.error("Please login with Twitter/X first", {
-          position: "top-center",
-        });
+        showLoginModal("Please login to subscribe", window.location.pathname);
         return;
       }
 
@@ -82,7 +84,7 @@ const HomePage: React.FC = () => {
       setCurrentAgent(agent);
       setShowSubscribeModal(true);
     },
-    [session, credits]
+    [session, credits, showLoginModal]
   );
 
   const handleSubscribe = useCallback(async () => {
@@ -202,14 +204,14 @@ const HomePage: React.FC = () => {
       </div>
 
       <UserDataProvider>
-        <main className="flex-grow px-6 py-6 max-w-7xl mx-auto w-full">
+        <main className="flex-grow px-3 xs:px-5 py-6 max-w-7xl mx-auto w-full">
           <div className="mb-6 text-center mt-12">
             <h2 className="text-xl md:text-2xl font-bold text-white mb-2">
               <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
                 Analyst Rankings
               </span>
             </h2>
-            <p className="text-gray-400 max-w-2xl mx-auto text-sm">
+            <p className="text-white/60 text-base md:text-lg max-w-2xl mx-auto">
               Discover and follow top crypto analysts based on their impact and
               market sentiment
             </p>
@@ -252,6 +254,10 @@ const HomePage: React.FC = () => {
             </div>
           </div>
         </main>
+
+        {/* <div className="py-8">
+          <SocialGraph />
+        </div> */}
 
         {/* Subscription Confirmation Modal */}
         {showSubscribeModal && currentAgent && (
@@ -379,6 +385,20 @@ const HomePage: React.FC = () => {
                         {credits} Credits
                       </span>
                     </div>
+                    {credits !== null &&
+                      credits < currentAgent.subscriptionPrice && (
+                        <div className="mt-4 p-3 rounded-lg bg-red-900/20 border border-red-800/30">
+                          <p className="text-red-300 text-sm mb-2">
+                            You don't have enough credits for this subscription.
+                          </p>
+                          <Link
+                            href="/pricing"
+                            className="inline-flex items-center justify-center w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg text-sm font-medium transition-all duration-200"
+                          >
+                            Get More Credits
+                          </Link>
+                        </div>
+                      )}
                   </div>
 
                   <div className="flex justify-between items-center">

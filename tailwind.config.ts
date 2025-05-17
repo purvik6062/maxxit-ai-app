@@ -8,6 +8,9 @@ export default {
   ],
   theme: {
     extend: {
+      screens: {
+        xs: "450px",
+      },
       animation: {
         "ping-fast": "ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite",
         "ping-medium": "ping 2s cubic-bezier(0, 0, 0.2, 1) infinite",
@@ -152,7 +155,7 @@ export default {
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "footer": "url('../assets/images/footer/footer-bg.svg')",
+        footer: "url('../assets/images/footer/footer-bg.svg')",
         "profile-header": "url('../assets/images/profile/header-bg.svg')",
       },
       scale: {

@@ -59,7 +59,7 @@ interface Agent {
   herdedVsHidden?: number;
   convictionVsHype?: number;
   memeVsInstitutional?: number;
-  subscribers?: string[];
+  subscribers?: number;
   signals?: number;
   tokens?: number;
   subscriptionPrice?: number;
@@ -702,10 +702,6 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
           const cleanHandle = agent.twitterHandle.replace("@", "");
           const isSubscribed = subscribedHandles.includes(cleanHandle);
           const isCurrentlySubscribing = subscribingHandle === cleanHandle;
-          const subscribers = agent.subscribers?.length || 0;
-          const signals = agent.signals || 0;
-          const tokens = agent.tokens || 0;
-          // const creditCost = renderCreditCost(agent.impactFactor || 0);
           const creditCost = agent.subscriptionPrice;
 
           return (
@@ -871,26 +867,134 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                         Subscribers
                       </span>
                       <span className="text-[10px] sm:text-xs lg:text-sm font-semibold text-white">
-                        {subscribers}
+                        {agent.subscribers}
                       </span>
                     </div>
                     <div className="flex flex-col items-center justify-center bg-cyan-900/20 rounded-lg p-1 sm:p-2 border border-cyan-700/20">
                       <TrendingUp className="h-2 w-2 sm:h-3 sm:w-3 lg:h-4 lg:w-4 text-cyan-400 mb-0.5 sm:mb-1" />
                       <span className="text-[8px] sm:text-[10px] lg:text-xs text-cyan-400 mb-0.5">
-                        Signals
+                        Credits
                       </span>
                       <span className="text-[10px] sm:text-xs lg:text-sm font-semibold text-white">
-                        {signals}
+                        {agent.subscriptionPrice}
                       </span>
                     </div>
                     <div className="flex flex-col items-center justify-center bg-blue-800/20 rounded-lg p-1 sm:p-2 border border-blue-700/20">
                       <BarChart2 className="h-2 w-2 sm:h-3 sm:w-3 lg:h-4 lg:w-4 text-blue-300 mb-0.5 sm:mb-1" />
                       <span className="text-[8px] sm:text-[10px] lg:text-xs text-blue-300 mb-0.5">
-                        Tokens
+                        {primaryLabel}
                       </span>
                       <span className="text-[10px] sm:text-xs lg:text-sm font-semibold text-white">
-                        {tokens}
+                        {agent[primaryField]}
                       </span>
+                    </div>
+                  </div>
+                  <div className="relative h-24 mb-4 hidden md:block">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-full h-full max-w-[120px] max-h-[120px] relative">
+                        <div className="absolute inset-0 border-2 border-blue-800/30 rounded-full"></div>
+                        <div className="absolute inset-[20%] border-2 border-blue-800/20 rounded-full"></div>
+                        <div className="absolute inset-[40%] border-2 border-blue-800/10 rounded-full"></div>
+                        <div className="absolute top-0 left-1/2 h-1/2 w-0.5 bg-blue-800/20 -translate-x-1/2"></div>
+                        <div className="absolute top-1/2 left-0 h-0.5 w-1/2 bg-blue-800/20"></div>
+                        <div className="absolute bottom-0 left-1/2 h-1/2 w-0.5 bg-blue-800/20 -translate-x-1/2"></div>
+                        <div className="absolute top-1/2 right-0 h-0.5 w-1/2 bg-blue-800/20"></div>
+
+                        {/* Calculate normalized positions for metrics to fit within the 0-100 range */}
+                        {(() => {
+                          // Define scaling functions for each metric
+                          const normalizeSubscribers = (val) => {
+                            // Scale subscribers (typically 0-1000) to be between 0-50%
+                            const maxSubscribers = 1000;
+                            return Math.min(50, (val / maxSubscribers) * 50);
+                          };
+
+                          const normalizePrice = (val) => {
+                            // Scale price (typically 0-100) to be between 0-50%
+                            const maxPrice = 100;
+                            return Math.min(50, (val / maxPrice) * 50);
+                          };
+
+                          const normalizeImpact = (val) => {
+                            // Scale impact/heartbeat (typically 0-100) to be between 0-50%
+                            const maxImpact = 100;
+                            return Math.min(50, (val / maxImpact) * 50);
+                          };
+
+                          const normalizeFollowers = (val) => {
+                            // Scale followers (can be thousands or millions) to be between 0-50%
+                            const maxFollowers = 1000000; // 1 million
+                            return Math.min(50, (val / maxFollowers) * 50);
+                          };
+
+                          // Calculate positions for each metric point
+                          const subscribersY = Math.max(45, 50 - normalizeSubscribers(agent.subscribers || 0));
+                          const priceX = Math.max(5, Math.min(85, normalizePrice(agent.subscriptionPrice || 0)));
+                          const impactY = Math.min(85, 50 + normalizeImpact(agent[primaryField] || 0));
+                          const followersX = Math.min(85, 50 + normalizeFollowers(agent.followers || 0));
+
+                          // Define points for the polygon
+                          const points = `${50},${subscribersY} ${priceX},50 ${50},${impactY} ${followersX},50`;
+
+                          return (
+                            <>
+                              {/* Data points */}
+                              <div
+                                className="absolute rounded-full w-2 h-2 bg-blue-400"
+                                style={{
+                                  top: `${subscribersY}%`,
+                                  left: "50%",
+                                  transform: "translate(-50%, -50%)",
+                                  boxShadow: "0 0 5px rgba(96, 165, 250, 0.7)",
+                                }}
+                              ></div>
+                              <div
+                                className="absolute rounded-full w-2 h-2 bg-cyan-400"
+                                style={{
+                                  top: "50%",
+                                  left: `${priceX}%`,
+                                  transform: "translate(-50%, -50%)",
+                                  boxShadow: "0 0 5px rgba(34, 211, 238, 0.7)",
+                                }}
+                              ></div>
+                              <div
+                                className="absolute rounded-full w-2 h-2 bg-blue-300"
+                                style={{
+                                  top: `${impactY}%`,
+                                  left: "50%",
+                                  transform: "translate(-50%, -50%)",
+                                  boxShadow: mode === "impact" ? "0 0 5px rgba(147, 197, 253, 0.7)" : "0 0 5px rgba(239, 68, 68, 0.7)",
+                                }}
+                              ></div>
+                              <div
+                                className="absolute rounded-full w-2 h-2 bg-blue-500"
+                                style={{
+                                  top: "50%",
+                                  left: `${followersX}%`,
+                                  transform: "translate(-50%, -50%)",
+                                  boxShadow: "0 0 5px rgba(59, 130, 246, 0.7)",
+                                }}
+                              ></div>
+
+                              {/* SVG Polygon */}
+                              <svg className="absolute inset-0 w-full h-full">
+                                <polygon
+                                  points={points}
+                                  fill={mode === "impact" ? "rgba(59, 130, 246, 0.2)" : "rgba(239, 68, 68, 0.2)"}
+                                  stroke={mode === "impact" ? "rgba(59, 130, 246, 0.6)" : "rgba(239, 68, 68, 0.6)"}
+                                  strokeWidth="1"
+                                />
+                              </svg>
+
+                              {/* Labels */}
+                              <div className="absolute text-[6px] text-blue-300 top-0 left-1/2 -translate-x-1/2">Subscribers</div>
+                              <div className="absolute text-[6px] text-cyan-300 top-1/2 left-0 -translate-y-1/2">Credits</div>
+                              <div className="absolute text-[6px] text-blue-300 bottom-0 left-1/2 -translate-x-1/2">{primaryLabel}</div>
+                              <div className="absolute text-[6px] text-blue-300 top-1/2 right-0 -translate-y-1/2">Followers</div>
+                            </>
+                          );
+                        })()}
+                      </div>
                     </div>
                   </div>
                   <div className="p-2 sm:p-3 space-y-2 sm:space-y-3 bg-gray-900/30 rounded-lg border border-gray-800/20 mb-2 sm:mb-3">
@@ -1040,14 +1144,14 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
               </span>
               <span className="w-1/3 text-center truncate">Meme/Inst.</span>
             </div>
-            <div className="hidden lg:flex items-center justify-end gap-2 md:gap-3 flex-shrink-0 w-auto sm:w-[300px] md:w-[385px]">
+            <div className="hidden lg:flex items-center justify-end gap-2 md:gap-3 flex-shrink-0 w-auto sm:w-[300px] md:w-[390px]">
               <span className="w-16 text-right hidden sm:inline-block">
                 Mindshare
               </span>
               <span className="w-20 text-right hidden lg:inline-block">
                 Followers
               </span>
-              <span className="w-14 text-right">
+              <span className="w-16 text-right">
                 {mode === "impact" ? "Impact" : "Heartbeat"}
               </span>
               <span className="w-16 text-right">Credits</span>
@@ -1064,7 +1168,6 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
               const cleanHandle = agent.twitterHandle.replace("@", "");
               const isSubscribed = subscribedHandles.includes(cleanHandle);
               const isCurrentlySubscribing = subscribingHandle === cleanHandle;
-              // const creditCost = renderCreditCost(agent.impactFactor || 0);
               const isCurrentUser =
                 session?.user?.username &&
                 cleanHandle.toLowerCase() ===
