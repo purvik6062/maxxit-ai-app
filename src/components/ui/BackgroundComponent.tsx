@@ -35,8 +35,8 @@ const BackgroundComponent: React.FC<DynamicGridBackgroundProps> = ({
     observer.observe(document.body);
 
     const animate = () => {
-      const totalCells = grid.cols * grid.rows;
-      const newActiveCells = [];
+      const totalCells: any = grid.cols * grid.rows;
+      const newActiveCells: any = [];
       const numActive = Math.floor(totalCells * 0.05); // 5% of cells active
       for (let i = 0; i < numActive; i++) {
         newActiveCells.push(Math.floor(Math.random() * totalCells));

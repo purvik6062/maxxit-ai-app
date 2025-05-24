@@ -14,9 +14,9 @@ interface InfluencerMetricsProps {
 
 function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
   const id = influencerId;
-  const [influencer, setInfluencer] = useState(null);
+  const [influencer, setInfluencer] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<any>(null);
   const { data: session } = useSession();
   const { credits, updateCredits } = useCredits();
 
@@ -25,7 +25,7 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
   const [subscribingHandle, setSubscribingHandle] = useState<string | null>(
     null
   );
-  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+  const [showSubscribeModal, setShowSubscribeModal] = useState<boolean>(false);
   const [currentAgent, setCurrentAgent] = useState<any>(null);
 
   useEffect(() => {
@@ -354,8 +354,8 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
                 <div>
                   {renderMetricIndicator(
                     metric.value,
-                    metric.colors.left,
-                    metric.colors.right
+                    metric?.colors?.left,
+                    metric?.colors?.right
                   )}
                 </div>
               )}

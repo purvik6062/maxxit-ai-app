@@ -89,13 +89,15 @@ export async function GET(request: Request): Promise<Response> {
     client = await dbConnect();
     const db = client.db("ctxbt-signal-flow");
     const tradingSignalsCollection = db.collection("trading-signals");
-    
+
     // For backtesting data - main source for exited trades
     const backtestingDb = client.db("backtesting_db");
-    const backtestingCollection = backtestingDb.collection("backtesting_results_with_reasoning");
+    const backtestingCollection = backtestingDb.collection(
+      "backtesting_results_with_reasoning"
+    );
 
     // Get user's trading signals
-    const userSignals = await tradingSignalsCollection
+    const userSignals = (await tradingSignalsCollection
       .find({
         subscribers: {
           $elemMatch: {
@@ -103,50 +105,48 @@ export async function GET(request: Request): Promise<Response> {
           },
         },
       })
-      .toArray() as SignalData[];
+      .toArray()) as SignalData[];
 
     // Get all tweet links for backtesting matching
-    const userTweetLinks = userSignals.map(signal => signal.tweet_link);
-    
+    const userTweetLinks = userSignals.map((signal) => signal.tweet_link);
+
     // Find all backtesting results for these signals
     const backtestingResults = await backtestingCollection
       .find({
-        $or: userSignals.map(signal => ({
-          $and: [
-            { Tweet: signal.tweet_link },
-            { "Token ID": signal.coin }
-          ]
-        }))
+        $or: userSignals.map((signal) => ({
+          $and: [{ Tweet: signal.tweet_link }, { "Token ID": signal.coin }],
+        })),
       })
       .toArray();
-    
+
     // Create a map of tweet links to backtesting results for fast lookup
     const backtestingMap = new Map();
-    backtestingResults.forEach(result => {
+    backtestingResults.forEach((result) => {
       // Create a composite key using both Tweet and Token ID
       const key = `${result.Tweet}:${result["Token ID"]}`;
       backtestingMap.set(key, result);
     });
-    
+
     // Process each signal
-    const enrichedSignals = userSignals.map(signal => {
+    const enrichedSignals = userSignals.map((signal) => {
       // Get matching backtesting result using composite key
       const compositeKey = `${signal.tweet_link}:${signal.coin}`;
       const backtestingResult = backtestingMap.get(compositeKey);
-      
+
       // If no backtesting result, return signal as is
       if (!backtestingResult) {
         return {
           ...signal,
           hasExited: false,
-          backtestingDone: false
+          backtestingDone: false,
         } as SignalData;
       }
-      
+
       // Check if this is an exited trade - verify Final Exit Price exists and is not empty
-      const hasExitPrice = backtestingResult["Final Exit Price"] && 
-                         backtestingResult["Final Exit Price"] !== "";
-      
+      const hasExitPrice =
+        backtestingResult["Final Exit Price"] &&
+        backtestingResult["Final Exit Price"] !== "";
+
       if (!hasExitPrice) {
         // This has backtesting data but hasn't exited
         return {
@@ -154,76 +154,85 @@ export async function GET(request: Request): Promise<Response> {
           signal_data: {
             ...signal.signal_data,
             // Update stopLoss and targets from backtesting if available
-            stopLoss: backtestingResult["SL"] 
-              ? parseFloat(backtestingResult["SL"]) 
+            stopLoss: backtestingResult["SL"]
+              ? parseFloat(backtestingResult["SL"])
               : signal.signal_data.stopLoss,
-            targets: [
-              parseFloat(backtestingResult["TP1"] || "0"), 
-              parseFloat(backtestingResult["TP2"] || "0")
-            ].filter(t => t > 0).length > 0 ? 
+            targets:
               [
-                parseFloat(backtestingResult["TP1"] || "0"), 
-                parseFloat(backtestingResult["TP2"] || "0")
-              ].filter(t => t > 0) : 
-              signal.signal_data.targets,
+                parseFloat(backtestingResult["TP1"] || "0"),
+                parseFloat(backtestingResult["TP2"] || "0"),
+              ].filter((t) => t > 0).length > 0
+                ? [
+                    parseFloat(backtestingResult["TP1"] || "0"),
+                    parseFloat(backtestingResult["TP2"] || "0"),
+                  ].filter((t) => t > 0)
+                : signal.signal_data.targets,
           },
           hasExited: false,
-          backtestingDone: true
+          backtestingDone: true,
         } as SignalData;
       }
-      
+
       // This is an exited trade - use backtesting data
       return {
         ...signal,
         signal_data: {
           ...signal.signal_data,
           // Use backtesting data for entry price, exit price, PnL
-          currentPrice: backtestingResult["Price at Tweet"] 
-            ? parseFloat(backtestingResult["Price at Tweet"]) 
+          currentPrice: backtestingResult["Price at Tweet"]
+            ? parseFloat(backtestingResult["Price at Tweet"])
             : signal.signal_data.currentPrice,
           exitValue: parseFloat(backtestingResult["Final Exit Price"]),
           exitPnL: backtestingResult["Final P&L"] || "",
-          stopLoss: backtestingResult["SL"] 
-            ? parseFloat(backtestingResult["SL"]) 
+          stopLoss: backtestingResult["SL"]
+            ? parseFloat(backtestingResult["SL"])
             : signal.signal_data.stopLoss,
-          targets: [
-            parseFloat(backtestingResult["TP1"] || "0"), 
-            parseFloat(backtestingResult["TP2"] || "0")
-          ].filter(t => t > 0).length > 0 ? 
+          targets:
             [
-              parseFloat(backtestingResult["TP1"] || "0"), 
-              parseFloat(backtestingResult["TP2"] || "0")
-            ].filter(t => t > 0) : 
-            signal.signal_data.targets,
+              parseFloat(backtestingResult["TP1"] || "0"),
+              parseFloat(backtestingResult["TP2"] || "0"),
+            ].filter((t) => t > 0).length > 0
+              ? [
+                  parseFloat(backtestingResult["TP1"] || "0"),
+                  parseFloat(backtestingResult["TP2"] || "0"),
+                ].filter((t) => t > 0)
+              : signal.signal_data.targets,
           bestStrategy: backtestingResult["Best Strategy"] || "",
-          ipfsLink: backtestingResult["IPFS Link"] || signal.signal_data.ipfsLink,
+          ipfsLink:
+            backtestingResult["IPFS Link"] || signal.signal_data.ipfsLink,
         },
         hasExited: true,
-        backtestingDone: true
+        backtestingDone: true,
       } as SignalData;
     });
-    
+
     // Apply filtering
-    let filteredSignals = [];
+    let filteredSignals: any[] = [];
     if (filterType === "all") {
       filteredSignals = enrichedSignals;
     } else if (filterType === "exited") {
-      filteredSignals = enrichedSignals.filter(signal => signal.hasExited);
-    } else if (filterType === "buy" || filterType === "sell" || filterType === "hold") {
-      filteredSignals = enrichedSignals.filter(signal => 
-        signal.signal_data.signal.toLowerCase() === filterType.toLowerCase()
+      filteredSignals = enrichedSignals.filter((signal) => signal.hasExited);
+    } else if (
+      filterType === "buy" ||
+      filterType === "sell" ||
+      filterType === "hold"
+    ) {
+      filteredSignals = enrichedSignals.filter(
+        (signal) =>
+          signal.signal_data.signal.toLowerCase() === filterType.toLowerCase()
       );
     }
-    
+
     // Sort by date (newest first)
-    filteredSignals.sort((a, b) => 
-      new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime()
+    filteredSignals.sort(
+      (a, b) =>
+        new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime()
     );
-    
+
     // Calculate total count for pagination
     const totalSignals = filteredSignals.length;
     const totalPages = Math.ceil(totalSignals / limit);
-    
+
     // Apply pagination
     const start = (page - 1) * limit;
     const end = start + limit;

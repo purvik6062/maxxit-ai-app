@@ -83,7 +83,7 @@ export async function POST(request: Request) {
             method: "GET",
             headers: {
               Accept: "application/json",
-              ApiKey: TWEETSCOUT_API_KEY,
+              ApiKey: TWEETSCOUT_API_KEY as string,
             },
           };
 

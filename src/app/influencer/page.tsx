@@ -197,7 +197,7 @@ export default function Influencer() {
                 >
                   <img
                     src={
-                      session.user?.image.replace(
+                      session.user?.image?.replace(
                         /_normal(?=\.(jpg|jpeg|png|gif|webp))/i,
                         ""
                       ) || "/default-avatar.png"

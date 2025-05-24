@@ -72,10 +72,10 @@ function encryptTwitterId(tweetUrl: string, twitterHandle: string): string {
   try {
     // Create a simple hash of the Twitter handle and URL combination
     const data = `${twitterHandle}:${tweetUrl}`;
-    const hash = crypto.createHash('sha256').update(data).digest('hex');
-    
+    const hash = crypto.createHash("sha256").update(data).digest("hex");
+
     // Return a shortened version of the hash (first 16 characters)
-    return hash
+    return hash;
   } catch (error) {
     console.error("Error encrypting Twitter ID:", error);
     return "encrypted-id-error";
@@ -162,7 +162,7 @@ export async function GET(request: Request): Promise<Response> {
     );
 
     // Try to find the signal in the main trading-signals collection
-    let signal = null;
+    let signal: SignalData | any;
     let isBacktestingSignal = false;
 
     try {
@@ -201,17 +201,21 @@ export async function GET(request: Request): Promise<Response> {
         { status: 404 }
       );
     }
-    
+
     // Generate encrypted Twitter ID from tweet URL
-    const twitterHandle = signal.twitterHandle || signal.signal_data.twitterHandle || "";
+    const twitterHandle =
+      signal.twitterHandle || signal.signal_data.twitterHandle || "";
     if (signal.tweet_link && twitterHandle) {
-      signal.signal_data.encryptedTwitterId = encryptTwitterId(signal.tweet_link, twitterHandle);
+      signal.signal_data.encryptedTwitterId = encryptTwitterId(
+        signal.tweet_link,
+        twitterHandle
+      );
     }
 
     // If this is a regular signal (not from backtesting collection), process it as before
     if (!isBacktestingSignal) {
       // Find backtesting result for this signal
-      let backtestingResult = null;
+      let backtestingResult;
 
       if (signal.tweet_link && signal.coin) {
         backtestingResult = await backtestingCollection.findOne({

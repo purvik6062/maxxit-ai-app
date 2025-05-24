@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Calendar, TrendingUp, BarChart2, Users, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, TrendingDown } from "lucide-react";
+import {
+  Calendar,
+  TrendingUp,
+  BarChart2,
+  Users,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  TrendingDown,
+} from "lucide-react";
 import { FaXTwitter } from "react-icons/fa6";
 import type { Subscription, WeeklyStats } from "./types";
 import { useRouter } from "@bprogress/next/app";
@@ -21,46 +31,61 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
     (acc, sub) => acc + (sub.leadsCount || 0),
     0
   );
-  const totalPages = Math.ceil(subscriptions.length / pageSize);
+  const totalPages: any = Math.ceil(subscriptions.length / pageSize);
 
   // Fetch weekly stats
   useEffect(() => {
     const fetchWeeklyStats = async () => {
       if (!session?.user?.id) return;
-      
+
       try {
         setLoading(true);
-        const response = await fetch(`/api/get-user-weekly-stats?twitterId=${session.user.id}`);
+        const response = await fetch(
+          `/api/get-user-weekly-stats?twitterId=${session.user.id}`
+        );
         const result = await response.json();
-        
+
         if (result.success && result.data.weeklyStats) {
           setWeeklyStats(result.data.weeklyStats);
-          
+
           // Console log each signal with its PnL
-          if (result.data.weeklySignalsWithPnL && result.data.weeklySignalsWithPnL.length > 0) {
-            console.log("Weekly Signals with PnL details:", result.data.weeklySignalsWithPnL);
-            
+          if (
+            result.data.weeklySignalsWithPnL &&
+            result.data.weeklySignalsWithPnL.length > 0
+          ) {
+            console.log(
+              "Weekly Signals with PnL details:",
+              result.data.weeklySignalsWithPnL
+            );
+
             // Calculate totals from the detailed data using the same approach as totalPnL.js
             const totalSignals = result.data.weeklySignalsWithPnL.length;
-            const totalPnL = result.data.weeklySignalsWithPnL.reduce((sum, signal) => {
-              // Skip trades with no PnL value or invalid PnL format
-              if (!signal.pnl || typeof signal.pnl !== 'string') {
-                return sum;
-              }
-              
-              // Extract the numeric value from the percentage string
-              // Remove the % sign and convert to a number
-              const pnlValue = parseFloat(signal.pnl.replace('%', ''));
-              
-              // If parsing fails, don't add to the sum
-              if (isNaN(pnlValue)) {
-                return sum;
-              }
-              
-              return sum + pnlValue;
-            }, 0);
-            
-            console.log(`Total Signals: ${totalSignals}, Total PnL: ${totalPnL.toFixed(2)}%`);
+            const totalPnL = result.data.weeklySignalsWithPnL.reduce(
+              (sum, signal) => {
+                // Skip trades with no PnL value or invalid PnL format
+                if (!signal.pnl || typeof signal.pnl !== "string") {
+                  return sum;
+                }
+
+                // Extract the numeric value from the percentage string
+                // Remove the % sign and convert to a number
+                const pnlValue = parseFloat(signal.pnl.replace("%", ""));
+
+                // If parsing fails, don't add to the sum
+                if (isNaN(pnlValue)) {
+                  return sum;
+                }
+
+                return sum + pnlValue;
+              },
+              0
+            );
+
+            console.log(
+              `Total Signals: ${totalSignals}, Total PnL: ${totalPnL.toFixed(
+                2
+              )}%`
+            );
           } else {
             console.log("No weekly signals with PnL data available");
           }
@@ -92,7 +117,7 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
   // Generate page numbers for display (e.g., 1, 2, 3, ..., 10)
   const getPageNumbers = () => {
     const maxPagesToShow = 5;
-    const pages = [];
+    const pages: (number | string)[] = [];
     const startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
     const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
 
@@ -123,7 +148,7 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
   };
 
   return (
-    <div className="font-leagueSpartan">      
+    <div className="font-leagueSpartan">
       {/* Header */}
       <div className="p-4 md:p-6 bg-[#1C2333] border border-[rgba(206,212,218,0.15)] rounded-md mb-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-5">
@@ -131,7 +156,9 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
             <h3 className="text-xl md:text-2xl font-bold text-[#AAC9FA]">
               Subscribed Accounts
             </h3>
-            <p className="text-[#8ba1bc] mt-1">Manage your active subscriptions</p>
+            <p className="text-[#8ba1bc] mt-1">
+              Manage your active subscriptions
+            </p>
           </div>
 
           {loading && (
@@ -153,7 +180,9 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
               <div>
                 <p className="text-sm text-[#818791]">Active Subscriptions</p>
                 <p className="text-xl font-semibold text-[#AAC9FA]">
-                  {weeklyStats?.activeSubscriptions || subscriptions.length || 0}
+                  {weeklyStats?.activeSubscriptions ||
+                    subscriptions.length ||
+                    0}
                 </p>
               </div>
             </div>
@@ -167,7 +196,9 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
               </div>
               <div>
                 <p className="text-sm text-[#818791]">Total Leads</p>
-                <p className="text-xl font-semibold text-[#AAC9FA]">{totalLeads || 0}</p>
+                <p className="text-xl font-semibold text-[#AAC9FA]">
+                  {totalLeads || 0}
+                </p>
               </div>
             </div>
           </div>
@@ -194,7 +225,15 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
           {/* Weekly P&L */}
           <div className="bg-[#0D1321] border border-[rgba(206,212,218,0.15)] rounded-md p-3">
             <div className="flex items-center space-x-3">
-              <div className={`bg-[#1a1f29] border border-[rgba(206,212,218,0.15)] rounded-md p-2 ${weeklyStats?.totalPnL && weeklyStats.totalPnL >= 0 ? 'bg-green-500/10' : weeklyStats?.totalPnL ? 'bg-red-500/10' : ''}`}>
+              <div
+                className={`bg-[#1a1f29] border border-[rgba(206,212,218,0.15)] rounded-md p-2 ${
+                  weeklyStats?.totalPnL && weeklyStats.totalPnL >= 0
+                    ? "bg-green-500/10"
+                    : weeklyStats?.totalPnL
+                    ? "bg-red-500/10"
+                    : ""
+                }`}
+              >
                 {weeklyStats?.totalPnL && weeklyStats.totalPnL < 0 ? (
                   <TrendingDown className="w-5 h-5 text-red-400" />
                 ) : (
@@ -207,9 +246,17 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
                   <div className="h-7 bg-gray-700 rounded w-16 animate-pulse mt-1"></div>
                 ) : (
                   <>
-                    <p className={`text-xl font-semibold ${weeklyStats?.totalPnL && weeklyStats.totalPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {weeklyStats?.totalPnL 
-                        ? `${weeklyStats.totalPnL >= 0 ? '+' : ''}${weeklyStats.totalPnL.toFixed(2)}%` 
+                    <p
+                      className={`text-xl font-semibold ${
+                        weeklyStats?.totalPnL && weeklyStats.totalPnL >= 0
+                          ? "text-green-400"
+                          : "text-red-400"
+                      }`}
+                    >
+                      {weeklyStats?.totalPnL
+                        ? `${
+                            weeklyStats.totalPnL >= 0 ? "+" : ""
+                          }${weeklyStats.totalPnL.toFixed(2)}%`
                         : "N/A"}
                     </p>
                   </>

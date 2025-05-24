@@ -7,7 +7,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 function Page() {
-  const { id } = useParams();
+  const { id } = useParams<any>();
 
   return (
     <div className="py-4 px-5">

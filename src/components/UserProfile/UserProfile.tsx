@@ -102,7 +102,7 @@ const UserProfile = () => {
 
         // Fetch user profile
         const profileResponse = await fetch(
-          `/api/get-user-profile?twitterId=${session.user.id}`
+          `/api/get-user-profile?twitterId=${session?.user.id}`
         );
         const profileResult = await profileResponse.json();
 
@@ -433,7 +433,7 @@ const UserProfile = () => {
               <SubscriptionsList subscriptions={profile.subscribedAccounts} />
             )}
             {activeSection === "signals" && (
-              <UserSignals twitterId={session.user.id} profile={profile} />
+              <UserSignals twitterId={session?.user.id} profile={profile} />
             )}
             {activeSection === "api" && (
               <ApiCredentialsSection
@@ -443,7 +443,7 @@ const UserProfile = () => {
                     ? "https://app.maxxit.ai"
                     : "https://app.maxxit.ai"
                 }
-                twitterId={session.user.id}
+                twitterId={session?.user.id}
                 onGenerateNewKey={handleNewKeyGenerated}
                 onApiKeyUpdate={handleApiKeyUpdate}
                 profile={profile}

@@ -3,7 +3,7 @@ import dbConnect from '../../../utils/dbConnect';
 import { MongoClient } from "mongodb";
 
 export async function GET(request: Request) {
-  let client: MongoClient;
+  let client;
   try {
     // Connect to the database
     client = await dbConnect();

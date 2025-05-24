@@ -8,7 +8,7 @@ const SUBSCRIPTION_COST = 30;
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  let browser = null;
+  let browser;
 
   try {
     const { handle, twitterId } = await request.json();

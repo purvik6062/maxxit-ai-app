@@ -44,7 +44,7 @@ function UserSignals({
   twitterId,
   profile,
 }: {
-  twitterId: string;
+  twitterId: string | any;
   profile: any;
 }) {
   const [signals, setSignals] = useState<SignalData[]>([]);
