@@ -38,7 +38,7 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
           
           // Console log each signal with its PnL
           if (result.data.weeklySignalsWithPnL && result.data.weeklySignalsWithPnL.length > 0) {
-            console.log("Weekly Signals with PnL details:", result.data.weeklySignalsWithPnL);
+            // console.log("Weekly Signals with PnL details:", result.data.weeklySignalsWithPnL);
             
             // Calculate totals from the detailed data using the same approach as totalPnL.js
             const totalSignals = result.data.weeklySignalsWithPnL.length;
@@ -60,7 +60,7 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
               return sum + pnlValue;
             }, 0);
             
-            console.log(`Total Signals: ${totalSignals}, Total PnL: ${totalPnL.toFixed(2)}%`);
+            // console.log(`Total Signals: ${totalSignals}, Total PnL: ${totalPnL.toFixed(2)}%`);
           } else {
             console.log("No weekly signals with PnL data available");
           }
