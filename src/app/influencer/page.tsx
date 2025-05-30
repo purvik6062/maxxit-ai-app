@@ -256,10 +256,10 @@ export default function Influencer() {
                               <p className="text-amber-400 flex items-start">
                                 <InfoIcon className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
                                 <span>
-                                  You haven't mentioned "Maxxit" or our
-                                  platform-related keywords in your tweets yet.
-                                  Please do so to earn a portion of the amount
-                                  from your subscribers.
+                                  You haven&apos;t mentioned &quot;Maxxit&quot;
+                                  or our platform-related keywords in your
+                                  tweets yet. Please do so to earn a portion of
+                                  the amount from your subscribers.
                                 </span>
                               </p>
                             </div>
@@ -374,8 +374,8 @@ export default function Influencer() {
                         </h2>
                         <p className="text-white/80 mb-4">
                           Enter a wallet address to receive your earnings from
-                          Maxxit. Ensure it's correct, as this is where your
-                          payments will be sent!
+                          Maxxit. Ensure it&apos;s correct, as this is where
+                          your payments will be sent!
                         </p>
                         <input
                           type="text"
@@ -479,8 +479,8 @@ export default function Influencer() {
                     <div className="flex items-start gap-1 p-5 bg-blue-500/20 border-2 border-blue-500/30 rounded-lg text-blue-200 text-base">
                       <InfoIcon className="w-5 h-5 mt-0.5 flex-shrink-0" />
                       <span>
-                        You are not yet registered with "Maxxit". This is a
-                        necessary step, as once you have registered on our
+                        You are not yet registered with &quot;Maxxit&quot;. This
+                        is a necessary step, as once you have registered on our
                         platform, you will be eligible to receive a portion of
                         payments from your subscribed users
                       </span>
@@ -537,7 +537,7 @@ export default function Influencer() {
                       <p>
                         Earn amounts by mentioning{" "}
                         <span className="text-emerald-400 font-semibold">
-                          "Maxxit"
+                          &quot;Maxxit&quot;
                         </span>{" "}
                         or our platform link in your tweets
                       </p>
@@ -567,7 +567,7 @@ export default function Influencer() {
                       <p>
                         Mention{" "}
                         <span className="text-emerald-400 font-semibold">
-                          "Maxxit"
+                          &quot;Maxxit&quot;
                         </span>{" "}
                         more in your tweets to earn more
                       </p>

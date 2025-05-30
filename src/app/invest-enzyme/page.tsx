@@ -195,7 +195,7 @@ export default function InvestEnzymePage() {
                 <ul className="mt-4 text-cyan-200 list-disc list-inside space-y-1">
                   <li>Deposits mint vault shares proportional to your contribution</li>
                   <li>Withdrawals redeem shares for underlying assets</li>
-                  <li>Share price reflects the vault's performance over time</li>
+                  <li>Share price reflects the vault&apos;s performance over time</li>
                   <li>All transactions are executed on-chain for full transparency</li>
                 </ul>
                 <p className="mt-4 text-cyan-200">

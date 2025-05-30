@@ -37,7 +37,7 @@ export default function RedeemCreditsPage() {
             Earn Free Credits weekly
           </h1>
           <p className="text-white text-base max-w-2xl mx-auto">
-            Complete these simple tasks to earn free credits every week. It's
+            Complete these simple tasks to earn free credits every week. It&apos;s
             our way of saying thank you for supporting our community!
           </p>
         </div>
