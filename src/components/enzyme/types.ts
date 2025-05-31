@@ -45,3 +45,34 @@ export interface NetworkConfig {
   explorer: string;
   currency: string;
 }
+
+// New types for AI Agents and multi-step flow
+export interface AIAgent {
+  id: string;
+  name: string;
+  strategy: string;
+  description: string;
+  walletAddress: string;
+  price: number; // Price in ETH
+  parameters: Record<string, any>;
+  features: string[];
+  riskLevel: "Low" | "Medium" | "High";
+  avgReturns: string;
+  icon: string;
+}
+
+export interface VaultCreationStep {
+  step: number;
+  title: string;
+  description: string;
+  completed: boolean;
+  current: boolean;
+}
+
+export interface VaultCreationState {
+  currentStep: number;
+  selectedAgent: AIAgent | null;
+  vaultConfig: VaultConfig;
+  createdVault: CreatedVault | null;
+  isProcessing: boolean;
+}

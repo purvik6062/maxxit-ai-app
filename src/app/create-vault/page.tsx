@@ -4,22 +4,22 @@ import {
   WalletProvider,
   WalletConnector,
 } from "@/components/enzyme/WalletConnector";
-import CreateVaultPage from "@/components/enzyme/CreateVault";
+import MultiStepVaultCreation from "@/components/enzyme/MultiStepVaultCreation";
 
 function page() {
   return (
     <WalletProvider>
       <div className="min-h-screen bg-[#020617]">
-        {/* Header Section */}
+        {/* Header Section with Wallet Connection */}
         <div className="bg-[#0D1321] border-b border-[#353940]">
           <div className="max-w-4xl mx-auto px-4 py-8">
             <div className="text-center">
               <h1 className="text-3xl sm:text-4xl font-bold text-[#E4EFFF] mb-4">
-                Enzyme Vault Creation
+                AI-Powered Enzyme Vault Creation
               </h1>
               <p className="text-lg text-[#8ba1bc] mb-6 max-w-2xl mx-auto">
-                Create your own decentralized investment vault using the Enzyme
-                Protocol
+                Create your own decentralized investment vault powered by AI
+                trading agents using the Enzyme Protocol
               </p>
 
               {/* Wallet Connector */}
@@ -28,79 +28,55 @@ function page() {
           </div>
         </div>
 
-        {/* Vault Creation Component */}
-        <CreateVaultPage />
+        {/* Multi-Step Vault Creation Component */}
+        <MultiStepVaultCreation />
 
         {/* Footer Information */}
         <div className="bg-[#020617] py-12">
           <div className="max-w-4xl mx-auto px-4">
             <div className="bg-[#0D1321] rounded-2xl border border-[#353940] shadow-2xl p-8">
               <h2 className="text-2xl font-bold text-[#E4EFFF] mb-6 text-center">
-                About Enzyme Protocol
+                AI-Powered Trading Strategies
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-[#8ba1bc]">
                 <div className="bg-[#0A0F1A] border border-[#253040] rounded-lg p-6">
                   <h3 className="font-semibold text-[#AAC9FA] mb-3 flex items-center gap-2">
                     <div className="w-5 h-5 bg-blue-500 rounded-md flex items-center justify-center">
-                      <svg
-                        className="w-3 h-3 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
+                      🤖
                     </div>
-                    What is Enzyme?
+                    AI Trading Agents
                   </h3>
                   <p className="text-sm leading-relaxed">
-                    Enzyme is a decentralized protocol for on-chain asset
-                    management. It allows anyone to create, manage, and invest
-                    in tokenized investment vehicles with customizable rules and
-                    fee structures.
+                    Choose from 6 specialized AI agents, each implementing
+                    different trading strategies like Trailing Stop, Moving
+                    Averages (SMA/EMA), and Dynamic TP/SL for automated
+                    portfolio management.
                   </p>
                 </div>
 
                 <div className="bg-[#0A0F1A] border border-[#253040] rounded-lg p-6">
                   <h3 className="font-semibold text-[#AAC9FA] mb-3 flex items-center gap-2">
                     <div className="w-5 h-5 bg-green-500 rounded-md flex items-center justify-center">
-                      <svg
-                        className="w-3 h-3 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
+                      📈
                     </div>
-                    Key Features
+                    Risk Management
                   </h3>
                   <ul className="text-sm space-y-2">
                     <li className="flex items-center gap-2">
                       <span className="w-1 h-1 bg-cyan-400 rounded-full"></span>
-                      Decentralized and permissionless
+                      Automated stop-loss protection
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1 h-1 bg-cyan-400 rounded-full"></span>
-                      Customizable fee structures
+                      Dynamic position sizing
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1 h-1 bg-cyan-400 rounded-full"></span>
-                      Integration with DeFi protocols
+                      24/7 market monitoring
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1 h-1 bg-cyan-400 rounded-full"></span>
-                      Transparent and auditable
+                      Emotion-free trading
                     </li>
                   </ul>
                 </div>
@@ -108,38 +84,26 @@ function page() {
                 <div className="bg-[#0A0F1A] border border-[#253040] rounded-lg p-6">
                   <h3 className="font-semibold text-[#AAC9FA] mb-3 flex items-center gap-2">
                     <div className="w-5 h-5 bg-purple-500 rounded-md flex items-center justify-center">
-                      <svg
-                        className="w-3 h-3 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                        />
-                      </svg>
+                      ⚡
                     </div>
-                    Supported Networks
+                    Strategy Types
                   </h3>
                   <ul className="text-sm space-y-2">
                     <li className="flex items-center gap-2">
-                      <span className="text-green-400">✓</span>
-                      Ethereum Mainnet
+                      <span className="text-green-400">📈</span>
+                      Trailing Stop (Risk Management)
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="text-green-400">✓</span>
-                      Polygon
+                      <span className="text-blue-400">📊</span>
+                      SMA 10/20 (Trend Following)
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="text-green-400">✓</span>
-                      Arbitrum
+                      <span className="text-cyan-400">🚀</span>
+                      EMA 10/20 (Momentum Trading)
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="text-yellow-400">⏳</span>
-                      Base (Coming Soon)
+                      <span className="text-purple-400">🧠</span>
+                      Dynamic TP/SL (Adaptive AI)
                     </li>
                   </ul>
                 </div>
@@ -171,7 +135,7 @@ function page() {
                         rel="noopener noreferrer"
                         className="text-blue-400 hover:text-blue-300 underline decoration-dotted underline-offset-2 transition-colors duration-200 flex items-center gap-1"
                       >
-                        <span>Documentation</span>
+                        <span>Enzyme Documentation</span>
                         <svg
                           className="w-3 h-3"
                           fill="currentColor"
@@ -189,7 +153,7 @@ function page() {
                         rel="noopener noreferrer"
                         className="text-blue-400 hover:text-blue-300 underline decoration-dotted underline-offset-2 transition-colors duration-200 flex items-center gap-1"
                       >
-                        <span>Official App</span>
+                        <span>Official Enzyme App</span>
                         <svg
                           className="w-3 h-3"
                           fill="currentColor"
@@ -202,12 +166,10 @@ function page() {
                     </li>
                     <li>
                       <a
-                        href="https://enzyme.finance"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        href="#"
                         className="text-blue-400 hover:text-blue-300 underline decoration-dotted underline-offset-2 transition-colors duration-200 flex items-center gap-1"
                       >
-                        <span>Website</span>
+                        <span>AI Trading Guide</span>
                         <svg
                           className="w-3 h-3"
                           fill="currentColor"
