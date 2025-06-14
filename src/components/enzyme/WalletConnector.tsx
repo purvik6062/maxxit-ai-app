@@ -12,7 +12,8 @@ interface WalletContextType {
   isConnecting: boolean;
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
-  switchToEthereum: () => Promise<void>;
+  switchToArbitrum: () => Promise<void>;
+  isCorrectNetwork: boolean;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -35,6 +36,10 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   const [signer, setSigner] = useState<ethers.JsonRpcSigner | null>(null);
   const [chainId, setChainId] = useState<number | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
+
+  // Arbitrum One chain ID
+  const ARBITRUM_CHAIN_ID = 42161;
+  const isCorrectNetwork = chainId === ARBITRUM_CHAIN_ID;
 
   const connectWallet = async () => {
     if (typeof window === "undefined" || !window.ethereum) {
@@ -82,13 +87,13 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     toast.success("Wallet disconnected");
   };
 
-  const switchToEthereum = async () => {
+  const switchToArbitrum = async () => {
     if (!window.ethereum) return;
 
     try {
       await window.ethereum.request({
         method: "wallet_switchEthereumChain",
-        params: [{ chainId: "0x1" }], // Ethereum mainnet
+        params: [{ chainId: "0xa4b1" }], // Arbitrum One mainnet (42161 in hex)
       });
     } catch (error: any) {
       if (error.code === 4902) {
@@ -97,15 +102,15 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
           method: "wallet_addEthereumChain",
           params: [
             {
-              chainId: "0x1",
-              chainName: "Ethereum Mainnet",
+              chainId: "0xa4b1",
+              chainName: "Arbitrum One",
               nativeCurrency: {
                 name: "Ether",
                 symbol: "ETH",
                 decimals: 18,
               },
-              rpcUrls: ["https://eth-mainnet.alchemyapi.io/v2/YOUR_API_KEY"],
-              blockExplorerUrls: ["https://etherscan.io"],
+              rpcUrls: ["https://arb1.arbitrum.io/rpc"],
+              blockExplorerUrls: ["https://arbiscan.io"],
             },
           ],
         });
@@ -180,7 +185,8 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     isConnecting,
     connectWallet,
     disconnectWallet,
-    switchToEthereum,
+    switchToArbitrum,
+    isCorrectNetwork,
   };
 
   return (
@@ -195,7 +201,7 @@ interface WalletConnectorProps {
 export const WalletConnector: React.FC<WalletConnectorProps> = ({
   className = "",
 }) => {
-  const { account, isConnecting, connectWallet, disconnectWallet, chainId } =
+  const { account, isConnecting, connectWallet, disconnectWallet, chainId, switchToArbitrum, isCorrectNetwork } =
     useWallet();
 
   const formatAddress = (address: string) => {
@@ -209,7 +215,7 @@ export const WalletConnector: React.FC<WalletConnectorProps> = ({
       case 137:
         return "Polygon";
       case 42161:
-        return "Arbitrum";
+        return "Arbitrum One";
       case 8453:
         return "Base";
       default:
@@ -229,16 +235,44 @@ export const WalletConnector: React.FC<WalletConnectorProps> = ({
         </button>
       ) : (
         <div className="flex flex-col items-center space-y-2">
-          <div className="bg-green-100 border border-green-300 text-green-800 px-4 py-2 rounded-lg">
+          {/* Network Status */}
+          <div className={`px-4 py-2 rounded-lg border ${
+            isCorrectNetwork 
+              ? "bg-green-100 border-green-300 text-green-800"
+              : "bg-red-100 border-red-300 text-red-800"
+          }`}>
             <div className="text-sm font-medium">
               Connected: {formatAddress(account)}
             </div>
             {chainId && (
-              <div className="text-xs text-green-600">
+              <div className={`text-xs ${isCorrectNetwork ? "text-green-600" : "text-red-600"}`}>
                 Network: {getNetworkName(chainId)}
+                {!isCorrectNetwork && " (❌ Unsupported)"}
               </div>
             )}
           </div>
+
+          {/* Network Switch Warning */}
+          {!isCorrectNetwork && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 max-w-sm">
+              <div className="flex items-center gap-2 text-yellow-800 text-sm font-medium mb-2">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                Wrong Network
+              </div>
+              <p className="text-yellow-700 text-xs mb-3">
+                This application only works on Arbitrum One. Please switch to continue.
+              </p>
+              <button
+                onClick={switchToArbitrum}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-2 px-3 rounded transition-colors"
+              >
+                Switch to Arbitrum One
+              </button>
+            </div>
+          )}
+
           <button
             onClick={disconnectWallet}
             className="bg-red-600 hover:bg-red-700 text-white font-medium py-1 px-4 rounded text-sm transition-colors"

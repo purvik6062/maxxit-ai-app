@@ -29,7 +29,7 @@ interface TokenBalance {
   symbol: string;
 }
 
-export function useEnzymeVault() {
+export function useEnzymeVault(vaultAddress: string) {
   const { provider, account, isConnected, isCorrectNetwork } = useEthers();
   const [vaultData, setVaultData] = useState<VaultData | null>(null);
   const [userPosition, setUserPosition] = useState<UserPosition | null>(null);
@@ -38,7 +38,6 @@ export function useEnzymeVault() {
   const [error, setError] = useState<string | null>(null);
 
   // Environment variables
-  const vaultAddress = process.env.NEXT_PUBLIC_ENZYME_VAULT_ADDRESS as string;
   const denominationAssetSymbol = process.env.NEXT_PUBLIC_ENZYME_DENOMINATION_ASSET || 'USDC';
 
   const denominationAssetAddress = getTokenAddress(denominationAssetSymbol);

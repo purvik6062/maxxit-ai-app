@@ -7,8 +7,8 @@ export const AI_AGENTS: AIAgent[] = [
     strategy: "trailing",
     description:
       "Automatically exits positions when price drops 1% from peak (for long positions) or rises 1% from lowest (for short positions). Perfect for capturing profits while limiting downside risk.",
-    walletAddress: "0x1234567890123456789012345678901234567890",
-    price: 0.1,
+    walletAddress: process.env.NEXT_PUBLIC_AGENT_ADDRESS || "",
+    price: 0.00001,
     parameters: {
       trailPercent: 0.01,
     },
@@ -21,6 +21,7 @@ export const AI_AGENTS: AIAgent[] = [
     riskLevel: "Medium",
     avgReturns: "12-18% APY",
     icon: "📈",
+    available: true,
   },
   {
     id: "sma-10",
@@ -28,7 +29,7 @@ export const AI_AGENTS: AIAgent[] = [
     strategy: "sma",
     description:
       "Uses Simple Moving Average with a 10-period window to identify short-term trends. Generates buy/sell signals when price crosses above or below the moving average.",
-    walletAddress: "0x2345678901234567890123456789012345678901",
+    walletAddress: process.env.NEXT_PUBLIC_AGENT_ADDRESS || "",
     price: 0.08,
     parameters: {
       period: 10,
@@ -42,6 +43,7 @@ export const AI_AGENTS: AIAgent[] = [
     riskLevel: "High",
     avgReturns: "15-25% APY",
     icon: "⚡",
+    available: false,
   },
   {
     id: "sma-20",
@@ -49,7 +51,7 @@ export const AI_AGENTS: AIAgent[] = [
     strategy: "sma",
     description:
       "Employs Simple Moving Average with a 20-period window for medium-term trend analysis. Provides more stable signals with reduced noise compared to shorter periods.",
-    walletAddress: "0x3456789012345678901234567890123456789012",
+    walletAddress: process.env.NEXT_PUBLIC_AGENT_ADDRESS || "",
     price: 0.09,
     parameters: {
       period: 20,
@@ -63,6 +65,7 @@ export const AI_AGENTS: AIAgent[] = [
     riskLevel: "Medium",
     avgReturns: "10-16% APY",
     icon: "📊",
+    available: false,
   },
   {
     id: "ema-10",
@@ -70,7 +73,7 @@ export const AI_AGENTS: AIAgent[] = [
     strategy: "ema",
     description:
       "Utilizes Exponential Moving Average with a 10-period window, giving more weight to recent prices. Responds faster to price changes than SMA.",
-    walletAddress: "0x4567890123456789012345678901234567890123",
+    walletAddress: process.env.NEXT_PUBLIC_AGENT_ADDRESS || "",
     price: 0.12,
     parameters: {
       period: 10,
@@ -84,6 +87,7 @@ export const AI_AGENTS: AIAgent[] = [
     riskLevel: "High",
     avgReturns: "18-28% APY",
     icon: "🚀",
+    available: false,
   },
   {
     id: "ema-20",
@@ -91,7 +95,7 @@ export const AI_AGENTS: AIAgent[] = [
     strategy: "ema",
     description:
       "Implements Exponential Moving Average with a 20-period window, balancing responsiveness with stability. Ideal for capturing medium-term trends with reduced whipsaws.",
-    walletAddress: "0x5678901234567890123456789012345678901234",
+    walletAddress: process.env.NEXT_PUBLIC_AGENT_ADDRESS || "",
     price: 0.11,
     parameters: {
       period: 20,
@@ -105,6 +109,7 @@ export const AI_AGENTS: AIAgent[] = [
     riskLevel: "Medium",
     avgReturns: "12-20% APY",
     icon: "🎯",
+    available: false,
   },
   {
     id: "dynamic-tp-sl",
@@ -112,7 +117,7 @@ export const AI_AGENTS: AIAgent[] = [
     strategy: "dynamic_tp_sl",
     description:
       "Advanced AI that dynamically adjusts take profit and stop loss levels based on market volatility, volume, and momentum indicators. Adapts to changing market conditions in real-time.",
-    walletAddress: "0x6789012345678901234567890123456789012345",
+    walletAddress: process.env.NEXT_PUBLIC_AGENT_ADDRESS || "",
     price: 0.15,
     parameters: {},
     features: [
@@ -125,6 +130,7 @@ export const AI_AGENTS: AIAgent[] = [
     riskLevel: "Low",
     avgReturns: "8-15% APY",
     icon: "🧠",
+    available: false,
   },
 ];
 

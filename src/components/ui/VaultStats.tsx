@@ -81,7 +81,7 @@ export function VaultStats({ vaultData, userPosition, denominationAssetSymbol, i
           <div className="ml-4">
             <p className="text-sm font-medium text-[#8ba1bc]">Total Value</p>
             <p className="text-2xl font-bold text-[#AAC9FA]">
-              {totalValue.toFixed(2)} {denominationAssetSymbol}
+              {totalValue.toFixed(4)} {denominationAssetSymbol}
             </p>
           </div>
         </div>
@@ -115,7 +115,7 @@ export function VaultStats({ vaultData, userPosition, denominationAssetSymbol, i
           <div className="ml-4">
             <p className="text-sm font-medium text-[#8ba1bc]">Your Position</p>
             <p className="text-2xl font-bold text-[#AAC9FA]">
-              {userPosition ? `${parseFloat(userPosition.assetValue).toFixed(2)} ${denominationAssetSymbol}` : '0.00'}
+              {userPosition ? `${parseFloat(userPosition.assetValue).toFixed(4)} ${denominationAssetSymbol}` : '0.00'}
             </p>
             <p className="text-sm text-[#818791]">
               {userPosition ? `${parseFloat(userPosition.shares).toFixed(4)} shares (${userPosition.percentage}%)` : 'No position'}

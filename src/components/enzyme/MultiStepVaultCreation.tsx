@@ -8,6 +8,7 @@ import {
 } from "./types";
 import VaultCreationStepper from "./VaultCreationStepper";
 import AIAgentSelection from "./AIAgentSelection";
+import ExistingVaultView from "./ExistingVaultView";
 import { ethers } from "ethers";
 import toast from "react-hot-toast";
 import {
@@ -15,9 +16,15 @@ import {
   isNetworkSupported,
   FUND_DEPLOYER_ABI,
 } from "@/lib/enzyme-contracts";
+import { useSession } from "next-auth/react";
+import { useUserVault } from "@/hooks/useUserVault";
 
 const MultiStepVaultCreation: React.FC = () => {
-  const { account } = useWallet();
+  const { account, isCorrectNetwork } = useWallet();
+  const { userVaults, isLoading: isLoadingVaults, hasVaults, latestVault } = useUserVault();
+  
+  // State to manage vault view - whether to show existing vault or create new one
+  const [showExistingVault, setShowExistingVault] = useState(false);
 
   const [state, setState] = useState<VaultCreationState>({
     currentStep: 1,
@@ -37,6 +44,13 @@ const MultiStepVaultCreation: React.FC = () => {
     createdVault: null,
     isProcessing: false,
   });
+
+  // Auto-show existing vault if user has vaults and is not in the middle of creating a new one
+  useEffect(() => {
+    if (hasVaults && !isLoadingVaults && state.currentStep === 1 && !state.selectedAgent) {
+      setShowExistingVault(true);
+    }
+  }, [hasVaults, isLoadingVaults, state.currentStep, state.selectedAgent]);
 
   const steps: VaultCreationStep[] = [
     {
@@ -74,6 +88,8 @@ const MultiStepVaultCreation: React.FC = () => {
       }));
     }
   }, [state.selectedAgent]);
+
+  console.log(state.selectedAgent);
 
   const handleAgentSelected = (agent: AIAgent) => {
     setState((prev) => ({
@@ -124,7 +140,19 @@ const MultiStepVaultCreation: React.FC = () => {
       createdVault: null,
       isProcessing: false,
     });
+    setShowExistingVault(false);
   };
+
+  const handleCreateNewVault = () => {
+    setShowExistingVault(false);
+    handleStartOver();
+  };
+
+  const handleManageExistingVault = () => {
+    setShowExistingVault(true);
+  };
+
+  
 
   const renderCurrentStep = () => {
     switch (state.currentStep) {
@@ -218,10 +246,124 @@ const MultiStepVaultCreation: React.FC = () => {
     }
   };
 
+  // Loading state while fetching user vaults
+  if (isLoadingVaults) {
+    return (
+      <div className="py-16">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-transparent border-t-blue-400 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-[#8ba1bc]">Checking your existing vaults...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show existing vault management if user has vaults and chose to manage them
+  if (showExistingVault && hasVaults && latestVault) {
+    return (
+      <div>
+        {/* Header with options */}
+        {/* <div className="max-w-4xl mx-auto px-4 mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-[#E4EFFF]">Vault Management</h2>
+              <p className="text-[#8ba1bc] mt-1">Manage your existing AI-powered vault</p>
+            </div>
+            <button
+              onClick={handleCreateNewVault}
+              className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 
+                       text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 
+                       flex items-center gap-2 text-sm"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Create New Vault
+            </button>
+          </div>
+        </div> */}
+
+        {/* Network Warning Banner */}
+        {account && !isCorrectNetwork && (
+          <div className="max-w-4xl mx-auto px-4 py-4">
+            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <div>
+                  <h3 className="text-red-400 font-medium">Unsupported Network</h3>
+                  <p className="text-red-300 text-sm">
+                    Please switch to Arbitrum One network to manage your vaults.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Existing Vault View */}
+        <div className="py-8">
+          <ExistingVaultView
+            vaultAddress={latestVault.vaultAddress}
+            onCreateNewVault={handleCreateNewVault}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Show vault creation flow (existing or first time users)
   return (
     <div>
+      {/* Vault Choice Banner for users with existing vaults */}
+      {hasVaults && !showExistingVault && (
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <h3 className="text-blue-400 font-medium">Existing Vault Found</h3>
+                  <p className="text-blue-300 text-sm">
+                    You have {userVaults.length} existing vault{userVaults.length > 1 ? 's' : ''}. You can manage your existing vault or create a new one.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleManageExistingVault}
+                className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm"
+              >
+                Manage Existing Vault
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Stepper */}
       <VaultCreationStepper steps={steps} />
+
+      {/* Network Warning Banner */}
+      {account && !isCorrectNetwork && (
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <div>
+                <h3 className="text-red-400 font-medium">Unsupported Network</h3>
+                <p className="text-red-300 text-sm">
+                  Please switch to Arbitrum One network to create vaults and purchase AI agents.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Current Step Content */}
       <div className="py-8">{renderCurrentStep()}</div>
@@ -243,337 +385,378 @@ const ModifiedCreateVault: React.FC<{
   onBack,
   onConfigChange,
 }) => {
-  const { account, signer, chainId } = useWallet();
-  const [vaultConfig, setVaultConfig] = useState<VaultConfig>(initialConfig);
-  const [isCreating, setIsCreating] = useState(false);
+    const { account, signer, chainId } = useWallet();
+    const { data: session } = useSession();
+    const [vaultConfig, setVaultConfig] = useState<VaultConfig>(initialConfig);
+    const [isCreating, setIsCreating] = useState(false);
 
-  // Get current network configuration
-  const networkConfig = chainId ? getNetworkConfig(chainId) : null;
+    // Get current network configuration
+    const networkConfig = chainId ? getNetworkConfig(chainId) : null;
 
-  // Set default denomination asset when network changes
-  useEffect(() => {
-    if (networkConfig && !vaultConfig.denominationAsset) {
-      const newConfig = {
-        ...vaultConfig,
-        denominationAsset: networkConfig.assets.WETH,
-      };
-      setVaultConfig(newConfig);
-      onConfigChange("denominationAsset", networkConfig.assets.WETH);
-    }
-  }, [networkConfig]);
+    // Set default denomination asset when network changes
+    useEffect(() => {
+      if (networkConfig && !vaultConfig.denominationAsset) {
+        const newConfig = {
+          ...vaultConfig,
+          denominationAsset: networkConfig.assets.WETH,
+        };
+        setVaultConfig(newConfig);
+        onConfigChange("denominationAsset", networkConfig.assets.WETH);
+      }
+    }, [networkConfig]);
 
-  const handleConfigChange = (field: keyof VaultConfig, value: string) => {
-    setVaultConfig((prev) => ({ ...prev, [field]: value }));
-    onConfigChange(field, value);
-  };
+    const handleConfigChange = (field: keyof VaultConfig, value: string) => {
+      setVaultConfig((prev) => ({ ...prev, [field]: value }));
+      onConfigChange(field, value);
+    };
 
-  const validateForm = (): string | null => {
-    if (!vaultConfig.name.trim()) return "Vault name is required";
-    if (!vaultConfig.symbol.trim()) return "Vault symbol is required";
-    if (vaultConfig.symbol.length > 10)
-      return "Symbol should be 10 characters or less";
-    if (!account) return "Please connect your wallet";
-    if (!chainId || !isNetworkSupported(chainId))
-      return "Please switch to a supported network";
-    return null;
-  };
+    const validateForm = (): string | null => {
+      if (!vaultConfig.name.trim()) return "Vault name is required";
+      if (!vaultConfig.symbol.trim()) return "Vault symbol is required";
+      if (vaultConfig.symbol.length > 10)
+        return "Symbol should be 10 characters or less";
+      if (!account) return "Please connect your wallet";
+      if (!chainId || !isNetworkSupported(chainId))
+        return "Please switch to a supported network";
+      return null;
+    };
 
-  const createVault = async () => {
-    const validationError = validateForm();
-    if (validationError) {
-      toast.error(validationError);
-      return;
-    }
+    const createVault = async () => {
+      const validationError = validateForm();
+      if (validationError) {
+        toast.error(validationError);
+        return;
+      }
 
-    if (!signer || !networkConfig) {
-      toast.error("Wallet not properly connected");
-      return;
-    }
+      if (!signer || !networkConfig) {
+        toast.error("Wallet not properly connected");
+        return;
+      }
 
-    try {
-      setIsCreating(true);
+      try {
+        setIsCreating(true);
 
-      const fundDeployer = new ethers.Contract(
-        networkConfig.contracts.FUND_DEPLOYER,
-        FUND_DEPLOYER_ABI,
-        signer
-      );
+        const fundDeployer = new ethers.Contract(
+          networkConfig.contracts.FUND_DEPLOYER,
+          FUND_DEPLOYER_ABI,
+          signer
+        );
 
-      const feeManagerConfigData = "0x";
-      const policyManagerConfigData = createPolicyManagerConfigData();
-      const sharesActionTimelock =
-        parseInt(vaultConfig.sharesActionTimelock) * 3600;
+        const feeManagerConfigData = "0x";
+        const policyManagerConfigData = createPolicyManagerConfigData();
+        const sharesActionTimelock =
+          parseInt(vaultConfig.sharesActionTimelock) * 3600;
 
-      toast.loading(
-        "Creating vault... Please confirm the transaction in your wallet.",
-        {
-          id: "creating-vault",
-        }
-      );
-
-      const tx = await fundDeployer.createNewFund(
-        account,
-        vaultConfig.name,
-        vaultConfig.symbol,
-        vaultConfig.denominationAsset,
-        sharesActionTimelock,
-        feeManagerConfigData,
-        policyManagerConfigData,
-        { gasLimit: 5000000 }
-      );
-
-      toast.loading("Transaction submitted. Waiting for confirmation...", {
-        id: "creating-vault",
-      });
-
-      const receipt = await tx.wait();
-
-      if (receipt.status === 1) {
-        let comptrollerProxy = "";
-        let vaultProxy = "";
-
-        for (const log of receipt.logs) {
-          try {
-            const parsedLog = fundDeployer.interface.parseLog(log);
-            if (parsedLog && parsedLog.name === "NewFundCreated") {
-              comptrollerProxy = parsedLog.args.comptrollerProxy;
-              vaultProxy = parsedLog.args.vaultProxy;
-              break;
-            }
-          } catch (e) {
-            continue;
+        toast.loading(
+          "Creating vault... Please confirm the transaction in your wallet.",
+          {
+            id: "creating-vault",
           }
+        );
+
+        const tx = await fundDeployer.createNewFund(
+          account,
+          vaultConfig.name,
+          vaultConfig.symbol,
+          vaultConfig.denominationAsset,
+          sharesActionTimelock,
+          feeManagerConfigData,
+          policyManagerConfigData,
+          { gasLimit: 5000000 }
+        );
+
+        toast.loading("Transaction submitted. Waiting for confirmation...", {
+          id: "creating-vault",
+        });
+
+        const receipt = await tx.wait();
+
+        if (receipt.status === 1) {
+          let comptrollerProxy = "";
+          let vaultProxy = "";
+
+          for (const log of receipt.logs) {
+            try {
+              const parsedLog = fundDeployer.interface.parseLog(log);
+              if (parsedLog && parsedLog.name === "NewFundCreated") {
+                comptrollerProxy = parsedLog.args.comptrollerProxy;
+                vaultProxy = parsedLog.args.vaultProxy;
+                break;
+              }
+            } catch (e) {
+              continue;
+            }
+          }
+
+          // Register user for automated trading
+          try {
+            const registrationData = {
+              username: session?.user?.username || account || "",
+              vaultAddress: vaultProxy || "",
+              tradingSettings: {
+                agentAddress: selectedAgent?.walletAddress || "",
+                agentName: selectedAgent?.name || "",
+                riskLevel: selectedAgent?.riskLevel || "",
+                vaultName: vaultConfig.name,
+                vaultSymbol: vaultConfig.symbol,
+                denominationAsset: vaultConfig.denominationAsset,
+              },
+            };
+
+            const registrationResponse = await fetch("http://localhost:3001/users/register", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(registrationData),
+            });
+
+            if (!registrationResponse.ok) {
+              console.warn("Failed to register user for automated trading:", await registrationResponse.text());
+              // Don't fail the vault creation if registration fails
+              toast("Vault created successfully! Note: Automated trading registration encountered an issue.", {
+                id: "creating-vault",
+                icon: "⚠️",
+              });
+            } else {
+              const registrationResult = await registrationResponse.json();
+              console.log("User registered for automated trading:", registrationResult);
+              toast.success("Vault created and registered for automated trading!", { id: "creating-vault" });
+            }
+          } catch (registrationError) {
+            console.warn("Error registering user for automated trading:", registrationError);
+            // Don't fail the vault creation if registration fails
+            toast.success("Vault created successfully! (Automated trading registration failed)", {
+              id: "creating-vault",
+            });
+          }
+
+          onVaultCreated({
+            comptrollerProxy: comptrollerProxy || "0x...",
+            vaultProxy: vaultProxy || "0x...",
+            txHash: tx.hash,
+          });
+        } else {
+          throw new Error("Transaction failed");
+        }
+      } catch (error: any) {
+        console.error("Error creating vault:", error);
+        let errorMessage = "Failed to create vault";
+
+        if (error.code === "CALL_EXCEPTION") {
+          errorMessage =
+            "Transaction reverted. Please check your configuration and try again.";
+        } else if (error.code === "INSUFFICIENT_FUNDS") {
+          errorMessage = "Insufficient funds for gas";
+        } else if (error.message) {
+          errorMessage = error.message;
         }
 
-        toast.success("Vault created successfully!", { id: "creating-vault" });
-
-        onVaultCreated({
-          comptrollerProxy: comptrollerProxy || "0x...",
-          vaultProxy: vaultProxy || "0x...",
-          txHash: tx.hash,
-        });
-      } else {
-        throw new Error("Transaction failed");
+        toast.error(errorMessage, { id: "creating-vault" });
+      } finally {
+        setIsCreating(false);
       }
-    } catch (error: any) {
-      console.error("Error creating vault:", error);
-      let errorMessage = "Failed to create vault";
+    };
 
-      if (error.code === "CALL_EXCEPTION") {
-        errorMessage =
-          "Transaction reverted. Please check your configuration and try again.";
-      } else if (error.code === "INSUFFICIENT_FUNDS") {
-        errorMessage = "Insufficient funds for gas";
-      } else if (error.message) {
-        errorMessage = error.message;
+    const createPolicyManagerConfigData = (): string => {
+      if (!networkConfig || !account || !selectedAgent) {
+        return "0x";
       }
 
-      toast.error(errorMessage, { id: "creating-vault" });
-    } finally {
-      setIsCreating(false);
-    }
-  };
+      const allowedDepositorsPolicy =
+        networkConfig.contracts.ALLOWED_DEPOSITORS_POLICY;
+      if (
+        allowedDepositorsPolicy === "0x0000000000000000000000000000000000000000"
+      ) {
+        console.warn("Policy contract addresses not configured for this network");
+        return "0x";
+      }
 
-  const createPolicyManagerConfigData = (): string => {
-    if (!networkConfig || !account || !selectedAgent) {
-      return "0x";
-    }
+      const abiCoder = ethers.AbiCoder.defaultAbiCoder();
+      const allowedAddresses = [account, selectedAgent.walletAddress];
 
-    const allowedDepositorsPolicy =
-      networkConfig.contracts.ALLOWED_DEPOSITORS_POLICY;
-    if (
-      allowedDepositorsPolicy === "0x0000000000000000000000000000000000000000"
-    ) {
-      console.warn("Policy contract addresses not configured for this network");
-      return "0x";
-    }
+      const newListsArgs = abiCoder.encode(
+        ["uint8", "address[]"],
+        [3, allowedAddresses]
+      );
+      const policySettingsData = abiCoder.encode(
+        ["uint256[]", "bytes[]"],
+        [[], [newListsArgs]]
+      );
+      const policyManagerConfigData = abiCoder.encode(
+        ["address[]", "bytes[]"],
+        [[allowedDepositorsPolicy], [policySettingsData]]
+      );
 
-    const abiCoder = ethers.AbiCoder.defaultAbiCoder();
-    const allowedAddresses = [account, selectedAgent.walletAddress];
+      return policyManagerConfigData;
+    };
 
-    const newListsArgs = abiCoder.encode(
-      ["uint8", "address[]"],
-      [3, allowedAddresses]
-    );
-    const policySettingsData = abiCoder.encode(
-      ["uint256[]", "bytes[]"],
-      [[], [newListsArgs]]
-    );
-    const policyManagerConfigData = abiCoder.encode(
-      ["address[]", "bytes[]"],
-      [[allowedDepositorsPolicy], [policySettingsData]]
-    );
-
-    return policyManagerConfigData;
-  };
-
-  return (
-    <div className="max-w-4xl mx-auto px-4">
-      <div className="bg-[#0D1321] border border-[#253040] rounded-2xl p-8">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-[#E4EFFF] mb-4">
-            Configure Your Vault
-          </h2>
-          <p className="text-[#8ba1bc]">
-            Set up your vault parameters. The AI agent will be automatically
-            configured as the depositor.
-          </p>
-        </div>
-
-        <div className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-[#AAC9FA] mb-2">
-              Vault Name *
-            </label>
-            <input
-              type="text"
-              value={vaultConfig.name}
-              onChange={(e) => handleConfigChange("name", e.target.value)}
-              placeholder="Enter vault name"
-              className="w-full bg-[#0A0F1A] border border-[#253040] rounded-lg px-4 py-3 text-[#E4EFFF] placeholder-[#6b7280] focus:border-blue-500 focus:outline-none transition-colors"
-            />
+    return (
+      <div className="max-w-4xl mx-auto px-4">
+        <div className="bg-[#0D1321] border border-[#253040] rounded-2xl p-8">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-[#E4EFFF] mb-4">
+              Configure Your Vault
+            </h2>
+            <p className="text-[#8ba1bc]">
+              Set up your vault parameters. The AI agent will be automatically
+              configured as the depositor.
+            </p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-[#AAC9FA] mb-2">
-              Vault Symbol *
-            </label>
-            <input
-              type="text"
-              value={vaultConfig.symbol}
-              onChange={(e) =>
-                handleConfigChange("symbol", e.target.value.toUpperCase())
-              }
-              placeholder="Enter vault symbol (e.g., MYVAULT)"
-              className="w-full bg-[#0A0F1A] border border-[#253040] rounded-lg px-4 py-3 text-[#E4EFFF] placeholder-[#6b7280] focus:border-blue-500 focus:outline-none transition-colors"
-            />
-          </div>
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-[#AAC9FA] mb-2">
+                Vault Name *
+              </label>
+              <input
+                type="text"
+                value={vaultConfig.name}
+                onChange={(e) => handleConfigChange("name", e.target.value)}
+                placeholder="Enter vault name"
+                className="w-full bg-[#0A0F1A] border border-[#253040] rounded-lg px-4 py-3 text-[#E4EFFF] placeholder-[#6b7280] focus:border-blue-500 focus:outline-none transition-colors"
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-[#AAC9FA] mb-2">
-              Denomination Asset
-            </label>
-            <select
-              value={vaultConfig.denominationAsset}
-              onChange={(e) =>
-                handleConfigChange("denominationAsset", e.target.value)
-              }
-              className="w-full bg-[#0A0F1A] border border-[#253040] rounded-lg px-4 py-3 text-[#E4EFFF] focus:border-blue-500 focus:outline-none transition-colors"
-            >
-              {networkConfig &&
-                Object.entries(networkConfig.assets).map(
-                  ([symbol, address]) => (
-                    <option key={symbol} value={address}>
-                      {symbol}
-                    </option>
-                  )
-                )}
-            </select>
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-[#AAC9FA] mb-2">
+                Vault Symbol *
+              </label>
+              <input
+                type="text"
+                value={vaultConfig.symbol}
+                onChange={(e) =>
+                  handleConfigChange("symbol", e.target.value.toUpperCase())
+                }
+                placeholder="Enter vault symbol (e.g., MYVAULT)"
+                className="w-full bg-[#0A0F1A] border border-[#253040] rounded-lg px-4 py-3 text-[#E4EFFF] placeholder-[#6b7280] focus:border-blue-500 focus:outline-none transition-colors"
+              />
+            </div>
 
-          {/* AI Agent Integration Info */}
-          {selectedAgent && (
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-              <h4 className="text-blue-400 font-medium mb-2">
-                AI Agent Integration
-              </h4>
-              <div className="space-y-2 text-sm text-[#8ba1bc]">
-                <div className="flex justify-between">
-                  <span>Trading Strategy:</span>
-                  <span className="text-blue-400">{selectedAgent.name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Agent Address:</span>
-                  <span className="text-cyan-400 font-mono">
-                    {selectedAgent.walletAddress.slice(0, 6)}...
-                    {selectedAgent.walletAddress.slice(-4)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Risk Level:</span>
-                  <span
-                    className={`${
-                      selectedAgent.riskLevel === "Low"
-                        ? "text-green-400"
-                        : selectedAgent.riskLevel === "Medium"
-                        ? "text-yellow-400"
-                        : "text-red-400"
-                    }`}
-                  >
-                    {selectedAgent.riskLevel}
-                  </span>
-                </div>
-                <div className="text-xs text-[#6b7280] mt-2">
-                  The AI agent will be automatically added as an allowed
-                  depositor along with your wallet address.
+            <div>
+              <label className="block text-sm font-medium text-[#AAC9FA] mb-2">
+                Denomination Asset
+              </label>
+              <select
+                value={vaultConfig.denominationAsset}
+                onChange={(e) =>
+                  handleConfigChange("denominationAsset", e.target.value)
+                }
+                className="w-full bg-[#0A0F1A] border border-[#253040] rounded-lg px-4 py-3 text-[#E4EFFF] focus:border-blue-500 focus:outline-none transition-colors"
+              >
+                {networkConfig &&
+                  Object.entries(networkConfig.assets).map(
+                    ([symbol, address]) => (
+                      <option key={symbol} value={address}>
+                        {symbol}
+                      </option>
+                    )
+                  )}
+              </select>
+            </div>
+
+            {/* AI Agent Integration Info */}
+            {selectedAgent && (
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                <h4 className="text-blue-400 font-medium mb-2">
+                  AI Agent Integration
+                </h4>
+                <div className="space-y-2 text-sm text-[#8ba1bc]">
+                  <div className="flex justify-between">
+                    <span>Trading Strategy:</span>
+                    <span className="text-blue-400">{selectedAgent.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Agent Address:</span>
+                    <span className="text-cyan-400 font-mono">
+                      {selectedAgent.walletAddress.slice(0, 6)}...
+                      {selectedAgent.walletAddress.slice(-4)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Risk Level:</span>
+                    <span
+                      className={`${selectedAgent.riskLevel === "Low"
+                          ? "text-green-400"
+                          : selectedAgent.riskLevel === "Medium"
+                            ? "text-yellow-400"
+                            : "text-red-400"
+                        }`}
+                    >
+                      {selectedAgent.riskLevel}
+                    </span>
+                  </div>
+                  <div className="text-xs text-[#6b7280] mt-2">
+                    The AI agent will be automatically added as an allowed
+                    depositor along with your wallet address.
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Action Buttons */}
-          <div className="flex gap-4 pt-6">
-            <button
-              onClick={onBack}
-              disabled={isCreating}
-              className="flex-1 bg-[#253040] hover:bg-[#353940] disabled:opacity-50 text-[#E4EFFF] font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            {/* Action Buttons */}
+            <div className="flex gap-4 pt-6">
+              <button
+                onClick={onBack}
+                disabled={isCreating}
+                className="flex-1 bg-[#253040] hover:bg-[#353940] disabled:opacity-50 text-[#E4EFFF] font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M11 17l-5-5m0 0l5-5m-5 5h12"
-                />
-              </svg>
-              Back to Agent Selection
-            </button>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M11 17l-5-5m0 0l5-5m-5 5h12"
+                  />
+                </svg>
+                Back to Agent Selection
+              </button>
 
-            <button
-              onClick={createVault}
-              disabled={
-                isCreating ||
-                !account ||
-                !vaultConfig.name ||
-                !vaultConfig.symbol
-              }
-              className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
-            >
-              {isCreating ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-transparent border-t-white rounded-full animate-spin" />
-                  Creating Vault...
-                </>
-              ) : (
-                <>
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
-                  </svg>
-                  Create Vault with AI Agent
-                </>
-              )}
-            </button>
+              <button
+                onClick={createVault}
+                disabled={
+                  isCreating ||
+                  !account ||
+                  !vaultConfig.name ||
+                  !vaultConfig.symbol
+                }
+                className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+              >
+                {isCreating ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-transparent border-t-white rounded-full animate-spin" />
+                    Creating Vault...
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
+                    </svg>
+                    Create Vault with AI Agent
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
 // Success view component
 const VaultSuccessView: React.FC<{

@@ -59,6 +59,7 @@ export interface AIAgent {
   riskLevel: "Low" | "Medium" | "High";
   avgReturns: string;
   icon: string;
+  available: boolean; // Whether the agent is available for purchase
 }
 
 export interface VaultCreationStep {
