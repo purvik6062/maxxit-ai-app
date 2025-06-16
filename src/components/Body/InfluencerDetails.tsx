@@ -56,9 +56,9 @@ const InfluencerDetails: React.FC<InfluencerDetailsProps> = ({ influencer }) => 
                 <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 p-3 sm:p-4 rounded-lg overflow-hidden group transition-all duration-300 hover:scale-105">
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100"></div>
                   <div className="relative z-10">
-                    <p className="text-[10px] sm:text-xs text-gray-100">Signals (past 7d)</p>
+                    <p className="text-[10px] sm:text-xs text-gray-100">Signals (past 30d)</p>
                     <p className="text-sm sm:text-base font-semibold text-cyan-400 animate-value-pulse">
-                      {influencer.recentWeekSignals?.toLocaleString()}
+                      {influencer.recentMonthSignals?.toLocaleString()}
                     </p>
                   </div>
                 </div>
@@ -66,9 +66,9 @@ const InfluencerDetails: React.FC<InfluencerDetailsProps> = ({ influencer }) => 
                 <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 p-3 sm:p-4 rounded-lg overflow-hidden group transition-all duration-300 hover:scale-105">
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100"></div>
                   <div className="relative z-10">
-                    <p className="text-[10px] sm:text-xs text-gray-100">Tokens (past 7d)</p>
+                    <p className="text-[10px] sm:text-xs text-gray-100">Tokens (past 30d)</p>
                     <p className="text-sm sm:text-base font-semibold text-cyan-400 animate-value-pulse">
-                      {influencer.recentWeekTokens?.toLocaleString()}
+                      {influencer.recentMonthTokens?.toLocaleString()}
                     </p>
                   </div>
                 </div>

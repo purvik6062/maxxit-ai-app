@@ -14,7 +14,7 @@ import Link from "next/link";
 
 type ApiResponse = {
   influencers: Influencer[];
-  totalProfit: number;
+  totalProfit: number; // This is now average ROI
 };
 
 const CosmicWebInfluencerGraph: React.FC = () => {
@@ -172,7 +172,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
         if (typeof window !== "undefined") {
           // Check if data exists in localStorage and is not expired
           try {
-            const cachedData = localStorage.getItem("topWeeklyInfluencers");
+            const cachedData = localStorage.getItem("topMonthlyInfluencers");
 
             if (cachedData) {
               const { data, timestamp } = JSON.parse(cachedData);
@@ -180,15 +180,15 @@ const CosmicWebInfluencerGraph: React.FC = () => {
               const cacheTime = new Date(timestamp).getTime();
               const daysDiff = (now - cacheTime) / (1000 * 60 * 60 * 24);
 
-              // If cache is less than 7 days old, use it
-              if (daysDiff < 7) {
+              // If cache is less than 1 day old, use it (since we're now showing monthly data)
+              if (daysDiff < 1) {
                 setInfluencers(data.influencers);
                 setTotalProfit(data.totalProfit);
                 setLoading(false);
                 return;
               } else {
                 // Remove expired cache
-                localStorage.removeItem("topWeeklyInfluencers");
+                localStorage.removeItem("topMonthlyInfluencers");
               }
             }
           } catch (e) {
@@ -208,7 +208,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
         if (typeof window !== "undefined") {
           try {
             localStorage.setItem(
-              "topWeeklyInfluencers",
+              "topMonthlyInfluencers",
               JSON.stringify({
                 data,
                 timestamp: new Date().toISOString(),
@@ -543,13 +543,13 @@ const CosmicWebInfluencerGraph: React.FC = () => {
     return () => clearInterval(intervalId);
   }, [rotation, influencers, isMobile]);
 
-  function getCurrentWeekOfMonthLabel(date = new Date()): string {
+  function getCurrentMonthLabel(date = new Date()): string {
     const options: Intl.DateTimeFormatOptions = {
       month: "long",
       year: "numeric",
     };
     const monthYear = date.toLocaleDateString("en-US", options);
-    return `Top Performing Cluster: ${monthYear}`;
+    return `Top Monthly ROI Leaders: ${monthYear}`;
   }
 
   // Render loading state
@@ -618,13 +618,12 @@ const CosmicWebInfluencerGraph: React.FC = () => {
         Crypto Influencer Constellation
       </h1>
       <p className="text-gray-300 mb-4 sm:mb-8 text-center max-w-xl sm:max-w-3xl text-sm sm:text-lg z-20 px-4">
-        Discover our top influencers shaping the crypto universe with their
-        insights,{" "}
-        <span className="font-bold italic text-cyan-500">Updated weekly</span>
+        Discover our top influencers by monthly ROI performance{" "}
+        <span className="font-bold italic text-cyan-500">Updated daily</span>
       </p>
 
       <div className="backdrop-blur-lg text-xs sm:text-base font-semibold py-2 px-4 sm:px-6 rounded-full shadow-[0_0_15px_rgba(0,255,255,0.5)] z-30 border border-cyan-500/50 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
-        {getCurrentWeekOfMonthLabel()}
+        {getCurrentMonthLabel()}
       </div>
 
       {isMobile ? (
@@ -695,7 +694,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
               }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
-              Net ROI: {totalProfit.toFixed(2).toLocaleString()}%
+              Avg Monthly ROI: {totalProfit.toFixed(2).toLocaleString()}%
             </motion.div>
           </div>
         </>
@@ -772,7 +771,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
               }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
-              Net ROI: {totalProfit.toFixed(2).toLocaleString()}%
+              Avg Monthly ROI: {totalProfit.toFixed(2).toLocaleString()}%
             </motion.div>
           </div>
         </div>
@@ -844,9 +843,9 @@ const CosmicWebInfluencerGraph: React.FC = () => {
 
                 <div className="bg-green-900/20 rounded-lg p-4 mb-6 border border-green-800/30">
                   <p className="text-green-300 text-sm mb-3">
-                    We'll send you signals directly to your Telegram account.
-                    Make sure you have connected your Telegram account in your
-                    profile.
+                    We&apos;ll send you signals directly to your Telegram
+                    account. Make sure you have connected your Telegram account
+                    in your profile.
                   </p>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">Credits Used:</span>
@@ -907,7 +906,8 @@ const CosmicWebInfluencerGraph: React.FC = () => {
                     credits < (currentInfluencer.subscriptionPrice || 0) && (
                       <div className="mt-4 p-3 rounded-lg bg-red-900/20 border border-red-800/30">
                         <p className="text-red-300 text-sm mb-2">
-                          You don't have enough credits for this subscription.
+                          You don&apos;t have enough credits for this
+                          subscription.
                         </p>
                         <Link
                           href="/pricing"
