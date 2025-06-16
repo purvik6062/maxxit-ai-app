@@ -218,10 +218,9 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
           {agent.twitterHandle && (
             <div className="relative w-8 h-8 flex-shrink-0">
               <img
-                src={
-                  agent.profileUrl?.trim().length > 0
+                src={agent.profileUrl && agent.profileUrl.trim().length > 0
                     ? agent.profileUrl
-                    : `https:// picsum.photos/seed/${encodeURIComponent(
+                    : `https://picsum.photos/seed/${encodeURIComponent(
                         agent.twitterHandle
                       )}/40/40`
                 }

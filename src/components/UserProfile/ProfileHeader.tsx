@@ -50,7 +50,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
           {/* <User className="w-8 h-8 md:w-10 md:h-10 text-[#a4b8d3]" /> */}
           <Image
             src={
-              session.user?.image.replace(
+              session?.user?.image?.replace(
                 /_normal(?=\.(jpg|jpeg|png|gif|webp))/i,
                 ""
               ) || "/default-avatar.png"

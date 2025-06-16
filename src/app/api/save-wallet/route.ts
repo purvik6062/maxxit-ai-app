@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       twitterHandle: username,
     });
 
-    let userId = null;
+    let userId;
 
     // Update or create influencer record with wallet address
     if (influencer) {

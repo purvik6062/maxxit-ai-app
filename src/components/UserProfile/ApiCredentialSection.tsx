@@ -15,7 +15,7 @@ const ApiCredentialsSection = ({
 }: {
   apiKey: string | null;
   endpoint: string;
-  twitterId: string;
+  twitterId: string | any;
   onGenerateNewKey: (newKey: string) => void;
   onApiKeyUpdate: (newKey: string) => void;
   profile: UserProfile;
@@ -116,36 +116,46 @@ const ApiCredentialsSection = ({
     JavaScript: `fetch(\`\${endpoint}/api/get-my-signals\`, {
   method: 'GET',
   headers: {
-    'Authorization': 'Bearer ${showApiKey ? apiKey : apiKey?.replace(/.(?=.{4})/g, "•")
-      }'
+    'Authorization': 'Bearer ${
+      showApiKey ? apiKey : apiKey?.replace(/.(?=.{4})/g, "•")
+    }'
   }
 })
   .then(res => res.json())
   .then(data => console.log(data))
   .catch(err => console.error(err));`,
     cURL: `curl -X GET \`\${endpoint}/api/get-my-signals\` \\
-  -H "Authorization: Bearer ${showApiKey ? apiKey : apiKey?.replace(/.(?=.{4})/g, "•")
-      }"`,
+  -H "Authorization: Bearer ${
+    showApiKey ? apiKey : apiKey?.replace(/.(?=.{4})/g, "•")
+  }"`,
     Python: `import requests
 
 url = f"{endpoint}/api/get-my-signals"
-headers = {"Authorization": "Bearer ${showApiKey ? apiKey : apiKey?.replace(/.(?=.{4})/g, "•")
-      }"}
+headers = {"Authorization": "Bearer ${
+      showApiKey ? apiKey : apiKey?.replace(/.(?=.{4})/g, "•")
+    }"}
 response = requests.get(url, headers=headers)
 print(response.json())`,
   };
 
   return (
-    <div className="bg-[#0E1725B3] rounded-2xl p-4 md:p-6" style={{ border: "1px solid #818791" }}>
+    <div
+      className="bg-[#0E1725B3] rounded-2xl p-4 md:p-6"
+      style={{ border: "1px solid #818791" }}
+    >
       <div className="mb-6">
         <div className="mb-4">
-          <h2 className="text-xl font-medium text-[#E4EFFF] font-leagueSpartan">API Access</h2>
+          <h2 className="text-xl font-medium text-[#E4EFFF] font-leagueSpartan">
+            API Access
+          </h2>
           <p className="text-[#8ba1bc]">Manage your active subscriptions</p>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center">
-            <span className="text-[#AAC9FA] font-medium mr-2">Trading Signals API</span>
+            <span className="text-[#AAC9FA] font-medium mr-2">
+              Trading Signals API
+            </span>
             <div className="w-2 h-2 rounded-full bg-green-400"></div>
           </div>
 
@@ -153,8 +163,9 @@ print(response.json())`,
             <button
               onClick={handleGenerateKey}
               disabled={loading}
-              className={`bg-gradient-to-b from-[#E1EAF9] to-[#99BEF7] text-[#131d2c] px-4 py-2 rounded-full transition-colors flex items-center gap-2 font-medium ${loading ? "opacity-50 cursor-not-allowed" : "hover:shadow-md"
-                }`}
+              className={`bg-gradient-to-b from-[#E1EAF9] to-[#99BEF7] text-[#131d2c] px-4 py-2 rounded-full transition-colors flex items-center gap-2 font-medium ${
+                loading ? "opacity-50 cursor-not-allowed" : "hover:shadow-md"
+              }`}
             >
               {loading ? (
                 <>
@@ -173,11 +184,16 @@ print(response.json())`,
       </div>
 
       <div className="space-y-4 mb-8">
-        <div className="bg-[#1C2333] p-3 md:p-4 rounded-lg" style={{ border: "1px solid #81879166" }}>
+        <div
+          className="bg-[#1C2333] p-3 md:p-4 rounded-lg"
+          style={{ border: "1px solid #81879166" }}
+        >
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <div className="w-full sm:w-auto overflow-hidden">
               <p className="text-sm text-[#8ba1bc] mb-1">API Endpoint</p>
-              <p className="font-mono text-white text-sm md:text-base break-all">{endpoint + "/api/get-my-signals"}</p>
+              <p className="font-mono text-white text-sm md:text-base break-all">
+                {endpoint + "/api/get-my-signals"}
+              </p>
             </div>
             <button
               onClick={() =>
@@ -194,7 +210,10 @@ print(response.json())`,
           </div>
         </div>
 
-        <div className="bg-[#1C2333] p-3 md:p-4 rounded-lg" style={{ border: "1px solid #81879166" }}>
+        <div
+          className="bg-[#1C2333] p-3 md:p-4 rounded-lg"
+          style={{ border: "1px solid #81879166" }}
+        >
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <div className="w-full sm:w-auto overflow-hidden">
               <p className="text-sm text-[#8ba1bc] mb-1">API Key</p>
@@ -240,10 +259,11 @@ print(response.json())`,
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-3 sm:px-5 py-2 text-sm font-medium rounded-full ${activeTab === tab
-                ? "bg-gradient-to-b from-[#E1EAF9] to-[#99BEF7] text-[#131d2c]"
-                : "bg-[#0c1623] text-[#99BEF7] border border-[#99BEF7]"
-                }`}
+              className={`px-3 sm:px-5 py-2 text-sm font-medium rounded-full ${
+                activeTab === tab
+                  ? "bg-gradient-to-b from-[#E1EAF9] to-[#99BEF7] text-[#131d2c]"
+                  : "bg-[#0c1623] text-[#99BEF7] border border-[#99BEF7]"
+              }`}
             >
               {tab}
             </button>
@@ -251,8 +271,7 @@ print(response.json())`,
         </div>
         <div className="rounded-lg p-4 overflow-x-auto">
           <pre className="block bg-[#070915] text-sm text-[#8ba1bc] font-mono whitespace-pre-wrap sm:whitespace-pre rounded-lg p-4 overflow-x-auto">
-            {snippets[activeTab]
-              .replace(/\${endpoint}/g, endpoint)}
+            {snippets[activeTab].replace(/\${endpoint}/g, endpoint)}
           </pre>
         </div>
       </div>

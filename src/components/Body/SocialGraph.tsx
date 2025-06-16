@@ -133,9 +133,8 @@ export default function SubscribedAccountsPage() {
                 shape: hasImage ? "circularImage" : "circle",
                 ...(hasImage && { image: account.userProfileUrl }),
               });
-
               edges.push({
-                from: session.user.id,
+                from: session.user.id || '',
                 to: account.twitterHandle,
                 width: 2 + Math.random() * 2,
                 color: { color: nodeColor, highlight: "#ffffff", opacity: 0.8 },
@@ -617,9 +616,9 @@ export default function SubscribedAccountsPage() {
 
         networkInstance.current?.setOptions({ physics: isPlayable });
 
-        const positions = networkInstance.current?.getPositions();
+        const positions = networkInstance.current?.getPositions() || {};
         const centralNodeId = session?.user?.id;
-        const centralPos = positions?.[centralNodeId];
+        const centralPos = centralNodeId ? positions[centralNodeId] : undefined;
 
         if (!isPlayable && centralNodeId && centralPos) {
           const surroundingNodeIds = graphData.nodes

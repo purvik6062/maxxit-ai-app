@@ -54,7 +54,7 @@ async function addCredits(
       : new Error("An unexpected error occurred");
   } finally {
     if (session) await session.endSession();
-    if (client) await client.close();
+    // if (client) await client.close();
   }
 }
 

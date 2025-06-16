@@ -4,6 +4,7 @@ import { CheckIcon, XIcon, AlertTriangleIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import PaymentModal from "./PaymentModal";
+import CryptoPaymentModal from "./CryptoPaymentModal";
 import Link from "next/link";
 import { useCredits } from "@/context/CreditsContext";
 import { useSession } from "next-auth/react";
@@ -26,12 +27,53 @@ export default function PricingCard({
   popular,
 }: PricingCardProps) {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isCryptoModalOpen, setIsCryptoModalOpen] = useState(false);
+  const [cryptoModalPrice, setCryptoModalPrice] = useState(price);
   const [isHovered, setIsHovered] = useState(false);
   const { credits, isLoadingCredits } = useCredits();
   const { data: session, status: sessionStatus } = useSession();
 
   const handleCtaClick = () => {
+    setCryptoModalPrice(price);
     setIsPaymentModalOpen(true);
+  };
+
+  const handleCryptoPayment = (currentFinalPrice: number) => {
+    setIsPaymentModalOpen(false);
+    setCryptoModalPrice(currentFinalPrice);
+    setIsCryptoModalOpen(true);
+  };
+
+  const handleCryptoSuccess = async (transactionHash: string) => {
+    console.log("Crypto payment successful:", transactionHash);
+
+    try {
+      if (session?.user?.id) {
+        await fetch("/api/record-crypto-payment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: session.user.id,
+            planName: name,
+            planPrice: cryptoModalPrice,
+            planCredits:
+              name === "Free"
+                ? "100"
+                : name === "BASIC"
+                ? "1000"
+                : name === "STANDARD"
+                ? "5000"
+                : "15000",
+            transactionHash,
+            promoCode: null,
+          }),
+        });
+      }
+    } catch (error) {
+      console.error("Error recording crypto payment:", error);
+    }
+
+    setIsCryptoModalOpen(false);
   };
 
   // Determine if registration is needed
@@ -146,8 +188,25 @@ export default function PricingCard({
       <PaymentModal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
+        onCryptoPayment={handleCryptoPayment}
         planName={name}
         planPrice={price}
+        planCredits={
+          name === "Free"
+            ? "100"
+            : name === "BASIC"
+            ? "1000"
+            : name === "STANDARD"
+            ? "5000"
+            : "15000"
+        }
+      />
+      <CryptoPaymentModal
+        isOpen={isCryptoModalOpen}
+        onClose={() => setIsCryptoModalOpen(false)}
+        onSuccess={handleCryptoSuccess}
+        planName={name}
+        planPrice={cryptoModalPrice}
         planCredits={
           name === "Free"
             ? "100"

@@ -419,7 +419,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             primaryLabel={primaryLabel}
             formatFollowersCount={formatFollowersCount}
             renderMetricIndicator={renderMetricIndicator}
-            isCurrentUser={isCurrentUser}
+            isCurrentUser={isCurrentUser || false}
           />
         </div>
       </div>
@@ -1345,8 +1345,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                       primaryField={primaryField}
                       primaryLabel={primaryLabel}
                       formatFollowersCount={formatFollowersCount}
-                      renderMetricIndicator={renderMetricIndicator}
-                      isCurrentUser={isCurrentUser}
+                      renderMetricIndicator={renderMetricIndicator} 
+                      isCurrentUser={isCurrentUser || false}
                     />
                   </div>
                 </div>

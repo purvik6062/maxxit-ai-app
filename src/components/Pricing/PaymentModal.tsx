@@ -8,11 +8,13 @@ import { stripePromise } from "@/lib/stripeClient";
 import { createPortal } from "react-dom";
 import { useSession } from "next-auth/react";
 import { useCredits } from "@/context/CreditsContext";
+import CryptoPaymentModal from "./CryptoPaymentModal";
 import Link from "next/link";
 
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onCryptoPayment?: (finalPrice: number) => void;
   planName: string;
   planPrice: number;
   planCredits: string;
@@ -21,6 +23,7 @@ interface PaymentModalProps {
 export default function PaymentModal({
   isOpen,
   onClose,
+  onCryptoPayment,
   planName,
   planPrice,
   planCredits,
@@ -128,7 +131,12 @@ export default function PaymentModal({
         console.error("Error creating checkout session:", error);
       }
     } else if (selectedPaymentMethod === "crypto") {
-      console.log("Crypto payment selected for", planName);
+      if (onCryptoPayment) {
+        onCryptoPayment(finalPrice);
+      } else {
+        console.warn("onCryptoPayment callback not provided to PaymentModal");
+        onClose(); // Close this modal as a fallback
+      }
     }
   };
 
