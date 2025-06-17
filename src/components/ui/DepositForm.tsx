@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useEnzymeDeposit, useTokenApproval } from '@/hooks/useEnzymeVault';
 import { useEthers } from '@/providers/EthersProvider';
 import { debugEnzymeVault, logEnzymeDebugInfo, logDepositRecommendations } from '@/utils/enzymeDebug';
@@ -34,6 +34,10 @@ export function DepositForm({
   const [depositAmount, setDepositAmount] = useState('');
   const [needsApproval, setNeedsApproval] = useState(false);
   const { provider, account } = useEthers();
+  
+  // Refs to track if we've already handled success states
+  const depositSuccessHandled = useRef(false);
+  const approveSuccessHandled = useRef(false);
 
   const {
     deposit,
@@ -64,13 +68,25 @@ export function DepositForm({
 
   // Handle successful transactions
   useEffect(() => {
-    if (isDepositSuccess || isApproveSuccess) {
-      if (isDepositSuccess) {
-        setDepositAmount('');
-        onSuccess?.();
-      }
+    if (isDepositSuccess && !depositSuccessHandled.current) {
+      depositSuccessHandled.current = true;
+      setDepositAmount('');
+      onSuccess?.();
     }
-  }, [isDepositSuccess, isApproveSuccess, onSuccess]);
+    
+    if (isApproveSuccess && !approveSuccessHandled.current) {
+      approveSuccessHandled.current = true;
+      // Don't call onSuccess for approval, only for deposit
+    }
+    
+    // Reset flags when success states go back to false
+    if (!isDepositSuccess && depositSuccessHandled.current) {
+      depositSuccessHandled.current = false;
+    }
+    if (!isApproveSuccess && approveSuccessHandled.current) {
+      approveSuccessHandled.current = false;
+    }
+  }, [isDepositSuccess, isApproveSuccess]); // Removed onSuccess from dependencies to prevent infinite loops
 
   // Debug function
   const handleDebug = async () => {

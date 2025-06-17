@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { ConnectButton } from '@/components/ui/ConnectButton';
 import { useEnzymeVault } from '@/hooks/useEnzymeVault';
 import { NetworkBanner } from '@/components/ui/NetworkBanner';
@@ -11,6 +12,18 @@ import { SwapForm } from '@/components/ui/SwapForm';
 
 export default function InvestEnzymePage() {
   const [, setRefreshKey] = useState(0);
+  const searchParams = useSearchParams();
+  const [targetVaultAddress, setTargetVaultAddress] = useState<string>('');
+
+  // Get vault address from URL parameters or environment variable
+  useEffect(() => {
+    const vaultParam = searchParams.get('vault');
+    if (vaultParam) {
+      setTargetVaultAddress(vaultParam);
+    } else {
+      setTargetVaultAddress(process.env.NEXT_PUBLIC_ENZYME_VAULT_ADDRESS || '');
+    }
+  }, [searchParams]);
   
   const {
     vaultAddress,
@@ -23,7 +36,7 @@ export default function InvestEnzymePage() {
     denominationAssetAddress,
     denominationAssetSymbol,
     tokenDecimals,
-  } = useEnzymeVault();
+  } = useEnzymeVault(targetVaultAddress as `0x${string}`);
 
   // Force refresh of data after successful transactions
   const handleTransactionSuccess = () => {
@@ -34,16 +47,24 @@ export default function InvestEnzymePage() {
     }, 2000);
   };
 
-  if (!process.env.NEXT_PUBLIC_ENZYME_VAULT_ADDRESS) {
+  if (!targetVaultAddress) {
     return (
       <div className="min-h-screen bg-[#020617] py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-6">
-            <h1 className="text-2xl font-bold text-red-400 mb-4">Configuration Error</h1>
+            <h1 className="text-2xl font-bold text-red-400 mb-4">No Vault Address</h1>
             <p className="text-red-300">
-              Please configure your Enzyme vault address in the environment variables.
-              Check the ENZYME_ARBITRUM_SETUP.md file for setup instructions.
+              Please provide a vault address via URL parameter (?vault=0x...) or configure 
+              the default vault address in environment variables.
             </p>
+            <div className="mt-4">
+              <a 
+                href="/public-vaults" 
+                className="inline-flex items-center px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-md transition-colors"
+              >
+                Browse Public Vaults
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -168,20 +189,21 @@ export default function InvestEnzymePage() {
 
             {/* Manager Functions */}
             {isCorrectNetwork && vaultData && (
-              <div className="space-y-8">
-                <div className="bg-[#0D1321] border border-[rgba(206,212,218,0.15)] rounded-lg p-6">
-                  <h3 className="text-lg font-medium text-[#AAC9FA] mb-4">Manager Functions</h3>
-                  <p className="text-sm text-[#8ba1bc] mb-6">
-                    These functions are available to vault managers for portfolio management and rebalancing.
-                  </p>
+              // <div className="space-y-8">
+              //   <div className="bg-[#0D1321] border border-[rgba(206,212,218,0.15)] rounded-lg p-6">
+              //     <h3 className="text-lg font-medium text-[#AAC9FA] mb-4">Manager Functions</h3>
+              //     <p className="text-sm text-[#8ba1bc] mb-6">
+              //       These functions are available to vault managers for portfolio management and rebalancing.
+              //     </p>
                   
-                  {/* Swap Form */}
-                  <SwapForm
-                    comptrollerAddress={vaultData.comptroller}
-                    onSuccess={handleTransactionSuccess}
-                  />
-                </div>
-              </div>
+              //     {/* Swap Form */}
+              //     <SwapForm
+              //       comptrollerAddress={vaultData.comptroller}
+              //       onSuccess={handleTransactionSuccess}
+              //     />
+              //   </div>
+              // </div>
+              <div></div>
             )}
 
             {/* Additional Information */}

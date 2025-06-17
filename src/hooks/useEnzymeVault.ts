@@ -286,19 +286,221 @@ export function useEnzymeWithdraw() {
       setHash(null);
 
       const vaultContract = new ethers.Contract(vaultAddress, VAULT_PROXY_ABI, signer);
+      const userAddress = await signer.getAddress();
+
+      // Convert share amount to proper units
       const sharesWei = ethers.parseUnits(shareAmount, 18); // Shares are always 18 decimals
 
-      const tx = await vaultContract.redeemSharesInKind(sharesWei, [], []);
+      // Validate user has enough shares
+      const userShares = await vaultContract.balanceOf(userAddress);
+      if (userShares < sharesWei) {
+        throw new Error(`Insufficient shares. You have ${ethers.formatUnits(userShares, 18)} but trying to withdraw ${shareAmount}`);
+      }
+
+      // Validate shares amount is greater than 0
+      if (sharesWei <= 0) {
+        throw new Error('Withdrawal amount must be greater than 0');
+      }
+
+      // Get comptroller to check for any restrictions
+      const comptrollerAddress = await vaultContract.getAccessor();
+      const comptrollerContract = new ethers.Contract(comptrollerAddress, COMPTROLLER_ABI, signer);
+
+      console.log('Withdrawal parameters:', {
+        vaultAddress,
+        comptrollerAddress,
+        shareAmount,
+        sharesWei: sharesWei.toString(),
+        userShares: userShares.toString(),
+        userAddress
+      });
+
+      // Try different withdrawal methods based on Enzyme documentation
+      let gasEstimate;
+      let withdrawalMethod = 'redeemSharesInKind';
+
+      try {
+        // First, try the standard redeemSharesInKind method on COMPTROLLER (not vault!)
+        // According to Enzyme docs, redemptions should go through comptroller proxy
+        const comptrollerWithdrawContract = new ethers.Contract(comptrollerAddress, [
+          {
+            name: 'redeemSharesInKind',
+            type: 'function',
+            stateMutability: 'nonpayable',
+            inputs: [
+              { name: '_recipient', type: 'address' },
+              { name: '_sharesQuantity', type: 'uint256' },
+              { name: '_additionalAssets', type: 'address[]' },
+              { name: '_assetsToSkip', type: 'address[]' }
+            ],
+            outputs: []
+          }
+        ], signer);
+
+        gasEstimate = await comptrollerWithdrawContract.redeemSharesInKind.estimateGas(
+          userAddress, // recipient - this was missing!
+          sharesWei,
+          [], // additionalAssets - empty array for standard redemption
+          []  // assetsToSkip - empty array for standard redemption
+        );
+        console.log('Gas estimate for comptroller redeemSharesInKind:', gasEstimate.toString());
+        withdrawalMethod = 'comptrollerRedeemSharesInKind';
+        
+        // Log the function call data for debugging
+        const functionData = comptrollerWithdrawContract.interface.encodeFunctionData('redeemSharesInKind', [userAddress, sharesWei, [], []]);
+        console.log('Function call data:', functionData);
+        
+        // Decode the function data to verify parameters
+        try {
+          const decoded = comptrollerWithdrawContract.interface.decodeFunctionData('redeemSharesInKind', functionData);
+          console.log('Decoded function parameters:', {
+            recipient: decoded[0],
+            sharesQuantity: decoded[1].toString(),
+            additionalAssets: decoded[2],
+            assetsToSkip: decoded[3]
+          });
+        } catch (decodeError) {
+          console.error('Failed to decode function data:', decodeError);
+        }
+      } catch (gasError) {
+        console.error('Gas estimation failed for comptroller redeemSharesInKind:', gasError);
+        console.log('Failed transaction data:', gasError);
+        
+        // Fallback: try the old method on vault contract
+        try {
+          gasEstimate = await vaultContract.redeemSharesInKind.estimateGas(
+            sharesWei,
+            [], // additionalAssets - empty array for standard redemption
+            []  // assetsToSkip - empty array for standard redemption
+          );
+          console.log('Gas estimate for vault redeemSharesInKind:', gasEstimate.toString());
+          withdrawalMethod = 'redeemSharesInKind';
+          
+          // Log the function call data for debugging
+          const functionData = vaultContract.interface.encodeFunctionData('redeemSharesInKind', [sharesWei, [], []]);
+          console.log('Function call data:', functionData);
+          
+          // Decode the function data to verify parameters
+          try {
+            const decoded = vaultContract.interface.decodeFunctionData('redeemSharesInKind', functionData);
+            console.log('Decoded function parameters:', {
+              sharesQuantity: decoded[0].toString(),
+              additionalAssets: decoded[1],
+              assetsToSkip: decoded[2]
+            });
+          } catch (decodeError) {
+            console.error('Failed to decode function data:', decodeError);
+          }
+        } catch (vaultGasError) {
+          console.error('Gas estimation failed for vault redeemSharesInKind:', vaultGasError);
+          
+          // Try alternative withdrawal method through comptroller if available
+          try {
+            // Check if comptroller has redeemShares method
+            const comptrollerWithSigner = new ethers.Contract(comptrollerAddress, [
+              {
+                name: 'redeemShares',
+                type: 'function',
+                stateMutability: 'nonpayable',
+                inputs: [{ name: '_sharesQuantity', type: 'uint256' }],
+                outputs: []
+              }
+            ], signer);
+            
+            gasEstimate = await comptrollerWithSigner.redeemShares.estimateGas(sharesWei);
+            withdrawalMethod = 'redeemShares';
+            console.log('Gas estimate for comptroller redeemShares:', gasEstimate.toString());
+          } catch (comptrollerError) {
+            console.error('Gas estimation failed for comptroller redeemShares:', comptrollerError);
+            
+            // Log the exact error details for better debugging
+            console.log('Detailed gasError:', JSON.stringify(gasError, Object.getOwnPropertyNames(gasError), 2));
+            console.log('Detailed vaultGasError:', JSON.stringify(vaultGasError, Object.getOwnPropertyNames(vaultGasError), 2));
+            console.log('Detailed comptrollerError:', JSON.stringify(comptrollerError, Object.getOwnPropertyNames(comptrollerError), 2));
+            
+            // Provide specific error messages based on the error type
+            if (gasError instanceof Error) {
+              if (gasError.message.includes('insufficient shares')) {
+                throw new Error('Insufficient shares for withdrawal');
+              } else if (gasError.message.includes('CALL_EXCEPTION') || gasError.message.includes('missing revert data')) {
+                throw new Error('Withdrawal blocked by vault policies. The vault may have transfer restrictions, withdrawal cooldowns, or other policies preventing redemption. Please check with the vault manager or try again later.');
+              } else if (gasError.message.includes('execution reverted')) {
+                throw new Error('Withdrawal transaction would fail. This could be due to vault policies, insufficient liquidity, or locked shares.');
+              }
+            }
+            
+            throw new Error('Withdrawal transaction would fail. The vault may have withdrawal restrictions, policies, or insufficient liquidity. Please check vault settings or contact the vault manager.');
+          }
+        }
+      }
+
+      // Execute the withdrawal transaction using the appropriate method
+      let tx;
+      if (withdrawalMethod === 'comptrollerRedeemSharesInKind') {
+        const comptrollerWithdrawContract = new ethers.Contract(comptrollerAddress, [
+          {
+            name: 'redeemSharesInKind',
+            type: 'function',
+            stateMutability: 'nonpayable',
+            inputs: [
+              { name: '_recipient', type: 'address' },
+              { name: '_sharesQuantity', type: 'uint256' },
+              { name: '_additionalAssets', type: 'address[]' },
+              { name: '_assetsToSkip', type: 'address[]' }
+            ],
+            outputs: []
+          }
+        ], signer);
+        tx = await comptrollerWithdrawContract.redeemSharesInKind(userAddress, sharesWei, [], []);
+        console.log('Using comptroller redeemSharesInKind method');
+      } else if (withdrawalMethod === 'redeemShares') {
+        const comptrollerWithSigner = new ethers.Contract(comptrollerAddress, [
+          {
+            name: 'redeemShares',
+            type: 'function',
+            stateMutability: 'nonpayable',
+            inputs: [{ name: '_sharesQuantity', type: 'uint256' }],
+            outputs: []
+          }
+        ], signer);
+        tx = await comptrollerWithSigner.redeemShares(sharesWei);
+        console.log('Using comptroller redeemShares method');
+      } else {
+        tx = await vaultContract.redeemSharesInKind(sharesWei, [], []);
+        console.log('Using vault redeemSharesInKind method');
+      }
+      
+      console.log('Withdrawal transaction sent:', tx.hash);
       setHash(tx.hash);
       setIsPending(false);
       setIsConfirming(true);
 
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log('Withdrawal successful:', receipt);
       setIsConfirming(false);
       setIsSuccess(true);
     } catch (err) {
       console.error('Withdraw failed:', err);
-      setError(err instanceof Error ? err : new Error('Withdraw failed'));
+      
+      // Provide more specific error messages
+      let errorMessage = 'Withdrawal failed';
+      if (err instanceof Error) {
+        if (err.message.includes('insufficient shares')) {
+          errorMessage = 'Insufficient shares for withdrawal';
+        } else if (err.message.includes('user rejected')) {
+          errorMessage = 'Withdrawal was rejected by user';
+        } else if (err.message.includes('CALL_EXCEPTION') || err.message.includes('missing revert data')) {
+          errorMessage = 'Withdrawal blocked by vault policies. The vault may have transfer restrictions, withdrawal cooldowns, or other policies preventing redemption. Please check with the vault manager or try again later.';
+        } else if (err.message.includes('execution reverted')) {
+          errorMessage = 'Withdrawal transaction failed. This could be due to vault policies, insufficient liquidity, or locked shares.';
+        } else if (err.message.includes('withdrawal restrictions') || err.message.includes('vault policies')) {
+          errorMessage = err.message; // Use the specific message we created
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
+      setError(new Error(errorMessage));
       setIsPending(false);
       setIsConfirming(false);
     }

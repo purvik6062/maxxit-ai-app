@@ -17,7 +17,8 @@ import OnboardingModals from "./OnboardingModals";
 // Navigation configuration
 const NAVIGATION_ITEMS = [
   { path: "/influencer", label: "Influencer", id: "influencer" },
-  { path: "/invest-enzyme", label: "Invest", id: "invest" },
+  { path: "/create-vault", label: "Create Vault", id: "create-vault" },
+  { path: "/public-vaults", label: "Public Vaults", id: "public-vaults" },
   { path: "/profile", label: "Profile", id: "profile" },
   { path: "/pricing", label: "Pricing", id: "pricing", hasBorders: true },
   { path: "/playground", label: "Playground", id: "playground" },

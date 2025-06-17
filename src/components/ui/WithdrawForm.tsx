@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useEnzymeWithdraw } from '@/hooks/useEnzymeVault';
 
 interface UserPosition {
@@ -27,6 +27,9 @@ export function WithdrawForm({
 }: WithdrawFormProps) {
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [withdrawType, setWithdrawType] = useState<'shares' | 'value'>('value');
+  
+  // Ref to track if we've already handled success state
+  const withdrawSuccessHandled = useRef(false);
 
   const {
     withdraw,
@@ -38,11 +41,17 @@ export function WithdrawForm({
 
   // Handle successful transaction
   useEffect(() => {
-    if (isSuccess) {
+    if (isSuccess && !withdrawSuccessHandled.current) {
+      withdrawSuccessHandled.current = true;
       setWithdrawAmount('');
       onSuccess?.();
     }
-  }, [isSuccess, onSuccess]);
+    
+    // Reset flag when success state goes back to false
+    if (!isSuccess && withdrawSuccessHandled.current) {
+      withdrawSuccessHandled.current = false;
+    }
+  }, [isSuccess]); // Removed onSuccess from dependencies to prevent infinite loops
 
   const handleWithdraw = async () => {
     if (!withdrawAmount || !userPosition) return;
@@ -98,6 +107,138 @@ export function WithdrawForm({
       return (amount * pricePerShare).toFixed(4);
     } else {
       return (amount / pricePerShare).toFixed(4);
+    }
+  };
+
+  // Debug function for withdrawal issues
+  const handleDebugWithdrawal = async () => {
+    if (!withdrawAmount || !userPosition) {
+      console.log('Missing required data for withdrawal debug');
+      return;
+    }
+    
+    try {
+      let sharesToWithdraw: string;
+      
+      if (withdrawType === 'shares') {
+        sharesToWithdraw = withdrawAmount;
+      } else {
+        // Convert value to shares
+        const pricePerShare = parseFloat(sharePrice);
+        const valueToWithdraw = parseFloat(withdrawAmount);
+        sharesToWithdraw = (valueToWithdraw / pricePerShare).toString();
+      }
+
+      console.log('=== WITHDRAWAL DEBUG INFO ===');
+      console.log('Vault Address:', vaultAddress);
+      console.log('User Position:', userPosition);
+      console.log('Withdraw Type:', withdrawType);
+      console.log('Withdraw Amount Input:', withdrawAmount);
+      console.log('Shares to Withdraw:', sharesToWithdraw);
+      console.log('Share Price:', sharePrice);
+      console.log('Denomination Asset:', denominationAssetSymbol);
+      
+      // Additional debug info that could help identify issues
+      console.log('User Shares Balance:', userPosition.shares);
+      console.log('User Asset Value:', userPosition.assetValue);
+      console.log('Vault Ownership %:', userPosition.percentage);
+      
+      if (parseFloat(sharesToWithdraw) > parseFloat(userPosition.shares)) {
+        console.warn('⚠️ WARNING: Trying to withdraw more shares than owned!');
+        console.log(`Requested: ${sharesToWithdraw}, Available: ${userPosition.shares}`);
+      }
+      
+      // Enhanced debugging - check vault state
+      if (typeof window !== 'undefined' && window.ethereum) {
+        try {
+          const { ethers } = await import('ethers');
+          const provider = new ethers.BrowserProvider(window.ethereum);
+          const signer = await provider.getSigner();
+          
+          // Create contract instances for detailed checking
+          const vaultContract = new ethers.Contract(vaultAddress, [
+            // Basic vault functions
+            { name: 'getAccessor', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'address' }] },
+            { name: 'balanceOf', type: 'function', stateMutability: 'view', inputs: [{ name: 'account', type: 'address' }], outputs: [{ name: '', type: 'uint256' }] },
+            { name: 'totalSupply', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'uint256' }] },
+            { name: 'getOwner', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'address' }] },
+            // Withdrawal function
+            { name: 'redeemSharesInKind', type: 'function', stateMutability: 'nonpayable', inputs: [
+              { name: '_sharesQuantity', type: 'uint256' },
+              { name: '_additionalAssets', type: 'address[]' },
+              { name: '_assetsToSkip', type: 'address[]' }
+            ], outputs: [] }
+          ], provider);
+          
+          const userAddress = await signer.getAddress();
+          const comptrollerAddress = await vaultContract.getAccessor();
+          const vaultOwner = await vaultContract.getOwner();
+          const totalSupply = await vaultContract.totalSupply();
+          const userShares = await vaultContract.balanceOf(userAddress);
+          
+          console.log('=== ADVANCED VAULT DEBUG ===');
+          console.log('User Address:', userAddress);
+          console.log('Comptroller Address:', comptrollerAddress);
+          console.log('Vault Owner:', vaultOwner);
+          console.log('Total Supply (wei):', totalSupply.toString());
+          console.log('User Shares (wei):', userShares.toString());
+          console.log('Is User the Owner?:', vaultOwner.toLowerCase() === userAddress.toLowerCase());
+          
+          // Check comptroller
+          const comptrollerContract = new ethers.Contract(comptrollerAddress, [
+            { name: 'getDenominationAsset', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'address' }] },
+            { name: 'calcGrossShareValue', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'uint256' }] }
+          ], provider);
+          
+          const denominationAsset = await comptrollerContract.getDenominationAsset();
+          const grossShareValue = await comptrollerContract.calcGrossShareValue();
+          
+          console.log('Denomination Asset Address:', denominationAsset);
+          console.log('Gross Share Value (wei):', grossShareValue.toString());
+          
+          // Check denomination asset balance
+          const assetContract = new ethers.Contract(denominationAsset, [
+            { name: 'balanceOf', type: 'function', stateMutability: 'view', inputs: [{ name: 'account', type: 'address' }], outputs: [{ name: '', type: 'uint256' }] },
+            { name: 'symbol', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'string' }] },
+            { name: 'decimals', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'uint8' }] }
+          ], provider);
+          
+          const vaultAssetBalance = await assetContract.balanceOf(vaultAddress);
+          const assetSymbol = await assetContract.symbol();
+          const assetDecimals = await assetContract.decimals();
+          
+          console.log('Vault Asset Balance (wei):', vaultAssetBalance.toString());
+          console.log('Asset Symbol:', assetSymbol);
+          console.log('Asset Decimals:', assetDecimals);
+          console.log('Vault Asset Balance (formatted):', ethers.formatUnits(vaultAssetBalance, assetDecimals));
+          
+          // Try to predict what the withdrawal should return
+          const sharesWei = ethers.parseUnits(sharesToWithdraw, 18);
+          console.log('Shares to withdraw (wei):', sharesWei.toString());
+          
+          // Check if vault has enough assets
+          const expectedAssetAmount = (sharesWei * grossShareValue) / ethers.parseUnits('1', 18);
+          console.log('Expected asset return (wei):', expectedAssetAmount.toString());
+          console.log('Expected asset return (formatted):', ethers.formatUnits(expectedAssetAmount, assetDecimals));
+          
+          if (vaultAssetBalance < expectedAssetAmount) {
+            console.error('🚨 ISSUE FOUND: Vault has insufficient assets for withdrawal!');
+            console.log(`Vault has: ${ethers.formatUnits(vaultAssetBalance, assetDecimals)} ${assetSymbol}`);
+            console.log(`Withdrawal needs: ${ethers.formatUnits(expectedAssetAmount, assetDecimals)} ${assetSymbol}`);
+          } else {
+            console.log('✅ Vault has sufficient assets for withdrawal');
+          }
+          
+          console.log('=== END ADVANCED DEBUG ===');
+          
+        } catch (debugError) {
+          console.error('Advanced debugging failed:', debugError);
+        }
+      }
+      
+      console.log('=== END DEBUG INFO ===');
+    } catch (error) {
+      console.error('Debug function failed:', error);
     }
   };
 
@@ -250,6 +391,17 @@ export function WithdrawForm({
             : 'Withdraw'
           }
         </button>
+
+        {/* Debug Button - Only show in development */}
+        {/* {process.env.NODE_ENV === 'development' && (
+          <button
+            type="button"
+            onClick={handleDebugWithdrawal}
+            className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-2 px-4 rounded-md transition-colors text-sm"
+          >
+            🐛 Debug Withdrawal (Dev Only)
+          </button>
+        )} */}
 
         {/* Transaction Status */}
         {isConfirming && (
