@@ -15,11 +15,12 @@ export type Influencer = {
   name: string;
   avatar: string;
   followers: number;
-  recentWeekSignals: number;
-  recentWeekTokens: number;
+  recentMonthSignals: number;
+  recentMonthTokens: number;
   specialties?: string[];
   twitterHandle?: string;
   subscriptionPrice?: number;
+  monthlyROI?: number;
 };
 
 const swiperCardStyles = `
@@ -153,15 +154,15 @@ const MobileInfluencerCarousel: React.FC<MobileInfluencerCarouselProps> = ({
                     transition={{ delay: 0.2, duration: 0.3 }}
                   >
                     <div className="bg-gray-800/80 p-2 rounded-lg text-center border border-gray-700/30">
-                      <p className="text-[10px] xs:text-xs text-gray-400">Signals (7d)</p>
+                      <p className="text-[10px] xs:text-xs text-gray-400">Signals (30d)</p>
                       <p className="text-xs xs:text-sm font-medium text-cyan-400">
-                        {influencer.recentWeekSignals?.toLocaleString()}
+                        {influencer.recentMonthSignals?.toLocaleString()}
                       </p>
                     </div>
                     <div className="bg-gray-800/80 p-2 rounded-lg text-center border border-gray-700/30">
-                      <p className="text-[10px] xs:text-xs text-gray-400">Tokens (7d)</p>
+                      <p className="text-[10px] xs:text-xs text-gray-400">Tokens (30d)</p>
                       <p className="text-xs xs:text-sm font-medium text-cyan-400">
-                        {influencer.recentWeekTokens?.toLocaleString()}
+                        {influencer.recentMonthTokens?.toLocaleString()}
                       </p>
                     </div>
                     <div className="bg-gray-800/80 p-2 rounded-lg text-center border border-gray-700/30">
