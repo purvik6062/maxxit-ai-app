@@ -84,8 +84,8 @@ export async function createVaultWithBackendSigner(
 
     // Create the vault using backend signer
     const tx = await fundDeployer.createNewFund(
-      //   vaultSigner.address, // Fund owner is the vault agent
-      userAccount, // Fund owner is still the user
+      vaultSigner.address, // Fund owner is the vault agent
+      //   userAccount, // Fund owner is still the user
       vaultConfig.name,
       vaultConfig.symbol,
       vaultConfig.denominationAsset,
