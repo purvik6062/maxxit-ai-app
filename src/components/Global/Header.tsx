@@ -1,31 +1,24 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { ToastContainer, toast } from "react-toastify";
-import { OctagonAlert } from "lucide-react";
-import { IoShieldCheckmark } from "react-icons/io5";
-import { MdCancel } from "react-icons/md";
-import { GiConfirmed } from "react-icons/gi";
-import { FaXTwitter, FaTelegram } from "react-icons/fa6";
+import { FaXTwitter } from "react-icons/fa6";
 import "react-toastify/dist/ReactToastify.css";
 import {
-  Search,
   X,
-  CopyCheckIcon,
   LogOut,
   Menu,
-  CheckCircle2,
 } from "lucide-react";
-// import "../../app/css/input.css";
 import Link from "next/link";
 import { useCredits } from "@/context/CreditsContext";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import OnboardingModals from "./OnboardingModals";
 
 // Navigation configuration
 const NAVIGATION_ITEMS = [
   { path: "/influencer", label: "Influencer", id: "influencer" },
+  { path: "/create-vault", label: "Create Vault", id: "create-vault" },
+  { path: "/public-vaults", label: "Public Vaults", id: "public-vaults" },
   { path: "/profile", label: "Profile", id: "profile" },
   { path: "/pricing", label: "Pricing", id: "pricing", hasBorders: true },
   { path: "/playground", label: "Playground", id: "playground" },
@@ -44,7 +37,7 @@ const NavItem: React.FC<NavItemProps> = ({
   onClick,
   isMobile = false,
 }) => {
-  const { path, label, hasBorders, id } = item;
+  const { path, label, hasBorders } = item;
 
   // Desktop nav item
   if (!isMobile) {
@@ -217,6 +210,7 @@ const Header: React.FC<HeaderProps> = () => {
   // Set active link based on current URL path
   useEffect(() => {
     if (pathname?.includes("/influencer")) setActiveLink("influencer");
+    else if (pathname?.includes("/invest")) setActiveLink("invest");
     else if (pathname?.includes("/profile")) setActiveLink("profile");
     else if (pathname?.includes("/pricing")) setActiveLink("pricing");
     else if (pathname?.includes("/playground")) setActiveLink("playground");

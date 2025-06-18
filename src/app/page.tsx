@@ -321,9 +321,9 @@ const HomePage: React.FC = () => {
 
                   <div className="bg-green-900/20 rounded-lg p-4 mb-6 border border-green-800/30">
                     <p className="text-green-300 text-sm mb-3">
-                      We'll send you signals directly to your Telegram account.
-                      Make sure you have connected your Telegram account in your
-                      profile.
+                      We&apos;ll send you signals directly to your Telegram
+                      account. Make sure you have connected your Telegram account
+                      in your profile.
                     </p>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-300">Credits Used:</span>
@@ -389,7 +389,8 @@ const HomePage: React.FC = () => {
                       credits < currentAgent.subscriptionPrice && (
                         <div className="mt-4 p-3 rounded-lg bg-red-900/20 border border-red-800/30">
                           <p className="text-red-300 text-sm mb-2">
-                            You don't have enough credits for this subscription.
+                            You don&apos;t have enough credits for this
+                            subscription.
                           </p>
                           <Link
                             href="/pricing"

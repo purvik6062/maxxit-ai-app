@@ -1,22 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Maxxit Investment Platform
 
-## Getting Started
+This is the frontend for the Maxxit Investment Platform, which allows users to connect their wallet and deposit/withdraw funds.
 
-First, run the development server:
+## Setup
+
+1. Install dependencies:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+yarn install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Create a `.env.local` file in the root directory with the following environment variables:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+# WalletConnect Project ID (Get from https://cloud.walletconnect.com/)
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=YOUR_WALLETCONNECT_PROJECT_ID
+
+# Contract address on Sepolia network
+NEXT_PUBLIC_CONTRACT_ADDRESS=YOUR_DEPLOYED_CONTRACT_ADDRESS
+```
+
+3. Run the development server:
+
+```bash
+yarn dev
+```
+
+## Smart Contract Deployment
+
+To deploy the MaxxitInvestmentWallet contract to the Sepolia network:
+
+1. Install Hardhat and OpenZeppelin contracts:
+
+```bash
+npm install --save-dev hardhat @nomicfoundation/hardhat-ethers ethers dotenv @openzeppelin/contracts
+```
+
+2. Create a `.env` file in the root directory with the following:
+
+```
+PRIVATE_KEY=your_wallet_private_key
+SEPOLIA_RPC_URL=your_sepolia_rpc_url
+```
+
+3. Create the necessary directories:
+
+```bash
+mkdir -p contracts scripts
+```
+
+4. Deploy the contract:
+
+```bash
+npx hardhat run src/scripts/deploy-contract.js --network sepolia
+```
+
+5. Update your `.env.local` file with the deployed contract address.
+
+## Features
+
+- Connect wallet using RainbowKit
+- Deposit ETH to the investment contract
+- Withdraw funds with minimal fees
+- View investment balance and transaction history
+- Secure smart contract management
+
+## Smart Contract
+
+The smart contract for this platform is deployed on the Sepolia network. The contract includes:
+
+- Deposit functionality
+- Withdrawal with configurable fees
+- Balance tracking
+- Admin controls
+
+## Technology Stack
+
+- Next.js
+- RainbowKit
+- wagmi
+- Tailwind CSS
+- Ethereum (Sepolia testnet)
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 

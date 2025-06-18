@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import { useCredits } from "@/context/CreditsContext";
 import { FaCheck } from "react-icons/fa";
 import Link from "next/link";
+import Image from "next/image";
 
 interface InfluencerMetricsProps {
   influencerId?: string | string[];
@@ -426,9 +427,9 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
 
                 <div className="bg-green-900/20 rounded-lg p-4 mb-6 border border-green-800/30">
                   <p className="text-green-300 text-sm mb-3">
-                    We'll send you signals directly to your Telegram account.
-                    Make sure you have connected your Telegram account in your
-                    profile.
+                    We&apos;ll send you signals directly to your Telegram
+                    account. Make sure you have connected your Telegram account
+                    in your profile.
                   </p>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">Credits Used:</span>
@@ -456,7 +457,7 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
               <>
                 <div className="text-center py-4">
                   <div className="inline-flex items-center justify-center p-3 bg-blue-500/15 rounded-full mb-4">
-                    <img
+                    <Image
                       src={
                         currentAgent.profileUrl ||
                         `https://picsum.photos/seed/${encodeURIComponent(
@@ -464,6 +465,8 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
                         )}/64/64`
                       }
                       alt={currentAgent.name}
+                      width={48}
+                      height={48}
                       className="w-12 h-12 rounded-full border-2 border-blue-400/50"
                     />
                   </div>
@@ -494,7 +497,8 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
                     credits < currentAgent.subscriptionPrice && (
                       <div className="mt-4 p-3 rounded-lg bg-red-900/20 border border-red-800/30">
                         <p className="text-red-300 text-sm mb-2">
-                          You don't have enough credits for this subscription.
+                          You don&apos;t have enough credits for this
+                          subscription.
                         </p>
                         <Link
                           href="/pricing"

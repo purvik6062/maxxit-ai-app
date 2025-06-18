@@ -360,7 +360,7 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
               })
             ) : (
               <div className="text-center text-[#4b5563] text-base">
-                You haven't subscribed to any user yet
+                You haven&apos;t subscribed to any user yet
               </div>
             )}
           </div>
@@ -425,7 +425,7 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
               ))
             ) : (
               <div className="text-center text-[#4b5563] text-base">
-                You haven't subscribed to any user yet
+                You haven&apos;t subscribed to any user yet
               </div>
             )}
           </div>

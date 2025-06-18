@@ -289,7 +289,7 @@ const AddInfluencerModal: React.FC<AddInfluencerModalProps> = ({
                 onClick={closeWithAnimation}
                 className="w-full px-6 py-3 border border-gray-700 text-gray-300 hover:bg-gray-800 rounded-lg transition-all duration-200 text-sm"
               >
-                I'll Do This Later
+                I&apos;ll Do This Later
               </button>
             </div>
           </>
