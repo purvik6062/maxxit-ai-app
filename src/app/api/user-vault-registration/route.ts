@@ -49,8 +49,8 @@ export async function POST(request: NextRequest) {
     const registrationData = body as RegistrationData;
 
     // Validate required environment variable
-    if (!process.env.VAULT_ENDPOINT) {
-      console.error("VAULT_ENDPOINT environment variable is not set");
+    if (!process.env.VAULT_AGENT_ENDPOINT) {
+      console.error("VAULT_AGENT_ENDPOINT environment variable is not set");
       return NextResponse.json(
         { error: "Server configuration error" },
         { status: 500 }
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
 
     // Make external API call
     const registrationResponse = await fetch(
-      `${process.env.VAULT_ENDPOINT}/users/register`,
+      `${process.env.VAULT_AGENT_ENDPOINT}/users/register`,
       {
         method: "POST",
         headers: {

@@ -23,9 +23,6 @@ import UnsupportedNetworkModal from "./VaultForm/UnsupportedNetworkModal";
 // Import types
 import { VaultConfig, CreatedVault } from "./types";
 
-// Import backend vault creation hook
-import { useBackendVaultCreation } from "@/hooks/useBackendVaultCreation";
-
 const CreateVaultPage: React.FC = () => {
   const { account, signer, chainId } = useWallet();
   const [vaultConfig, setVaultConfig] = useState<VaultConfig>({
@@ -43,16 +40,6 @@ const CreateVaultPage: React.FC = () => {
 
   const [isCreating, setIsCreating] = useState(false);
   const [createdVault, setCreatedVault] = useState<CreatedVault | null>(null);
-  const [useBackendSigner, setUseBackendSigner] = useState(false);
-
-  // Backend vault creation hook
-  const {
-    createVault: createVaultWithBackend,
-    isCreating: isCreatingWithBackend,
-    isAvailable: isBackendAvailable,
-    vaultAgentAddress,
-    checkAvailability,
-  } = useBackendVaultCreation();
 
   // Get current network configuration
   const networkConfig = chainId ? getNetworkConfig(chainId) : null;
@@ -66,11 +53,6 @@ const CreateVaultPage: React.FC = () => {
       }));
     }
   }, [networkConfig, vaultConfig.denominationAsset]);
-
-  // Check backend vault creation availability
-  useEffect(() => {
-    checkAvailability();
-  }, [checkAvailability]);
 
   const handleVaultConfigChange = (field: keyof VaultConfig, value: string) => {
     if (
@@ -247,38 +229,8 @@ const CreateVaultPage: React.FC = () => {
       return;
     }
 
-    if (!networkConfig || !account || !chainId) {
+    if (!signer || !networkConfig) {
       toast.error("Wallet not connected or unsupported network");
-      return;
-    }
-
-    // Use backend signer if selected and available
-    if (useBackendSigner && isBackendAvailable) {
-      try {
-        const result = await createVaultWithBackend({
-          vaultConfig,
-          selectedAgent: null,
-          chainId,
-          userAccount: account,
-        });
-
-        if (result) {
-          setCreatedVault({
-            comptrollerProxy: result.comptrollerProxy,
-            vaultProxy: result.vaultProxy,
-            txHash: result.transactionHash,
-          });
-        }
-      } catch (error) {
-        console.error("Backend vault creation failed:", error);
-        // Error is already handled by the hook
-      }
-      return;
-    }
-
-    // Original user wallet method
-    if (!signer) {
-      toast.error("Wallet signer not available");
       return;
     }
 
@@ -422,57 +374,6 @@ const CreateVaultPage: React.FC = () => {
       subtitle="Launch a professional investment vault with customizable fees and policies"
     >
       <div className="space-y-8">
-        {/* Backend Vault Creation Option */}
-        {isBackendAvailable && (
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-6">
-            <div className="flex items-start gap-4">
-              <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                <svg
-                  className="w-4 h-4 text-blue-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-blue-400 mb-2">
-                  ⚡ Gasless Vault Creation Available
-                </h3>
-                <p className="text-[#8ba1bc] text-sm mb-4">
-                  Create your vault without gas fees using our backend service.
-                  Your wallet will still be the owner of the vault.
-                </p>
-                <div className="flex items-center gap-3">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={useBackendSigner}
-                      onChange={(e) => setUseBackendSigner(e.target.checked)}
-                      className="w-4 h-4 text-blue-500 bg-transparent border-2 border-blue-500 rounded focus:ring-blue-500 focus:ring-2"
-                    />
-                    <span className="text-[#E4EFFF] text-sm font-medium">
-                      Use gasless vault creation
-                    </span>
-                  </label>
-                  {vaultAgentAddress && (
-                    <span className="text-xs text-[#6b7280] font-mono">
-                      Agent: {vaultAgentAddress.slice(0, 6)}...
-                      {vaultAgentAddress.slice(-4)}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Basic Information */}
         <VaultBasicInfo
           vaultConfig={vaultConfig}
@@ -497,21 +398,17 @@ const CreateVaultPage: React.FC = () => {
         <div className="pt-6 border-t border-[#253040]">
           <button
             onClick={createVault}
-            disabled={isCreating || isCreatingWithBackend || !account}
+            disabled={isCreating || !account}
             className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 
                      disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed 
                      text-white font-semibold py-4 px-8 rounded-lg transition-all duration-200 
                      transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none 
                      flex items-center justify-center gap-3 text-lg"
           >
-            {isCreating || isCreatingWithBackend ? (
+            {isCreating ? (
               <>
                 <div className="w-5 h-5 border-2 border-transparent border-t-white rounded-full animate-spin" />
-                <span>
-                  {useBackendSigner
-                    ? "Creating Vault (Gasless)..."
-                    : "Creating Vault..."}
-                </span>
+                <span>Creating Vault...</span>
               </>
             ) : (
               <>
@@ -528,9 +425,7 @@ const CreateVaultPage: React.FC = () => {
                     d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                   />
                 </svg>
-                <span>
-                  {useBackendSigner ? "Create Vault (Gasless)" : "Create Vault"}
-                </span>
+                <span>Create Vault</span>
               </>
             )}
           </button>
