@@ -18,15 +18,23 @@ import {
 } from "@/lib/enzyme-contracts";
 import { useSession } from "next-auth/react";
 import { useUserVault } from "@/hooks/useUserVault";
+import { useBackendVaultCreation } from "@/hooks/useBackendVaultCreation";
 
 const MultiStepVaultCreation: React.FC = () => {
-  const { account, isCorrectNetwork } = useWallet();
+  const { account, isCorrectNetwork, chainId } = useWallet();
   const {
     userVaults,
     isLoading: isLoadingVaults,
     hasVaults,
     latestVault,
   } = useUserVault();
+  const {
+    createVault: createVaultWithBackend,
+    isCreating: isCreatingWithBackend,
+    isAvailable: isBackendAvailable,
+    vaultAgentAddress,
+    checkAvailability,
+  } = useBackendVaultCreation();
 
   // State to manage vault view - whether to show existing vault or create new one
   const [showExistingVault, setShowExistingVault] = useState(false);
@@ -61,6 +69,11 @@ const MultiStepVaultCreation: React.FC = () => {
       setShowExistingVault(true);
     }
   }, [hasVaults, isLoadingVaults, state.currentStep, state.selectedAgent]);
+
+  // Check backend vault creation availability on mount
+  useEffect(() => {
+    checkAvailability();
+  }, [checkAvailability]);
 
   const steps: VaultCreationStep[] = [
     {
@@ -534,10 +547,15 @@ const ModifiedCreateVault: React.FC<{
   onBack,
   onConfigChange,
 }) => {
-  const { account, signer, chainId } = useWallet();
+  const { account, chainId } = useWallet();
   const { data: session } = useSession();
   const [vaultConfig, setVaultConfig] = useState<VaultConfig>(initialConfig);
-  const [isCreating, setIsCreating] = useState(false);
+  const {
+    createVault: createVaultWithBackend,
+    isCreating,
+    isAvailable: isBackendAvailable,
+    vaultAgentAddress,
+  } = useBackendVaultCreation();
 
   // Get current network configuration
   const networkConfig = chainId ? getNetworkConfig(chainId) : null;
@@ -567,6 +585,8 @@ const ModifiedCreateVault: React.FC<{
     if (!account) return "Please connect your wallet";
     if (!chainId || !isNetworkSupported(chainId))
       return "Please switch to a supported network";
+    // if (!isBackendAvailable)
+    //   return "Backend vault creation service is not available";
     return null;
   };
 
@@ -577,69 +597,24 @@ const ModifiedCreateVault: React.FC<{
       return;
     }
 
-    if (!signer || !networkConfig) {
+    if (!account || !chainId) {
       toast.error("Wallet not properly connected");
       return;
     }
 
     try {
-      setIsCreating(true);
-
-      const fundDeployer = new ethers.Contract(
-        networkConfig.contracts.FUND_DEPLOYER,
-        FUND_DEPLOYER_ABI,
-        signer
-      );
-
-      const feeManagerConfigData = "0x";
-      const policyManagerConfigData = createPolicyManagerConfigData();
-      const sharesActionTimelock =
-        parseInt(vaultConfig.sharesActionTimelock) * 3600;
-
-      toast.loading(
-        "Creating vault... Please confirm the transaction in your wallet.",
-        {
-          id: "creating-vault",
-        }
-      );
-
-      const tx = await fundDeployer.createNewFund(
-        account,
-        vaultConfig.name,
-        vaultConfig.symbol,
-        vaultConfig.denominationAsset,
-        sharesActionTimelock,
-        feeManagerConfigData,
-        policyManagerConfigData,
-        { gasLimit: 5000000 }
-      );
-
-      toast.loading("Transaction submitted. Waiting for confirmation...", {
-        id: "creating-vault",
+      // Use backend vault creation service instead of user's wallet
+      const result = await createVaultWithBackend({
+        vaultConfig,
+        selectedAgent,
+        chainId,
+        userAccount: account,
       });
 
-      const receipt = await tx.wait();
-
-      if (receipt.status === 1) {
-        let comptrollerProxy = "";
-        let vaultProxy = "";
-
-        for (const log of receipt.logs) {
-          try {
-            const parsedLog = fundDeployer.interface.parseLog(log);
-            if (parsedLog && parsedLog.name === "NewFundCreated") {
-              comptrollerProxy = parsedLog.args.comptrollerProxy;
-              vaultProxy = parsedLog.args.vaultProxy;
-              break;
-            }
-          } catch (e) {
-            continue;
-          }
-        }
-
+      if (result) {
         // Register user for automated trading
         await registerUserForAutomatedTrading({
-          vaultProxy,
+          vaultProxy: result.vaultProxy,
           selectedAgent,
           vaultConfig,
           session,
@@ -647,29 +622,14 @@ const ModifiedCreateVault: React.FC<{
         });
 
         onVaultCreated({
-          comptrollerProxy: comptrollerProxy || "0x...",
-          vaultProxy: vaultProxy || "0x...",
-          txHash: tx.hash,
+          comptrollerProxy: result.comptrollerProxy,
+          vaultProxy: result.vaultProxy,
+          txHash: result.transactionHash,
         });
-      } else {
-        throw new Error("Transaction failed");
       }
     } catch (error: any) {
       console.error("Error creating vault:", error);
-      let errorMessage = "Failed to create vault";
-
-      if (error.code === "CALL_EXCEPTION") {
-        errorMessage =
-          "Transaction reverted. Please check your configuration and try again.";
-      } else if (error.code === "INSUFFICIENT_FUNDS") {
-        errorMessage = "Insufficient funds for gas";
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      toast.error(errorMessage, { id: "creating-vault" });
-    } finally {
-      setIsCreating(false);
+      // Error handling is done in the useBackendVaultCreation hook
     }
   };
 
