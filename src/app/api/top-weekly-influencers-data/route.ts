@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import dbConnect from "src/utils/dbConnect";
-import { Collection } from "mongodb";
 
 // Interface for the API response
 export interface Influencer {
@@ -14,128 +13,125 @@ export interface Influencer {
   monthlyROI: number;
 }
 
+// Helper function to parse P&L percentage string to number
+function parsePnLPercentage(pnlString: string): number {
+  if (!pnlString || typeof pnlString !== 'string') return 0;
+  // Remove the % sign and convert to number
+  const numericValue = parseFloat(pnlString.replace('%', ''));
+  return isNaN(numericValue) ? 0 : numericValue;
+}
+
 export async function GET() {
   console.time('top-monthly-influencers-api');
   
   try {
     // Connect to DB once and reuse the connection
     const client = await dbConnect();
-    const db1 = client.db("backtesting_db");
-    const db2 = client.db("ctxbt-signal-flow");
+    const backtestingDb = client.db("backtesting_db");
+    const ctxbtDb = client.db("ctxbt-signal-flow");
     
-    // Get collections once
-    const backtestingCollection = db1.collection("weekly_pnl");
-    const ctxbtCollection = db2.collection("influencers");
-    const tradingSignalsCollection = db2.collection("trading-signals");
+    // Get collections
+    const backtestingResultsCollection = backtestingDb.collection("backtesting_results_with_reasoning");
+    const ctxbtCollection = ctxbtDb.collection("influencers");
+    const tradingSignalsCollection = ctxbtDb.collection("trading-signals");
 
     // Calculate month start date (30 days ago from now)
     const currentDate = new Date();
     const monthStartDate = new Date();
     monthStartDate.setDate(currentDate.getDate() - 30);
 
-    console.time('fetch-monthly-pnl');
-    // Fetch all weekly P&L documents from the last month
-    const monthlyPnlDocs = await backtestingCollection
+    console.time('fetch-monthly-backtesting-results');
+    // Fetch all backtesting results from the last month with completed backtesting
+    const monthlyBacktestingResults = await backtestingResultsCollection
       .find({
-        timestamp: {
+        "Signal Generation Date": {
           $gte: monthStartDate,
           $lte: currentDate
-        }
+        },
+        "backtesting_done": true,
+        "Final P&L": { $exists: true, $ne: "" }
       }, { 
-        projection: { timestamp: 1, data: 1, _id: 0 } 
+        projection: { 
+          "Twitter Account": 1, 
+          "Final P&L": 1, 
+          "Token Mentioned": 1,
+          "Signal Generation Date": 1,
+          _id: 0 
+        } 
       })
-      .sort({ timestamp: -1 })
       .toArray();
-    console.timeEnd('fetch-monthly-pnl');
+    console.timeEnd('fetch-monthly-backtesting-results');
 
-    if (!monthlyPnlDocs.length) {
+    if (!monthlyBacktestingResults.length) {
       return NextResponse.json(
-        { error: "No monthly P&L data found" },
+        { error: "No monthly backtesting results found" },
         { status: 404 }
       );
     }
 
-    // Aggregate P&L data across all weeks in the month
+    // Aggregate P&L data by influencer
     const monthlyPnlData: { [key: string]: number } = {};
+    const signalCountByInfluencer: { [key: string]: number } = {};
+    const tokensByInfluencer: { [key: string]: Set<string> } = {};
     
-    monthlyPnlDocs.forEach(doc => {
-      const weekData = doc.data;
-      Object.entries(weekData).forEach(([name, profit]) => {
-        if (!monthlyPnlData[name]) {
-          monthlyPnlData[name] = 0;
-        }
-        monthlyPnlData[name] += Number(profit);
-      });
-    });
-
-    // Get all influencer handles for signal count calculation
-    const allInfluencerHandles = Object.keys(monthlyPnlData);
-
-    // Run these queries in parallel with Promise.all to save time
-    console.time('parallel-data-fetch');
-    const [influencerData, signalData] = await Promise.all([
-      // Fetch influencer profile data with minimal projection
-      ctxbtCollection.find(
-        { twitterHandle: { $in: allInfluencerHandles } },
-        { 
-          projection: { 
-            twitterHandle: 1, 
-            "userData.publicMetrics.followers_count": 1, 
-            "userData.userProfileUrl": 1,
-            subscriptionPrice: 1,
-            _id: 0
-          } 
-        }
-      ).toArray(),
+    monthlyBacktestingResults.forEach(result => {
+      const twitterAccount = result["Twitter Account"];
+      const finalPnL = parsePnLPercentage(result["Final P&L"]);
+      const tokenMentioned = result["Token Mentioned"];
       
-      // Fetch signals data for the entire month with minimal projection
-      tradingSignalsCollection.find(
-        {
-          twitterHandle: { $in: allInfluencerHandles },
-          generatedAt: {
-            $gte: monthStartDate,
-            $lte: currentDate,
-          }
-        },
-        { projection: { twitterHandle: 1, coin: 1, _id: 0 } }
-      ).toArray()
-    ]);
-    console.timeEnd('parallel-data-fetch');
-
-    // Process signals data to count signals per influencer
-    const signalsByInfluencer = new Map();
-    const tokensByInfluencer = new Map();
-    
-    signalData.forEach(signal => {
-      // Count signals
-      if (!signalsByInfluencer.has(signal.twitterHandle)) {
-        signalsByInfluencer.set(signal.twitterHandle, 0);
-        tokensByInfluencer.set(signal.twitterHandle, new Set());
+      if (!twitterAccount) return;
+      
+      // Initialize if not exists
+      if (!monthlyPnlData[twitterAccount]) {
+        monthlyPnlData[twitterAccount] = 0;
+        signalCountByInfluencer[twitterAccount] = 0;
+        tokensByInfluencer[twitterAccount] = new Set();
       }
-      signalsByInfluencer.set(
-        signal.twitterHandle, 
-        signalsByInfluencer.get(signal.twitterHandle) + 1
-      );
+      
+      // Accumulate P&L and count signals
+      monthlyPnlData[twitterAccount] += finalPnL;
+      signalCountByInfluencer[twitterAccount] += 1;
       
       // Track unique tokens
-      tokensByInfluencer.get(signal.twitterHandle).add(signal.coin);
+      if (tokenMentioned) {
+        tokensByInfluencer[twitterAccount].add(tokenMentioned);
+      }
     });
 
-    // Calculate ROI for each influencer and get top performers
+    // Get all influencer handles for profile data fetching
+    const allInfluencerHandles = Object.keys(monthlyPnlData);
+
+    // Fetch influencer profile data
+    console.time('fetch-influencer-data');
+    const influencerData = await ctxbtCollection.find(
+      { twitterHandle: { $in: allInfluencerHandles } },
+      { 
+        projection: { 
+          twitterHandle: 1, 
+          "userData.publicMetrics.followers_count": 1, 
+          "userData.userProfileUrl": 1,
+          subscriptionPrice: 1,
+          _id: 0
+        } 
+      }
+    ).toArray();
+    console.timeEnd('fetch-influencer-data');
+
+    // Calculate average ROI per signal for each influencer and get top performers
     const influencersWithROI = Object.entries(monthlyPnlData)
-      .map(([name, totalPnl]) => {
-        const signalCount = signalsByInfluencer.get(name) || 0;
-        const roi = signalCount > 0 ? (totalPnl / signalCount) : 0;
+      .map(([twitterHandle, totalPnl]) => {
+        const signalCount = signalCountByInfluencer[twitterHandle] || 0;
+        const averageROI = signalCount > 0 ? (totalPnl / signalCount) : 0;
         
         return {
-          name,
+          name: twitterHandle,
           totalPnl: Number(totalPnl),
           signalCount,
-          roi
+          averageROI
         };
       })
-      .sort((a, b) => b.roi - a.roi) // Sort by ROI instead of just profit
-      .slice(0, 6); // Get top 6 by ROI
+      .sort((a, b) => b.averageROI - a.averageROI) // Sort by average ROI per signal
+      .slice(0, 6); // Get top 6 by average ROI
 
     // Create lookup map for influencer data
     const influencerMap = new Map();
@@ -143,8 +139,8 @@ export async function GET() {
       influencerMap.set(doc.twitterHandle, doc);
     });
 
-    // Calculate total ROI (average of all top influencers' ROIs)
-    const totalROI = influencersWithROI.reduce((sum, inf) => sum + inf.roi, 0) / influencersWithROI.length;
+    // Calculate overall average ROI (average of all top influencers' average ROIs)
+    const overallAverageROI = influencersWithROI.reduce((sum, inf) => sum + inf.averageROI, 0) / influencersWithROI.length;
 
     // Assemble final response data
     const result = influencersWithROI.map((influencer, index) => {
@@ -157,10 +153,10 @@ export async function GET() {
         followers: influencerDoc.userData?.publicMetrics?.followers_count || 0,
         avatar: influencerDoc.userData?.userProfileUrl || "https://via.placeholder.com/150",
         recentMonthSignals: influencer.signalCount,
-        recentMonthTokens: tokensByInfluencer.get(influencer.name)?.size || 0,
+        recentMonthTokens: tokensByInfluencer[influencer.name]?.size || 0,
         subscriptionPrice: influencerDoc.subscriptionPrice,
         specialties: ['Crypto Analysis', 'Trading Signals'], // Default specialties
-        monthlyROI: influencer.roi
+        monthlyROI: influencer.averageROI
       };
     }).filter(Boolean);
 
@@ -168,7 +164,7 @@ export async function GET() {
     return NextResponse.json(
       {
         influencers: result,
-        totalProfit: totalROI, // This is now the average ROI
+        totalProfit: overallAverageROI, // This is now the overall average ROI
       },
       { status: 200 }
     );
