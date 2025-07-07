@@ -12,7 +12,7 @@ interface WalletContextType {
   isConnecting: boolean;
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
-  switchToArbitrum: () => Promise<void>;
+  switchToSupportedNetwork: (chainId: number) => Promise<void>;
   isCorrectNetwork: boolean;
 }
 
@@ -37,9 +37,11 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   const [chainId, setChainId] = useState<number | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
 
-  // Arbitrum One chain ID
-  const ARBITRUM_CHAIN_ID = 42161;
-  const isCorrectNetwork = chainId === ARBITRUM_CHAIN_ID;
+  // Supported testnet chain IDs
+  const ARBITRUM_SEPOLIA_CHAIN_ID = 421614;
+  const ETHEREUM_SEPOLIA_CHAIN_ID = 11155111;
+  const SUPPORTED_CHAIN_IDS = [ARBITRUM_SEPOLIA_CHAIN_ID, ETHEREUM_SEPOLIA_CHAIN_ID];
+  const isCorrectNetwork = chainId ? SUPPORTED_CHAIN_IDS.includes(chainId) : false;
 
   const connectWallet = async () => {
     if (typeof window === "undefined" || !window.ethereum) {
@@ -87,32 +89,48 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     toast.success("Wallet disconnected");
   };
 
-  const switchToArbitrum = async () => {
+  const switchToSupportedNetwork = async (targetChainId: number) => {
     if (!window.ethereum) return;
+
+    const networks = {
+      [ARBITRUM_SEPOLIA_CHAIN_ID]: {
+        chainId: "0x66eee", // 421614 in hex
+        chainName: "Arbitrum Sepolia",
+        nativeCurrency: {
+          name: "Ether",
+          symbol: "ETH",
+          decimals: 18,
+        },
+        rpcUrls: ["https://sepolia-rollup.arbitrum.io/rpc"],
+        blockExplorerUrls: ["https://sepolia.arbiscan.io"],
+      },
+      [ETHEREUM_SEPOLIA_CHAIN_ID]: {
+        chainId: "0xaa36a7", // 11155111 in hex
+        chainName: "Ethereum Sepolia",
+        nativeCurrency: {
+          name: "Ether",
+          symbol: "ETH",
+          decimals: 18,
+        },
+        rpcUrls: ["https://sepolia.infura.io/v3/YOUR_INFURA_KEY"],
+        blockExplorerUrls: ["https://sepolia.etherscan.io"],
+      },
+    };
+
+    const networkConfig = networks[targetChainId];
+    if (!networkConfig) return;
 
     try {
       await window.ethereum.request({
         method: "wallet_switchEthereumChain",
-        params: [{ chainId: "0xa4b1" }], // Arbitrum One mainnet (42161 in hex)
+        params: [{ chainId: networkConfig.chainId }],
       });
     } catch (error: any) {
       if (error.code === 4902) {
         // Chain not added to MetaMask
         await window.ethereum.request({
           method: "wallet_addEthereumChain",
-          params: [
-            {
-              chainId: "0xa4b1",
-              chainName: "Arbitrum One",
-              nativeCurrency: {
-                name: "Ether",
-                symbol: "ETH",
-                decimals: 18,
-              },
-              rpcUrls: ["https://arb1.arbitrum.io/rpc"],
-              blockExplorerUrls: ["https://arbiscan.io"],
-            },
-          ],
+          params: [networkConfig],
         });
       }
       throw error;
@@ -185,7 +203,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     isConnecting,
     connectWallet,
     disconnectWallet,
-    switchToArbitrum,
+    switchToSupportedNetwork,
     isCorrectNetwork,
   };
 
@@ -201,7 +219,7 @@ interface WalletConnectorProps {
 export const WalletConnector: React.FC<WalletConnectorProps> = ({
   className = "",
 }) => {
-  const { account, isConnecting, connectWallet, disconnectWallet, chainId, switchToArbitrum, isCorrectNetwork } =
+  const { account, isConnecting, connectWallet, disconnectWallet, chainId, switchToSupportedNetwork, isCorrectNetwork } =
     useWallet();
 
   const formatAddress = (address: string) => {
@@ -211,13 +229,17 @@ export const WalletConnector: React.FC<WalletConnectorProps> = ({
   const getNetworkName = (chainId: number) => {
     switch (chainId) {
       case 1:
-        return "Ethereum";
+        return "Ethereum Mainnet";
       case 137:
         return "Polygon";
       case 42161:
         return "Arbitrum One";
       case 8453:
         return "Base";
+      case 421614:
+        return "Arbitrum Sepolia";
+      case 11155111:
+        return "Ethereum Sepolia";
       default:
         return "Unknown";
     }
@@ -236,11 +258,10 @@ export const WalletConnector: React.FC<WalletConnectorProps> = ({
       ) : (
         <div className="flex flex-col items-center space-y-2">
           {/* Network Status */}
-          <div className={`px-4 py-2 rounded-lg border ${
-            isCorrectNetwork 
-              ? "bg-green-100 border-green-300 text-green-800"
-              : "bg-red-100 border-red-300 text-red-800"
-          }`}>
+          <div className={`px-4 py-2 rounded-lg border ${isCorrectNetwork
+            ? "bg-green-100 border-green-300 text-green-800"
+            : "bg-red-100 border-red-300 text-red-800"
+            }`}>
             <div className="text-sm font-medium">
               Connected: {formatAddress(account)}
             </div>
@@ -262,14 +283,22 @@ export const WalletConnector: React.FC<WalletConnectorProps> = ({
                 Wrong Network
               </div>
               <p className="text-yellow-700 text-xs mb-3">
-                This application only works on Arbitrum One. Please switch to continue.
+                This application only works on Arbitrum Sepolia or Ethereum Sepolia. Please switch to continue.
               </p>
-              <button
-                onClick={switchToArbitrum}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-2 px-3 rounded transition-colors"
-              >
-                Switch to Arbitrum One
-              </button>
+              <div className="space-y-2">
+                <button
+                  onClick={() => switchToSupportedNetwork(421614)}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-2 px-3 rounded transition-colors"
+                >
+                  Switch to Arbitrum Sepolia
+                </button>
+                <button
+                  onClick={() => switchToSupportedNetwork(11155111)}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white text-xs font-medium py-2 px-3 rounded transition-colors"
+                >
+                  Switch to Ethereum Sepolia
+                </button>
+              </div>
             </div>
           )}
 
