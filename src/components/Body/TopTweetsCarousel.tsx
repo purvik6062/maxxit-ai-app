@@ -88,6 +88,10 @@ export default function CarouselHorizontal() {
   const duplicatedTweets = [...tweets, ...tweets, ...tweets]
 
   const formatPnL = (pnl: number) => {
+    console.log("pnl", pnl)
+    if (pnl === null || pnl === undefined || isNaN(pnl)) {
+      return "0.00"
+    }
     return pnl.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
 
