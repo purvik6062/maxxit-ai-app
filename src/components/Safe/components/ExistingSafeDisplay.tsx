@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Shield,
   CheckCircle,
@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { SafeData, SafeDeployment } from "../types";
 import { NetworkDropdown } from "./NetworkDropdown";
+import { formatGasPrice, formatTimestamp, calculateTotalGasCost, allNetworks } from "../utils/safeUtils";
 import toast from "react-hot-toast";
 
 interface ExistingSafeDisplayProps {
@@ -35,20 +36,18 @@ export const ExistingSafeDisplay: React.FC<ExistingSafeDisplayProps> = ({
   const [selectedNetwork, setSelectedNetwork] = useState<string>("");
   const [showNetworkSelector, setShowNetworkSelector] = useState(false);
 
-  // All supported networks with their details
-  const allNetworks = [
-    { key: "ethereum", name: "Ethereum Mainnet", chainId: 1, type: "Mainnet", icon: "⟠", color: "from-blue-500 to-blue-600" },
-    { key: "sepolia", name: "Ethereum Sepolia", chainId: 11155111, type: "Testnet", icon: "⟠", color: "from-blue-400 to-blue-500" },
-    { key: "arbitrum", name: "Arbitrum One", chainId: 42161, type: "Mainnet", icon: "🔵", color: "from-blue-600 to-indigo-600" },
-    { key: "arbitrum_sepolia", name: "Arbitrum Sepolia", chainId: 421614, type: "Testnet", icon: "🔵", color: "from-blue-500 to-indigo-500" },
-    { key: "polygon", name: "Polygon", chainId: 137, type: "Mainnet", icon: "🟣", color: "from-purple-500 to-purple-600" },
-    { key: "base", name: "Base", chainId: 8453, type: "Mainnet", icon: "🔵", color: "from-blue-500 to-cyan-500" },
-    { key: "base_sepolia", name: "Base Sepolia", chainId: 84532, type: "Testnet", icon: "🔵", color: "from-blue-400 to-cyan-400" },
-  ];
+
 
   // Get active networks from deployments
   const activeNetworks = safeData.metadata?.activeNetworks || [];
   const availableNetworks = allNetworks.filter(network => !activeNetworks.includes(network.key));
+
+  // Reset expansion states when currentNetwork changes
+  useEffect(() => {
+    setSelectedNetwork("");
+    setShowNetworkSelector(false);
+    setExpandResult(null);
+  }, [currentNetwork]);
 
   const handleExpandSafe = async () => {
     if (!selectedNetwork) {
@@ -102,32 +101,7 @@ export const ExistingSafeDisplay: React.FC<ExistingSafeDisplayProps> = ({
     }
   };
 
-  // Format gas price for display
-  const formatGasPrice = (gasPrice: string, chainId: number) => {
-    const price = parseFloat(gasPrice);
-    if (chainId === 421614 || chainId === 84532) { // Arbitrum Sepolia, Base Sepolia
-      return `${(price / 1e9).toFixed(2)} Gwei`;
-    }
-    return `${(price / 1e9).toFixed(2)} Gwei`;
-  };
 
-  // Format timestamp
-  const formatTimestamp = (timestamp: any) => {
-    const date = timestamp?.$date ? new Date(timestamp.$date) : new Date(timestamp);
-    return date.toLocaleDateString() + " " + date.toLocaleTimeString();
-  };
-
-  // Calculate total gas cost
-  const calculateTotalGasCost = () => {
-    let totalCost = 0;
-    Object.values(safeData.deployments || {}).forEach((deployment: any) => {
-      if (deployment.gasUsed && deployment.gasPrice) {
-        const cost = (parseFloat(deployment.gasUsed) * parseFloat(deployment.gasPrice)) / 1e18;
-        totalCost += cost;
-      }
-    });
-    return totalCost.toFixed(6);
-  };
 
   return (
     <div className="rounded-xl border border-green-500/30 bg-gradient-to-br from-green-900/20 to-gray-900/40 backdrop-blur-sm p-8">
@@ -235,7 +209,7 @@ export const ExistingSafeDisplay: React.FC<ExistingSafeDisplayProps> = ({
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Total Gas Cost:</span>
-                <span className="text-gray-200">{calculateTotalGasCost()} ETH</span>
+                <span className="text-gray-200">{calculateTotalGasCost(safeData.deployments)} ETH</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Last Activity:</span>

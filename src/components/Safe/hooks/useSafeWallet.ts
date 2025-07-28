@@ -172,15 +172,26 @@ export const useSafeWallet = () => {
       !existingSafe
   );
 
-  // Check for existing Safe when account or network changes
+  // Reset all states when dependencies change
+  const resetAllStates = () => {
+    setIsDeploying(false);
+    setDeploymentStatus("idle");
+    setDeploymentResult(null);
+    setIsCheckingSafe(false);
+    setExistingSafe(null);
+    setSafeCheckError(null);
+  };
+
+  // Check for existing Safe when account, network, or session changes
   useEffect(() => {
+    // Reset all states first
+    resetAllStates();
+
+    // Only check for existing Safe if we have valid account and network
     if (account && isCorrectNetwork) {
       checkExistingSafe(account);
-    } else {
-      setExistingSafe(null);
-      setSafeCheckError(null);
     }
-  }, [account, isCorrectNetwork]);
+  }, [account, isCorrectNetwork, session?.user?.id, chainId]);
 
   return {
     // State

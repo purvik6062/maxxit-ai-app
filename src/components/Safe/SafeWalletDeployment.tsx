@@ -25,6 +25,8 @@ export const SafeWalletDeployment: React.FC<SafeWalletDeploymentProps> = ({
     isCheckingSafe,
     existingSafe,
     safeCheckError,
+    currentNetworkKey,
+    canExpandNetwork,
     canDeploy,
     handleDeploySafe,
     handleRefresh,
@@ -76,8 +78,8 @@ export const SafeWalletDeployment: React.FC<SafeWalletDeploymentProps> = ({
                 <ExistingSafeDisplay
                   safeData={existingSafe}
                   onRefresh={handleRefresh}
-                  currentNetwork={""} // This will be handled by the component internally
-                  canExpand={false} // This will be handled by the component internally
+                  currentNetwork={currentNetworkKey || ""}
+                  canExpand={canExpandNetwork}
                 />
               </div>
             ) : (
