@@ -50,30 +50,38 @@ export const SafeWalletDeployment: React.FC<SafeWalletDeploymentProps> = ({
         </div>
 
         {/* Loading state */}
-        {isCheckingSafe && account && isCorrectNetwork && (
+        {/* {isCheckingSafe && account && isCorrectNetwork && (
           <LoadingState
             title="Checking Safe Status"
             description="Verifying if your wallet already has a Safe account..."
           />
-        )}
+        )} */}
 
         {/* Error State */}
-        {!isCheckingSafe && safeCheckError && (
+        {/* {!isCheckingSafe && safeCheckError && (
           <ErrorState
             title="Connection Error"
             error={safeCheckError}
             onRetry={() => account && checkExistingSafe(account)}
           />
-        )}
+        )} */}
 
         {/* Main Content */}
-        {!isCheckingSafe && !safeCheckError && (
-          <>
-            {/* Safe Information Section */}
-            <SafeInfoSection />
+        {/* {!isCheckingSafe && !safeCheckError && ( */}
+        <>
+          {/* Safe Information Section */}
+          <SafeInfoSection />
 
-            {/* Safe Display or Deployment Section */}
-            {existingSafe ? (
+          <SafeDeploymentForm
+            isDeploying={isDeploying}
+            deploymentStatus={deploymentStatus}
+            deploymentResult={deploymentResult}
+            canDeploy={canDeploy}
+            onDeploy={handleDeploySafe}
+          />
+
+          {/* Safe Display or Deployment Section */}
+          {/* {existingSafe ? (
               <div className="mb-8">
                 <ExistingSafeDisplay
                   safeData={existingSafe}
@@ -90,9 +98,9 @@ export const SafeWalletDeployment: React.FC<SafeWalletDeploymentProps> = ({
                 canDeploy={canDeploy}
                 onDeploy={handleDeploySafe}
               />
-            )}
-          </>
-        )}
+            )} */}
+        </>
+        {/* )} */}
       </div>
     </div>
   );

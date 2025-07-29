@@ -16,7 +16,7 @@ import {
 import { FaXTwitter, FaUserCheck } from "react-icons/fa6";
 import AddInfluencerModal from "@/components/Body/AddInfluencerModal";
 import { toast } from "react-toastify";
-import "../css/input.css";
+import "../../css/input.css";
 import InfluencerMetrics from "@/components/InfluencerProfile/InfluencerMetrics";
 import InfluencerTable from "@/components/InfluencerProfile/InfluencerTable";
 import { motion } from "framer-motion";
@@ -411,11 +411,10 @@ export default function Influencer() {
                               </h2>
                             </div>
                             <ChevronDown
-                              className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${
-                                activeSections.metrics
+                              className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${activeSections.metrics
                                   ? "transform rotate-180"
                                   : ""
-                              }`}
+                                }`}
                             />
                           </div>
 
@@ -444,11 +443,10 @@ export default function Influencer() {
                               </h2>
                             </div>
                             <ChevronDown
-                              className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${
-                                activeSections.signals
+                              className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${activeSections.signals
                                   ? "transform rotate-180"
                                   : ""
-                              }`}
+                                }`}
                             />
                           </div>
 
