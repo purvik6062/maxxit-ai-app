@@ -107,9 +107,9 @@ export const ExistingSafeDisplay: React.FC<ExistingSafeDisplayProps> = ({
     <div className="rounded-xl border border-green-500/30 bg-gradient-to-br from-green-900/20 to-gray-900/40 backdrop-blur-sm p-8">
       {/* Header */}
       <div className="text-center mb-8">
-        <div className="mx-auto w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center mb-6 shadow-lg">
+        {/* <div className="mx-auto w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center mb-6 shadow-lg">
           <Shield className="w-10 h-10 text-white" />
-        </div>
+        </div> */}
         <h2 className="text-3xl font-bold bg-gradient-to-r from-green-400 to-emerald-300 bg-clip-text text-transparent font-napzerRounded mb-3">
           Safe Wallet Active
         </h2>

@@ -13,33 +13,31 @@ interface Token {
   id: string;
   name: string;
   symbol: string;
-  category: 'major' | 'memecoin' | 'bluechip';
-  icon?: string;
+  // category: 'major' | 'memecoin' | 'bluechip';
+  // icon?: string;
 }
 
-const MAJOR_TOKENS: Token[] = [
-  { id: 'btc', name: 'Bitcoin', symbol: 'BTC', category: 'major' },
-  { id: 'eth', name: 'Ethereum', symbol: 'ETH', category: 'major' },
-  { id: 'usdt', name: 'Tether', symbol: 'USDT', category: 'major' },
-  { id: 'usdc', name: 'USD Coin', symbol: 'USDC', category: 'major' },
-  { id: 'bnb', name: 'BNB', symbol: 'BNB', category: 'major' },
+const TOKENS: Token[] = [
+  { id: 'major', name: 'Major Tokens', symbol: 'Major Tokens' },
+  { id: 'memecoin', name: 'Memecoins', symbol: 'Memecoins' },
+  { id: 'bluechip', name: 'Bluechips', symbol: 'Bluechips' },
 ];
 
-const MEMECOINS: Token[] = [
-  { id: 'doge', name: 'Dogecoin', symbol: 'DOGE', category: 'memecoin' },
-  { id: 'shib', name: 'Shiba Inu', symbol: 'SHIB', category: 'memecoin' },
-  { id: 'pepe', name: 'Pepe', symbol: 'PEPE', category: 'memecoin' },
-  { id: 'floki', name: 'Floki', symbol: 'FLOKI', category: 'memecoin' },
-  { id: 'bonk', name: 'Bonk', symbol: 'BONK', category: 'memecoin' },
-];
+// const MEMECOINS: Token[] = [
+//   { id: 'doge', name: 'Dogecoin', symbol: 'DOGE', category: 'memecoin' },
+//   { id: 'shib', name: 'Shiba Inu', symbol: 'SHIB', category: 'memecoin' },
+//   { id: 'pepe', name: 'Pepe', symbol: 'PEPE', category: 'memecoin' },
+//   { id: 'floki', name: 'Floki', symbol: 'FLOKI', category: 'memecoin' },
+//   { id: 'bonk', name: 'Bonk', symbol: 'BONK', category: 'memecoin' },
+// ];
 
-const BLUECHIPS: Token[] = [
-  { id: 'sol', name: 'Solana', symbol: 'SOL', category: 'bluechip' },
-  { id: 'ada', name: 'Cardano', symbol: 'ADA', category: 'bluechip' },
-  { id: 'dot', name: 'Polkadot', symbol: 'DOT', category: 'bluechip' },
-  { id: 'link', name: 'Chainlink', symbol: 'LINK', category: 'bluechip' },
-  { id: 'uni', name: 'Uniswap', symbol: 'UNI', category: 'bluechip' },
-];
+// const BLUECHIPS: Token[] = [
+//   { id: 'sol', name: 'Solana', symbol: 'SOL', category: 'bluechip' },
+//   { id: 'ada', name: 'Cardano', symbol: 'ADA', category: 'bluechip' },
+//   { id: 'dot', name: 'Polkadot', symbol: 'DOT', category: 'bluechip' },
+//   { id: 'link', name: 'Chainlink', symbol: 'LINK', category: 'bluechip' },
+//   { id: 'uni', name: 'Uniswap', symbol: 'UNI', category: 'bluechip' },
+// ];
 
 const AgenticMain = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -145,54 +143,54 @@ const AgenticMain = () => {
           </p>
         </div>
 
-        <SafeDeploymentForm
+        {/* <SafeDeploymentForm
           isDeploying={isDeploying}
           deploymentStatus={deploymentStatus}
           deploymentResult={deploymentResult}
           canDeploy={canDeploy}
           onDeploy={handleDeploySafe}
-        />
+        /> */}
 
         {/* Loading state */}
-        {/* {isCheckingSafe && account && isCorrectNetwork && (
+        {isCheckingSafe && account && isCorrectNetwork && (
           <LoadingState
             title="Checking Safe Status"
             description="Verifying if your wallet already has a Safe account..."
           />
-        )} */}
+        )}
 
         {/* Error State */}
-        {/* {!isCheckingSafe && safeCheckError && (
+        {!isCheckingSafe && safeCheckError && (
           <ErrorState
             title="Connection Error"
             error={safeCheckError}
             onRetry={() => account && checkExistingSafe(account)}
           />
-        )} */}
+        )}
 
         {/* Main Content */}
         {/* {!isCheckingSafe && !safeCheckError && ( */}
         {/* Safe Display or Deployment Section */}
-        {/* <>
-            {existingSafe ? (
-              <div className="mb-8">
-                <ExistingSafeDisplay
-                  safeData={existingSafe}
-                  onRefresh={handleRefresh}
-                  currentNetwork={currentNetworkKey || ""}
-                  canExpand={canExpandNetwork}
-                />
-              </div>
-            ) : (
-              <SafeDeploymentForm
-                isDeploying={isDeploying}
-                deploymentStatus={deploymentStatus}
-                deploymentResult={deploymentResult}
-                canDeploy={canDeploy}
-                onDeploy={handleDeploySafe}
+        <>
+          {existingSafe ? (
+            <div className="mb-8">
+              <ExistingSafeDisplay
+                safeData={existingSafe}
+                onRefresh={handleRefresh}
+                currentNetwork={currentNetworkKey || ""}
+                canExpand={canExpandNetwork}
               />
-            )}
-          </> */}
+            </div>
+          ) : (
+            <SafeDeploymentForm
+              isDeploying={isDeploying}
+              deploymentStatus={deploymentStatus}
+              deploymentResult={deploymentResult}
+              canDeploy={canDeploy}
+              onDeploy={handleDeploySafe}
+            />
+          )}
+        </>
         {/* )} */}
       </div>
     );
@@ -279,12 +277,12 @@ const AgenticMain = () => {
       <div className="space-y-6">
         {/* Major Tokens */}
         <div>
-          <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+          {/* <h3 className="text-xl font-bold text-white mb-4 flex items-center">
             <span className="w-3 h-3 bg-blue-500 rounded-full mr-3"></span>
             Major Tokens
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            {MAJOR_TOKENS.map((token) => (
+          </h3> */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {TOKENS.map((token) => (
               <div
                 key={token.id}
                 className={`p-3 rounded-lg border cursor-pointer transition-all duration-300 ${selectedTokens.includes(token.id)
@@ -303,7 +301,7 @@ const AgenticMain = () => {
         </div>
 
         {/* Memecoins */}
-        <div>
+        {/* <div>
           <h3 className="text-xl font-bold text-white mb-4 flex items-center">
             <span className="w-3 h-3 bg-pink-500 rounded-full mr-3"></span>
             Memecoins
@@ -325,10 +323,10 @@ const AgenticMain = () => {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* Bluechips */}
-        <div>
+        {/* <div>
           <h3 className="text-xl font-bold text-white mb-4 flex items-center">
             <span className="w-3 h-3 bg-green-500 rounded-full mr-3"></span>
             Bluechips
@@ -350,7 +348,7 @@ const AgenticMain = () => {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
       </div>
 
       {selectedTokens.length > 0 && (
@@ -358,7 +356,7 @@ const AgenticMain = () => {
           <h4 className="text-white font-semibold mb-2">Selected Tokens ({selectedTokens.length}):</h4>
           <div className="flex flex-wrap gap-2">
             {selectedTokens.map((tokenId) => {
-              const token = [...MAJOR_TOKENS, ...MEMECOINS, ...BLUECHIPS].find(t => t.id === tokenId);
+              const token = [...TOKENS].find(t => t.id === tokenId);
               return (
                 <span key={tokenId} className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm">
                   {token?.symbol}
