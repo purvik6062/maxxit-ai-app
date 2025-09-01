@@ -18,7 +18,11 @@ function parsePnLPercentage(pnlString: string): number {
   if (!pnlString || typeof pnlString !== 'string') return 0;
   // Remove the % sign and convert to number
   const numericValue = parseFloat(pnlString.replace('%', ''));
-  return isNaN(numericValue) ? 0 : numericValue;
+
+  // Check for NaN, Infinity, or -Infinity
+  if (isNaN(numericValue) || !isFinite(numericValue)) return 0;
+
+  return numericValue;
 }
 
 export async function GET() {
@@ -78,19 +82,21 @@ export async function GET() {
       const twitterAccount = result["Twitter Account"];
       const finalPnL = parsePnLPercentage(result["Final P&L"]);
       const tokenMentioned = result["Token Mentioned"];
-      
+
       if (!twitterAccount) return;
-      
+
       // Initialize if not exists
       if (!monthlyPnlData[twitterAccount]) {
         monthlyPnlData[twitterAccount] = 0;
         signalCountByInfluencer[twitterAccount] = 0;
         tokensByInfluencer[twitterAccount] = new Set();
       }
-      
-      // Accumulate P&L and count signals
-      monthlyPnlData[twitterAccount] += finalPnL;
-      signalCountByInfluencer[twitterAccount] += 1;
+
+      // Accumulate P&L and count signals (only if finalPnL is finite)
+      if (isFinite(finalPnL)) {
+        monthlyPnlData[twitterAccount] += finalPnL;
+        signalCountByInfluencer[twitterAccount] += 1;
+      }
       
       // Track unique tokens
       if (tokenMentioned) {
@@ -121,13 +127,19 @@ export async function GET() {
     const influencersWithROI = Object.entries(monthlyPnlData)
       .map(([twitterHandle, totalPnl]) => {
         const signalCount = signalCountByInfluencer[twitterHandle] || 0;
-        const averageROI = signalCount > 0 ? (totalPnl / signalCount) : 0;
-        
+
+        // Ensure totalPnl is finite before calculation
+        const safeTotalPnl = isFinite(totalPnl) ? totalPnl : 0;
+        const averageROI = signalCount > 0 ? (safeTotalPnl / signalCount) : 0;
+
+        // Ensure averageROI is always a valid number, never null, NaN, or Infinity
+        const normalizedAverageROI = isNaN(averageROI) || averageROI === null || !isFinite(averageROI) ? 0 : Number(averageROI);
+
         return {
           name: twitterHandle,
-          totalPnl: Number(totalPnl),
+          totalPnl: Number(safeTotalPnl),
           signalCount,
-          averageROI
+          averageROI: normalizedAverageROI
         };
       })
       .sort((a, b) => b.averageROI - a.averageROI) // Sort by average ROI per signal
@@ -140,7 +152,12 @@ export async function GET() {
     });
 
     // Calculate overall average ROI (average of all top influencers' average ROIs)
-    const overallAverageROI = influencersWithROI.reduce((sum, inf) => sum + inf.averageROI, 0) / influencersWithROI.length;
+    const rawOverallAverageROI = influencersWithROI.length > 0
+      ? (influencersWithROI.reduce((sum, inf) => sum + inf.averageROI, 0) / influencersWithROI.length)
+      : 0;
+
+    // Ensure overall average ROI is also finite
+    const overallAverageROI = isNaN(rawOverallAverageROI) || !isFinite(rawOverallAverageROI) ? 0 : rawOverallAverageROI;
 
     // Assemble final response data
     const result = influencersWithROI.map((influencer, index) => {
@@ -156,7 +173,7 @@ export async function GET() {
         recentMonthTokens: tokensByInfluencer[influencer.name]?.size || 0,
         subscriptionPrice: influencerDoc.subscriptionPrice,
         specialties: ['Crypto Analysis', 'Trading Signals'], // Default specialties
-        monthlyROI: influencer.averageROI
+        monthlyROI: influencer.averageROI || 0
       };
     }).filter(Boolean);
 

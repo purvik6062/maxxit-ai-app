@@ -183,7 +183,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
               // If cache is less than 1 day old, use it (since we're now showing monthly data)
               if (daysDiff < 1) {
                 setInfluencers(data.influencers);
-                setTotalProfit(data.totalProfit);
+                setTotalProfit(data.totalProfit || 0);
                 setLoading(false);
                 return;
               } else {
@@ -223,7 +223,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
         console.log("influencer data: ", data.influencers);
 
         setInfluencers(data.influencers);
-        setTotalProfit(data.totalProfit);
+        setTotalProfit(data.totalProfit || 0);
         setLoading(false);
       } catch (err) {
         setError("Error loading influencers");
@@ -694,7 +694,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
               }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
-              Avg Monthly ROI: {totalProfit.toFixed(2).toLocaleString()}%
+              Avg Monthly ROI: {(totalProfit || 0).toFixed(2).toLocaleString()}%
             </motion.div>
           </div>
         </>
@@ -771,7 +771,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
               }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
-              Avg Monthly ROI: {totalProfit.toFixed(2).toLocaleString()}%
+              Avg Monthly ROI: {(totalProfit || 0).toFixed(2).toLocaleString()}%
             </motion.div>
           </div>
         </div>
