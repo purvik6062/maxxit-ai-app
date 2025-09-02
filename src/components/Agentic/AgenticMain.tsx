@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Shield, TrendingUp, Coins, Wallet, ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
 import { useWallet } from "@/components/enzyme/WalletConnector";
 import { useSafeWallet } from "@/components/Safe/hooks/useSafeWallet";
@@ -43,7 +43,13 @@ const AgenticMain = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [tradingType, setTradingType] = useState<'perpetuals' | 'spot' | null>(null);
   const [selectedTokens, setSelectedTokens] = useState<string[]>([]);
+  // Flow state
   const [isCreatingMaxxoWallet, setIsCreatingMaxxoWallet] = useState(false);
+  const [isSavingPreferences, setIsSavingPreferences] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
+  const [isLoadingPrefs, setIsLoadingPrefs] = useState(false);
+  const [hasExistingSetup, setHasExistingSetup] = useState<boolean>(false);
 
   const { account, isCorrectNetwork } = useWallet();
   const {
@@ -63,9 +69,34 @@ const AgenticMain = () => {
 
   const totalSteps = 4;
 
-  const handleNext = () => {
+  // Derive created Safe address (prefer current network; fallback to first available)
+  const createdSafeAddress: string | null = useMemo(() => {
+    if (!existingSafe) return null;
+    const byCurrent = currentNetworkKey
+      ? existingSafe.deployments?.[currentNetworkKey]?.address
+      : undefined;
+    if (byCurrent) return byCurrent;
+    const firstDeployment = existingSafe.deployments
+      ? Object.values(existingSafe.deployments)[0]
+      : undefined;
+    return firstDeployment?.address || null;
+  }, [existingSafe, currentNetworkKey]);
+
+  // Step completion gates
+  const isStep1Complete = Boolean(existingSafe && createdSafeAddress);
+  const isStep2Complete = Boolean(tradingType);
+  const isStep3Complete = selectedTokens.length > 0;
+
+  const handleNext = async () => {
+    // Enforce completion before proceeding
+    if (currentStep === 1 && !isStep1Complete) return;
+    if (currentStep === 2 && !isStep2Complete) return;
+    if (currentStep === 3 && !isStep3Complete) return;
+
+    // Move to next step
     if (currentStep < totalSteps) {
-      setCurrentStep(currentStep + 1);
+      const nextStep = currentStep + 1;
+      setCurrentStep(nextStep);
     }
   };
 
@@ -83,23 +114,69 @@ const AgenticMain = () => {
     );
   };
 
-  const handleCreateMaxxoWallet = async () => {
-    setIsCreatingMaxxoWallet(true);
+  // Persist preferences on explicit Save
+  const savePreferences = async () => {
+    if (!account || !createdSafeAddress || !tradingType || selectedTokens.length === 0) return;
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      // TODO: Implement actual Maxxo wallet creation API
-      console.log('Creating Maxxo wallet with:', {
-        tradingType,
-        selectedTokens,
-        safeWallet: deploymentResult
+      setIsSavingPreferences(true);
+      setSaveError(null);
+      setSaveSuccess(false);
+      const res = await fetch('/api/agentic-setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          walletAddress: account,
+          networkKey: currentNetworkKey,
+          safeAddress: createdSafeAddress,
+          tradingType,
+          selectedTokens,
+        }),
       });
-    } catch (error) {
-      console.error('Error creating Maxxo wallet:', error);
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error?.message || data.error || 'Failed to save preferences');
+      }
+      setSaveSuccess(true);
+      setHasExistingSetup(true);
+    } catch (e: any) {
+      setSaveError(e?.message || 'Failed to save preferences');
     } finally {
-      setIsCreatingMaxxoWallet(false);
+      setIsSavingPreferences(false);
     }
   };
+
+  // Prefill using GET API if preferences exist
+  useEffect(() => {
+    const fetchPrefs = async () => {
+      if (!account) return;
+      try {
+        setIsLoadingPrefs(true);
+        setSaveError(null);
+        const res = await fetch(`/api/agentic-setup?walletAddress=${account}`);
+        if (res.status === 404) {
+          setHasExistingSetup(false);
+          return;
+        }
+        const data = await res.json();
+        if (res.ok && data?.success) {
+          const prefs = data.data?.preferences;
+          if (prefs) {
+            if (prefs.tradingType) setTradingType(prefs.tradingType);
+            if (Array.isArray(prefs.selectedTokens)) setSelectedTokens(prefs.selectedTokens);
+            setHasExistingSetup(true);
+            setSaveSuccess(true);
+          } else {
+            setHasExistingSetup(false);
+          }
+        }
+      } catch (_) {
+        // Ignore prefill errors
+      } finally {
+        setIsLoadingPrefs(false);
+      }
+    };
+    fetchPrefs();
+  }, [account]);
 
   const renderStepIndicator = () => (
     <div className="flex justify-center mb-8">
@@ -376,10 +453,10 @@ const AgenticMain = () => {
           <Wallet className="w-10 h-10 text-white" />
         </div>
         <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 bg-clip-text text-transparent font-napzerRounded mb-4">
-          Step 4: Create Maxxo Wallet
+          Step 4: Summary
         </h2>
         <p className="text-gray-300 text-lg">
-          Generate your AI-powered trading wallet
+          Review your selections and deployment details
         </p>
       </div>
 
@@ -388,40 +465,51 @@ const AgenticMain = () => {
           <h3 className="text-xl font-bold text-white mb-4">Configuration Summary</h3>
           <div className="space-y-3 text-gray-300">
             <div className="flex justify-between">
+              <span>Safe Address:</span>
+              <span className="text-white font-semibold truncate">{createdSafeAddress || '—'}</span>
+            </div>
+            <div className="flex justify-between">
               <span>Trading Type:</span>
               <span className="text-white font-semibold capitalize">{tradingType}</span>
             </div>
             <div className="flex justify-between">
               <span>Selected Tokens:</span>
-              <span className="text-white font-semibold">{selectedTokens.length} tokens</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Safe Wallet:</span>
-              <span className="text-white font-semibold">
-                {deploymentResult ? 'Deployed' : 'Not Deployed'}
-              </span>
+              <span className="text-white font-semibold capitalize">{selectedTokens.join(', ')}</span>
             </div>
           </div>
         </div>
 
-        <div className="text-center">
+        <div className="text-center space-y-3">
+          {isLoadingPrefs && (
+            <div className="inline-flex items-center text-gray-300">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+              Loading saved setup...
+            </div>
+          )}
+          {!isLoadingPrefs && hasExistingSetup && !isSavingPreferences && (
+            <div className="text-green-400 font-semibold">Setup already saved.</div>
+          )}
+          {!isSavingPreferences && saveError && (
+            <div className="text-red-400 font-semibold">{saveError}</div>
+          )}
           <button
-            onClick={handleCreateMaxxoWallet}
-            disabled={isCreatingMaxxoWallet || !tradingType || selectedTokens.length === 0}
-            className={`px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 ${isCreatingMaxxoWallet || !tradingType || selectedTokens.length === 0
+            onClick={savePreferences}
+            disabled={
+              isSavingPreferences ||
+              !createdSafeAddress ||
+              !tradingType ||
+              selectedTokens.length === 0
+            }
+            className={`px-8 py-3 rounded-xl font-semibold transition-all duration-300 ${isSavingPreferences || !createdSafeAddress || !tradingType || selectedTokens.length === 0
               ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-              : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+              : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow'
               }`}
           >
-            {isCreatingMaxxoWallet ? (
-              <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                Creating Maxxo Wallet...
-              </div>
-            ) : (
-              'Create Maxxo Wallet'
-            )}
+            {isSavingPreferences ? 'Saving...' : (hasExistingSetup ? 'Update' : 'Save')}
           </button>
+          {/* {!isSavingPreferences && saveSuccess && (
+            <div className="text-green-400">Preferences saved successfully.</div>
+          )} */}
         </div>
       </div>
     </div>
@@ -481,7 +569,12 @@ const AgenticMain = () => {
 
           <button
             onClick={handleNext}
-            disabled={currentStep === totalSteps}
+            disabled={
+              currentStep === totalSteps ||
+              (currentStep === 1 && !isStep1Complete) ||
+              (currentStep === 2 && !isStep2Complete) ||
+              (currentStep === 3 && !isStep3Complete)
+            }
             className={`flex items-center px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${currentStep === totalSteps
               ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
               : 'bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white'
