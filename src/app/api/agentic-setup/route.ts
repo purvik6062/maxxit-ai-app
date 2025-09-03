@@ -11,14 +11,15 @@ export async function POST(request: Request): Promise<Response> {
       walletAddress,
       networkKey,
       safeAddress,
-      tradingType,
+      tradingTypes,
       selectedTokens,
     } = body || {};
 
     if (
       !walletAddress ||
       !safeAddress ||
-      !tradingType ||
+      !Array.isArray(tradingTypes) ||
+      tradingTypes.length === 0 ||
       !Array.isArray(selectedTokens)
     ) {
       return NextResponse.json(
@@ -26,7 +27,7 @@ export async function POST(request: Request): Promise<Response> {
           success: false,
           error: {
             message:
-              "walletAddress, safeAddress, tradingType, selectedTokens are required",
+              "walletAddress, safeAddress, tradingTypes[], selectedTokens[] are required",
           },
         },
         { status: 400 }
@@ -52,13 +53,17 @@ export async function POST(request: Request): Promise<Response> {
     const update = {
       $set: {
         "userInfo.walletAddress": walletAddress,
-        "userInfo.preferences.tradingType": tradingType,
+        "userInfo.preferences.tradingTypes": tradingTypes,
         "userInfo.preferences.selectedTokens": selectedTokens,
         ...(networkKey
           ? { "userInfo.preferences.networkKey": networkKey }
           : {}),
         "userInfo.preferences.safeAddress": safeAddress,
         updatedAt: new Date(),
+      },
+      $unset: {
+        // clean legacy single value if it exists
+        "userInfo.preferences.tradingType": "",
       },
     };
 

@@ -41,7 +41,7 @@ const TOKENS: Token[] = [
 
 const AgenticMain = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [tradingType, setTradingType] = useState<'perpetuals' | 'spot' | null>(null);
+  const [tradingTypes, setTradingTypes] = useState<string[]>([]);
   const [selectedTokens, setSelectedTokens] = useState<string[]>([]);
   // Flow state
   const [isCreatingMaxxoWallet, setIsCreatingMaxxoWallet] = useState(false);
@@ -84,7 +84,7 @@ const AgenticMain = () => {
 
   // Step completion gates
   const isStep1Complete = Boolean(existingSafe && createdSafeAddress);
-  const isStep2Complete = Boolean(tradingType);
+  const isStep2Complete = tradingTypes.length > 0;
   const isStep3Complete = selectedTokens.length > 0;
 
   const handleNext = async () => {
@@ -114,9 +114,17 @@ const AgenticMain = () => {
     );
   };
 
+  const handleTradingTypeToggle = (type: string) => {
+    setTradingTypes(prev =>
+      prev.includes(type)
+        ? prev.filter(t => t !== type)
+        : [...prev, type]
+    );
+  };
+
   // Persist preferences on explicit Save
   const savePreferences = async () => {
-    if (!account || !createdSafeAddress || !tradingType || selectedTokens.length === 0) return;
+    if (!account || !createdSafeAddress || tradingTypes.length === 0 || selectedTokens.length === 0) return;
     try {
       setIsSavingPreferences(true);
       setSaveError(null);
@@ -128,7 +136,7 @@ const AgenticMain = () => {
           walletAddress: account,
           networkKey: currentNetworkKey,
           safeAddress: createdSafeAddress,
-          tradingType,
+          tradingTypes,
           selectedTokens,
         }),
       });
@@ -161,15 +169,16 @@ const AgenticMain = () => {
         if (res.ok && data?.success) {
           const prefs = data.data?.preferences;
           if (prefs) {
-            if (prefs.tradingType) setTradingType(prefs.tradingType);
+            if (Array.isArray(prefs.tradingTypes)) setTradingTypes(prefs.tradingTypes);
             if (Array.isArray(prefs.selectedTokens)) setSelectedTokens(prefs.selectedTokens);
             setHasExistingSetup(true);
-            setSaveSuccess(true);
+            // setSaveSuccess(true);
           } else {
             setHasExistingSetup(false);
           }
         }
-      } catch (_) {
+      } catch (e) {
+        console.error(e);
         // Ignore prefill errors
       } finally {
         setIsLoadingPrefs(false);
@@ -289,11 +298,11 @@ const AgenticMain = () => {
 
       <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
         <div
-          className={`p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 ${tradingType === 'perpetuals'
-            ? 'border-blue-500 bg-blue-500/10'
+          className={`p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 ${tradingTypes.includes('perpetuals')
+            ? 'border-green-500 bg-green-500/10'
             : 'border-gray-600 bg-gray-700/50 hover:border-gray-500'
             }`}
-          onClick={() => setTradingType('perpetuals')}
+          onClick={() => handleTradingTypeToggle('perpetuals')}
         >
           <div className="text-center">
             <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-cyan-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -312,11 +321,11 @@ const AgenticMain = () => {
         </div>
 
         <div
-          className={`p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 ${tradingType === 'spot'
+          className={`p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 ${tradingTypes.includes('spot')
             ? 'border-green-500 bg-green-500/10'
             : 'border-gray-600 bg-gray-700/50 hover:border-gray-500'
             }`}
-          onClick={() => setTradingType('spot')}
+          onClick={() => handleTradingTypeToggle('spot')}
         >
           <div className="text-center">
             <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -469,8 +478,8 @@ const AgenticMain = () => {
               <span className="text-white font-semibold truncate">{createdSafeAddress || '—'}</span>
             </div>
             <div className="flex justify-between">
-              <span>Trading Type:</span>
-              <span className="text-white font-semibold capitalize">{tradingType}</span>
+              <span>Trading Types:</span>
+              <span className="text-white font-semibold capitalize">{tradingTypes.join(', ')}</span>
             </div>
             <div className="flex justify-between">
               <span>Selected Tokens:</span>
@@ -486,9 +495,9 @@ const AgenticMain = () => {
               Loading saved setup...
             </div>
           )}
-          {!isLoadingPrefs && hasExistingSetup && !isSavingPreferences && (
+          {/* {!isLoadingPrefs && hasExistingSetup && !isSavingPreferences && (
             <div className="text-green-400 font-semibold">Setup already saved.</div>
-          )}
+          )} */}
           {!isSavingPreferences && saveError && (
             <div className="text-red-400 font-semibold">{saveError}</div>
           )}
@@ -497,19 +506,19 @@ const AgenticMain = () => {
             disabled={
               isSavingPreferences ||
               !createdSafeAddress ||
-              !tradingType ||
+              tradingTypes.length === 0 ||
               selectedTokens.length === 0
             }
-            className={`px-8 py-3 rounded-xl font-semibold transition-all duration-300 ${isSavingPreferences || !createdSafeAddress || !tradingType || selectedTokens.length === 0
+            className={`px-8 py-3 rounded-xl font-semibold transition-all duration-300 ${isSavingPreferences || !createdSafeAddress || tradingTypes.length === 0 || selectedTokens.length === 0
               ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
               : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow'
               }`}
           >
             {isSavingPreferences ? 'Saving...' : (hasExistingSetup ? 'Update' : 'Save')}
           </button>
-          {/* {!isSavingPreferences && saveSuccess && (
+          {!isSavingPreferences && saveSuccess && (
             <div className="text-green-400">Preferences saved successfully.</div>
-          )} */}
+          )}
         </div>
       </div>
     </div>
