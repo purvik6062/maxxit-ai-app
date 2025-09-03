@@ -27,7 +27,7 @@ export async function POST(request: Request): Promise<Response> {
           success: false,
           error: {
             message:
-              "walletAddress, safeAddress, tradingTypes[], selectedTokens[] are required",
+              "walletAddress, safeAddress, tradingTypes, selectedTokens are required",
           },
         },
         { status: 400 }

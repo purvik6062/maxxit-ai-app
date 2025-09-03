@@ -40,7 +40,8 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   // Supported testnet chain IDs
   const ARBITRUM_SEPOLIA_CHAIN_ID = 421614;
   const ETHEREUM_SEPOLIA_CHAIN_ID = 11155111;
-  const SUPPORTED_CHAIN_IDS = [ARBITRUM_SEPOLIA_CHAIN_ID, ETHEREUM_SEPOLIA_CHAIN_ID];
+  const ARBITRUM_MAINNET_CHAIN_ID = 42161;
+  const SUPPORTED_CHAIN_IDS = [ARBITRUM_SEPOLIA_CHAIN_ID, ETHEREUM_SEPOLIA_CHAIN_ID, ARBITRUM_MAINNET_CHAIN_ID];
   const isCorrectNetwork = chainId ? SUPPORTED_CHAIN_IDS.includes(chainId) : false;
 
   const connectWallet = async () => {

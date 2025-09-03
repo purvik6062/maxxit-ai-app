@@ -17,9 +17,9 @@ import OnboardingModals from "./OnboardingModals";
 // Navigation configuration
 const NAVIGATION_ITEMS = [
   { path: "/influencer", label: "Influencer", id: "influencer" },
-  { path: "/create-vault", label: "Create Vault", id: "create-vault" },
-  { path: "/public-vaults", label: "Public Vaults", id: "public-vaults" },
-  { path: "/create-safe", label: "Safe", id: "create-safe" },
+  // { path: "/create-vault", label: "Create Vault", id: "create-vault" },
+  { path: "https://app.hyperliquid-testnet.xyz/vaults/0xb51423485c8fa348701f208618755b76b124a8e6", label: "Public Vaults", id: "public-vaults", isExternal: true },
+  // { path: "/create-safe", label: "Safe", id: "create-safe" },
   { path: "/agentic", label: "Agentic", id: "agentic" },
   { path: "/profile", label: "Profile", id: "profile" },
   { path: "/pricing", label: "Pricing", id: "pricing", hasBorders: true },
@@ -39,10 +39,31 @@ const NavItem: React.FC<NavItemProps> = ({
   onClick,
   isMobile = false,
 }) => {
-  const { path, label, hasBorders } = item;
+  const { path, label, hasBorders, isExternal } = item;
 
   // Desktop nav item
   if (!isMobile) {
+    if (isExternal) {
+      return (
+        <a
+          href={path}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`
+            px-3 lg:px-4 py-2 text-xs sm:text-sm font-medium inline-block 
+            transition-colors duration-200
+            ${hasBorders ? "border-l border-r border-gray-700" : ""}
+            ${isActive
+              ? "bg-[#E4EFFF] text-[#393B49]"
+              : "text-gray-300 hover:bg-gray-800"
+            }
+          `}
+        >
+          {label}
+        </a>
+      );
+    }
+
     return (
       <Link href={path}>
         <span
@@ -63,6 +84,28 @@ const NavItem: React.FC<NavItemProps> = ({
   }
 
   // Mobile nav item
+  if (isExternal) {
+    return (
+      <a
+        href={path}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={onClick}
+        className={`flex items-center px-4 py-3 text-sm font-medium ${isActive
+          ? "bg-blue-900/30 text-blue-100 border-l-2 border-blue-400"
+          : "text-gray-300 hover:bg-gray-800"
+          }`}
+      >
+        {label}
+        {isActive && (
+          <span className="ml-auto">
+            <span className="w-2 h-2 bg-blue-400 rounded-full block"></span>
+          </span>
+        )}
+      </a>
+    );
+  }
+
   return (
     <Link href={path} onClick={onClick}>
       <span
