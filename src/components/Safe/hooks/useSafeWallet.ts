@@ -98,10 +98,10 @@ export const useSafeWallet = () => {
     }
 
     const userInfo: IUserInfo = {
-      userId: session.user.name || "",
+      userId: session.user.id || "",
       walletAddress: account,
       preferences: {
-        defaultNetworks: ["sepolia"],
+        defaultNetworks: ["arbitrum"],
         autoExpand: true,
         notifications: {
           email: false,
