@@ -55,10 +55,6 @@ export async function POST(request: Request): Promise<Response> {
         "userInfo.walletAddress": walletAddress,
         "userInfo.preferences.tradingTypes": tradingTypes,
         "userInfo.preferences.selectedTokens": selectedTokens,
-        ...(networkKey
-          ? { "userInfo.preferences.networkKey": networkKey }
-          : {}),
-        "userInfo.preferences.safeAddress": safeAddress,
         updatedAt: new Date(),
       },
       $unset: {
