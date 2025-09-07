@@ -11,11 +11,16 @@ import {
   Globe,
   Zap,
   RefreshCw,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import { SafeData, SafeDeployment } from "../types";
 import { NetworkDropdown } from "./NetworkDropdown";
-import { formatGasPrice, formatTimestamp, calculateTotalGasCost, allNetworks } from "../utils/safeUtils";
+import {
+  formatGasPrice,
+  formatTimestamp,
+  calculateTotalGasCost,
+  allNetworks,
+} from "../utils/safeUtils";
 import toast from "react-hot-toast";
 
 interface ExistingSafeDisplayProps {
@@ -29,18 +34,18 @@ export const ExistingSafeDisplay: React.FC<ExistingSafeDisplayProps> = ({
   safeData,
   onRefresh,
   currentNetwork,
-  canExpand
+  canExpand,
 }) => {
   const [isExpanding, setIsExpanding] = useState(false);
   const [expandResult, setExpandResult] = useState<any>(null);
   const [selectedNetwork, setSelectedNetwork] = useState<string>("");
   const [showNetworkSelector, setShowNetworkSelector] = useState(false);
 
-
-
   // Get active networks from deployments
   const activeNetworks = safeData.metadata?.activeNetworks || [];
-  const availableNetworks = allNetworks.filter(network => !activeNetworks.includes(network.key));
+  const availableNetworks = allNetworks.filter(
+    (network) => !activeNetworks.includes(network.key)
+  );
 
   // Reset expansion states when currentNetwork changes
   useEffect(() => {
@@ -61,7 +66,9 @@ export const ExistingSafeDisplay: React.FC<ExistingSafeDisplayProps> = ({
 
       const baseUrl = process.env.NEXT_PUBLIC_SAFE_WALLET_URL;
       if (!baseUrl) {
-        throw new Error("NEXT_PUBLIC_SAFE_WALLET_URL environment variable is not configured");
+        throw new Error(
+          "NEXT_PUBLIC_SAFE_WALLET_URL environment variable is not configured"
+        );
       }
 
       const safeId = safeData.safeId;
@@ -80,12 +87,20 @@ export const ExistingSafeDisplay: React.FC<ExistingSafeDisplayProps> = ({
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || result.message || `HTTP error! status: ${response.status}`);
+        throw new Error(
+          result.error ||
+            result.message ||
+            `HTTP error! status: ${response.status}`
+        );
       }
 
       if (result.success) {
         setExpandResult(result.data);
-        toast.success(`Safe expanded to ${result.data.successfulNetworks?.length || 0} new network(s)!`);
+        toast.success(
+          `Safe expanded to ${
+            result.data.successfulNetworks?.length || 0
+          } new network(s)!`
+        );
         setSelectedNetwork("");
         setShowNetworkSelector(false);
         setTimeout(() => onRefresh(), 2000);
@@ -94,14 +109,13 @@ export const ExistingSafeDisplay: React.FC<ExistingSafeDisplayProps> = ({
       }
     } catch (error) {
       console.error("Safe expansion error:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to expand Safe";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to expand Safe";
       toast.error(errorMessage);
     } finally {
       setIsExpanding(false);
     }
   };
-
-
 
   return (
     <div className="rounded-xl border border-green-500/30 bg-gradient-to-br from-green-900/20 to-gray-900/40 backdrop-blur-sm p-8">
@@ -124,12 +138,18 @@ export const ExistingSafeDisplay: React.FC<ExistingSafeDisplayProps> = ({
           <div className="flex items-center gap-3">
             <Wallet className="w-5 h-5 text-green-400" />
             <div>
-              <div className="text-sm text-green-300 font-medium">Safe Address</div>
+              <div className="text-sm text-green-300 font-medium">
+                Safe Address
+              </div>
               <div className="text-green-100 font-mono text-sm">
-                {safeData.deployments && Object.values(safeData.deployments)[0]?.address ?
-                  `${(Object.values(safeData.deployments)[0] as SafeDeployment).address.slice(0, 8)}...${(Object.values(safeData.deployments)[0] as SafeDeployment).address.slice(-6)}`
-                  : 'N/A'
-                }
+                {safeData.deployments &&
+                Object.values(safeData.deployments)[0]?.address
+                  ? `${(
+                      Object.values(safeData.deployments)[0] as SafeDeployment
+                    ).address.slice(0, 8)}...${(
+                      Object.values(safeData.deployments)[0] as SafeDeployment
+                    ).address.slice(-6)}`
+                  : "N/A"}
               </div>
             </div>
           </div>
@@ -151,9 +171,11 @@ export const ExistingSafeDisplay: React.FC<ExistingSafeDisplayProps> = ({
           <div className="flex items-center gap-3">
             <Lock className="w-5 h-5 text-purple-400" />
             <div>
-              <div className="text-sm text-purple-300 font-medium">Threshold</div>
+              <div className="text-sm text-purple-300 font-medium">
+                Threshold
+              </div>
               <div className="text-purple-100">
-                {safeData.config?.threshold || 'N/A'} signature(s)
+                {safeData.config?.threshold || "N/A"} signature(s)
               </div>
             </div>
           </div>
@@ -163,7 +185,9 @@ export const ExistingSafeDisplay: React.FC<ExistingSafeDisplayProps> = ({
           <div className="flex items-center gap-3">
             <Network className="w-5 h-5 text-indigo-400" />
             <div>
-              <div className="text-sm text-indigo-300 font-medium">Networks</div>
+              <div className="text-sm text-indigo-300 font-medium">
+                Networks
+              </div>
               <div className="text-indigo-100">
                 {safeData.metadata?.totalDeployments || 0} deployed
               </div>
@@ -180,40 +204,58 @@ export const ExistingSafeDisplay: React.FC<ExistingSafeDisplayProps> = ({
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h4 className="text-sm font-semibold text-gray-300 mb-3">General Information</h4>
+            <h4 className="text-sm font-semibold text-gray-300 mb-3">
+              General Information
+            </h4>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-400">Version:</span>
-                <span className="text-gray-200">{safeData.config?.safeVersion || 'N/A'}</span>
+                <span className="text-gray-200">
+                  {safeData.config?.safeVersion || "N/A"}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Status:</span>
-                <span className="text-green-300 capitalize">{safeData.status || 'Unknown'}</span>
+                <span className="text-green-300 capitalize">
+                  {safeData.status || "Unknown"}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Created:</span>
-                <span className="text-gray-200">{formatTimestamp(safeData.metadata?.createdAt)}</span>
+                <span className="text-gray-200">
+                  {formatTimestamp(safeData.metadata?.createdAt)}
+                </span>
               </div>
             </div>
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-gray-300 mb-3">Analytics</h4>
+            <h4 className="text-sm font-semibold text-gray-300 mb-3">
+              Analytics
+            </h4>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-400">Total Transactions:</span>
-                <span className="text-gray-200">{safeData.analytics?.totalTransactions || 0}</span>
+                <span className="text-gray-200">
+                  {safeData.analytics?.totalTransactions || 0}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Value Transferred:</span>
-                <span className="text-gray-200">{safeData.analytics?.totalValueTransferred || '0'} ETH</span>
+                <span className="text-gray-200">
+                  {safeData.analytics?.totalValueTransferred || "0"} ETH
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Total Gas Cost:</span>
-                <span className="text-gray-200">{calculateTotalGasCost(safeData.deployments)} ETH</span>
+                <span className="text-gray-200">
+                  {calculateTotalGasCost(safeData.deployments)} ETH
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Last Activity:</span>
-                <span className="text-gray-200">{formatTimestamp(safeData.metadata?.lastActivityAt)}</span>
+                <span className="text-gray-200">
+                  {formatTimestamp(safeData.metadata?.lastActivityAt)}
+                </span>
               </div>
             </div>
           </div>
@@ -227,40 +269,58 @@ export const ExistingSafeDisplay: React.FC<ExistingSafeDisplayProps> = ({
           Active Networks ({activeNetworks.length})
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {Object.entries(safeData.deployments || {}).map(([networkKey, deployment]: [string, any]) => {
-            const networkInfo = allNetworks.find(n => n.key === networkKey);
-            return (
-              <div key={networkKey} className="p-6 rounded-lg bg-gray-800/70 border border-gray-700/70 hover:border-gray-600/70 transition-colors">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{networkInfo?.icon || '🔗'}</span>
-                    <div>
-                      <h4 className="font-semibold text-white text-sm">{networkInfo?.name || networkKey}</h4>
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${deployment.deploymentStatus === 'deployed' ? 'bg-green-500/20 text-green-300' : 'bg-yellow-500/20 text-yellow-300'}`}>
-                        {deployment.deploymentStatus || 'Unknown'}
+          {Object.entries(safeData.deployments || {}).map(
+            ([networkKey, deployment]: [string, any]) => {
+              const networkInfo = allNetworks.find((n) => n.key === networkKey);
+              return (
+                <div
+                  key={networkKey}
+                  className="p-6 rounded-lg bg-gray-800/70 border border-gray-700/70 hover:border-gray-600/70 transition-colors"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">
+                        {networkInfo?.icon || "🔗"}
+                      </span>
+                      <div>
+                        <h4 className="font-semibold text-white text-sm">
+                          {networkInfo?.name || networkKey}
+                        </h4>
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-medium ${
+                            deployment.deploymentStatus === "deployed"
+                              ? "bg-green-500/20 text-green-300"
+                              : "bg-yellow-500/20 text-yellow-300"
+                          }`}
+                        >
+                          {deployment.deploymentStatus || "Unknown"}
+                        </span>
+                      </div>
+                    </div>
+                    <a
+                      href={deployment.explorerUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 text-xs flex items-center gap-1 px-2 py-1 rounded bg-blue-500/10 hover:bg-blue-500/20 transition-colors"
+                    >
+                      View <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Chain ID:</span>
+                      <span className="text-gray-200">
+                        {deployment.chainId}
                       </span>
                     </div>
-                  </div>
-                  <a
-                    href={deployment.explorerUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-400 hover:text-blue-300 text-xs flex items-center gap-1 px-2 py-1 rounded bg-blue-500/10 hover:bg-blue-500/20 transition-colors"
-                  >
-                    View <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
-
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Chain ID:</span>
-                    <span className="text-gray-200">{deployment.chainId}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Block:</span>
-                    <span className="text-gray-200">{deployment.deploymentBlockNumber?.toLocaleString()}</span>
-                  </div>
-                  {/* <div className="flex justify-between">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Block:</span>
+                      <span className="text-gray-200">
+                        {deployment.deploymentBlockNumber?.toLocaleString()}
+                      </span>
+                    </div>
+                    {/* <div className="flex justify-between">
                     <span className="text-gray-400">Gas Used:</span>
                     <span className="text-gray-200">{parseInt(deployment.gasUsed || '0').toLocaleString()}</span>
                   </div>
@@ -268,14 +328,17 @@ export const ExistingSafeDisplay: React.FC<ExistingSafeDisplayProps> = ({
                     <span className="text-gray-400">Gas Price:</span>
                     <span className="text-gray-200">{formatGasPrice(deployment.gasPrice || '0', deployment.chainId)}</span>
                   </div> */}
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Deployed:</span>
-                    <span className="text-gray-200">{formatTimestamp(deployment.deploymentTimestamp)}</span>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Deployed:</span>
+                      <span className="text-gray-200">
+                        {formatTimestamp(deployment.deploymentTimestamp)}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            }
+          )}
         </div>
       </div>
 
@@ -287,7 +350,8 @@ export const ExistingSafeDisplay: React.FC<ExistingSafeDisplayProps> = ({
             Expand to New Networks
           </h3>
           <p className="text-gray-300 mb-4">
-            Deploy your Safe to additional networks. Your Safe address will remain the same across all networks.
+            Deploy your Safe to additional networks. Your Safe address will
+            remain the same across all networks.
           </p>
 
           {!showNetworkSelector ? (
@@ -356,19 +420,27 @@ export const ExistingSafeDisplay: React.FC<ExistingSafeDisplayProps> = ({
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-blue-200">New Networks:</span>
-              <span className="text-blue-100 ml-2">{expandResult.successfulNetworks?.length || 0}</span>
+              <span className="text-blue-100 ml-2">
+                {expandResult.successfulNetworks?.length || 0}
+              </span>
             </div>
             <div>
               <span className="text-blue-200">Total Networks:</span>
-              <span className="text-blue-100 ml-2">{(activeNetworks.length || 0) + (expandResult.successfulNetworks?.length || 0)}</span>
+              <span className="text-blue-100 ml-2">
+                {(activeNetworks.length || 0) +
+                  (expandResult.successfulNetworks?.length || 0)}
+              </span>
             </div>
           </div>
-          {expandResult.successfulNetworks && expandResult.successfulNetworks.length > 0 && (
-            <div className="mt-2">
-              <span className="text-blue-200 text-sm">Networks: </span>
-              <span className="text-blue-100 text-sm">{expandResult.successfulNetworks.join(', ')}</span>
-            </div>
-          )}
+          {expandResult.successfulNetworks &&
+            expandResult.successfulNetworks.length > 0 && (
+              <div className="mt-2">
+                <span className="text-blue-200 text-sm">Networks: </span>
+                <span className="text-blue-100 text-sm">
+                  {expandResult.successfulNetworks.join(", ")}
+                </span>
+              </div>
+            )}
         </div>
       )}
 
@@ -376,9 +448,12 @@ export const ExistingSafeDisplay: React.FC<ExistingSafeDisplayProps> = ({
       <div className="flex flex-col sm:flex-row gap-4">
         <button
           onClick={() => {
-            const safeAddress = safeData.userInfo?.walletAddress;
+            const safeAddress = safeData.deployments?.arbitrum?.address;
             if (safeAddress) {
-              window.open(`https://app.safe.global/home?safe=sep:${safeAddress}`, '_blank');
+              window.open(
+                `https://app.safe.global/home?safe=arb1:${safeAddress}`,
+                "_blank"
+              );
             }
           }}
           className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg font-bold transition-all duration-200 shadow-lg hover:shadow-xl"
@@ -397,4 +472,4 @@ export const ExistingSafeDisplay: React.FC<ExistingSafeDisplayProps> = ({
       </div>
     </div>
   );
-}; 
+};
