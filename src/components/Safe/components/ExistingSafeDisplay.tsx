@@ -22,6 +22,7 @@ import {
   allNetworks,
 } from "../utils/safeUtils";
 import toast from "react-hot-toast";
+import Image from "next/image";
 
 interface ExistingSafeDisplayProps {
   safeData: SafeData;
@@ -85,6 +86,7 @@ export const ExistingSafeDisplay: React.FC<ExistingSafeDisplayProps> = ({
       });
 
       const result = await response.json();
+      console.log(result);
 
       if (!response.ok) {
         throw new Error(
@@ -97,9 +99,7 @@ export const ExistingSafeDisplay: React.FC<ExistingSafeDisplayProps> = ({
       if (result.success) {
         setExpandResult(result.data);
         toast.success(
-          `Safe expanded to ${
-            result.data.successfulNetworks?.length || 0
-          } new network(s)!`
+          `Safe expanded to new network(s)!`
         );
         setSelectedNetwork("");
         setShowNetworkSelector(false);
@@ -280,7 +280,8 @@ export const ExistingSafeDisplay: React.FC<ExistingSafeDisplayProps> = ({
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">
-                        {networkInfo?.icon || "🔗"}
+                        {/* {networkInfo?.icon || "🔗"} */}
+                        <Image src={networkInfo?.icon || ""} alt={networkKey} width={24} height={24} className="w-6 h-6 bg-white p-[2px] rounded-full" />
                       </span>
                       <div>
                         <h4 className="font-semibold text-white text-sm">

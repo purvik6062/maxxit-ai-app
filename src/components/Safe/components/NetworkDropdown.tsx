@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import Image from "next/image";
 
 interface Network {
   key: string;
@@ -34,7 +35,8 @@ export const NetworkDropdown: React.FC<NetworkDropdownProps> = ({
         <div className="flex items-center gap-3">
           {selectedNetworkData ? (
             <>
-              <span className="text-xl">{selectedNetworkData.icon}</span>
+              {/* <span className="text-xl">{selectedNetworkData.icon}</span> */}
+              <Image src={selectedNetworkData.icon} alt={selectedNetworkData.name} width={24} height={24} className="w-6 h-6 bg-white p-[2px] rounded-full" />
               <div>
                 <div className="font-semibold text-white text-sm">{selectedNetworkData.name}</div>
                 <div className="text-xs text-gray-400">Chain ID: {selectedNetworkData.chainId}</div>
@@ -58,7 +60,8 @@ export const NetworkDropdown: React.FC<NetworkDropdownProps> = ({
               }}
               className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-700/70 transition-colors text-left border-b border-gray-700/50 last:border-b-0"
             >
-              <span className="text-xl">{network.icon}</span>
+              {/* <span className="text-xl">{network.icon}</span> */}
+              <Image src={network.icon} alt={network.name} width={24} height={24} className="w-6 h-6 bg-white p-[2px] rounded-full" />
               <div className="flex-1">
                 <div className="font-semibold text-white text-sm">{network.name}</div>
                 <div className="flex items-center gap-2">

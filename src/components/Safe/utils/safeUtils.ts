@@ -109,7 +109,7 @@ export const allNetworks = [
     name: "Ethereum Mainnet",
     chainId: 1,
     type: "Mainnet",
-    icon: "⟠",
+    icon: "/img/ethereum-sepolia.png",
     color: "from-blue-500 to-blue-600",
   },
   {
@@ -117,7 +117,7 @@ export const allNetworks = [
     name: "Ethereum Sepolia",
     chainId: 11155111,
     type: "Testnet",
-    icon: "⟠",
+    icon: "/img/ethereum-sepolia.png",
     color: "from-blue-400 to-blue-500",
   },
   {
@@ -125,7 +125,7 @@ export const allNetworks = [
     name: "Arbitrum One",
     chainId: 42161,
     type: "Mainnet",
-    icon: "🔵",
+    icon: "/img/arbitrum-sepolia.png",
     color: "from-blue-600 to-indigo-600",
   },
   {
@@ -133,7 +133,7 @@ export const allNetworks = [
     name: "Arbitrum Sepolia",
     chainId: 421614,
     type: "Testnet",
-    icon: "🔵",
+    icon: "/img/arbitrum-sepolia.png",
     color: "from-blue-500 to-indigo-500",
   },
   {
@@ -141,7 +141,7 @@ export const allNetworks = [
     name: "Polygon",
     chainId: 137,
     type: "Mainnet",
-    icon: "🟣",
+    icon: "/img/polygon.png",
     color: "from-purple-500 to-purple-600",
   },
   {
@@ -149,7 +149,7 @@ export const allNetworks = [
     name: "Base",
     chainId: 8453,
     type: "Mainnet",
-    icon: "🔵",
+    icon: "/img/base-sepolia.png",
     color: "from-blue-500 to-cyan-500",
   },
   {
@@ -157,7 +157,7 @@ export const allNetworks = [
     name: "Base Sepolia",
     chainId: 84532,
     type: "Testnet",
-    icon: "🔵",
+    icon: "/img/base-sepolia.png",
     color: "from-blue-400 to-cyan-400",
   },
 ];
