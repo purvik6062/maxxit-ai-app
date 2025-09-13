@@ -16,7 +16,9 @@ interface SafeDeploymentFormProps {
   deploymentStatus: "idle" | "deploying" | "success" | "error";
   deploymentResult: any;
   canDeploy: boolean;
-  onDeploy: () => void;
+  onDeploy: (agentId?: string, agentType?: 'perpetuals' | 'spot') => void;
+  agentId?: string;
+  agentType?: 'perpetuals' | 'spot';
 }
 
 export const SafeDeploymentForm: React.FC<SafeDeploymentFormProps> = ({
@@ -25,6 +27,8 @@ export const SafeDeploymentForm: React.FC<SafeDeploymentFormProps> = ({
   deploymentResult,
   canDeploy,
   onDeploy,
+  agentId,
+  agentType,
 }) => {
   const { data: session } = useSession();
   const { account, isCorrectNetwork } = useWallet();
@@ -88,7 +92,7 @@ export const SafeDeploymentForm: React.FC<SafeDeploymentFormProps> = ({
 
       {/* Deploy Button */}
       <button
-        onClick={onDeploy}
+        onClick={() => onDeploy(agentId, agentType)}
         disabled={!canDeploy}
         className={`w-full flex items-center justify-center gap-3 px-8 py-6 rounded-xl font-bold text-white text-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl hover:shadow-3xl ${deploymentStatus === "success"
             ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"

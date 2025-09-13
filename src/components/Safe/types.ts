@@ -2,6 +2,8 @@ export interface IUserInfo {
   userId: string;
   walletAddress: string;
   email?: string;
+  agentId?: string;        // Add agent ID for agent-specific deployments
+  agentType?: string;      // Add agent type (perpetuals/spot)
   preferences: {
     defaultNetworks: string[];
     autoExpand: boolean;

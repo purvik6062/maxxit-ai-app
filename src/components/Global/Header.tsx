@@ -13,6 +13,7 @@ import { useCredits } from "@/context/CreditsContext";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import OnboardingModals from "./OnboardingModals";
+import { CustomizationOptions } from "./OnboardingModals";
 
 // Navigation configuration
 const NAVIGATION_ITEMS = [
@@ -21,6 +22,8 @@ const NAVIGATION_ITEMS = [
   { path: "https://app.hyperliquid-testnet.xyz/vaults/0xb51423485c8fa348701f208618755b76b124a8e6", label: "Public Vaults", id: "public-vaults", isExternal: true },
   // { path: "/create-safe", label: "Safe", id: "create-safe" },
   { path: "/agentic", label: "Agentic", id: "agentic" },
+  { path: "/agents-marketplace", label: "Agents Marketplace", id: "agents-marketplace" },
+  { path: "/my-agent", label: "My Agent", id: "my-agent" },
   { path: "/profile", label: "Profile", id: "profile" },
   { path: "/pricing", label: "Pricing", id: "pricing", hasBorders: true },
   { path: "/playground", label: "Playground", id: "playground" },
@@ -209,6 +212,20 @@ const Header: React.FC<HeaderProps> = () => {
   const [targetY, setTargetY] = useState(0);
   const completeSetupButtonRef = useRef<HTMLButtonElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+  
+  // Customization options state
+  const [isCustomizationModalOpen, setIsCustomizationModalOpen] = useState(false);
+  const [onboardingStep, setOnboardingStep] = useState(1);
+  const [customizationOptions, setCustomizationOptions] = useState<CustomizationOptions>({
+    r_last6h_pct: 0,
+    d_pct_mktvol_6h: 0,
+    d_pct_socvol_6h: 0,
+    d_pct_sent_6h: 0,
+    d_pct_users_6h: 0,
+    d_pct_infl_6h: 0,
+    d_galaxy_6h: 0,
+    neg_d_altrank_6h: 0,
+  });
 
   // Error mapping for telegram registration
   const ERROR_MAPPING: { [key: string]: string } = {
@@ -255,6 +272,8 @@ const Header: React.FC<HeaderProps> = () => {
     else if (pathname?.includes("/public-vaults")) setActiveLink("public-vaults");
     else if (pathname?.includes("/create-safe")) setActiveLink("create-safe");
     else if (pathname?.includes("/agentic")) setActiveLink("agentic");
+    else if (pathname?.includes("/agents-marketplace")) setActiveLink("agents-marketplace");
+    else if (pathname?.includes("/my-agent")) setActiveLink("my-agent");
     else if (pathname?.includes("/invest")) setActiveLink("invest");
     else if (pathname?.includes("/profile")) setActiveLink("profile");
     else if (pathname?.includes("/pricing")) setActiveLink("pricing");
@@ -485,6 +504,7 @@ const Header: React.FC<HeaderProps> = () => {
           twitterId: session?.user?.id,
           telegramId: telegramUsername,
           credits: 500,
+          customizationOptions: customizationOptions,
         }),
       });
 
@@ -598,7 +618,10 @@ const Header: React.FC<HeaderProps> = () => {
                 <button
                   ref={completeSetupButtonRef}
                   className="px-3 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm rounded-full hover:from-blue-600 hover:to-blue-700 transition whitespace-nowrap flex items-center gap-1 animate-pulse max-w-[160px] truncate"
-                  onClick={() => setShowOnboardingModal(true)}
+                  onClick={() => {
+                    setOnboardingStep(1);
+                    setShowOnboardingModal(true);
+                  }}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -790,6 +813,7 @@ const Header: React.FC<HeaderProps> = () => {
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
+                setOnboardingStep(1);
                 setShowOnboardingModal(true);
               }}
               className="w-full px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-700 text-white text-sm rounded-lg hover:bg-blue-600 transition flex items-center justify-center gap-2"
@@ -891,6 +915,7 @@ const Header: React.FC<HeaderProps> = () => {
         isOnboardingModalOpen={showOnboardingModal}
         isTelegramModalOpen={isTelegramModalOpen}
         isSuccessModalOpen={showSuccessModal}
+        isCustomizationModalOpen={isCustomizationModalOpen}
         telegramStep={telegramStep}
         telegramUsername={telegramUsername}
         isSubmitting={isSubmitting}
@@ -899,11 +924,16 @@ const Header: React.FC<HeaderProps> = () => {
         targetX={targetX}
         targetY={targetY}
         session={session}
+        customizationOptions={customizationOptions}
+        onboardingStep={onboardingStep}
         closeOnboardingModal={closeOnboardingModal}
         startTelegramRegistration={startTelegramRegistration}
         setTelegramModalOpen={setIsTelegramModalOpen}
+        setCustomizationModalOpen={setIsCustomizationModalOpen}
         setTelegramStep={setTelegramStep}
         setTelegramUsername={setTelegramUsername}
+        setCustomizationOptions={setCustomizationOptions}
+        setOnboardingStep={setOnboardingStep}
         handleSubmit={handleSubmit}
         setSuccessModalOpen={setShowSuccessModal}
       />

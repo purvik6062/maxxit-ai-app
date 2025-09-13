@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import dbConnect from "src/utils/dbConnect";
 
 export const runtime = 'nodejs';
 
@@ -32,33 +33,29 @@ export async function POST(request: Request) {
     }
 
     try {
-      // First get updates to find the chat ID
-      const updatesResponse = await fetch(`${TELEGRAM_API}/getUpdates`);
-      const updatesData = await updatesResponse.json();
+      // Connect to database
+      const client = await dbConnect();
+      const db = client.db("ctxbt-signal-flow");
+      
+      // Query the welcomed_users collection to verify user
+      const cleanUsername = username.replace("@", "").toLowerCase();
+      const welcomedUser = await db.collection("welcomed_users").findOne({
+        username: cleanUsername
+      });
 
-      if (!updatesData.ok) {
-        console.error('Failed to get updates:', updatesData);
+      if (!welcomedUser) {
         return NextResponse.json(
-          { message: 'Failed to verify user. Please try again.' },
-          { status: 500 }
-        );
-      }
-
-      // Find the chat ID for the given username
-      const userUpdate = updatesData.result.find((update: any) => 
-        update.message?.from?.username?.toLowerCase() === username.toLowerCase()
-      );
-
-      if (!userUpdate) {
-        return NextResponse.json(
-          { message: 'Please start a chat with our bot first and try again.' },
+          { 
+            message: 'Please start a chat with our bot first and send the "start" message. Check step 1 & 2 in the instructions.' 
+          },
           { status: 404 }
         );
       }
 
-      console.log("chattttttttt", userUpdate)
-      const chatId = userUpdate.message.chat.id;
-      const telegramId = userUpdate.message.from.id; // Get the Telegram user ID
+      // Extract user ID and chat ID from the welcomed user document
+      const chatId = welcomedUser.user_id;
+      const telegramId = welcomedUser.user_id; 
+      console.log(`User verified for OTP: ${cleanUsername} (ID: ${telegramId})`);
 
       // Send the OTP message
       const message = `Your OTP for AI Trading Platform verification is: ${otp}`;

@@ -2,13 +2,10 @@ import { NextResponse } from "next/server";
 import dbConnect from "src/utils/dbConnect";
 import { MongoClient } from "mongodb";
 
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
-
 export async function POST(request: Request): Promise<Response> {
   let client: MongoClient;
   try {
-    const { twitterUsername, twitterId, telegramId, credits } = await request.json();
+    const { twitterUsername, twitterId, telegramId, credits, customizationOptions } = await request.json();
 
     // Validate required fields
     if (!twitterUsername || !telegramId || !twitterId) {
@@ -18,62 +15,52 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    // Verify Telegram chat with the bot
+    client = await dbConnect();
+    const db = client.db("ctxbt-signal-flow");
+
+    // Verify Telegram user by querying welcomed_users collection
     let chatId: number | null = null;
+    let telegramUserId: number | null = null;
+    
     try {
       const cleanUsername = telegramId.replace("@", "").toLowerCase();
-      const updatesResponse = await fetch(`${TELEGRAM_API}/getUpdates`);
-      const updatesData = await updatesResponse.json();
 
-      if (!updatesData.ok) {
+      const welcomedUser = await db.collection("welcomed_users").findOne({
+        username: cleanUsername
+      });
+
+      if (!welcomedUser) {
         return NextResponse.json(
           {
             success: false,
             error: {
               message:
-                "Failed to verify Telegram connection. Please try again later.",
-            },
-          },
-          { status: 500 }
-        );
-      }
-
-      // Find the user's chat with the bot
-      const userChat = updatesData.result.find(
-        (update: any) =>
-          update.message?.from?.username?.toLowerCase() === cleanUsername ||
-          update.message?.chat?.username?.toLowerCase() === cleanUsername
-      );
-
-      if (!userChat) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: {
-              message:
-                "Please start a chat with our bot first and send a message. Check step 1 & 2 in the instructions.",
+                "Please start a chat with our bot first and send the 'start' message. Check step 1 & 2 in the instructions.",
             },
           },
           { status: 404 }
         );
       }
 
-      chatId = userChat.message.chat.id;
+      // Extract user ID and chat ID from the welcomed user document
+      telegramUserId = welcomedUser.user_id;
+      chatId = telegramUserId; 
+      
+      console.log(`User verified: ${cleanUsername} (ID: ${telegramUserId})`);
     } catch (error) {
-      console.error("Telegram verification error:", error);
+      console.error("Database verification error:", error);
+      
       return NextResponse.json(
         {
           success: false,
           error: {
-            message: "Failed to verify Telegram connection. Please try again.",
+            message: error instanceof Error ? error.message : "Failed to verify Telegram user. Please try again.",
           },
         },
         { status: 500 }
       );
     }
 
-    client = await dbConnect();
-    const db = client.db("ctxbt-signal-flow");
     const usersCollection = db.collection("users");
     const transactionsCollection = db.collection("transactions");
 
@@ -106,12 +93,23 @@ export async function POST(request: Request): Promise<Response> {
       twitterUsername,
       twitterId,
       telegramId,
+      telegramUserId, // Store the actual Telegram user ID from welcomed_users
       chatId,
       credits: initialCredits,
       subscribedAccounts: [],
+      customizationOptions: customizationOptions || {
+        r_last6h_pct: 0,
+        d_pct_mktvol_6h: 0,
+        d_pct_socvol_6h: 0,
+        d_pct_sent_6h: 0,
+        d_pct_users_6h: 0,
+        d_pct_infl_6h: 0,
+        d_galaxy_6h: 0,
+        neg_d_altrank_6h: 0,
+      },
       createdAt: now,
       updatedAt: now,
-      verified: true, // Mark as verified since we confirmed chat exists
+      verified: true, // Mark as verified since we confirmed user exists in welcomed_users
     };
 
     // Start a session for transaction

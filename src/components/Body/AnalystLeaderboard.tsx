@@ -22,7 +22,7 @@ import {
   ChevronUp,
   Shield,
   Users,
-  Info,
+  ArrowUpDown,
   X,
   Search,
 } from "lucide-react";
@@ -107,6 +107,11 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
     setLocalSearchText(searchText);
   }, [searchText]);
 
+  // Reset metrics visibility when mode changes
+  useEffect(() => {
+    setShowStats({});
+  }, [mode]);
+
   const { agents, loadingUmd, error, refreshData } = useUserData();
 
   const effectiveSortField =
@@ -114,12 +119,27 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
 
   useEffect(() => {
     setCurrentPage(1);
+    // Reset all metrics visibility when search, sort field, or sort direction changes
+    setShowStats({});
   }, [searchText, effectiveSortField, sortDirection]);
 
   const toggleStats = (handle: string) => {
-    setShowStats((prev) => ({ ...prev, [handle]: !prev[handle] }));
+    if (topAgents.some(agent => agent.twitterHandle === handle)) {
+      // For top 3 agents, toggle all of them together
+      const allTopHandles = topAgents.map(agent => agent.twitterHandle);
+      const shouldShowAll = !allTopHandles.some(h => showStats[h]);
+      const newState: Record<string, boolean> = {};
+      allTopHandles.forEach(h => {
+        newState[h] = shouldShowAll;
+      });
+      setShowStats(prev => ({ ...prev, ...newState }));
+    } else {
+      // For other agents, toggle individually
+      setShowStats((prev) => ({ ...prev, [handle]: !prev[handle] }));
+    }
   };
 
+  
   const sortAgents = (field: SortField) => {
     if (userSortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -127,6 +147,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
       setUserSortField(field);
       setSortDirection("desc");
     }
+    // Reset all metrics visibility when changing sort field
+    setShowStats({});
   };
 
   const renderMetricIndicator = (
@@ -231,10 +253,58 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
     });
   };
 
+  const getUnfilteredSortedAgents = () => {
+    return [...agents].sort((a, b) => {
+      let valueA, valueB;
+      switch (effectiveSortField) {
+        case "impactFactor":
+          valueA = a.impactFactor || 0;
+          valueB = b.impactFactor || 0;
+          break;
+        case "heartbeat":
+          valueA = a.heartbeat || 0;
+          valueB = b.heartbeat || 0;
+          break;
+        case "mindshare":
+          valueA = a.mindshare || 0;
+          valueB = b.mindshare || 0;
+          break;
+        case "followers":
+          valueA = a.followers || 0;
+          valueB = b.followers || 0;
+          break;
+        case "username":
+          valueA = a.twitterHandle.toLowerCase();
+          valueB = b.twitterHandle.toLowerCase();
+          return sortDirection === "asc"
+            ? valueA.localeCompare(valueB)
+            : valueB.localeCompare(valueA);
+        case "herdedVsHidden":
+          valueA = a.herdedVsHidden || 0;
+          valueB = b.herdedVsHidden || 0;
+          break;
+        case "convictionVsHype":
+          valueA = a.convictionVsHype || 0;
+          valueB = b.convictionVsHype || 0;
+          break;
+        case "memeVsInstitutional":
+          valueA = a.memeVsInstitutional || 0;
+          valueB = b.memeVsInstitutional || 0;
+          break;
+        default:
+          valueA = a[mode === "impact" ? "impactFactor" : "heartbeat"] || 0;
+          valueB = b[mode === "impact" ? "impactFactor" : "heartbeat"] || 0;
+      }
+      return sortDirection === "asc" ? valueA - valueB : valueB - valueA;
+    });
+  };
+
+  const getAgentRank = (agent) => {
+    return unfilteredSortedAgents.findIndex((a) => a.twitterHandle === agent.twitterHandle) + 1;
+  };
+
   const renderCurrentUserCard = (agent) => {
-    const rank =
-      sortedAgents.findIndex((a) => a.twitterHandle === agent.twitterHandle) +
-      1;
+    const rank = getAgentRank(agent);
     const cleanHandle = agent.twitterHandle.replace("@", "");
     const isSubscribed = subscribedHandles.includes(cleanHandle);
     const isCurrentlySubscribing = subscribingHandle === cleanHandle;
@@ -252,7 +322,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             ? "bg-gradient-to-br from-gray-900 via-blue-950/80 to-gray-900 border-blue-500/60 shadow-[0_0_15px_rgba(59,130,246,0.4)] hover:scale-[1.01] hover:shadow-[0_0_25px_rgba(59,130,246,0.7)]"
             : "bg-gray-900/50 border-gray-800/50 hover:bg-cyan-950"
         } backdrop-blur-sm border rounded-lg overflow-hidden transition-all duration-200 hover:cursor-pointer`}
-        onClick={() => router.push(`/influencer/${cleanHandle}`)}
+        onClick={() => window.open(`/influencer/${cleanHandle}`, '_blank')}
       >
         {/* Animated Background Effect */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(59,130,246,0.15),transparent_70%)] z-0"></div>
@@ -462,6 +532,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
   }
 
   const sortedAgents = getSortedAndFilteredAgents();
+  const unfilteredSortedAgents = getUnfilteredSortedAgents();
 
   // Check if the current user is in the agents list
   const currentUserHandle = session?.user?.username?.toLowerCase();
@@ -485,6 +556,28 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
   );
+
+  // Synchronize all top 3 agents' showStats state
+  useEffect(() => {
+    if (topAgents.length > 0) {
+      const firstTopHandle = topAgents[0].twitterHandle;
+      
+      // If the first top agent's state changed, update all others to match
+      const currentState = showStats[firstTopHandle];
+      if (currentState !== undefined) {
+        const otherTopHandles = topAgents.slice(1).map(agent => agent.twitterHandle);
+        const needSync = otherTopHandles.some(handle => showStats[handle] !== currentState);
+        
+        if (needSync) {
+          const newState: Record<string, boolean> = {};
+          topAgents.forEach(agent => {
+            newState[agent.twitterHandle] = currentState;
+          });
+          setShowStats(prev => ({ ...prev, ...newState }));
+        }
+      }
+    }
+  }, [showStats, topAgents]);
 
   const medalColors = [
     "from-yellow-300 to-amber-500",
@@ -578,7 +671,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
           </div>
           <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2 sm:mt-0 items-center">
             <div className="relative group">
-              <Info className="w-3 h-3 sm:w-4 sm:h-4 text-cyan-500 cursor-help" />
+              <ArrowUpDown className="w-3 h-3 sm:w-4 sm:h-4 text-cyan-500 cursor-help" />
               <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-2 py-1 sm:px-3 sm:py-2 bg-gray-800 text-gray-200 text-[10px] sm:text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
                 Tap to sort analysts
               </div>
@@ -698,7 +791,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
       {/* Top 3 agents */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6">
         {topAgents.map((agent, index) => {
-          const rank = index + 1;
+          const rank = getAgentRank(agent);
           const cleanHandle = agent.twitterHandle.replace("@", "");
           const isSubscribed = subscribedHandles.includes(cleanHandle);
           const isCurrentlySubscribing = subscribingHandle === cleanHandle;
@@ -714,7 +807,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                   ? "border-gray-400/30"
                   : "border-amber-700/30"
               } bg-gradient-to-br from-gray-900/80 via-gray-900/60 to-blue-900/20 backdrop-blur-sm min-w-0`}
-              onClick={() => router.push(`/influencer/${cleanHandle}`)}
+              onClick={() => window.open(`/influencer/${cleanHandle}`, '_blank')}
               style={{ cursor: "pointer" }}
             >
               <div className="absolute -right-4 -top-4 w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24">
@@ -1070,12 +1163,12 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                   {showStats[agent.twitterHandle] ? (
                     <>
                       <ChevronUp className="w-2 h-2 sm:w-3 sm:h-3" />
-                      <span>Hide Details</span>
+                      <span>Hide All Top 3</span>
                     </>
                   ) : (
                     <>
                       <RiPulseLine className="w-2 h-2 sm:w-3 sm:h-3" />
-                      <span>View Metrics</span>
+                      <span>View All Top 3 Metrics</span>
                     </>
                   )}
                 </button>
@@ -1161,10 +1254,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
           </div>
           <div className="space-y-2">
             {paginatedAgents.map((agent) => {
-              const rank =
-                sortedAgents.findIndex(
-                  (a) => a.twitterHandle === agent.twitterHandle
-                ) + 1;
+              const rank = getAgentRank(agent);
               const cleanHandle = agent.twitterHandle.replace("@", "");
               const isSubscribed = subscribedHandles.includes(cleanHandle);
               const isCurrentlySubscribing = subscribingHandle === cleanHandle;
@@ -1181,7 +1271,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                       ? "bg-gradient-to-br from-gray-900 via-blue-950/80 to-gray-900 border-blue-500/60 shadow-[0_0_15px_rgba(59,130,246,0.4)] hover:scale-[1.01] hover:shadow-[0_0_25px_rgba(59,130,246,0.7)]"
                       : "bg-gray-900/50 border-gray-800/50 hover:bg-cyan-950"
                   } backdrop-blur-sm border rounded-lg overflow-hidden transition-all duration-200 hover:cursor-pointer`}
-                  onClick={() => router.push(`/influencer/${cleanHandle}`)}
+                  onClick={() => window.open(`/influencer/${cleanHandle}`, '_blank')}
                 >
                   {/* Desktop Layout (md and above) */}
                   <div className="hidden lg:flex px-4 py-2 items-center gap-4">
@@ -1354,36 +1444,91 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             })}
           </div>
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-3 sm:gap-4 mt-6">
+            <div className="flex items-center justify-center gap-2 sm:gap-3 mt-6">
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-gray-700 to-blue-900 text-white shadow-lg transition-all duration-300 hover:shadow-blue-900/30 disabled:opacity-50 disabled:cursor-not-allowed group"
+                className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-gray-700 to-blue-900 text-white shadow-lg transition-all duration-300 hover:shadow-blue-900/30 disabled:opacity-50 disabled:cursor-not-allowed group"
                 aria-label="Previous page"
               >
                 <FaChevronLeft
-                  size={16}
+                  size={14}
                   className="transition-transform group-hover:-translate-x-0.5"
-                />
+              />
               </button>
-              <div className="px-4 py-1.5 sm:px-5 sm:py-2 bg-gray-800 bg-opacity-80 backdrop-blur-md rounded-full text-white font-medium shadow-lg text-xs sm:text-sm">
-                <span className="text-gray-400">Page </span>
-                <span className="text-blue-400 mx-1 font-bold">
-                  {currentPage}
-                </span>
-                <span className="text-gray-400">of </span>
-                <span className="text-blue-400 font-bold">{totalPages}</span>
+              
+              <div className="flex gap-1 sm:gap-2">
+                {(() => {
+                  const pages: (number | string)[] = [];
+                  const maxVisible = 9;
+                  
+                  // Always show first page
+                  pages.push(1);
+                  
+                  // Show dots if needed
+                  if (currentPage > maxVisible - 3) {
+                    pages.push('...');
+                  }
+                  
+                  // Show pages around current page
+                  const startPage = Math.max(2, currentPage - 2);
+                  const endPage = Math.min(totalPages - 1, currentPage + 2);
+                  
+                  for (let i = startPage; i <= endPage; i++) {
+                    if (i !== 1 && i !== totalPages) {
+                      pages.push(i);
+                    }
+                  }
+                  
+                  // Show dots if needed
+                  if (currentPage < totalPages - (maxVisible - 4)) {
+                    pages.push('...');
+                  }
+                  
+                  // Always show last page
+                  if (totalPages > 1) {
+                    pages.push(totalPages);
+                  }
+                  
+                  return pages.map((page, index) => {
+                    if (page === '...') {
+                      return (
+                        <span
+                          key={`dots-${index}`}
+                          className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-gray-400"
+                        >
+                          ...
+                        </span>
+                      );
+                    }
+                    
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(typeof page === 'number' ? page : currentPage)}
+                        className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 shadow-lg ${
+                          currentPage === page
+                            ? "bg-gradient-to-br from-blue-600 to-cyan-600 text-white shadow-blue-900/30"
+                            : "bg-gradient-to-br from-gray-700 to-blue-900 text-gray-300 hover:text-white hover:shadow-blue-900/30"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  });
+                })()}
               </div>
+              
               <button
                 onClick={() =>
                   setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                 }
                 disabled={currentPage === totalPages}
-                className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-gray-700 to-blue-900 text-white shadow-lg transition-all duration-300 hover:shadow-blue-900/30 disabled:opacity-50 disabled:cursor-not-allowed group"
+                className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-gray-700 to-blue-900 text-white shadow-lg transition-all duration-300 hover:shadow-blue-900/30 disabled:opacity-50 disabled:cursor-not-allowed group"
                 aria-label="Next page"
               >
                 <FaChevronRight
-                  size={16}
+                  size={14}
                   className="transition-transform group-hover:translate-x-0.5"
                 />
               </button>
