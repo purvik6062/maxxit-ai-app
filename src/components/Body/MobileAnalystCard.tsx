@@ -8,7 +8,7 @@ import {
 } from "react-icons/fa";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, easeOut } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useLoginModal } from "@/context/LoginModalContext";
 import { useCredits } from "@/context/CreditsContext";
@@ -79,7 +79,7 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
     visible: {
       height: "auto",
       opacity: 1,
-      transition: { duration: 0.3, ease: "easeOut" },
+      transition: { duration: 0.3, ease: easeOut },
     },
   };
 
