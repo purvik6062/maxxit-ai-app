@@ -139,6 +139,21 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
     }
   };
 
+  // Compute a stable, client-only date string to avoid hydration mismatch
+  const [todayStr, setTodayStr] = React.useState<string>("");
+  useEffect(() => {
+    try {
+      const str = new Date().toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+      setTodayStr(str);
+    } catch (_) {
+      // no-op
+    }
+  }, []);
+
   
   const sortAgents = (field: SortField) => {
     if (userSortField === field) {
@@ -660,13 +675,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
               <div className="w-2 h-2 rounded-full bg-cyan-500"></div>
               <div className="w-2 h-2 rounded-full bg-cyan-500/70 absolute animate-ping"></div>
             </div>
-            <span className="text-xs sm:text-sm text-cyan-500">
-              Data updated •{" "}
-              {new Date().toLocaleDateString("en-GB", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-              })}
+            <span className="text-xs sm:text-sm text-cyan-500" suppressHydrationWarning>
+              Data updated • {todayStr}
             </span>
           </div>
           <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2 sm:mt-0 items-center">
