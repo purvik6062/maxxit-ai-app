@@ -124,15 +124,15 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
   }, [searchText, effectiveSortField, sortDirection]);
 
   const toggleStats = (handle: string) => {
-    if (topAgents.some(agent => agent.twitterHandle === handle)) {
+    if (topAgents.some((agent) => agent.twitterHandle === handle)) {
       // For top 3 agents, toggle all of them together
-      const allTopHandles = topAgents.map(agent => agent.twitterHandle);
-      const shouldShowAll = !allTopHandles.some(h => showStats[h]);
+      const allTopHandles = topAgents.map((agent) => agent.twitterHandle);
+      const shouldShowAll = !allTopHandles.some((h) => showStats[h]);
       const newState: Record<string, boolean> = {};
-      allTopHandles.forEach(h => {
+      allTopHandles.forEach((h) => {
         newState[h] = shouldShowAll;
       });
-      setShowStats(prev => ({ ...prev, ...newState }));
+      setShowStats((prev) => ({ ...prev, ...newState }));
     } else {
       // For other agents, toggle individually
       setShowStats((prev) => ({ ...prev, [handle]: !prev[handle] }));
@@ -154,7 +154,6 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
     }
   }, []);
 
-  
   const sortAgents = (field: SortField) => {
     if (userSortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -211,6 +210,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
     },
     { scope: container, dependencies: [loadingUmd, agents] }
   );
+
+  // (moved computations below helper function declarations)
 
   const getSortedAndFilteredAgents = () => {
     const filtered = localSearchText
@@ -314,8 +315,42 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
     });
   };
 
+  // Precompute sorted lists early so hooks below can safely reference them
+  const sortedAgents = getSortedAndFilteredAgents();
+  const unfilteredSortedAgents = getUnfilteredSortedAgents();
+  const topAgents = sortedAgents.slice(0, 3);
+
+  // Synchronize all top 3 agents' showStats state (must be before any early returns)
+  useEffect(() => {
+    if (topAgents.length > 0) {
+      const firstTopHandle = topAgents[0].twitterHandle;
+
+      const currentState = showStats[firstTopHandle];
+      if (currentState !== undefined) {
+        const otherTopHandles = topAgents
+          .slice(1)
+          .map((agent) => agent.twitterHandle);
+        const needSync = otherTopHandles.some(
+          (handle) => showStats[handle] !== currentState
+        );
+
+        if (needSync) {
+          const newState: Record<string, boolean> = {};
+          topAgents.forEach((agent) => {
+            newState[agent.twitterHandle] = currentState;
+          });
+          setShowStats((prev) => ({ ...prev, ...newState }));
+        }
+      }
+    }
+  }, [showStats, topAgents]);
+
   const getAgentRank = (agent) => {
-    return unfilteredSortedAgents.findIndex((a) => a.twitterHandle === agent.twitterHandle) + 1;
+    return (
+      unfilteredSortedAgents.findIndex(
+        (a) => a.twitterHandle === agent.twitterHandle
+      ) + 1
+    );
   };
 
   const renderCurrentUserCard = (agent) => {
@@ -337,7 +372,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             ? "bg-gradient-to-br from-gray-900 via-blue-950/80 to-gray-900 border-blue-500/60 shadow-[0_0_15px_rgba(59,130,246,0.4)] hover:scale-[1.01] hover:shadow-[0_0_25px_rgba(59,130,246,0.7)]"
             : "bg-gray-900/50 border-gray-800/50 hover:bg-cyan-950"
         } backdrop-blur-sm border rounded-lg overflow-hidden transition-all duration-200 hover:cursor-pointer`}
-        onClick={() => window.open(`/influencer/${cleanHandle}`, '_blank')}
+        onClick={() => window.open(`/influencer/${cleanHandle}`, "_blank")}
       >
         {/* Animated Background Effect */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(59,130,246,0.15),transparent_70%)] z-0"></div>
@@ -546,9 +581,6 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
     );
   }
 
-  const sortedAgents = getSortedAndFilteredAgents();
-  const unfilteredSortedAgents = getUnfilteredSortedAgents();
-
   // Check if the current user is in the agents list
   const currentUserHandle = session?.user?.username?.toLowerCase();
   const currentUserAgentIndex = currentUserHandle
@@ -564,35 +596,12 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
   const currentUserRank =
     currentUserAgentIndex >= 0 ? currentUserAgentIndex + 1 : null;
 
-  const topAgents = sortedAgents.slice(0, 3);
   const remainingAgents = sortedAgents.slice(3);
   const totalPages = Math.ceil(remainingAgents.length / PAGE_SIZE);
   const paginatedAgents = remainingAgents.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
   );
-
-  // Synchronize all top 3 agents' showStats state
-  useEffect(() => {
-    if (topAgents.length > 0) {
-      const firstTopHandle = topAgents[0].twitterHandle;
-      
-      // If the first top agent's state changed, update all others to match
-      const currentState = showStats[firstTopHandle];
-      if (currentState !== undefined) {
-        const otherTopHandles = topAgents.slice(1).map(agent => agent.twitterHandle);
-        const needSync = otherTopHandles.some(handle => showStats[handle] !== currentState);
-        
-        if (needSync) {
-          const newState: Record<string, boolean> = {};
-          topAgents.forEach(agent => {
-            newState[agent.twitterHandle] = currentState;
-          });
-          setShowStats(prev => ({ ...prev, ...newState }));
-        }
-      }
-    }
-  }, [showStats, topAgents]);
 
   const medalColors = [
     "from-yellow-300 to-amber-500",
@@ -675,7 +684,10 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
               <div className="w-2 h-2 rounded-full bg-cyan-500"></div>
               <div className="w-2 h-2 rounded-full bg-cyan-500/70 absolute animate-ping"></div>
             </div>
-            <span className="text-xs sm:text-sm text-cyan-500" suppressHydrationWarning>
+            <span
+              className="text-xs sm:text-sm text-cyan-500"
+              suppressHydrationWarning
+            >
               Data updated • {todayStr}
             </span>
           </div>
@@ -817,7 +829,9 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                   ? "border-gray-400/30"
                   : "border-amber-700/30"
               } bg-gradient-to-br from-gray-900/80 via-gray-900/60 to-blue-900/20 backdrop-blur-sm min-w-0`}
-              onClick={() => window.open(`/influencer/${cleanHandle}`, '_blank')}
+              onClick={() =>
+                window.open(`/influencer/${cleanHandle}`, "_blank")
+              }
               style={{ cursor: "pointer" }}
             >
               <div className="absolute -right-4 -top-4 w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24">
@@ -1031,10 +1045,25 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                           };
 
                           // Calculate positions for each metric point
-                          const subscribersY = Math.max(45, 50 - normalizeSubscribers(agent.subscribers || 0));
-                          const priceX = Math.max(5, Math.min(85, normalizePrice(agent.subscriptionPrice || 0)));
-                          const impactY = Math.min(85, 50 + normalizeImpact(agent[primaryField] || 0));
-                          const followersX = Math.min(85, 50 + normalizeFollowers(agent.followers || 0));
+                          const subscribersY = Math.max(
+                            45,
+                            50 - normalizeSubscribers(agent.subscribers || 0)
+                          );
+                          const priceX = Math.max(
+                            5,
+                            Math.min(
+                              85,
+                              normalizePrice(agent.subscriptionPrice || 0)
+                            )
+                          );
+                          const impactY = Math.min(
+                            85,
+                            50 + normalizeImpact(agent[primaryField] || 0)
+                          );
+                          const followersX = Math.min(
+                            85,
+                            50 + normalizeFollowers(agent.followers || 0)
+                          );
 
                           // Define points for the polygon
                           const points = `${50},${subscribersY} ${priceX},50 ${50},${impactY} ${followersX},50`;
@@ -1066,7 +1095,10 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                                   top: `${impactY}%`,
                                   left: "50%",
                                   transform: "translate(-50%, -50%)",
-                                  boxShadow: mode === "impact" ? "0 0 5px rgba(147, 197, 253, 0.7)" : "0 0 5px rgba(239, 68, 68, 0.7)",
+                                  boxShadow:
+                                    mode === "impact"
+                                      ? "0 0 5px rgba(147, 197, 253, 0.7)"
+                                      : "0 0 5px rgba(239, 68, 68, 0.7)",
                                 }}
                               ></div>
                               <div
@@ -1083,17 +1115,33 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                               <svg className="absolute inset-0 w-full h-full">
                                 <polygon
                                   points={points}
-                                  fill={mode === "impact" ? "rgba(59, 130, 246, 0.2)" : "rgba(239, 68, 68, 0.2)"}
-                                  stroke={mode === "impact" ? "rgba(59, 130, 246, 0.6)" : "rgba(239, 68, 68, 0.6)"}
+                                  fill={
+                                    mode === "impact"
+                                      ? "rgba(59, 130, 246, 0.2)"
+                                      : "rgba(239, 68, 68, 0.2)"
+                                  }
+                                  stroke={
+                                    mode === "impact"
+                                      ? "rgba(59, 130, 246, 0.6)"
+                                      : "rgba(239, 68, 68, 0.6)"
+                                  }
                                   strokeWidth="1"
                                 />
                               </svg>
 
                               {/* Labels */}
-                              <div className="absolute text-[6px] text-blue-300 top-0 left-1/2 -translate-x-1/2">Subscribers</div>
-                              <div className="absolute text-[6px] text-cyan-300 top-1/2 left-0 -translate-y-1/2">Credits</div>
-                              <div className="absolute text-[6px] text-blue-300 bottom-0 left-1/2 -translate-x-1/2">{primaryLabel}</div>
-                              <div className="absolute text-[6px] text-blue-300 top-1/2 right-0 -translate-y-1/2">Followers</div>
+                              <div className="absolute text-[6px] text-blue-300 top-0 left-1/2 -translate-x-1/2">
+                                Subscribers
+                              </div>
+                              <div className="absolute text-[6px] text-cyan-300 top-1/2 left-0 -translate-y-1/2">
+                                Credits
+                              </div>
+                              <div className="absolute text-[6px] text-blue-300 bottom-0 left-1/2 -translate-x-1/2">
+                                {primaryLabel}
+                              </div>
+                              <div className="absolute text-[6px] text-blue-300 top-1/2 right-0 -translate-y-1/2">
+                                Followers
+                              </div>
                             </>
                           );
                         })()}
@@ -1281,7 +1329,9 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                       ? "bg-gradient-to-br from-gray-900 via-blue-950/80 to-gray-900 border-blue-500/60 shadow-[0_0_15px_rgba(59,130,246,0.4)] hover:scale-[1.01] hover:shadow-[0_0_25px_rgba(59,130,246,0.7)]"
                       : "bg-gray-900/50 border-gray-800/50 hover:bg-cyan-950"
                   } backdrop-blur-sm border rounded-lg overflow-hidden transition-all duration-200 hover:cursor-pointer`}
-                  onClick={() => window.open(`/influencer/${cleanHandle}`, '_blank')}
+                  onClick={() =>
+                    window.open(`/influencer/${cleanHandle}`, "_blank")
+                  }
                 >
                   {/* Desktop Layout (md and above) */}
                   <div className="hidden lg:flex px-4 py-2 items-center gap-4">
@@ -1445,7 +1495,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                       primaryField={primaryField}
                       primaryLabel={primaryLabel}
                       formatFollowersCount={formatFollowersCount}
-                      renderMetricIndicator={renderMetricIndicator} 
+                      renderMetricIndicator={renderMetricIndicator}
                       isCurrentUser={isCurrentUser || false}
                     />
                   </div>
@@ -1464,44 +1514,44 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                 <FaChevronLeft
                   size={14}
                   className="transition-transform group-hover:-translate-x-0.5"
-              />
+                />
               </button>
-              
+
               <div className="flex gap-1 sm:gap-2">
                 {(() => {
                   const pages: (number | string)[] = [];
                   const maxVisible = 9;
-                  
+
                   // Always show first page
                   pages.push(1);
-                  
+
                   // Show dots if needed
                   if (currentPage > maxVisible - 3) {
-                    pages.push('...');
+                    pages.push("...");
                   }
-                  
+
                   // Show pages around current page
                   const startPage = Math.max(2, currentPage - 2);
                   const endPage = Math.min(totalPages - 1, currentPage + 2);
-                  
+
                   for (let i = startPage; i <= endPage; i++) {
                     if (i !== 1 && i !== totalPages) {
                       pages.push(i);
                     }
                   }
-                  
+
                   // Show dots if needed
                   if (currentPage < totalPages - (maxVisible - 4)) {
-                    pages.push('...');
+                    pages.push("...");
                   }
-                  
+
                   // Always show last page
                   if (totalPages > 1) {
                     pages.push(totalPages);
                   }
-                  
+
                   return pages.map((page, index) => {
-                    if (page === '...') {
+                    if (page === "...") {
                       return (
                         <span
                           key={`dots-${index}`}
@@ -1511,11 +1561,15 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                         </span>
                       );
                     }
-                    
+
                     return (
                       <button
                         key={page}
-                        onClick={() => setCurrentPage(typeof page === 'number' ? page : currentPage)}
+                        onClick={() =>
+                          setCurrentPage(
+                            typeof page === "number" ? page : currentPage
+                          )
+                        }
                         className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 shadow-lg ${
                           currentPage === page
                             ? "bg-gradient-to-br from-blue-600 to-cyan-600 text-white shadow-blue-900/30"
@@ -1528,7 +1582,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                   });
                 })()}
               </div>
-              
+
               <button
                 onClick={() =>
                   setCurrentPage((prev) => Math.min(prev + 1, totalPages))
