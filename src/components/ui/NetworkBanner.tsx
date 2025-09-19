@@ -1,13 +1,15 @@
 "use client";
 
-import { useEthers } from '@/providers/EthersProvider';
+import { useAccount, useSwitchChain } from 'wagmi';
+import { arbitrum } from 'wagmi/chains';
 
 interface NetworkBannerProps {
   isCorrectNetwork: boolean;
 }
 
 export function NetworkBanner({ isCorrectNetwork }: NetworkBannerProps) {
-  const { isConnected, switchToArbitrum } = useEthers();
+  const { isConnected } = useAccount();
+  const { switchChain } = useSwitchChain();
 
   if (!isConnected || isCorrectNetwork) {
     return null;
@@ -15,7 +17,7 @@ export function NetworkBanner({ isCorrectNetwork }: NetworkBannerProps) {
 
   const handleSwitchNetwork = async () => {
     try {
-      await switchToArbitrum();
+      await switchChain({ chainId: arbitrum.id });
     } catch (error) {
       console.error('Failed to switch network:', error);
     }

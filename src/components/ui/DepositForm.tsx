@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useEnzymeDeposit, useTokenApproval } from '@/hooks/useEnzymeVault';
-import { useEthers } from '@/providers/EthersProvider';
+import { useAccount, usePublicClient, useWalletClient, useChainId } from 'wagmi';
+import { ethers } from 'ethers';
 import { debugEnzymeVault, logEnzymeDebugInfo, logDepositRecommendations } from '@/utils/enzymeDebug';
 
 interface TokenBalance {
@@ -33,8 +34,17 @@ export function DepositForm({
 }: DepositFormProps) {
   const [depositAmount, setDepositAmount] = useState('');
   const [needsApproval, setNeedsApproval] = useState(false);
-  const { provider, account } = useEthers();
-  
+  const { address: account, isConnected } = useAccount();
+  const chainId = useChainId();
+  const { data: walletClient } = useWalletClient();
+
+  // Create ethers provider for contract interactions
+  const provider = new ethers.JsonRpcProvider(
+    chainId === 42161
+      ? 'https://arb1.arbitrum.io/rpc'
+      : 'https://sepolia-rollup.arbitrum.io/rpc'
+  );
+
   // Refs to track if we've already handled success states
   const depositSuccessHandled = useRef(false);
   const approveSuccessHandled = useRef(false);
@@ -73,12 +83,12 @@ export function DepositForm({
       setDepositAmount('');
       onSuccess?.();
     }
-    
+
     if (isApproveSuccess && !approveSuccessHandled.current) {
       approveSuccessHandled.current = true;
       // Don't call onSuccess for approval, only for deposit
     }
-    
+
     // Reset flags when success states go back to false
     if (!isDepositSuccess && depositSuccessHandled.current) {
       depositSuccessHandled.current = false;
@@ -94,7 +104,7 @@ export function DepositForm({
       console.log('Missing required data for debug');
       return;
     }
-    
+
     try {
       const debugInfo = await debugEnzymeVault(
         provider,
@@ -115,7 +125,7 @@ export function DepositForm({
       console.error('Missing required data for approval');
       return;
     }
-    
+
     try {
       await approve(
         denominationAssetAddress,
@@ -130,7 +140,7 @@ export function DepositForm({
 
   const handleDeposit = async () => {
     if (!depositAmount) return;
-    
+
     try {
       await deposit(vaultAddress, depositAmount, tokenDecimals);
     } catch (error) {
@@ -166,7 +176,7 @@ export function DepositForm({
   return (
     <div className="bg-[#0D1321] border border-[rgba(206,212,218,0.15)] rounded-lg p-6 transition-all duration-300 hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/10">
       <h3 className="text-lg font-medium text-[#AAC9FA] mb-4">Deposit Funds</h3>
-      
+
       <div className="space-y-4">
         {/* Balance Info */}
         <div className="bg-[#1a2234] border border-[rgba(206,212,218,0.1)] rounded-lg p-4">
@@ -271,18 +281,18 @@ export function DepositForm({
               {isApprovePending
                 ? 'Approving...'
                 : isApproveConfirming
-                ? 'Confirming...'
-                : `Approve ${denominationAssetSymbol}`
+                  ? 'Confirming...'
+                  : `Approve ${denominationAssetSymbol}`
               }
             </button>
           )}
-          
+
           <button
             onClick={handleDeposit}
             disabled={
-              !isValidAmount() || 
-              needsApproval || 
-              isDepositPending || 
+              !isValidAmount() ||
+              needsApproval ||
+              isDepositPending ||
               isDepositConfirming ||
               isApprovePending ||
               isApproveConfirming
@@ -292,8 +302,8 @@ export function DepositForm({
             {isDepositPending
               ? 'Depositing...'
               : isDepositConfirming
-              ? 'Confirming...'
-              : 'Deposit'
+                ? 'Confirming...'
+                : 'Deposit'
             }
           </button>
         </div>

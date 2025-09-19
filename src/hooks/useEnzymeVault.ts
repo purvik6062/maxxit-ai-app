@@ -2,9 +2,21 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
-import { useEthers } from '@/providers/EthersProvider';
+import { useAccount, usePublicClient, useWalletClient, useChainId } from 'wagmi';
+import { waitForTransactionReceipt } from 'viem/actions';
+import { createPublicClient, http } from 'viem';
+import { arbitrum } from 'wagmi/chains';
 import { VAULT_PROXY_ABI, COMPTROLLER_ABI, ERC20_ABI, TOKEN_DECIMALS, getTokenAddress, ENZYME_ARBITRUM_ADDRESSES } from '@/contracts/enzymeContracts';
 import { Portfolio } from '@enzymefinance/sdk';
+
+// Utility function to convert viem client to ethers provider
+function createEthersProvider(chainId: number) {
+  const rpcUrl = chainId === 42161 
+    ? 'https://arb1.arbitrum.io/rpc' 
+    : 'https://sepolia-rollup.arbitrum.io/rpc';
+  
+  return new ethers.JsonRpcProvider(rpcUrl);
+}
 
 interface VaultData {
   name: string;
@@ -30,7 +42,14 @@ interface TokenBalance {
 }
 
 export function useEnzymeVault(vaultAddress: string) {
-  const { provider, account, isConnected, isCorrectNetwork } = useEthers();
+  const { address: account, isConnected } = useAccount();
+  const chainId = useChainId();
+  
+  // Check if we're on the correct network (Arbitrum)
+  const isCorrectNetwork = chainId === 42161; // Arbitrum mainnet
+  
+  // Create ethers provider for contract interactions
+  const provider = createEthersProvider(chainId);
   const [vaultData, setVaultData] = useState<VaultData | null>(null);
   const [userPosition, setUserPosition] = useState<UserPosition | null>(null);
   const [tokenBalance, setTokenBalance] = useState<TokenBalance | null>(null);
@@ -145,7 +164,8 @@ export function useEnzymeVault(vaultAddress: string) {
 }
 
 export function useEnzymeDeposit() {
-  const { signer } = useEthers();
+  const { data: walletClient } = useWalletClient();
+  const publicClient = usePublicClient();
   const [isPending, setIsPending] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -153,7 +173,7 @@ export function useEnzymeDeposit() {
   const [hash, setHash] = useState<string | null>(null);
 
   const deposit = async (vaultAddress: string, amount: string, tokenDecimals: number) => {
-    if (!signer) {
+    if (!walletClient || !publicClient) {
       throw new Error('Wallet not connected');
     }
 
@@ -163,19 +183,21 @@ export function useEnzymeDeposit() {
       setError(null);
       setHash(null);
 
-      const vaultContract = new ethers.Contract(vaultAddress, VAULT_PROXY_ABI, signer);
-      const amountWei = ethers.parseUnits(amount, tokenDecimals);
+      // Create ethers provider for read operations
+      const provider = createEthersProvider(walletClient.chain.id);
       
       // Get user address for validation
-      const userAddress = await signer.getAddress();
+      const userAddress = walletClient.account.address;
+      const amountWei = ethers.parseUnits(amount, tokenDecimals);
       
       // Get comptroller address - this is where we deposit according to Enzyme SDK
+      const vaultContract = new ethers.Contract(vaultAddress, VAULT_PROXY_ABI, provider);
       const comptrollerAddress = await vaultContract.getAccessor();
-      const comptrollerContract = new ethers.Contract(comptrollerAddress, COMPTROLLER_ABI, signer);
+      const comptrollerContract = new ethers.Contract(comptrollerAddress, COMPTROLLER_ABI, provider);
       const denominationAssetAddress = await comptrollerContract.getDenominationAsset();
       
       // Check token contract and allowance against COMPTROLLER (not vault)
-      const tokenContract = new ethers.Contract(denominationAssetAddress, ERC20_ABI, signer);
+      const tokenContract = new ethers.Contract(denominationAssetAddress, ERC20_ABI, provider);
       const [balance, allowance] = await Promise.all([
         tokenContract.balanceOf(userAddress),
         tokenContract.allowance(userAddress, comptrollerAddress) // Check allowance for comptroller
@@ -219,15 +241,21 @@ export function useEnzymeDeposit() {
         throw new Error('Transaction would fail. This could be due to vault policies, insufficient allowance to ComptrollerProxy, or contract restrictions.');
       }
 
-      // Execute the transaction on the ComptrollerProxy
-      const tx = await comptrollerContract.buyShares(amountWei, minShares);
+      // Execute the transaction using viem walletClient
+      const tx = await walletClient.writeContract({
+        address: comptrollerAddress as `0x${string}`,
+        abi: COMPTROLLER_ABI,
+        functionName: 'buyShares',
+        args: [amountWei, minShares],
+      });
       
       console.log('Using ComptrollerProxy buyShares function for deposit');
-      setHash(tx.hash);
+      setHash(tx);
       setIsPending(false);
       setIsConfirming(true);
 
-      const receipt = await tx.wait();
+      // Wait for transaction confirmation
+      const receipt = await waitForTransactionReceipt(publicClient, { hash: tx });
       console.log('Deposit successful:', receipt);
       setIsConfirming(false);
       setIsSuccess(true);
@@ -267,7 +295,8 @@ export function useEnzymeDeposit() {
 }
 
 export function useEnzymeWithdraw() {
-  const { signer } = useEthers();
+  const { data: walletClient } = useWalletClient();
+  const publicClient = usePublicClient();
   const [isPending, setIsPending] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -275,7 +304,7 @@ export function useEnzymeWithdraw() {
   const [hash, setHash] = useState<string | null>(null);
 
   const withdraw = async (vaultAddress: string, shareAmount: string) => {
-    if (!signer) {
+    if (!walletClient || !publicClient) {
       throw new Error('Wallet not connected');
     }
 
@@ -285,8 +314,11 @@ export function useEnzymeWithdraw() {
       setError(null);
       setHash(null);
 
-      const vaultContract = new ethers.Contract(vaultAddress, VAULT_PROXY_ABI, signer);
-      const userAddress = await signer.getAddress();
+      // Create ethers provider for read operations
+      const provider = createEthersProvider(walletClient.chain.id);
+      
+      const vaultContract = new ethers.Contract(vaultAddress, VAULT_PROXY_ABI, provider);
+      const userAddress = walletClient.account.address;
 
       // Convert share amount to proper units
       const sharesWei = ethers.parseUnits(shareAmount, 18); // Shares are always 18 decimals
@@ -304,7 +336,7 @@ export function useEnzymeWithdraw() {
 
       // Get comptroller to check for any restrictions
       const comptrollerAddress = await vaultContract.getAccessor();
-      const comptrollerContract = new ethers.Contract(comptrollerAddress, COMPTROLLER_ABI, signer);
+      const comptrollerContract = new ethers.Contract(comptrollerAddress, COMPTROLLER_ABI, provider);
 
       console.log('Withdrawal parameters:', {
         vaultAddress,
@@ -335,7 +367,7 @@ export function useEnzymeWithdraw() {
             ],
             outputs: []
           }
-        ], signer);
+        ], provider);
 
         gasEstimate = await comptrollerWithdrawContract.redeemSharesInKind.estimateGas(
           userAddress, // recipient - this was missing!
@@ -405,7 +437,7 @@ export function useEnzymeWithdraw() {
                 inputs: [{ name: '_sharesQuantity', type: 'uint256' }],
                 outputs: []
               }
-            ], signer);
+            ], provider);
             
             gasEstimate = await comptrollerWithSigner.redeemShares.estimateGas(sharesWei);
             withdrawalMethod = 'redeemShares';
@@ -434,48 +466,61 @@ export function useEnzymeWithdraw() {
         }
       }
 
-      // Execute the withdrawal transaction using the appropriate method
+      // Execute the withdrawal transaction using viem walletClient
       let tx;
       if (withdrawalMethod === 'comptrollerRedeemSharesInKind') {
-        const comptrollerWithdrawContract = new ethers.Contract(comptrollerAddress, [
-          {
-            name: 'redeemSharesInKind',
-            type: 'function',
-            stateMutability: 'nonpayable',
-            inputs: [
-              { name: '_recipient', type: 'address' },
-              { name: '_sharesQuantity', type: 'uint256' },
-              { name: '_additionalAssets', type: 'address[]' },
-              { name: '_assetsToSkip', type: 'address[]' }
-            ],
-            outputs: []
-          }
-        ], signer);
-        tx = await comptrollerWithdrawContract.redeemSharesInKind(userAddress, sharesWei, [], []);
+        tx = await walletClient.writeContract({
+          address: comptrollerAddress as `0x${string}`,
+          abi: [
+            {
+              name: 'redeemSharesInKind',
+              type: 'function',
+              stateMutability: 'nonpayable',
+              inputs: [
+                { name: '_recipient', type: 'address' },
+                { name: '_sharesQuantity', type: 'uint256' },
+                { name: '_additionalAssets', type: 'address[]' },
+                { name: '_assetsToSkip', type: 'address[]' }
+              ],
+              outputs: []
+            }
+          ],
+          functionName: 'redeemSharesInKind',
+          args: [userAddress, sharesWei, [], []],
+        });
         console.log('Using comptroller redeemSharesInKind method');
       } else if (withdrawalMethod === 'redeemShares') {
-        const comptrollerWithSigner = new ethers.Contract(comptrollerAddress, [
-          {
-            name: 'redeemShares',
-            type: 'function',
-            stateMutability: 'nonpayable',
-            inputs: [{ name: '_sharesQuantity', type: 'uint256' }],
-            outputs: []
-          }
-        ], signer);
-        tx = await comptrollerWithSigner.redeemShares(sharesWei);
+        tx = await walletClient.writeContract({
+          address: comptrollerAddress as `0x${string}`,
+          abi: [
+            {
+              name: 'redeemShares',
+              type: 'function',
+              stateMutability: 'nonpayable',
+              inputs: [{ name: '_sharesQuantity', type: 'uint256' }],
+              outputs: []
+            }
+          ],
+          functionName: 'redeemShares',
+          args: [sharesWei],
+        });
         console.log('Using comptroller redeemShares method');
       } else {
-        tx = await vaultContract.redeemSharesInKind(sharesWei, [], []);
+        tx = await walletClient.writeContract({
+          address: vaultAddress as `0x${string}`,
+          abi: VAULT_PROXY_ABI,
+          functionName: 'redeemSharesInKind',
+          args: [sharesWei, [], []],
+        });
         console.log('Using vault redeemSharesInKind method');
       }
       
-      console.log('Withdrawal transaction sent:', tx.hash);
-      setHash(tx.hash);
+      console.log('Withdrawal transaction sent:', tx);
+      setHash(tx);
       setIsPending(false);
       setIsConfirming(true);
 
-      const receipt = await tx.wait();
+      const receipt = await waitForTransactionReceipt(publicClient, { hash: tx });
       console.log('Withdrawal successful:', receipt);
       setIsConfirming(false);
       setIsSuccess(true);
@@ -517,7 +562,8 @@ export function useEnzymeWithdraw() {
 }
 
 export function useTokenApproval() {
-  const { signer } = useEthers();
+  const { data: walletClient } = useWalletClient();
+  const publicClient = usePublicClient();
   const [isPending, setIsPending] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -530,7 +576,7 @@ export function useTokenApproval() {
     amount: string,
     tokenDecimals: number
   ) => {
-    if (!signer) {
+    if (!walletClient || !publicClient) {
       throw new Error('Wallet not connected');
     }
 
@@ -540,8 +586,11 @@ export function useTokenApproval() {
       setError(null);
       setHash(null);
 
-      const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
-      const userAddress = await signer.getAddress();
+      // Create ethers provider for read operations
+      const provider = createEthersProvider(walletClient.chain.id);
+      
+      const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
+      const userAddress = walletClient.account.address;
       
       // Validate token balance
       const balance = await tokenContract.balanceOf(userAddress);
@@ -567,8 +616,13 @@ export function useTokenApproval() {
       // Some tokens require setting allowance to 0 first if there's an existing allowance
       if (currentAllowance > 0) {
         console.log('Resetting allowance to 0 first...');
-        const resetTx = await tokenContract.approve(spenderAddress, 0);
-        await resetTx.wait();
+        const resetTx = await walletClient.writeContract({
+          address: tokenAddress as `0x${string}`,
+          abi: ERC20_ABI,
+          functionName: 'approve',
+          args: [spenderAddress as `0x${string}`, BigInt(0)],
+        });
+        await waitForTransactionReceipt(publicClient, { hash: resetTx });
         console.log('Allowance reset to 0');
       }
 
@@ -581,13 +635,18 @@ export function useTokenApproval() {
         throw new Error('Approval transaction would fail. Please check token contract and network.');
       }
 
-      // Execute the approval
-      const tx = await tokenContract.approve(spenderAddress, amountWei);
-      setHash(tx.hash);
+      // Execute the approval using viem
+      const tx = await walletClient.writeContract({
+        address: tokenAddress as `0x${string}`,
+        abi: ERC20_ABI,
+        functionName: 'approve',
+        args: [spenderAddress as `0x${string}`, amountWei],
+      });
+      setHash(tx);
       setIsPending(false);
       setIsConfirming(true);
 
-      const receipt = await tx.wait();
+      const receipt = await waitForTransactionReceipt(publicClient, { hash: tx });
       console.log('Approval successful:', receipt);
       
       // Verify the approval was successful
@@ -632,7 +691,8 @@ export function useTokenApproval() {
 }
 
 export function useEnzymeUniswapV3Swap() {
-  const { signer } = useEthers();
+  const { data: walletClient } = useWalletClient();
+  const publicClient = usePublicClient();
   const [isPending, setIsPending] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -648,7 +708,7 @@ export function useEnzymeUniswapV3Swap() {
     outgoingAssetDecimals: number,
     incomingAssetDecimals: number = 18
   ) => {
-    if (!signer) {
+    if (!walletClient || !publicClient) {
       throw new Error('Wallet not connected');
     }
 
@@ -831,16 +891,21 @@ export function useEnzymeUniswapV3Swap() {
           value: txRequest.value || '0'
         });
         
-        // Send the transaction
-        const tx = await signer.sendTransaction(txRequest);
+        // Send the transaction using viem walletClient
+        const tx = await walletClient.sendTransaction({
+          to: txRequest.to as `0x${string}`,
+          data: txRequest.data as `0x${string}`,
+          value: txRequest.value ? BigInt(txRequest.value.toString()) : BigInt(0),
+          gas: txRequest.gasLimit ? BigInt(txRequest.gasLimit.toString()) : undefined,
+        });
         
-        console.log('Transaction sent:', tx.hash);
-        setHash(tx.hash);
+        console.log('Transaction sent:', tx);
+        setHash(tx);
         setIsPending(false);
         setIsConfirming(true);
         
         // Wait for transaction receipt
-        const receipt = await tx.wait();
+        const receipt = await waitForTransactionReceipt(publicClient, { hash: tx });
         console.log('Transaction confirmed:', receipt);
         setIsConfirming(false);
         setIsSuccess(true);

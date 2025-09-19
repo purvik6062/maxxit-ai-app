@@ -1,6 +1,10 @@
-import { useState, useEffect } from 'react';
-import { useEthers } from '@/providers/EthersProvider';
-import { getVaultPerformanceData, VaultPerformanceData } from '@/utils/vaultPerformance';
+import { useState, useEffect } from "react";
+import { usePublicClient, useChainId } from "wagmi";
+import { ethers } from "ethers";
+import {
+  getVaultPerformanceData,
+  VaultPerformanceData,
+} from "@/utils/vaultPerformance";
 
 export interface PublicVault {
   _id: string;
@@ -23,9 +27,9 @@ export interface PublicVault {
 }
 
 export interface VaultFilters {
-  riskLevel?: 'Low' | 'Medium' | 'High';
-  sortBy?: 'createdAt' | 'monthlyReturn' | 'totalValueLocked';
-  order?: 'asc' | 'desc';
+  riskLevel?: "Low" | "Medium" | "High";
+  sortBy?: "createdAt" | "monthlyReturn" | "totalValueLocked";
+  order?: "asc" | "desc";
 }
 
 interface UsePublicVaultsReturn {
@@ -50,22 +54,29 @@ export function usePublicVaults(): UsePublicVaultsReturn {
   const [totalCount, setTotalCount] = useState(0);
   const [currentOffset, setCurrentOffset] = useState(0);
   const [filters, setFiltersState] = useState<VaultFilters>({
-    sortBy: 'createdAt',
-    order: 'desc'
+    sortBy: "createdAt",
+    order: "desc",
   });
 
-  const { provider, chainId } = useEthers();
+  const chainId = useChainId();
+
+  // Create ethers provider for contract interactions
+  const provider = new ethers.JsonRpcProvider(
+    chainId === 42161
+      ? "https://arb1.arbitrum.io/rpc"
+      : "https://sepolia-rollup.arbitrum.io/rpc"
+  );
 
   const buildApiUrl = (offset: number = 0) => {
     const params = new URLSearchParams({
       limit: VAULTS_PER_PAGE.toString(),
       offset: offset.toString(),
-      sortBy: filters.sortBy || 'createdAt',
-      order: filters.order || 'desc'
+      sortBy: filters.sortBy || "createdAt",
+      order: filters.order || "desc",
     });
 
     if (filters.riskLevel) {
-      params.append('riskLevel', filters.riskLevel);
+      params.append("riskLevel", filters.riskLevel);
     }
 
     return `/api/public-vaults?${params.toString()}`;
@@ -80,14 +91,18 @@ export function usePublicVaults(): UsePublicVaultsReturn {
     // Process vaults in smaller batches to avoid overwhelming the RPC
     const BATCH_SIZE = 3;
     const updatedVaults = [...vaultList];
-    
+
     for (let i = 0; i < updatedVaults.length; i += BATCH_SIZE) {
       const batch = updatedVaults.slice(i, i + BATCH_SIZE);
-      
+
       // Set loading state for this batch
-      setVaults(current => 
-        current.map(vault => {
-          if (batch.some(batchVault => batchVault.vaultAddress === vault.vaultAddress)) {
+      setVaults((current) =>
+        current.map((vault) => {
+          if (
+            batch.some(
+              (batchVault) => batchVault.vaultAddress === vault.vaultAddress
+            )
+          ) {
             return { ...vault, isLoadingPerformance: true };
           }
           return vault;
@@ -104,80 +119,102 @@ export function usePublicVaults(): UsePublicVaultsReturn {
           return {
             vaultAddress: vault.vaultAddress,
             performanceData,
-            success: true
+            success: true,
           };
         } catch (error) {
-          console.error(`Failed to fetch performance for vault ${vault.vaultAddress}:`, error);
+          console.error(
+            `Failed to fetch performance for vault ${vault.vaultAddress}:`,
+            error
+          );
           return {
             vaultAddress: vault.vaultAddress,
             performanceData: null,
-            success: false
+            success: false,
           };
         }
       });
 
       try {
         const results = await Promise.allSettled(promises);
-        
+
         // Update vaults with performance data
-        setVaults(current => 
-          current.map(vault => {
-            const result = results.find((_, index) => 
-              batch[index]?.vaultAddress === vault.vaultAddress
+        setVaults((current) =>
+          current.map((vault) => {
+            const result = results.find(
+              (_, index) => batch[index]?.vaultAddress === vault.vaultAddress
             );
-            
-                         if (result && result.status === 'fulfilled' && result.value.success) {
-               const performanceData = result.value.performanceData;
-               
-               if (process.env.NODE_ENV === 'development') {
-                 console.log(`[${vault.vaultAddress}] Performance data loaded:`, {
-                   hasRealName: performanceData?.vaultName && performanceData.vaultName !== 'Unknown Vault',
-                   hasRealStats: performanceData?.totalValueLocked && performanceData.totalValueLocked !== '0',
-                   vaultName: performanceData?.vaultName,
-                   totalValueLocked: performanceData?.totalValueLocked
-                 });
-               }
-               
-               return {
-                 ...vault,
-                 performanceData: performanceData || undefined,
-                 isLoadingPerformance: false,
-                 // Update legacy fields for backward compatibility
-                 totalValueLocked: performanceData?.totalValueLocked || vault.totalValueLocked,
-                 monthlyReturn: performanceData?.monthlyReturn || vault.monthlyReturn,
-                 totalSupply: performanceData?.totalSupply || vault.totalSupply,
-                 sharePrice: performanceData?.sharePrice || vault.sharePrice,
-                 // Use real vault name and symbol from blockchain
-                 vaultName: performanceData?.vaultName || vault.vaultName,
-                 vaultSymbol: performanceData?.vaultSymbol || vault.vaultSymbol,
-               };
-             } else {
-               if (process.env.NODE_ENV === 'development') {
-                 console.log(`[${vault.vaultAddress}] Performance data failed to load`);
-               }
-               return {
-                 ...vault,
-                 isLoadingPerformance: false
-               };
-             }
+
+            if (
+              result &&
+              result.status === "fulfilled" &&
+              result.value.success
+            ) {
+              const performanceData = result.value.performanceData;
+
+              if (process.env.NODE_ENV === "development") {
+                console.log(
+                  `[${vault.vaultAddress}] Performance data loaded:`,
+                  {
+                    hasRealName:
+                      performanceData?.vaultName &&
+                      performanceData.vaultName !== "Unknown Vault",
+                    hasRealStats:
+                      performanceData?.totalValueLocked &&
+                      performanceData.totalValueLocked !== "0",
+                    vaultName: performanceData?.vaultName,
+                    totalValueLocked: performanceData?.totalValueLocked,
+                  }
+                );
+              }
+
+              return {
+                ...vault,
+                performanceData: performanceData || undefined,
+                isLoadingPerformance: false,
+                // Update legacy fields for backward compatibility
+                totalValueLocked:
+                  performanceData?.totalValueLocked || vault.totalValueLocked,
+                monthlyReturn:
+                  performanceData?.monthlyReturn || vault.monthlyReturn,
+                totalSupply: performanceData?.totalSupply || vault.totalSupply,
+                sharePrice: performanceData?.sharePrice || vault.sharePrice,
+                // Use real vault name and symbol from blockchain
+                vaultName: performanceData?.vaultName || vault.vaultName,
+                vaultSymbol: performanceData?.vaultSymbol || vault.vaultSymbol,
+              };
+            } else {
+              if (process.env.NODE_ENV === "development") {
+                console.log(
+                  `[${vault.vaultAddress}] Performance data failed to load`
+                );
+              }
+              return {
+                ...vault,
+                isLoadingPerformance: false,
+              };
+            }
           })
         );
       } catch (error) {
-        console.error('Error in batch processing performance data:', error);
+        console.error("Error in batch processing performance data:", error);
         // Remove loading state for failed batch
-        setVaults(current => 
-          current.map(vault => {
-            if (batch.some(batchVault => batchVault.vaultAddress === vault.vaultAddress)) {
+        setVaults((current) =>
+          current.map((vault) => {
+            if (
+              batch.some(
+                (batchVault) => batchVault.vaultAddress === vault.vaultAddress
+              )
+            ) {
               return { ...vault, isLoadingPerformance: false };
             }
             return vault;
           })
         );
       }
-      
+
       // Small delay between batches to be respectful to RPC endpoints
       if (i + BATCH_SIZE < updatedVaults.length) {
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
       }
     }
 
@@ -192,23 +229,23 @@ export function usePublicVaults(): UsePublicVaultsReturn {
       setError(null);
 
       const response = await fetch(buildApiUrl(offset));
-      
+
       if (!response.ok) {
-        throw new Error('Failed to fetch public vaults');
+        throw new Error("Failed to fetch public vaults");
       }
 
       const data = await response.json();
-      
+
       if (data.success) {
         const newVaults = data.vaults as PublicVault[];
-        
+
         // Add vaults to state first
         if (append) {
-          setVaults(prev => [...prev, ...newVaults]);
+          setVaults((prev) => [...prev, ...newVaults]);
         } else {
           setVaults(newVaults);
         }
-        
+
         setHasMore(data.pagination.hasMore);
         setTotalCount(data.pagination.total);
         setCurrentOffset(offset + newVaults.length);
@@ -218,11 +255,11 @@ export function usePublicVaults(): UsePublicVaultsReturn {
           fetchVaultPerformanceData(newVaults);
         }
       } else {
-        throw new Error(data.error || 'Failed to fetch vaults');
+        throw new Error(data.error || "Failed to fetch vaults");
       }
     } catch (err) {
-      console.error('Error fetching public vaults:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch vaults');
+      console.error("Error fetching public vaults:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch vaults");
       if (!append) {
         setVaults([]);
       }
@@ -234,7 +271,7 @@ export function usePublicVaults(): UsePublicVaultsReturn {
   };
 
   const setFilters = (newFilters: VaultFilters) => {
-    setFiltersState(prev => ({ ...prev, ...newFilters }));
+    setFiltersState((prev) => ({ ...prev, ...newFilters }));
     setCurrentOffset(0);
   };
 
@@ -271,4 +308,4 @@ export function usePublicVaults(): UsePublicVaultsReturn {
     loadMore,
     refresh,
   };
-} 
+}

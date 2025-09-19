@@ -5,6 +5,7 @@ import {
   WalletConnector,
 } from "@/components/enzyme/WalletConnector";
 import MultiStepVaultCreation from "@/components/enzyme/MultiStepVaultCreation";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 function page() {
   return (
@@ -23,7 +24,11 @@ function page() {
               </p>
 
               {/* Wallet Connector */}
-              <WalletConnector className="mb-4" />
+              {/* <WalletConnector className="mb-4" /> */}
+
+              <div className="flex items-center justify-center gap-2">
+                Connect as:  <ConnectButton />
+              </div>
             </div>
           </div>
         </div>

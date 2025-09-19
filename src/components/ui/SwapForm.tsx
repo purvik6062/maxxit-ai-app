@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useEnzymeUniswapV3Swap } from '@/hooks/useEnzymeVault';
-import { useEthers } from '@/providers/EthersProvider';
-import { 
+import { useAccount, usePublicClient, useChainId } from 'wagmi';
+import { ethers } from 'ethers';
+import {
   ENZYME_ARBITRUM_ADDRESSES,
   TOKEN_DECIMALS
 } from '@/contracts/enzymeContracts';
-import { 
+import {
   getUniswapV3Quote,
   formatTokenAmount,
   type QuoteResult,
@@ -42,8 +43,16 @@ export function SwapForm({ comptrollerAddress, onSuccess }: SwapFormProps) {
   const [quote, setQuote] = useState<QuoteResult | null>(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteError, setQuoteError] = useState<string | null>(null);
-  
-  const { account, provider } = useEthers();
+
+  const { address: account } = useAccount();
+  const chainId = useChainId();
+
+  // Create ethers provider for contract interactions
+  const provider = new ethers.JsonRpcProvider(
+    chainId === 42161
+      ? 'https://arb1.arbitrum.io/rpc'
+      : 'https://sepolia-rollup.arbitrum.io/rpc'
+  );
 
   const {
     executeSwap,
@@ -65,32 +74,32 @@ export function SwapForm({ comptrollerAddress, onSuccess }: SwapFormProps) {
   const getRecommendedFeeTier = (from: TokenInfo, to: TokenInfo): number => {
     const pairKey = `${from.symbol}_${to.symbol}` as keyof typeof UNISWAP_V3_COMMON_PAIRS;
     const reversePairKey = `${to.symbol}_${from.symbol}` as keyof typeof UNISWAP_V3_COMMON_PAIRS;
-    
+
     if (UNISWAP_V3_COMMON_PAIRS[pairKey]) {
       return UNISWAP_V3_COMMON_PAIRS[pairKey].fee;
     } else if (UNISWAP_V3_COMMON_PAIRS[reversePairKey]) {
       return UNISWAP_V3_COMMON_PAIRS[reversePairKey].fee;
     }
-    
+
     // Default to medium fee tier
     return UNISWAP_V3_FEE_TIERS.MEDIUM;
   };
 
   const calculateMinimumReceived = (): string => {
     if (!swapAmount) return '0';
-    
+
     // If we have a quote, use it with slippage
     if (quote) {
       const slippage = parseFloat(slippageTolerance);
       const minReceived = parseFloat(quote.amountOutFormatted) * (1 - slippage / 100);
       return minReceived.toFixed(6);
     }
-    
+
     // Fallback to simple 1:1 estimation for demo purposes
     const amount = parseFloat(swapAmount);
     const slippage = parseFloat(slippageTolerance) / 100;
     const minReceived = amount * (1 - slippage);
-    
+
     return minReceived.toFixed(6);
   };
 
@@ -104,9 +113,9 @@ export function SwapForm({ comptrollerAddress, onSuccess }: SwapFormProps) {
     try {
       setQuoteLoading(true);
       setQuoteError(null);
-      
+
       const feeTier = useCustomPath ? customFeeTier : getRecommendedFeeTier(fromToken, toToken);
-      
+
       console.log('Fetching quote with params:', {
         tokenIn: fromToken.address,
         tokenOut: toToken.address,
@@ -115,7 +124,7 @@ export function SwapForm({ comptrollerAddress, onSuccess }: SwapFormProps) {
         decimalsIn: fromToken.decimals,
         decimalsOut: toToken.decimals,
       });
-      
+
       const quoteResult = await getUniswapV3Quote(provider, {
         tokenIn: fromToken.address,
         tokenOut: toToken.address,
@@ -124,15 +133,15 @@ export function SwapForm({ comptrollerAddress, onSuccess }: SwapFormProps) {
         decimalsIn: fromToken.decimals,
         decimalsOut: toToken.decimals,
       });
-      
+
       console.log('Quote result:', quoteResult);
       setQuote(quoteResult);
     } catch (error) {
       console.error('Failed to fetch quote:', error);
-      
+
       // Provide more specific error messages based on the error
       let errorMessage = 'Failed to fetch quote';
-      
+
       if (error instanceof Error) {
         if (error.message.includes('no pool found') || error.message.includes('insufficient liquidity')) {
           errorMessage = 'No liquidity pool found for this token pair with the selected fee tier';
@@ -142,7 +151,7 @@ export function SwapForm({ comptrollerAddress, onSuccess }: SwapFormProps) {
           errorMessage = error.message;
         }
       }
-      
+
       setQuoteError(errorMessage);
       setQuote(null);
     } finally {
@@ -161,19 +170,19 @@ export function SwapForm({ comptrollerAddress, onSuccess }: SwapFormProps) {
 
   const handleSwap = async () => {
     if (!swapAmount || !comptrollerAddress) return;
-    
+
     try {
       // Clear any previous errors
       setQuoteError(null);
-      
+
       const feeTier = useCustomPath ? customFeeTier : getRecommendedFeeTier(fromToken, toToken);
-      
+
       // Create swap path (direct path for now)
       const pathAddresses = [fromToken.address, toToken.address];
       const pathFees = [feeTier];
-      
+
       const minIncomingAmount = calculateMinimumReceived();
-      
+
       console.log('Executing swap with parameters:', {
         comptrollerAddress,
         pathAddresses,
@@ -183,10 +192,10 @@ export function SwapForm({ comptrollerAddress, onSuccess }: SwapFormProps) {
         fromToken: fromToken.symbol,
         toToken: toToken.symbol
       });
-      
+
       // Set a loading state to provide user feedback
       setQuoteLoading(true);
-      
+
       await executeSwap(
         comptrollerAddress,
         pathAddresses,
@@ -196,15 +205,15 @@ export function SwapForm({ comptrollerAddress, onSuccess }: SwapFormProps) {
         fromToken.decimals,
         toToken.decimals
       );
-      
+
       // If the swap is successful, we clear the swap amount to prevent double submission
       setSwapAmount('');
     } catch (error) {
       console.error('Swap initiation failed:', error);
-      
+
       // Show a specific error message based on the error
       let errorMessage = 'Swap failed. Please try again.';
-      
+
       if (error instanceof Error) {
         if (error.message.includes('user rejected')) {
           errorMessage = 'Transaction was rejected in your wallet.';
@@ -231,7 +240,7 @@ export function SwapForm({ comptrollerAddress, onSuccess }: SwapFormProps) {
           errorMessage = `Swap failed: ${error.message}`;
         }
       }
-      
+
       setQuoteError(errorMessage);
     } finally {
       setQuoteLoading(false);
@@ -253,7 +262,7 @@ export function SwapForm({ comptrollerAddress, onSuccess }: SwapFormProps) {
   return (
     <div className="bg-[#0D1321] border border-[rgba(206,212,218,0.15)] rounded-lg p-6 transition-all duration-300 hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/10">
       <h3 className="text-lg font-medium text-[#AAC9FA] mb-6">Swap Tokens (Manager Only)</h3>
-      
+
       <div className="space-y-6">
         {/* From Token */}
         <div>
@@ -367,7 +376,7 @@ export function SwapForm({ comptrollerAddress, onSuccess }: SwapFormProps) {
               Use custom fee tier
             </label>
           </div>
-          
+
           {useCustomPath && (
             <div>
               <label className="block text-sm font-medium text-[#8ba1bc] mb-2">
@@ -395,7 +404,7 @@ export function SwapForm({ comptrollerAddress, onSuccess }: SwapFormProps) {
                 <span>You're swapping:</span>
                 <span className="font-medium">{swapAmount} {fromToken.symbol}</span>
               </div>
-              
+
               {quoteLoading ? (
                 <div className="flex justify-between items-center">
                   <span>Expected to receive:</span>
@@ -421,14 +430,14 @@ export function SwapForm({ comptrollerAddress, onSuccess }: SwapFormProps) {
                   <span className="font-medium">{calculateMinimumReceived()} {toToken.symbol}</span>
                 </div>
               )}
-              
+
               <div className="flex justify-between">
                 <span>Fee tier:</span>
                 <span className="font-medium">
                   {(useCustomPath ? customFeeTier : getRecommendedFeeTier(fromToken, toToken)) / 100}%
                 </span>
               </div>
-              
+
               {quote && (
                 <div className="flex justify-between">
                   <span>Estimated gas:</span>
@@ -436,7 +445,7 @@ export function SwapForm({ comptrollerAddress, onSuccess }: SwapFormProps) {
                 </div>
               )}
             </div>
-            
+
             {quoteError && (
               <div className="mt-2 text-xs text-yellow-300">
                 ⚠️ Could not fetch quote: {quoteError}
@@ -467,8 +476,8 @@ export function SwapForm({ comptrollerAddress, onSuccess }: SwapFormProps) {
         <button
           onClick={handleSwap}
           disabled={
-            !isValidAmount() || 
-            isPending || 
+            !isValidAmount() ||
+            isPending ||
             isConfirming ||
             !account
           }
@@ -477,8 +486,8 @@ export function SwapForm({ comptrollerAddress, onSuccess }: SwapFormProps) {
           {isPending
             ? 'Initiating Swap...'
             : isConfirming
-            ? 'Confirming...'
-            : 'Execute Swap'
+              ? 'Confirming...'
+              : 'Execute Swap'
           }
         </button>
 
@@ -502,7 +511,7 @@ export function SwapForm({ comptrollerAddress, onSuccess }: SwapFormProps) {
           <div className="text-sm text-yellow-300">
             <p className="font-medium mb-1">⚠️ Manager Function</p>
             <p>
-              This swap function is only available to vault managers. 
+              This swap function is only available to vault managers.
               Swaps will be executed using the vault's assets through the Enzyme Protocol integration with Uniswap V3.
             </p>
           </div>
