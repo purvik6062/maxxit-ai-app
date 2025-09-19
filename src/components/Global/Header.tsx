@@ -16,13 +16,13 @@ const NAVIGATION_ITEMS = [
   { path: "/influencer", label: "Influencer", id: "influencer" },
   // { path: "/create-vault", label: "Create Vault", id: "create-vault" },
   {
-    path: "https://app.hyperliquid-testnet.xyz/vaults/0xb51423485c8fa348701f208618755b76b124a8e6",
+    path: "/vault",
     label: "Public Vaults",
     id: "public-vaults",
-    isExternal: true,
+    isExternal: false,
   },
   // { path: "/create-safe", label: "Safe", id: "create-safe" },
-  { path: "/agentic", label: "Agentic", id: "agentic" },
+  // { path: "/agentic", label: "Agentic", id: "agentic" },
   {
     path: "/agents-marketplace",
     label: "Agents Marketplace",
@@ -47,7 +47,7 @@ const NavItem: React.FC<NavItemProps> = ({
   onClick,
   isMobile = false,
 }) => {
-  const { path, label, hasBorders, isExternal } = item;
+  const { path, label, hasBorders, isExternal = false } = item;
 
   // Desktop nav item
   if (!isMobile) {
@@ -61,10 +61,9 @@ const NavItem: React.FC<NavItemProps> = ({
             px-3 lg:px-4 py-2 text-xs sm:text-sm font-medium inline-block 
             transition-colors duration-200
             ${hasBorders ? "border-l border-r border-gray-700" : ""}
-            ${
-              isActive
-                ? "bg-[#E4EFFF] text-[#393B49]"
-                : "text-gray-300 hover:bg-gray-800"
+            ${isActive
+              ? "bg-[#E4EFFF] text-[#393B49]"
+              : "text-gray-300 hover:bg-gray-800"
             }
           `}
         >
@@ -80,10 +79,9 @@ const NavItem: React.FC<NavItemProps> = ({
             px-3 lg:px-4 py-2 text-xs sm:text-sm font-medium inline-block 
             transition-colors duration-200
             ${hasBorders ? "border-l border-r border-gray-700" : ""}
-            ${
-              isActive
-                ? "bg-[#E4EFFF] text-[#393B49]"
-                : "text-gray-300 hover:bg-gray-800"
+            ${isActive
+              ? "bg-[#E4EFFF] text-[#393B49]"
+              : "text-gray-300 hover:bg-gray-800"
             }
           `}
         >
@@ -101,11 +99,10 @@ const NavItem: React.FC<NavItemProps> = ({
         target="_blank"
         rel="noopener noreferrer"
         onClick={onClick}
-        className={`flex items-center px-4 py-3 text-sm font-medium ${
-          isActive
-            ? "bg-blue-900/30 text-blue-100 border-l-2 border-blue-400"
-            : "text-gray-300 hover:bg-gray-800"
-        }`}
+        className={`flex items-center px-4 py-3 text-sm font-medium ${isActive
+          ? "bg-blue-900/30 text-blue-100 border-l-2 border-blue-400"
+          : "text-gray-300 hover:bg-gray-800"
+          }`}
       >
         {label}
         {isActive && (
@@ -120,11 +117,10 @@ const NavItem: React.FC<NavItemProps> = ({
   return (
     <Link href={path} onClick={onClick}>
       <span
-        className={`flex items-center px-4 py-3 text-sm font-medium ${
-          isActive
-            ? "bg-blue-900/30 text-blue-100 border-l-2 border-blue-400"
-            : "text-gray-300 hover:bg-gray-800"
-        }`}
+        className={`flex items-center px-4 py-3 text-sm font-medium ${isActive
+          ? "bg-blue-900/30 text-blue-100 border-l-2 border-blue-400"
+          : "text-gray-300 hover:bg-gray-800"
+          }`}
       >
         {label}
         {isActive && (
@@ -152,17 +148,15 @@ const CreditsDisplay: React.FC<CreditsDisplayProps> = ({
     // Loading state
     return (
       <div
-        className={`flex items-center ${
-          isMobile
-            ? "px-4 py-2 rounded-lg bg-gradient-to-r from-blue-900/30 to-blue-800/20 border border-blue-500/30"
-            : "hidden md:flex px-2 sm:px-3 py-1 rounded-full bg-gradient-to-r from-blue-500/20 to-blue-700/20 border border-blue-500/50"
-        }`}
+        className={`flex items-center ${isMobile
+          ? "px-4 py-2 rounded-lg bg-gradient-to-r from-blue-900/30 to-blue-800/20 border border-blue-500/30"
+          : "hidden md:flex px-2 sm:px-3 py-1 rounded-full bg-gradient-to-r from-blue-500/20 to-blue-700/20 border border-blue-500/50"
+          }`}
       >
         <div className="animate-pulse flex items-center">
           <div
-            className={`h-4 w-12 bg-blue-400/30 rounded ${
-              isMobile ? "ml-auto" : ""
-            }`}
+            className={`h-4 w-12 bg-blue-400/30 rounded ${isMobile ? "ml-auto" : ""
+              }`}
           ></div>
           {!isMobile && (
             <span className="text-white font-normal text-xs sm:text-sm ml-1">
@@ -622,41 +616,42 @@ const Header: React.FC<HeaderProps> = () => {
                   <div className="w-6 h-6 rounded-full bg-gray-700/80 mr-2"></div>
                   <div className="h-4 w-16 bg-gray-700/80 rounded"></div>
                 </div>
-              ) : credits !== null ? (
-                // User is logged in and has credits (registered)
-                <CreditsDisplay
-                  credits={credits}
-                  isLoading={isLoadingCredits}
-                />
-              ) : (
-                // User is logged in but not registered (no credits) - only show when we're sure credits are null
-                <button
-                  ref={completeSetupButtonRef}
-                  className="px-3 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm rounded-full hover:from-blue-600 hover:to-blue-700 transition whitespace-nowrap flex items-center gap-1 animate-pulse max-w-[160px] truncate"
-                  onClick={() => {
-                    setOnboardingStep(1);
-                    setShowOnboardingModal(true);
-                  }}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="text-yellow-300 flex-shrink-0"
+              ) :
+                credits !== null ? (
+                  // User is logged in and has credits (registered)
+                  <CreditsDisplay
+                    credits={credits}
+                    isLoading={isLoadingCredits}
+                  />
+                ) : (
+                  // User is logged in but not registered (no credits) - only show when we're sure credits are null
+                  <button
+                    ref={completeSetupButtonRef}
+                    className="px-3 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm rounded-full hover:from-blue-600 hover:to-blue-700 transition whitespace-nowrap flex items-center gap-1 animate-pulse max-w-[160px] truncate"
+                    onClick={() => {
+                      setOnboardingStep(1);
+                      setShowOnboardingModal(true);
+                    }}
                   >
-                    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
-                    <path d="M12 17v-6" />
-                    <path d="M9 14h6" />
-                  </svg>
-                  <span className="truncate">Complete Setup</span>
-                </button>
-              )}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-yellow-300 flex-shrink-0"
+                    >
+                      <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+                      <path d="M12 17v-6" />
+                      <path d="M9 14h6" />
+                    </svg>
+                    <span className="truncate">Complete Setup</span>
+                  </button>
+                )}
 
               {/* Login/Profile */}
               {sessionStatus === "loading" ? (
@@ -704,9 +699,8 @@ const Header: React.FC<HeaderProps> = () => {
             >
               <Menu
                 size={18}
-                className={`transform transition-transform duration-300 ${
-                  mobileMenuOpen ? "rotate-90" : "rotate-0"
-                }`}
+                className={`transform transition-transform duration-300 ${mobileMenuOpen ? "rotate-90" : "rotate-0"
+                  }`}
               />
             </button>
           </div>
@@ -715,17 +709,15 @@ const Header: React.FC<HeaderProps> = () => {
 
       {/* Mobile menu */}
       <div
-        className={`fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 ${
-          mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 ${mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
         onClick={() => setMobileMenuOpen(false)}
       />
 
       <div
         ref={menuRef}
-        className={`fixed right-0 top-0 h-full w-[75%] max-w-xs bg-gradient-to-b from-[#101322] to-[#070915] border-l border-gray-700 shadow-2xl z-50 lg:hidden transition-transform duration-300 ease-in-out transform ${
-          mobileMenuOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed right-0 top-0 h-full w-[75%] max-w-xs bg-gradient-to-b from-[#101322] to-[#070915] border-l border-gray-700 shadow-2xl z-50 lg:hidden transition-transform duration-300 ease-in-out transform ${mobileMenuOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         <div className="flex justify-between items-center p-4 border-b border-gray-700">
           <div className="text-2xl font-napzerRounded bg-gradient-to-b from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent">
@@ -826,7 +818,7 @@ const Header: React.FC<HeaderProps> = () => {
           </div>
         )} */}
 
-        {session && credits === null && !isLoadingCredits && (
+        {session && credits !== null && !isLoadingCredits && (
           <div className="px-4 py-3 mt-auto border-t border-gray-700 md:hidden font-leagueSpartan">
             <button
               onClick={() => {

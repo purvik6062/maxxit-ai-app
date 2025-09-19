@@ -179,10 +179,10 @@ const MetricCard: React.FC<MetricCardProps> = ({
           <div className="flex flex-wrap gap-2 text-xs">
             <span
               className={`px-2 py-1 rounded-md ${explanation.category === "technical"
-                  ? "bg-blue-500/20 text-blue-400"
-                  : explanation.category === "social"
-                    ? "bg-purple-500/20 text-purple-400"
-                    : "bg-green-500/20 text-green-400"
+                ? "bg-blue-500/20 text-blue-400"
+                : explanation.category === "social"
+                  ? "bg-purple-500/20 text-purple-400"
+                  : "bg-green-500/20 text-green-400"
                 }`}
             >
               {explanation.category}
@@ -192,10 +192,10 @@ const MetricCard: React.FC<MetricCardProps> = ({
             </span>
             <span
               className={`px-2 py-1 rounded-md ${explanation.impact === "high"
-                  ? "bg-red-500/20 text-red-400"
-                  : explanation.impact === "medium"
-                    ? "bg-yellow-500/20 text-yellow-400"
-                    : "bg-green-500/20 text-green-400"
+                ? "bg-red-500/20 text-red-400"
+                : explanation.impact === "medium"
+                  ? "bg-yellow-500/20 text-yellow-400"
+                  : "bg-green-500/20 text-green-400"
                 }`}
             >
               {explanation.impact} impact
@@ -285,43 +285,44 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity duration-300"
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-300"
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-6xl mx-4 max-h-[90vh] bg-gray-900 rounded-2xl border border-gray-700 shadow-2xl">
+      <div className="relative w-full max-w-6xl mx-4 max-h-[90vh] rounded-2xl border shadow-2xl" style={{ background: "linear-gradient(to bottom, #0D1321, #070915)", borderColor: "#353940" }}>
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-700">
+        <div className="flex items-center justify-between p-6 border-b" style={{ borderColor: "#353940" }}>
           <div>
             <h2 className="text-2xl font-bold text-white">
               Subscribed Influencers
             </h2>
-            <p className="text-gray-400 mt-1">
+            <p className="text-[#8ba1bc] mt-1">
               @{agentUsername} • {accounts.length} accounts
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-gray-800 transition-colors text-gray-400 hover:text-white"
+            className="p-2 rounded-xl hover:bg-[#1a2234] transition-colors text-[#8ba1bc] hover:text-white"
           >
             <X className="w-6 h-6" />
           </button>
         </div>
 
         {/* Controls */}
-        <div className="p-6 border-b border-gray-700 bg-gray-800/30">
+        <div className="p-6 border-b" style={{ borderColor: "#353940", background: "#0D1321" }}>
           <div className="flex flex-col lg:flex-row gap-4 items-center">
             {/* Search */}
             <div className="flex-1 w-full">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#8ba1bc] w-5 h-5" />
                 <input
                   type="text"
                   placeholder="Search influencers..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-gray-800/60 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  className="w-full pl-10 pr-4 py-3 bg-[#0D1321] border rounded-xl text-white placeholder-[#8ba1bc] focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  style={{ borderColor: "#353940" }}
                 />
               </div>
             </div>
@@ -335,7 +336,8 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
                   onChange={(e) =>
                     setSortBy(e.target.value as "followers" | "name" | "date")
                   }
-                  className="px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500"
+                  className="px-3 py-2 bg-[#0D1321] border rounded-lg text-white text-sm focus:outline-none focus:border-blue-500"
+                  style={{ borderColor: "#353940" }}
                 >
                   <option value="followers">Followers</option>
                   <option value="name">Name</option>
@@ -345,23 +347,24 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
                   onClick={() =>
                     setSortOrder(sortOrder === "asc" ? "desc" : "asc")
                   }
-                  className="p-2 bg-gray-800 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors"
+                  className="p-2 bg-[#0D1321] border rounded-lg hover:bg-[#1a2234] transition-colors"
+                  style={{ borderColor: "#353940" }}
                 >
                   {sortOrder === "asc" ? (
-                    <SortAsc className="w-4 h-4 text-gray-400" />
+                    <SortAsc className="w-4 h-4 text-[#8ba1bc]" />
                   ) : (
-                    <SortDesc className="w-4 h-4 text-gray-400" />
+                    <SortDesc className="w-4 h-4 text-[#8ba1bc]" />
                   )}
                 </button>
               </div>
 
               {/* View Toggle */}
-              <div className="flex bg-gray-800 rounded-lg p-1 border border-gray-600">
+              <div className="flex bg-[#0D1321] rounded-lg p-1 border" style={{ borderColor: "#353940" }}>
                 <button
                   onClick={() => setViewMode("grid")}
                   className={`p-2 rounded-md transition-colors ${viewMode === "grid"
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-400 hover:text-white"
+                    ? "bg-[#1a2234] text-white"
+                    : "text-[#8ba1bc] hover:text-white"
                     }`}
                 >
                   <Grid className="w-4 h-4" />
@@ -369,8 +372,8 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
                 <button
                   onClick={() => setViewMode("list")}
                   className={`p-2 rounded-md transition-colors ${viewMode === "list"
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-400 hover:text-white"
+                    ? "bg-[#1a2234] text-white"
+                    : "text-[#8ba1bc] hover:text-white"
                     }`}
                 >
                   <List className="w-4 h-4" />
@@ -396,7 +399,8 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
               {filteredAndSortedAccounts.map((account) => (
                 <div
                   key={account.twitterHandle}
-                  className="group bg-gray-800/40 rounded-xl p-5 border border-gray-700/50 hover:border-gray-600/70 hover:bg-gray-800/60 transition-all duration-300 cursor-pointer"
+                  className="group rounded-xl p-5 border transition-all duration-300 cursor-pointer"
+                  style={{ background: "#0D1321", borderColor: "#353940" }}
                   onClick={() =>
                     window.open(
                       `https://twitter.com/${account.twitterHandle}`,
@@ -406,7 +410,7 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
                 >
                   <div className="flex flex-col items-center text-center">
                     <div className="relative mb-4">
-                      <div className="w-20 h-20 rounded-full border-3 border-gray-600 group-hover:border-blue-500 overflow-hidden bg-gray-700 transition-all duration-300">
+                      <div className="w-20 h-20 rounded-full border-3 overflow-hidden transition-all duration-300" style={{ borderColor: "#353940", background: "#111528" }}>
                         <img
                           src={
                             account.influencerInfo?.userProfileUrl ||
@@ -433,11 +437,11 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
                     <h3 className="text-white font-semibold mb-1 group-hover:text-blue-400 transition-colors">
                       {account.influencerInfo?.name || account.twitterHandle}
                     </h3>
-                    <p className="text-gray-400 text-sm mb-3">
+                    <p className="text-[#8ba1bc] text-sm mb-3">
                       @{account.twitterHandle}
                     </p>
 
-                    <div className="flex items-center justify-center gap-4 text-xs text-gray-400 mb-4">
+                    <div className="flex items-center justify-center gap-4 text-xs text-[#8ba1bc] mb-4">
                       <div className="flex items-center gap-1">
                         <Users className="w-3 h-3" />
                         {formatNumber(
@@ -465,7 +469,8 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
               {filteredAndSortedAccounts.map((account) => (
                 <div
                   key={account.twitterHandle}
-                  className="group flex items-center gap-4 p-4 bg-gray-800/40 rounded-xl border border-gray-700/50 hover:border-gray-600/70 hover:bg-gray-800/60 transition-all duration-300 cursor-pointer"
+                  className="group flex items-center gap-4 p-4 rounded-xl border transition-all duration-300 cursor-pointer"
+                  style={{ background: "#0D1321", borderColor: "#353940" }}
                   onClick={() =>
                     window.open(
                       `https://twitter.com/${account.twitterHandle}`,
@@ -474,7 +479,7 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
                   }
                 >
                   <div className="relative">
-                    <div className="w-16 h-16 rounded-full border-2 border-gray-600 group-hover:border-blue-500 overflow-hidden bg-gray-700 transition-all duration-300">
+                    <div className="w-16 h-16 rounded-full border-2 overflow-hidden transition-all duration-300" style={{ borderColor: "#353940", background: "#111528" }}>
                       <img
                         src={
                           account.influencerInfo?.userProfileUrl ||
@@ -501,10 +506,10 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
                     <h3 className="text-white font-semibold mb-1 group-hover:text-blue-400 transition-colors">
                       {account.influencerInfo?.name || account.twitterHandle}
                     </h3>
-                    <p className="text-gray-400 text-sm mb-2">
+                    <p className="text-[#8ba1bc] text-sm mb-2">
                       @{account.twitterHandle}
                     </p>
-                    <div className="flex items-center gap-4 text-xs text-gray-400">
+                    <div className="flex items-center gap-4 text-xs text-[#8ba1bc]">
                       <div className="flex items-center gap-1">
                         <Users className="w-3 h-3" />
                         {formatNumber(
@@ -520,7 +525,7 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-blue-400 transition-colors" />
+                    <ExternalLink className="w-4 h-4 text-[#8ba1bc] group-hover:text-blue-400 transition-colors" />
                   </div>
                 </div>
               ))}
@@ -825,8 +830,8 @@ const AllAgentsMarketplace: React.FC = () => {
               <div className="flex items-center gap-3">
                 <div
                   className={`p-2 rounded-lg ${config.type === "perpetuals"
-                      ? "bg-blue-500/20 text-blue-400"
-                      : "bg-purple-500/20 text-purple-400"
+                    ? "bg-blue-500/20 text-blue-400"
+                    : "bg-purple-500/20 text-purple-400"
                     }`}
                 >
                   {config.type === "perpetuals" ? (
@@ -866,17 +871,30 @@ const AllAgentsMarketplace: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="relative">
-            <div className="w-16 h-16 border-4 border-gray-600 border-t-blue-500 rounded-full animate-spin mx-auto mb-6"></div>
-            <div
-              className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-purple-500 rounded-full animate-spin mx-auto"
-              style={{
-                animationDirection: "reverse",
-                animationDuration: "1.5s",
-              }}
-            ></div>
+            <svg
+              className="w-16 h-16 animate-spin mx-auto mb-6"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              ></path>
+            </svg>
+
           </div>
           <h3 className="text-xl font-semibold text-white mb-2">
             Loading Marketplace
@@ -976,22 +994,22 @@ const AllAgentsMarketplace: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 py-8 px-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen pb-[4rem]">
+      <div className="py-6 md:py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-white mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+        <div className="text-center mb-8 md:mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent font-napzerRounded mb-4">
             Agents Marketplace
           </h1>
-          <p className="text-gray-400 text-xl max-w-3xl mx-auto leading-relaxed">
+          <p className="text-[#8ba1bc] text-base md:text-xl max-w-3xl mx-auto leading-relaxed">
             Discover, explore, and deploy sophisticated trading agents
             configured by the community
           </p>
         </div>
 
         {/* Enhanced Stats Bar */}
-        <div className="bg-gradient-to-r from-gray-800/60 to-gray-800/40 backdrop-blur-sm rounded-2xl p-8 mb-10 border border-gray-700/50">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-[#0D1321] rounded-2xl p-6 md:p-8 mb-10 border" style={{ borderColor: "#353940" }}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center group">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-200">
                 <Users className="w-8 h-8 text-white" />
@@ -999,7 +1017,7 @@ const AllAgentsMarketplace: React.FC = () => {
               <div className="text-3xl font-bold text-blue-400 mb-1">
                 {agents.length}
               </div>
-              <div className="text-sm text-gray-400 font-medium">
+              <div className="text-sm text-[#8ba1bc] font-medium">
                 Active Agents
               </div>
             </div>
@@ -1013,7 +1031,7 @@ const AllAgentsMarketplace: React.FC = () => {
                   0,
                 )}
               </div>
-              <div className="text-sm text-gray-400 font-medium">
+              <div className="text-sm text-[#8ba1bc] font-medium">
                 Total Subscriptions
               </div>
             </div>
@@ -1024,53 +1042,33 @@ const AllAgentsMarketplace: React.FC = () => {
               <div className="text-3xl font-bold text-purple-400 mb-1">
                 {userSafeConfigs.length}
               </div>
-              <div className="text-sm text-gray-400 font-medium">
+              <div className="text-sm text-[#8ba1bc] font-medium">
                 Your Deployments
-              </div>
-            </div>
-            <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-200">
-                <Target className="w-8 h-8 text-white" />
-              </div>
-              <div className="text-3xl font-bold text-orange-400 mb-1">
-                {Math.round(
-                  (agents.reduce(
-                    (sum, agent) =>
-                      sum +
-                      (agent.customizationOptions.r_last6h_pct > 0 ? 1 : 0),
-                    0,
-                  ) /
-                    agents.length) *
-                  100,
-                )}
-                %
-              </div>
-              <div className="text-sm text-gray-400 font-medium">
-                Positive Performance
               </div>
             </div>
           </div>
         </div>
 
         {/* Enhanced Search and Filter */}
-        <div className="bg-gray-800/60 backdrop-blur-sm rounded-2xl p-8 mb-10 border border-gray-700/50">
+        <div className="bg-[#0D1321] rounded-2xl p-6 md:p-8 mb-10 border" style={{ borderColor: "#353940" }}>
           <div className="flex flex-col xl:flex-row gap-6 items-center">
             <div className="flex-1 w-full">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-6 h-6" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#8ba1bc] w-6 h-6" />
                 <input
                   type="text"
                   placeholder="Search agents by username..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-6 py-4 bg-gray-700/50 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all text-lg"
+                  className="w-full pl-12 pr-6 py-4 bg-[#0D1321] border-2 rounded-xl text-white placeholder-[#8ba1bc] focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all text-lg"
+                  style={{ borderColor: "#353940" }}
                 />
               </div>
             </div>
 
             <div className="flex flex-wrap gap-3 w-full xl:w-auto">
               {/* Category Filters */}
-              <div className="flex bg-gray-700/50 rounded-xl p-1.5 border border-gray-600">
+              <div className="flex bg-[#0D1321] rounded-full p-1.5 border" style={{ borderColor: "#353940" }}>
                 {[
                   {
                     key: "all",
@@ -1096,9 +1094,9 @@ const AllAgentsMarketplace: React.FC = () => {
                   <button
                     key={filter.key}
                     onClick={() => setCategoryFilter(filter.key)}
-                    className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${categoryFilter === filter.key
-                        ? "bg-blue-600 text-white shadow-lg scale-105"
-                        : "text-gray-300 hover:bg-gray-600/50 hover:text-white"
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-full font-medium transition-all duration-200 ${categoryFilter === filter.key
+                      ? "bg-[#1a2234] text-white shadow-inner"
+                      : "text-[#8ba1bc] hover:text-white"
                       }`}
                   >
                     {filter.icon}
@@ -1108,7 +1106,7 @@ const AllAgentsMarketplace: React.FC = () => {
               </div>
 
               {/* Sort Options */}
-              <div className="flex bg-gray-700/50 rounded-xl p-1.5 border border-gray-600">
+              <div className="flex bg-[#0D1321] rounded-full p-1.5 border" style={{ borderColor: "#353940" }}>
                 {[
                   {
                     key: "subscribers",
@@ -1133,9 +1131,9 @@ const AllAgentsMarketplace: React.FC = () => {
                         sort.key as "subscribers" | "recent" | "performance",
                       )
                     }
-                    className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${sortBy === sort.key
-                        ? "bg-purple-600 text-white shadow-lg scale-105"
-                        : "text-gray-300 hover:bg-gray-600/50 hover:text-white"
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-full font-medium transition-all duration-200 ${sortBy === sort.key
+                      ? "bg-[#1a2234] text-white shadow-inner"
+                      : "text-[#8ba1bc] hover:text-white"
                       }`}
                   >
                     {sort.icon}
@@ -1158,18 +1156,19 @@ const AllAgentsMarketplace: React.FC = () => {
             return (
               <div
                 key={agent._id}
-                className="group bg-gradient-to-br from-gray-800/80 to-gray-900/60 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 hover:border-gray-600/70 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 hover:scale-[1.02]"
+                className="group bg-[#0D1321] rounded-2xl p-6 border transition-all duration-300 hover:scale-[1.02]"
+                style={{ borderColor: "#353940" }}
               >
                 {/* Agent Header */}
                 <div className="flex items-start justify-between mb-6">
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     <div
                       className={`w-16 h-16 bg-gradient-to-br ${getStrategyColor(strategyType)} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}
                     >
                       <Users className="w-8 h-8 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-white mb-1">
+                      <h3 className="text-lg font-bold text-white mb-1">
                         @{agent.twitterUsername}
                       </h3>
                       <div className="flex items-center gap-2 mb-2">
@@ -1184,7 +1183,7 @@ const AllAgentsMarketplace: React.FC = () => {
                           </span>
                         )}
                       </div>
-                      <p className="text-gray-400 text-sm flex items-center gap-1">
+                      <p className="text-[#8ba1bc] text-sm flex items-center gap-1">
                         <Users className="w-3 h-3" />
                         {agent.subscribedAccounts.length} subscriptions
                       </p>
@@ -1208,8 +1207,8 @@ const AllAgentsMarketplace: React.FC = () => {
                             })
                           }
                           className={`px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 hover:scale-105 shadow-lg ${availableTypes.length === 2
-                              ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600"
-                              : "bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-600 hover:to-orange-600"
+                            ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600"
+                            : "bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-600 hover:to-orange-600"
                             }`}
                         >
                           <Rocket className="w-4 h-4" />
@@ -1276,7 +1275,7 @@ const AllAgentsMarketplace: React.FC = () => {
 
                 {/* Subscriptions Section */}
                 {agent.subscribedAccounts.length > 0 && (
-                  <div className="bg-gray-700/20 backdrop-blur-sm rounded-xl p-4 mb-4 border border-gray-600/30">
+                  <div className="rounded-xl p-4 mb-4 border" style={{ background: "#111528", borderColor: "#353940" }}>
                     {renderSubscriptionAvatars(
                       agent.subscribedAccounts,
                       agent.twitterUsername,
@@ -1288,7 +1287,7 @@ const AllAgentsMarketplace: React.FC = () => {
                 <DeployedSafeWallets agentId={agent._id} />
 
                 {/* Footer */}
-                <div className="flex items-center justify-between pt-4 border-t border-gray-700/50 text-sm text-gray-400">
+                <div className="flex items-center justify-between pt-4 border-t text-sm" style={{ borderColor: "#353940", color: "#8ba1bc" }}>
                   <span className="flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     Updated {formatDate(agent.updatedAt)}
@@ -1299,8 +1298,8 @@ const AllAgentsMarketplace: React.FC = () => {
                         <span
                           key={type}
                           className={`px-2 py-1 rounded text-xs font-medium ${type === "perpetuals"
-                              ? "bg-blue-500/20 text-blue-400"
-                              : "bg-purple-500/20 text-purple-400"
+                            ? "bg-blue-500/20 text-blue-400"
+                            : "bg-purple-500/20 text-purple-400"
                             }`}
                         >
                           {type}

@@ -12,6 +12,8 @@ import { motion, easeOut } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useLoginModal } from "@/context/LoginModalContext";
 import { useCredits } from "@/context/CreditsContext";
+import CustomizeAgentModal from "../Global/CustomizeAgentModal";
+import type { CustomizationOptions } from "../Global/OnboardingModals";
 
 interface Agent {
   twitterHandle: string;
@@ -62,7 +64,19 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
 }) => {
   const { data: session } = useSession();
   const { showLoginModal } = useLoginModal();
-  const { credits } = useCredits();
+  const { credits, isAgentCustomized } = useCredits();
+  const defaultCustomization: CustomizationOptions = {
+    r_last6h_pct: 50,
+    d_pct_mktvol_6h: 50,
+    d_pct_socvol_6h: 50,
+    d_pct_sent_6h: 50,
+    d_pct_users_6h: 50,
+    d_pct_infl_6h: 50,
+    d_galaxy_6h: 5,
+    neg_d_altrank_6h: 50,
+  };
+  const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
+  const [customizationOptions, setCustomizationOptions] = useState<CustomizationOptions>(defaultCustomization);
 
   const cleanHandle = agent.twitterHandle.replace("@", "");
   const isSubscribed = subscribedHandles.includes(cleanHandle);
@@ -190,6 +204,10 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
     }
 
     if (!isSubscribed && !isCurrentlySubscribing) {
+      if (isAgentCustomized === false) {
+        setIsCustomizeOpen(true);
+        return;
+      }
       onSubscribe(agent);
     }
   };
@@ -207,11 +225,10 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
       <div className="flex items-center justify-between px-2 py-4 bg-gradient-to-r from-gray-900/50 to-blue-900/20">
         <div className="flex items-center gap-3">
           <div
-            className={`w-6 h-6 flex items-center justify-center rounded-full ${
-              isCurrentUser
-                ? "bg-blue-700 text-white"
-                : "bg-gray-800 text-gray-400"
-            } text-xs font-bold flex-shrink-0`}
+            className={`w-6 h-6 flex items-center justify-center rounded-full ${isCurrentUser
+              ? "bg-blue-700 text-white"
+              : "bg-gray-800 text-gray-400"
+              } text-xs font-bold flex-shrink-0`}
           >
             {rank}
           </div>
@@ -219,15 +236,14 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
             <div className="relative w-8 h-8 flex-shrink-0">
               <img
                 src={agent.profileUrl && agent.profileUrl.trim().length > 0
-                    ? agent.profileUrl
-                    : `https://picsum.photos/seed/${encodeURIComponent(
-                        agent.twitterHandle
-                      )}/40/40`
+                  ? agent.profileUrl
+                  : `https://picsum.photos/seed/${encodeURIComponent(
+                    agent.twitterHandle
+                  )}/40/40`
                 }
                 alt={agent.name}
-                className={`w-full h-full object-cover rounded-full border ${
-                  isCurrentUser ? "border-blue-500" : "border-gray-700/50"
-                }`}
+                className={`w-full h-full object-cover rounded-full border ${isCurrentUser ? "border-blue-500" : "border-gray-700/50"
+                  }`}
               />
               {agent.verified && (
                 <div className="absolute -bottom-0.5 -right-0.5 bg-blue-500 rounded-full p-0.5 border border-gray-900">
@@ -238,9 +254,8 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
           )}
           <div className="flex-grow overflow-hidden">
             <h4
-              className={`text-[12px] max-w-16 xs:max-w-44 sm:max-w-52 md:max-w-full sm:text-sm font-semibold text-white truncate ${
-                isCurrentUser ? "text-blue-300" : ""
-              }`}
+              className={`text-[12px] max-w-16 xs:max-w-44 sm:max-w-52 md:max-w-full sm:text-sm font-semibold text-white truncate ${isCurrentUser ? "text-blue-300" : ""
+                }`}
             >
               {agent.name}
               {isCurrentUser && (
@@ -248,9 +263,8 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
               )}
             </h4>
             <p
-              className={`text-[11px] text-gray-400 truncate ${
-                isCurrentUser ? "" : ""
-              }`}
+              className={`text-[11px] text-gray-400 truncate ${isCurrentUser ? "" : ""
+                }`}
             >
               {agent.twitterHandle}
             </p>
@@ -320,15 +334,13 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
               <div className="absolute inset-0 bg-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </Link>
             <button
-              className={`group flex-1 flex items-center justify-center px-4 py-2 rounded-lg text-xs ${
-                isSubscribed || isCurrentlySubscribing
-                  ? "bg-green-500/20 text-green-300"
-                  : credits !== null && credits < creditCost
+              className={`group flex-1 flex items-center justify-center px-4 py-2 rounded-lg text-xs ${isSubscribed || isCurrentlySubscribing
+                ? "bg-green-500/20 text-green-300"
+                : credits !== null && credits < creditCost
                   ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white"
                   : "bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white"
-              } transition-all duration-200 relative overflow-hidden ${
-                isCurrentlySubscribing ? "animate-pulse" : ""
-              }`}
+                } transition-all duration-200 relative overflow-hidden ${isCurrentlySubscribing ? "animate-pulse" : ""
+                }`}
               onClick={handleSubscribeClick}
               disabled={isSubscribed || isCurrentlySubscribing}
               title={
@@ -359,6 +371,13 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
             </button>
           </div>
         </div>
+        <CustomizeAgentModal
+          isOpen={isCustomizeOpen}
+          onClose={() => setIsCustomizeOpen(false)}
+          onSkip={() => setIsCustomizeOpen(false)}
+          customizationOptions={customizationOptions}
+          setCustomizationOptions={setCustomizationOptions}
+        />
       </motion.div>
     </motion.div>
   );

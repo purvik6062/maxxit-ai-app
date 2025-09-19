@@ -9,7 +9,7 @@ const VaultCreationStepper: React.FC<VaultCreationStepperProps> = ({
   steps,
 }) => {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-4xl mx-auto px-4 py-8 bg-[#10192ee3] rounded-lg">
       <div className="flex items-center justify-between">
         {steps.map((step, index) => (
           <div key={step.step} className="flex items-center flex-1">

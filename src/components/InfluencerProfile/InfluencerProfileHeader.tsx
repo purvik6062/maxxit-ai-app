@@ -152,11 +152,10 @@ function InfluencerProfileHeader({
 
         {onSubscribe && (
           <button
-            className={`flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 shadow-md min-w-[140px] ${
-              isSubscribed || isCurrentlySubscribing
+            className={`flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 shadow-md min-w-[140px] ${isSubscribed || isCurrentlySubscribing
                 ? "bg-gradient-to-r from-green-600/50 to-green-500/50 text-green-200 border border-green-500/30"
                 : "bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-600 hover:to-blue-500 text-white border border-blue-500/50 hover:shadow-[0_0_15px_rgba(59,130,246,0.4)]"
-            } ${isCurrentlySubscribing ? "animate-pulse" : ""}`}
+              } ${isCurrentlySubscribing ? "animate-pulse" : ""}`}
             onClick={handleSubscribe}
             disabled={isSubscribed || isCurrentlySubscribing}
           >

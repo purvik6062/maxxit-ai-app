@@ -8,6 +8,8 @@ import { useCredits } from "@/context/CreditsContext";
 import { FaCheck } from "react-icons/fa";
 import Link from "next/link";
 import Image from "next/image";
+import CustomizeAgentModal from "../Global/CustomizeAgentModal";
+import type { CustomizationOptions } from "../Global/OnboardingModals";
 
 interface InfluencerMetricsProps {
   influencerId?: string | string[];
@@ -19,7 +21,7 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<any>(null);
   const { data: session } = useSession();
-  const { credits, updateCredits } = useCredits();
+  const { credits, updateCredits, isAgentCustomized } = useCredits();
 
   // Subscription state
   const [subscribedHandles, setSubscribedHandles] = useState<string[]>([]);
@@ -27,6 +29,18 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
     null
   );
   const [showSubscribeModal, setShowSubscribeModal] = useState<boolean>(false);
+  const defaultCustomization: CustomizationOptions = {
+    r_last6h_pct: 50,
+    d_pct_mktvol_6h: 50,
+    d_pct_socvol_6h: 50,
+    d_pct_sent_6h: 50,
+    d_pct_users_6h: 50,
+    d_pct_infl_6h: 50,
+    d_galaxy_6h: 5,
+    neg_d_altrank_6h: 50,
+  };
+  const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
+  const [customizationOptions, setCustomizationOptions] = useState<CustomizationOptions>(defaultCustomization);
   const [currentAgent, setCurrentAgent] = useState<any>(null);
 
   useEffect(() => {
@@ -61,9 +75,8 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
           throw new Error(
             response.status === 404
               ? "Influencer not found"
-              : `Failed to fetch influencer data: ${
-                  errorData.error || response.statusText
-                }`
+              : `Failed to fetch influencer data: ${errorData.error || response.statusText
+              }`
           );
         }
 
@@ -121,6 +134,11 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
       });
       // Trigger the onboarding modal through a custom event
       window.dispatchEvent(new Event("showOnboarding"));
+      return;
+    }
+
+    if (isAgentCustomized === false) {
+      setIsCustomizeOpen(true);
       return;
     }
 
@@ -406,8 +424,8 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
                 </p>
               </div>
             ) : subscribedHandles.includes(
-                currentAgent.twitterHandle.replace("@", "")
-              ) ? (
+              currentAgent.twitterHandle.replace("@", "")
+            ) ? (
               // Success state
               <div className="text-center py-6">
                 <div className="inline-flex items-center justify-center p-3 bg-green-500/15 rounded-full mb-4">
@@ -524,16 +542,15 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
                       credits < currentAgent.subscriptionPrice
                     }
                     className={`flex items-center justify-center px-5 py-2.5 
-                      ${
-                        credits !== null &&
+                      ${credits !== null &&
                         credits < currentAgent.subscriptionPrice
-                          ? "bg-red-700/50 text-red-300 cursor-not-allowed"
-                          : "bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white"
+                        ? "bg-red-700/50 text-red-300 cursor-not-allowed"
+                        : "bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white"
                       } 
                       rounded-lg font-medium transition-all duration-200`}
                   >
                     {credits !== null &&
-                    credits < currentAgent.subscriptionPrice
+                      credits < currentAgent.subscriptionPrice
                       ? "Insufficient Credits"
                       : "Confirm Subscription"}
                   </button>
@@ -543,6 +560,13 @@ function InfluencerMetrics({ influencerId }: InfluencerMetricsProps = {}) {
           </div>
         </div>
       )}
+      <CustomizeAgentModal
+        isOpen={isCustomizeOpen}
+        onClose={() => setIsCustomizeOpen(false)}
+        onSkip={() => setIsCustomizeOpen(false)}
+        customizationOptions={customizationOptions}
+        setCustomizationOptions={setCustomizationOptions}
+      />
     </motion.div>
   );
 }

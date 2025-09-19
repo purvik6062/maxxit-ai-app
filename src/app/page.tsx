@@ -9,6 +9,8 @@ import { IoPersonAdd } from "react-icons/io5";
 import { LuWandSparkles } from "react-icons/lu";
 import { Car, Heart, Sparkles } from "lucide-react";
 import { Header, Footer, TopInfluencersGraph } from "../components/index";
+import CustomizeAgentModal from "@/components/Global/CustomizeAgentModal";
+import type { CustomizationOptions } from "@/components/Global/OnboardingModals";
 import SocialGraph from "@/components/Body/SocialGraph";
 import AnalystLeaderboard from "@/components/Body/AnalystLeaderboard";
 import TabNavigation from "@/components/Body/TabNavigation";
@@ -20,7 +22,7 @@ import { useLoginModal } from "@/context/LoginModalContext";
 import Link from "next/link";
 
 const HomePage: React.FC = () => {
-  const { updateCredits, credits } = useCredits();
+  const { updateCredits, credits, isAgentCustomized } = useCredits();
   const { data: session } = useSession();
   console.log("session::::", session);
   const [subscribedHandles, setSubscribedHandles] = useState<string[]>([]);
@@ -38,6 +40,18 @@ const HomePage: React.FC = () => {
   const [searchText, setSearchText] = useState("");
   const [activeTab, setActiveTab] = useState<"impact" | "heartbeat">("impact");
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+  const defaultCustomization: CustomizationOptions = {
+    r_last6h_pct: 50,
+    d_pct_mktvol_6h: 50,
+    d_pct_socvol_6h: 50,
+    d_pct_sent_6h: 50,
+    d_pct_users_6h: 50,
+    d_pct_infl_6h: 50,
+    d_galaxy_6h: 5,
+    neg_d_altrank_6h: 50,
+  };
+  const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
+  const [customizationOptions, setCustomizationOptions] = useState<CustomizationOptions>(defaultCustomization);
   const [currentAgent, setCurrentAgent] = useState<any>(null);
   const { showLoginModal } = useLoginModal();
 
@@ -81,10 +95,15 @@ const HomePage: React.FC = () => {
         return;
       }
 
+      if (isAgentCustomized === false) {
+        setIsCustomizeOpen(true);
+        return;
+      }
+
       setCurrentAgent(agent);
       setShowSubscribeModal(true);
     },
-    [session, credits, showLoginModal]
+    [session, credits, isAgentCustomized, showLoginModal]
   );
 
   const handleSubscribe = useCallback(async () => {
@@ -300,8 +319,8 @@ const HomePage: React.FC = () => {
                   </p>
                 </div>
               ) : subscribedHandles.includes(
-                  currentAgent.twitterHandle.replace("@", "")
-                ) ? (
+                currentAgent.twitterHandle.replace("@", "")
+              ) ? (
                 // Success state
                 <div className="text-center py-6">
                   <div className="inline-flex items-center justify-center p-3 bg-green-500/15 rounded-full mb-4">
@@ -416,16 +435,15 @@ const HomePage: React.FC = () => {
                         credits < currentAgent.subscriptionPrice
                       }
                       className={`flex items-center justify-center px-5 py-2.5 
-                        ${
-                          credits !== null &&
+                        ${credits !== null &&
                           credits < currentAgent.subscriptionPrice
-                            ? "bg-red-700/50 text-red-300 cursor-not-allowed"
-                            : "bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white"
+                          ? "bg-red-700/50 text-red-300 cursor-not-allowed"
+                          : "bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white"
                         } 
                         rounded-lg font-medium transition-all duration-200`}
                     >
                       {credits !== null &&
-                      credits < currentAgent.subscriptionPrice
+                        credits < currentAgent.subscriptionPrice
                         ? "Insufficient Credits"
                         : "Confirm Subscription"}
                     </button>
@@ -442,6 +460,13 @@ const HomePage: React.FC = () => {
           onSuccess={handleInfluencerAdded}
         />
       </UserDataProvider>
+      <CustomizeAgentModal
+        isOpen={isCustomizeOpen}
+        onClose={() => setIsCustomizeOpen(false)}
+        onSkip={() => setIsCustomizeOpen(false)}
+        customizationOptions={customizationOptions}
+        setCustomizationOptions={setCustomizationOptions}
+      />
     </div>
   );
 };

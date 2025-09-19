@@ -216,12 +216,12 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
   const getSortedAndFilteredAgents = () => {
     const filtered = localSearchText
       ? agents.filter(
-          (agent) =>
-            agent.name.toLowerCase().includes(localSearchText.toLowerCase()) ||
-            agent.twitterHandle
-              .toLowerCase()
-              .includes(localSearchText.toLowerCase())
-        )
+        (agent) =>
+          agent.name.toLowerCase().includes(localSearchText.toLowerCase()) ||
+          agent.twitterHandle
+            .toLowerCase()
+            .includes(localSearchText.toLowerCase())
+      )
       : agents;
 
     return [...filtered].sort((a, b) => {
@@ -362,16 +362,15 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
     const isCurrentUser =
       session?.user?.username &&
       cleanHandle.toLowerCase() ===
-        session.user.username.replace("@", "").toLowerCase();
+      session.user.username.replace("@", "").toLowerCase();
 
     return (
       <div
         key={agent.twitterHandle}
-        className={`impact-card list-item relative ${
-          isCurrentUser
+        className={`impact-card list-item relative ${isCurrentUser
             ? "bg-gradient-to-br from-gray-900 via-blue-950/80 to-gray-900 border-blue-500/60 shadow-[0_0_15px_rgba(59,130,246,0.4)] hover:scale-[1.01] hover:shadow-[0_0_25px_rgba(59,130,246,0.7)]"
             : "bg-gray-900/50 border-gray-800/50 hover:bg-cyan-950"
-        } backdrop-blur-sm border rounded-lg overflow-hidden transition-all duration-200 hover:cursor-pointer`}
+          } backdrop-blur-sm border rounded-lg overflow-hidden transition-all duration-200 hover:cursor-pointer`}
         onClick={() => window.open(`/influencer/${cleanHandle}`, "_blank")}
       >
         {/* Animated Background Effect */}
@@ -395,8 +394,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                     agent.profileUrl?.trim().length > 0
                       ? agent.profileUrl
                       : `https://picsum.photos/seed/${encodeURIComponent(
-                          agent.twitterHandle
-                        )}/64/64`
+                        agent.twitterHandle
+                      )}/64/64`
                   }
                   alt={agent.name}
                   className="w-full h-full object-cover rounded-full border-2 border-blue-400/50 shadow-[0_0_10px_rgba(59,130,246,0.4)]"
@@ -489,11 +488,10 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             </div>
             <div className="w-24 flex justify-center">
               <button
-                className={`flex items-center justify-center px-3 py-1.5 rounded-lg text-xs w-full transition-all duration-300 whitespace-nowrap shadow-md ${
-                  isSubscribed || isCurrentlySubscribing
+                className={`flex items-center justify-center px-3 py-1.5 rounded-lg text-xs w-full transition-all duration-300 whitespace-nowrap shadow-md ${isSubscribed || isCurrentlySubscribing
                     ? "bg-gradient-to-r from-green-600/50 to-green-500/50 text-green-200 border border-green-500/30"
                     : "bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-600 hover:to-blue-500 text-white border border-blue-500/50 hover:shadow-[0_0_15px_rgba(59,130,246,0.4)]"
-                } ${isCurrentlySubscribing ? "animate-pulse" : ""}`}
+                  } ${isCurrentlySubscribing ? "animate-pulse" : ""}`}
                 onClick={(e) => {
                   e.stopPropagation();
                   if (!isSubscribed && !isCurrentlySubscribing) {
@@ -585,10 +583,10 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
   const currentUserHandle = session?.user?.username?.toLowerCase();
   const currentUserAgentIndex = currentUserHandle
     ? sortedAgents.findIndex(
-        (agent) =>
-          agent.twitterHandle.toLowerCase().replace("@", "") ===
-          currentUserHandle.replace("@", "")
-      )
+      (agent) =>
+        agent.twitterHandle.toLowerCase().replace("@", "") ===
+        currentUserHandle.replace("@", "")
+    )
     : -1;
 
   const currentUserAgent =
@@ -700,11 +698,10 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             </div>
             <div
               onClick={() => sortAgents(primaryField)}
-              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                effectiveSortField === primaryField
+              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${effectiveSortField === primaryField
                   ? "bg-blue-900/50 text-blue-300"
                   : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-              }`}
+                }`}
             >
               {React.createElement(primaryIcon, { size: 12 })}
               <span>{mode === "impact" ? "Impact" : "Heartbeat"}</span>
@@ -717,11 +714,10 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             </div>
             <div
               onClick={() => sortAgents("mindshare")}
-              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                userSortField === "mindshare"
+              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${userSortField === "mindshare"
                   ? "bg-blue-900/50 text-blue-300"
                   : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-              }`}
+                }`}
             >
               <BarChart2 size={12} />
               <span>Mindshare</span>
@@ -734,11 +730,10 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             </div>
             <div
               onClick={() => sortAgents("followers")}
-              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                userSortField === "followers"
+              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${userSortField === "followers"
                   ? "bg-blue-900/50 text-blue-300"
                   : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-              }`}
+                }`}
             >
               <Users size={12} />
               <span>Followers</span>
@@ -751,11 +746,10 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             </div>
             <div
               onClick={() => sortAgents("herdedVsHidden")}
-              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                userSortField === "herdedVsHidden"
+              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${userSortField === "herdedVsHidden"
                   ? "bg-blue-900/50 text-blue-300"
                   : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-              }`}
+                }`}
             >
               <span>Herded-Hidden</span>
               {userSortField === "herdedVsHidden" &&
@@ -767,11 +761,10 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             </div>
             <div
               onClick={() => sortAgents("convictionVsHype")}
-              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                userSortField === "convictionVsHype"
+              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${userSortField === "convictionVsHype"
                   ? "bg-blue-900/50 text-blue-300"
                   : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-              }`}
+                }`}
             >
               <span>Conviction-Hype</span>
               {userSortField === "convictionVsHype" &&
@@ -783,11 +776,10 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             </div>
             <div
               onClick={() => sortAgents("memeVsInstitutional")}
-              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${
-                userSortField === "memeVsInstitutional"
+              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${userSortField === "memeVsInstitutional"
                   ? "bg-blue-900/50 text-blue-300"
                   : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-              }`}
+                }`}
             >
               <span>Meme-Institutional</span>
               {userSortField === "memeVsInstitutional" &&
@@ -822,13 +814,12 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
           return (
             <div
               key={agent.twitterHandle}
-              className={`impact-card top-card relative overflow-hidden rounded-lg border ${
-                rank === 1
+              className={`impact-card top-card relative overflow-hidden rounded-lg border ${rank === 1
                   ? "border-yellow-500/30"
                   : rank === 2
-                  ? "border-gray-400/30"
-                  : "border-amber-700/30"
-              } bg-gradient-to-br from-gray-900/80 via-gray-900/60 to-blue-900/20 backdrop-blur-sm min-w-0`}
+                    ? "border-gray-400/30"
+                    : "border-amber-700/30"
+                } bg-gradient-to-br from-gray-900/80 via-gray-900/60 to-blue-900/20 backdrop-blur-sm min-w-0`}
               onClick={() =>
                 window.open(`/influencer/${cleanHandle}`, "_blank")
               }
@@ -836,28 +827,25 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             >
               <div className="absolute -right-4 -top-4 w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24">
                 <div
-                  className={`absolute inset-0 bg-gradient-to-br ${
-                    medalColors[rank - 1]
-                  } opacity-50 rotate-45`}
+                  className={`absolute inset-0 bg-gradient-to-br ${medalColors[rank - 1]
+                    } opacity-50 rotate-45`}
                 ></div>
               </div>
               <div className="p-3 sm:p-4 lg:p-5">
                 <div className="flex justify-between items-start mb-2 sm:mb-3">
                   <div className="flex items-center gap-2 sm:gap-3">
                     <div
-                      className={`relative flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 rounded-full bg-gradient-to-br ${
-                        medalColors[rank - 1]
-                      } p-0.5`}
+                      className={`relative flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 rounded-full bg-gradient-to-br ${medalColors[rank - 1]
+                        } p-0.5`}
                     >
                       <div className="absolute inset-0.5 rounded-full bg-gray-900/80"></div>
                       <FaTrophy
-                        className={`relative w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 ${
-                          rank === 1
+                        className={`relative w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 ${rank === 1
                             ? "text-yellow-300"
                             : rank === 2
-                            ? "text-gray-300"
-                            : "text-amber-700"
-                        }`}
+                              ? "text-gray-300"
+                              : "text-amber-700"
+                          }`}
                       />
                     </div>
                     <div>
@@ -872,8 +860,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                                 agent.profileUrl?.trim().length > 0
                                   ? agent.profileUrl
                                   : `https://picsum.photos/seed/${encodeURIComponent(
-                                      agent.twitterHandle
-                                    )}/40/40`
+                                    agent.twitterHandle
+                                  )}/40/40`
                               }
                               alt={agent.name}
                               className="w-full h-full object-cover rounded-full border border-gray-700/50"
@@ -971,11 +959,10 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                   </div>
                 )}
                 <div
-                  className={`transition-all duration-300 overflow-hidden ${
-                    showStats[agent.twitterHandle]
+                  className={`transition-all duration-300 overflow-hidden ${showStats[agent.twitterHandle]
                       ? "max-h-[500px] opacity-100 mb-3 sm:mb-4"
                       : "max-h-0 opacity-0"
-                  }`}
+                    }`}
                 >
                   <div className="grid grid-cols-3 gap-1 sm:gap-2 mb-2 sm:mb-3">
                     <div className="flex flex-col items-center justify-center bg-blue-900/20 rounded-lg p-1 sm:p-2 border border-blue-700/20">
@@ -1231,13 +1218,11 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                   )}
                 </button>
                 <button
-                  className={`w-full flex items-center justify-center gap-1 sm:gap-2 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs lg:text-sm font-medium ${
-                    isSubscribed || isCurrentlySubscribing
+                  className={`w-full flex items-center justify-center gap-1 sm:gap-2 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs lg:text-sm font-medium ${isSubscribed || isCurrentlySubscribing
                       ? "bg-green-600/30 text-green-300"
                       : "bg-gradient-to-r from-blue-700 to-cyan-700 hover:from-cyan-700 hover:to-blue-800 text-white"
-                  } transition-all duration-200 ${
-                    isCurrentlySubscribing ? "animate-pulse" : ""
-                  }`}
+                    } transition-all duration-200 ${isCurrentlySubscribing ? "animate-pulse" : ""
+                    }`}
                   onClick={(e) => {
                     e.stopPropagation();
                     if (!isSubscribed && !isCurrentlySubscribing) {
@@ -1319,16 +1304,15 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
               const isCurrentUser =
                 session?.user?.username &&
                 cleanHandle.toLowerCase() ===
-                  session.user.username.replace("@", "").toLowerCase();
+                session.user.username.replace("@", "").toLowerCase();
               const creditCost = agent?.subscriptionPrice;
               return (
                 <div
                   key={agent.twitterHandle}
-                  className={`impact-card list-item relative ${
-                    isCurrentUser
+                  className={`impact-card list-item relative ${isCurrentUser
                       ? "bg-gradient-to-br from-gray-900 via-blue-950/80 to-gray-900 border-blue-500/60 shadow-[0_0_15px_rgba(59,130,246,0.4)] hover:scale-[1.01] hover:shadow-[0_0_25px_rgba(59,130,246,0.7)]"
                       : "bg-gray-900/50 border-gray-800/50 hover:bg-cyan-950"
-                  } backdrop-blur-sm border rounded-lg overflow-hidden transition-all duration-200 hover:cursor-pointer`}
+                    } backdrop-blur-sm border rounded-lg overflow-hidden transition-all duration-200 hover:cursor-pointer`}
                   onClick={() =>
                     window.open(`/influencer/${cleanHandle}`, "_blank")
                   }
@@ -1346,8 +1330,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                               agent.profileUrl?.trim().length > 0
                                 ? agent.profileUrl
                                 : `https://picsum.photos/seed/${encodeURIComponent(
-                                    agent.twitterHandle
-                                  )}/40/40`
+                                  agent.twitterHandle
+                                )}/40/40`
                             }
                             alt={agent.name}
                             className="w-full h-full object-cover rounded-full border border-gray-700/50"
@@ -1442,13 +1426,11 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                       </div>
                       <div className="w-24 flex justify-center">
                         <button
-                          className={`flex items-center justify-center px-2 py-1.5 rounded-md text-xs w-full ${
-                            isSubscribed || isCurrentlySubscribing
+                          className={`flex items-center justify-center px-2 py-1.5 rounded-md text-xs w-full ${isSubscribed || isCurrentlySubscribing
                               ? "bg-green-500/20 text-green-300"
                               : "bg-blue-600/80 hover:bg-blue-700 text-white"
-                          } transition-all duration-200 whitespace-nowrap ${
-                            isCurrentlySubscribing ? "animate-pulse" : ""
-                          }`}
+                            } transition-all duration-200 whitespace-nowrap ${isCurrentlySubscribing ? "animate-pulse" : ""
+                            }`}
                           onClick={(e) => {
                             e.stopPropagation();
                             if (!isSubscribed && !isCurrentlySubscribing) {
@@ -1570,11 +1552,10 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                             typeof page === "number" ? page : currentPage
                           )
                         }
-                        className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 shadow-lg ${
-                          currentPage === page
+                        className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 shadow-lg ${currentPage === page
                             ? "bg-gradient-to-br from-blue-600 to-cyan-600 text-white shadow-blue-900/30"
                             : "bg-gradient-to-br from-gray-700 to-blue-900 text-gray-300 hover:text-white hover:shadow-blue-900/30"
-                        }`}
+                          }`}
                       >
                         {page}
                       </button>

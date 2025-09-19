@@ -11,6 +11,8 @@ import { toast } from "react-toastify";
 import { FaCheck } from "react-icons/fa";
 import { useCredits } from "@/context/CreditsContext";
 import Link from "next/link";
+import CustomizeAgentModal from "../Global/CustomizeAgentModal";
+import type { CustomizationOptions } from "../Global/OnboardingModals";
 
 type ApiResponse = {
   influencers: Influencer[];
@@ -45,7 +47,19 @@ const CosmicWebInfluencerGraph: React.FC = () => {
   const [isLoadingSubscriptionData, setIsLoadingSubscriptionData] =
     useState(true);
   const { data: session } = useSession();
-  const { credits, updateCredits } = useCredits();
+  const { credits, updateCredits, isAgentCustomized } = useCredits();
+  const defaultCustomization: CustomizationOptions = {
+    r_last6h_pct: 50,
+    d_pct_mktvol_6h: 50,
+    d_pct_socvol_6h: 50,
+    d_pct_sent_6h: 50,
+    d_pct_users_6h: 50,
+    d_pct_infl_6h: 50,
+    d_galaxy_6h: 5,
+    neg_d_altrank_6h: 50,
+  };
+  const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
+  const [customizationOptions, setCustomizationOptions] = useState<CustomizationOptions>(defaultCustomization);
 
   // Credits state (needed for subscription confirmation)
   // const [credits, setCredits] = useState<number | null>(null);
@@ -106,6 +120,11 @@ const CosmicWebInfluencerGraph: React.FC = () => {
       toast.error("Please complete your registration first", {
         position: "top-center",
       });
+      return;
+    }
+
+    if (isAgentCustomized === false) {
+      setIsCustomizeOpen(true);
       return;
     }
 
@@ -402,8 +421,8 @@ const CosmicWebInfluencerGraph: React.FC = () => {
         const x = Math.random() * canvas.width;
         const y = isMilkyWay
           ? x * 0.4 +
-            (Math.random() * bandWidth - bandWidth / 2) +
-            canvas.height * 0.2
+          (Math.random() * bandWidth - bandWidth / 2) +
+          canvas.height * 0.2
           : Math.random() * canvas.height;
         const colorChoice = Math.random();
         let color: string;
@@ -821,9 +840,9 @@ const CosmicWebInfluencerGraph: React.FC = () => {
                 </p>
               </div>
             ) : subscribedHandles.includes(
-                currentInfluencer.twitterHandle?.replace("@", "") ||
-                  currentInfluencer.name
-              ) ? (
+              currentInfluencer.twitterHandle?.replace("@", "") ||
+              currentInfluencer.name
+            ) ? (
               // Success state
               <div className="text-center py-6">
                 <div className="inline-flex items-center justify-center p-3 bg-green-500/15 rounded-full mb-4">
@@ -933,16 +952,15 @@ const CosmicWebInfluencerGraph: React.FC = () => {
                       credits < (currentInfluencer.subscriptionPrice || 0)
                     }
                     className={`flex items-center justify-center px-5 py-2.5 
-                      ${
-                        credits !== null &&
+                      ${credits !== null &&
                         credits < (currentInfluencer.subscriptionPrice || 0)
-                          ? "bg-red-700/50 text-red-300 cursor-not-allowed"
-                          : "bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white"
+                        ? "bg-red-700/50 text-red-300 cursor-not-allowed"
+                        : "bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white"
                       } 
                       rounded-lg font-medium transition-all duration-200`}
                   >
                     {credits !== null &&
-                    credits < (currentInfluencer.subscriptionPrice || 0)
+                      credits < (currentInfluencer.subscriptionPrice || 0)
                       ? "Insufficient Credits"
                       : "Confirm Subscription"}
                   </button>
@@ -952,6 +970,13 @@ const CosmicWebInfluencerGraph: React.FC = () => {
           </div>
         </div>
       )}
+      <CustomizeAgentModal
+        isOpen={isCustomizeOpen}
+        onClose={() => setIsCustomizeOpen(false)}
+        onSkip={() => setIsCustomizeOpen(false)}
+        customizationOptions={customizationOptions}
+        setCustomizationOptions={setCustomizationOptions}
+      />
     </div>
   );
 };

@@ -5,6 +5,7 @@ import { X, OctagonAlert, CheckCircle2 } from "lucide-react";
 import { FaTelegram } from "react-icons/fa6";
 import { IoShieldCheckmark } from "react-icons/io5";
 import Link from "next/link";
+import CustomizeAgentModal from "./CustomizeAgentModal";
 
 // Custom CSS for enhanced sliders
 const sliderStyles = `
@@ -129,14 +130,14 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
   const validateCustomizationOptions = (options: CustomizationOptions): boolean => {
     // Basic validation to ensure values are within expected ranges
     const ranges = {
-      r_last6h_pct: { min: -100, max: 100 },
-      d_pct_mktvol_6h: { min: -100, max: 100 },
-      d_pct_socvol_6h: { min: -100, max: 100 },
-      d_pct_sent_6h: { min: -100, max: 100 },
-      d_pct_users_6h: { min: -100, max: 100 },
-      d_pct_infl_6h: { min: -100, max: 100 },
-      d_galaxy_6h: { min: -10, max: 10 },
-      neg_d_altrank_6h: { min: -100, max: 100 },
+      r_last6h_pct: { min: 0, max: 100 },
+      d_pct_mktvol_6h: { min: 0, max: 100 },
+      d_pct_socvol_6h: { min: 0, max: 100 },
+      d_pct_sent_6h: { min: 0, max: 100 },
+      d_pct_users_6h: { min: 0, max: 100 },
+      d_pct_infl_6h: { min: 0, max: 100 },
+      d_galaxy_6h: { min: 0, max: 10 },
+      neg_d_altrank_6h: { min: 0, max: 100 },
     };
 
     for (const [key, value] of Object.entries(options)) {
@@ -360,13 +361,7 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
               )}
             </div>
 
-            <div className="flex justify-between items-center">
-              <button
-                onClick={closeOnboardingModal}
-                className="px-4 py-2 text-gray-400 hover:text-white text-sm"
-              >
-                I'll do this later
-              </button>
+            <div className="flex justify-end items-center">
               <div className="flex gap-2">
                 {onboardingStep === 1 ? (
                   <button
@@ -747,6 +742,17 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
                   <X size={20} />
                 </button>
               </div>
+              <div className="mt-3 text-right">
+                <button
+                  onClick={() => {
+                    setCustomizationModalOpen(false);
+                    setOnboardingStep(2);
+                  }}
+                  className="text-sm text-gray-300 hover:text-white underline-offset-2 hover:underline"
+                >
+                  I'll do it later
+                </button>
+              </div>
             </div>
 
             {/* Tabs */}
@@ -787,7 +793,7 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
                         </div>
                         <div>
                           <h4 className="text-white font-medium">Price Momentum</h4>
-                          <p className="text-xs text-gray-400">6-hour return threshold</p>
+                          <p className="text-xs text-gray-400">6-hour return threshold (0% - 100%)</p>
                         </div>
                       </div>
                       <div className="text-right">
@@ -800,7 +806,7 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
                       <div className="relative">
                         <input
                           type="range"
-                          min="-100"
+                          min="0"
                           max="100"
                           value={customizationOptions.r_last6h_pct}
                           onChange={(e) => setCustomizationOptions({
@@ -809,37 +815,35 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
                           })}
                           className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-blue"
                           style={{
-                            background: `linear-gradient(to right, #ef4444 0%, #ef4444 ${(customizationOptions.r_last6h_pct + 100) / 2}%, #3b82f6 ${(customizationOptions.r_last6h_pct + 100) / 2}%, #3b82f6 100%)`
+                            background: `linear-gradient(to right, #6b7280 0%, #3b82f6 ${customizationOptions.r_last6h_pct}%)`
                           }}
                         />
                         <div className="flex justify-between text-xs text-gray-500 mt-1">
-                          <span>-100%</span>
-                          <span className="text-red-400">Signal if ≤ -50%</span>
                           <span>0%</span>
-                          <span className="text-green-400">Signal if ≥ +50%</span>
-                          <span>+100%</span>
+                          <span className="text-blue-400">Typical: 50%</span>
+                          <span>100%</span>
                         </div>
                       </div>
 
                       {/* Quick Preset Buttons */}
                       <div className="flex gap-2 mt-3">
                         <button
-                          onClick={() => setCustomizationOptions({ ...customizationOptions, r_last6h_pct: -50 })}
-                          className="px-3 py-1 text-xs bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors"
-                        >
-                          Sell Signal
-                        </button>
-                        <button
                           onClick={() => setCustomizationOptions({ ...customizationOptions, r_last6h_pct: 0 })}
                           className="px-3 py-1 text-xs bg-gray-600/20 text-gray-400 rounded hover:bg-gray-600/30 transition-colors"
                         >
-                          Any Change
+                          Low
                         </button>
                         <button
                           onClick={() => setCustomizationOptions({ ...customizationOptions, r_last6h_pct: 50 })}
                           className="px-3 py-1 text-xs bg-green-500/20 text-green-400 rounded hover:bg-green-500/30 transition-colors"
                         >
-                          Buy Signal
+                          Medium
+                        </button>
+                        <button
+                          onClick={() => setCustomizationOptions({ ...customizationOptions, r_last6h_pct: 100 })}
+                          className="px-3 py-1 text-xs bg-blue-500/20 text-blue-400 rounded hover:bg-blue-500/30 transition-colors"
+                        >
+                          High
                         </button>
                       </div>
                     </div>
@@ -867,7 +871,7 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
                         <div className="relative">
                           <input
                             type="range"
-                            min="-100"
+                            min="0"
                             max="100"
                             step="5"
                             value={customizationOptions.d_pct_mktvol_6h}
@@ -908,7 +912,7 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
                         <div className="flex items-center gap-3">
                           <input
                             type="number"
-                            min="-100"
+                            min="0"
                             max="100"
                             step="5"
                             value={customizationOptions.d_pct_socvol_6h}
@@ -926,7 +930,7 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
                         <div className="relative">
                           <input
                             type="range"
-                            min="-100"
+                            min="0"
                             max="100"
                             step="5"
                             value={customizationOptions.d_pct_socvol_6h}
@@ -967,7 +971,7 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
                         <div className="flex items-center gap-3">
                           <input
                             type="number"
-                            min="-100"
+                            min="0"
                             max="100"
                             step="5"
                             value={customizationOptions.d_pct_sent_6h}
@@ -985,7 +989,7 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
                         <div className="relative">
                           <input
                             type="range"
-                            min="-100"
+                            min="0"
                             max="100"
                             step="5"
                             value={customizationOptions.d_pct_sent_6h}
@@ -1026,7 +1030,7 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
                         <div className="flex items-center gap-3">
                           <input
                             type="number"
-                            min="-100"
+                            min="0"
                             max="100"
                             step="5"
                             value={customizationOptions.d_pct_users_6h}
@@ -1044,7 +1048,7 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
                         <div className="relative">
                           <input
                             type="range"
-                            min="-100"
+                            min="0"
                             max="100"
                             step="5"
                             value={customizationOptions.d_pct_users_6h}
@@ -1085,7 +1089,7 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
                         <div className="flex items-center gap-3">
                           <input
                             type="number"
-                            min="-100"
+                            min="0"
                             max="100"
                             step="5"
                             value={customizationOptions.d_pct_infl_6h}
@@ -1103,7 +1107,7 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
                         <div className="relative">
                           <input
                             type="range"
-                            min="-100"
+                            min="0"
                             max="100"
                             step="5"
                             value={customizationOptions.d_pct_infl_6h}
@@ -1137,14 +1141,14 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
                             </svg>
                           </div>
                           <div>
-                            <h4 className="text-white font-medium">Galaxy Score</h4>
+                            <h4 className="text-white font-medium">Heartbeat Score</h4>
                             <p className="text-xs text-gray-400">Composite health weight</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
                           <input
                             type="number"
-                            min="-10"
+                            min="0"
                             max="10"
                             step="1"
                             value={customizationOptions.d_galaxy_6h}
@@ -1162,7 +1166,7 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
                         <div className="relative">
                           <input
                             type="range"
-                            min="-10"
+                            min="0"
                             max="10"
                             step="1"
                             value={customizationOptions.d_galaxy_6h}
@@ -1196,14 +1200,14 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
                             </svg>
                           </div>
                           <div>
-                            <h4 className="text-white font-medium">Alt Rank</h4>
+                            <h4 className="text-white font-medium">Market Edge</h4>
                             <p className="text-xs text-gray-400">Relative ranking weight</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
                           <input
                             type="number"
-                            min="-100"
+                            min="0"
                             max="100"
                             step="5"
                             value={customizationOptions.neg_d_altrank_6h}
@@ -1221,7 +1225,7 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
                         <div className="relative">
                           <input
                             type="range"
-                            min="-100"
+                            min="0"
                             max="100"
                             step="5"
                             value={customizationOptions.neg_d_altrank_6h}
@@ -1359,11 +1363,11 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
                       <span className="text-pink-400 font-medium">{customizationOptions.d_pct_infl_6h}%</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-300">Galaxy Score Δ</span>
+                      <span className="text-gray-300">Heartbeat Score Δ</span>
                       <span className="text-indigo-400 font-medium">{customizationOptions.d_galaxy_6h}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-300">Alt Rank ↑</span>
+                      <span className="text-gray-300">Market Edge ↑</span>
                       <span className="text-orange-400 font-medium">{customizationOptions.neg_d_altrank_6h}</span>
                     </div>
                   </div>

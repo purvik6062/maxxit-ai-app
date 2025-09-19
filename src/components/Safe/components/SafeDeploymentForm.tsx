@@ -10,6 +10,7 @@ import {
   Info
 } from "lucide-react";
 import { getStatusIcon, getButtonText } from "../utils/safeUtils";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 interface SafeDeploymentFormProps {
   isDeploying: boolean;
@@ -132,7 +133,7 @@ export const SafeDeploymentForm: React.FC<SafeDeploymentFormProps> = ({
       {/* Wallet Connector */}
       {!account && (
         <div className="mt-8 flex justify-center">
-          <WalletConnector />
+          <ConnectButton />
         </div>
       )}
 

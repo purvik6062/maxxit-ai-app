@@ -9,12 +9,12 @@ import MultiStepVaultCreation from "@/components/enzyme/MultiStepVaultCreation";
 function page() {
   return (
     <WalletProvider>
-      <div className="min-h-screen bg-[#020617]">
+      <div className="min-h-screen">
         {/* Header Section with Wallet Connection */}
-        <div className="bg-[#0D1321] border-b border-[#353940]">
+        <div className=" border-b border-[#353940]">
           <div className="max-w-4xl mx-auto px-4 py-8">
             <div className="text-center">
-              <h1 className="text-3xl sm:text-4xl font-bold text-[#E4EFFF] mb-4">
+              <h1 className="text-3xl sm:text-4xl font-bold text-[#E4EFFF] mb-4 font-napzerRounded bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent">
                 AI-Powered Enzyme Vault Creation
               </h1>
               <p className="text-lg text-[#8ba1bc] mb-6 max-w-2xl mx-auto">
@@ -32,9 +32,9 @@ function page() {
         <MultiStepVaultCreation />
 
         {/* Footer Information */}
-        <div className="bg-[#020617] py-12">
+        <div className="py-12">
           <div className="max-w-4xl mx-auto px-4">
-            <div className="bg-[#0D1321] rounded-2xl border border-[#353940] shadow-2xl p-8">
+            <div className=" rounded-2xl border border-[#353940] shadow-2xl p-8">
               <h2 className="text-2xl font-bold text-[#E4EFFF] mb-6 text-center">
                 AI-Powered Trading Strategies
               </h2>

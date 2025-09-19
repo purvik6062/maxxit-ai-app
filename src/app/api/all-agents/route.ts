@@ -148,14 +148,14 @@ export async function GET(): Promise<Response> {
         impact: "medium"
       },
       d_galaxy_6h: {
-        label: "Galaxy Score",
+        label: "Heartbeat Score",
         description: "Composite health metric combining multiple factors. Overall project health indicator.",
         category: "fundamental",
         range: "-10 to +10 points",
         impact: "high"
       },
       neg_d_altrank_6h: {
-        label: "Alt Rank",
+        label: "Market Edge",
         description: "Relative ranking among all assets. Lower rank means higher market position.",
         category: "fundamental",
         range: "-100% to +100%",

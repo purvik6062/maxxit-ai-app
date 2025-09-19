@@ -6,12 +6,14 @@ interface CreditsContextType {
   credits: number | null; // Can be number or null if not yet loaded
   updateCredits: () => Promise<void>; // Function to refresh credits
   isLoadingCredits: boolean; // Flag to track loading state
+  isAgentCustomized: boolean; // Flag to track if agent is customized
 }
 
 const CreditsContext = createContext<CreditsContextType>({
   credits: null,
   updateCredits: async () => {}, // Default empty function
   isLoadingCredits: false,
+  isAgentCustomized: false,
 });
 
 interface CreditsProviderProps {
@@ -24,6 +26,7 @@ export const CreditsProvider: React.FC<CreditsProviderProps> = ({
   const [credits, setCredits] = useState<number | null>(null);
   const [isLoadingCredits, setIsLoadingCredits] = useState(false);
   const { data: session } = useSession();
+  const [isAgentCustomized, setIsAgentCustomized] = useState(false);
 
   const updateCredits = async () => {
     if (!session || !session.user?.id) {
@@ -37,6 +40,12 @@ export const CreditsProvider: React.FC<CreditsProviderProps> = ({
         `/api/get-user?twitterId=${session.user.id}`
       );
       const data = await response.json();
+
+      if(response.ok && data.data && data.data.customizationOptions){
+        setIsAgentCustomized(true);
+      } else {
+        setIsAgentCustomized(false);
+      }
 
       if (response.ok && data.data && typeof data.data.credits === "number") {
         setCredits(data.data.credits);
@@ -63,6 +72,7 @@ export const CreditsProvider: React.FC<CreditsProviderProps> = ({
     credits,
     updateCredits,
     isLoadingCredits,
+    isAgentCustomized,
   };
 
   return (

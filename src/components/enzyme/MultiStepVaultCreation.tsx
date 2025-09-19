@@ -306,7 +306,7 @@ const MultiStepVaultCreation: React.FC = () => {
 
         {/* Network Warning Banner */}
         {account && !isCorrectNetwork && (
-          <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="max-w-4xl mx-auto px-4 py-4 ">
             <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
               <div className="flex items-center gap-3">
                 <svg

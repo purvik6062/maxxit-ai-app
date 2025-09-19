@@ -96,15 +96,15 @@ const EditableMetricCard: React.FC<EditableMetricCardProps> = ({
             type="number"
             value={value}
             onChange={(e) => onChange(parseInt(e.target.value) || 0)}
-            min={label === "Galaxy Score" ? -10 : -100}
-            max={label === "Galaxy Score" ? 10 : 100}
+            min={label === "Heartbeat Score" ? -10 : -100}
+            max={label === "Heartbeat Score" ? 10 : 100}
             className="w-20 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:border-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
           <span className="text-white text-sm">%</span>
         </div>
       ) : (
         <div className="text-white text-lg font-semibold">
-          {value}{label === "Galaxy Score" ? "" : "%"}
+          {value}{label === "Heartbeat Score" ? "" : "%"}
         </div>
       )}
 
@@ -425,14 +425,14 @@ const MyAgent: React.FC = () => {
       impact: "medium"
     },
     d_galaxy_6h: {
-      label: "Galaxy Score",
+      label: "Heartbeat Score",
       description: "Composite health metric combining multiple factors. Overall project health indicator.",
       category: "fundamental",
       range: "-10 to +10 points",
       impact: "high"
     },
     neg_d_altrank_6h: {
-      label: "Alt Rank",
+      label: "Market Edge",
       description: "Relative ranking among all assets. Lower rank means higher market position.",
       category: "fundamental",
       range: "-100% to +100%",
@@ -709,7 +709,7 @@ const MyAgent: React.FC = () => {
                 onChange={(value) => handleMetricChange("d_pct_infl_6h", value)}
               />
               <EditableMetricCard
-                label="Galaxy Score"
+                label="Heartbeat Score"
                 value={isEditing && editData ? editData.d_galaxy_6h : agentData.customizationOptions.d_galaxy_6h}
                 icon={<Shield className="w-4 h-4" />}
                 color="text-indigo-400"
@@ -718,7 +718,7 @@ const MyAgent: React.FC = () => {
                 onChange={(value) => handleMetricChange("d_galaxy_6h", value)}
               />
               <EditableMetricCard
-                label="Alt Rank"
+                label="Market Edge"
                 value={isEditing && editData ? editData.neg_d_altrank_6h : agentData.customizationOptions.neg_d_altrank_6h}
                 icon={<TrendingUp className="w-4 h-4" />}
                 color="text-orange-400"

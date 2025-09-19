@@ -82,14 +82,14 @@ export async function POST(request: Request): Promise<Response> {
 
     if (d_galaxy_6h < -10 || d_galaxy_6h > 10) {
       return NextResponse.json(
-        { success: false, error: { message: "Galaxy score must be between -10 and 10" } },
+        { success: false, error: { message: "Heartbeat Score must be between -10 and 10" } },
         { status: 400 }
       );
     }
 
     if (neg_d_altrank_6h < -100 || neg_d_altrank_6h > 100) {
       return NextResponse.json(
-        { success: false, error: { message: "Alt rank must be between -100 and 100" } },
+        { success: false, error: { message: "Market Edge must be between -100 and 100" } },
         { status: 400 }
       );
     }
