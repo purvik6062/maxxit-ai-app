@@ -40,7 +40,10 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
     isCheckingAgentSafe,
     handleDeploySafe,
     checkAgentSpecificSafe
-  } = useAgentSafeDeployment();
+  } = useAgentSafeDeployment({
+    agentId,
+    agentType: selectedType || undefined
+  });
 
   // Determine which agent types are already deployed for this specific agent
   const agentSafeConfigs = existingSafeConfigs.filter(config => config.agentId === agentId);
@@ -59,38 +62,94 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
 
   // Update safe address when deployment is successful
   useEffect(() => {
-    if (deploymentStatus === 'success' && deploymentResult && existingSafe && !isCheckingAgentSafe) {
-      console.log('useEffect triggered with existingSafe:', {
-        safeId: existingSafe.safeId,
-        agentId: existingSafe.userInfo?.agentId,
-        agentType: existingSafe.userInfo?.agentType,
+    if (deploymentStatus === 'success' && deploymentResult) {
+      console.log('useEffect triggered with deployment result:', {
+        deploymentResult,
         currentNetworkKey,
         isCheckingAgentSafe,
         selectedType
       });
 
-      // Only proceed if the agentType matches what we're expecting
-      if (existingSafe.userInfo?.agentType === selectedType) {
-        // Get the Safe address from the existingSafe's deployments for the current network
-        const deployments = existingSafe.deployments;
-        if (deployments && currentNetworkKey && deployments[currentNetworkKey]) {
-          const safeAddress = deployments[currentNetworkKey].address;
-          setSafeAddress(safeAddress);
-          console.log(`Safe deployment successful! Found ${selectedType} agent Safe address:`, safeAddress);
+      // First, try to get the safe address directly from deploymentResult
+      // This is more reliable than finding existingSafe document
+      let safeAddress: string | null = null;
 
-          // Move to funding step after a short delay
-          setTimeout(() => setCurrentStep('funding'), 1000);
+      // Check if deploymentResult has deployments object (SafeData format)
+      if (deploymentResult.deployments && deploymentResult.deployments[currentNetworkKey]) {
+        safeAddress = deploymentResult.deployments[currentNetworkKey].address;
+      }
+      // Check if deploymentResult has networks array
+      else if (deploymentResult.networks && Array.isArray(deploymentResult.networks)) {
+        const networkDeployment = deploymentResult.networks.find((network: any) => network.networkKey === currentNetworkKey);
+        if (networkDeployment) {
+          safeAddress = networkDeployment.address;
+        }
+      }
+      // Check if deploymentResult is itself a deployment object
+      else if (deploymentResult.networkKey === currentNetworkKey) {
+        safeAddress = deploymentResult.address;
+      }
+
+      if (safeAddress && selectedType) {
+        setSafeAddress(safeAddress);
+        console.log(`Safe deployment successful! Found ${selectedType} agent Safe address from deployment result:`, safeAddress);
+
+        // Automatically save configuration and move to funding step
+        const saveConfig = async () => {
+          const success = await saveSafeConfiguration(safeAddress, selectedType);
+          if (success) {
+            setTimeout(() => setCurrentStep('funding'), 1000);
+          } else {
+            // Configuration failed, stay on current step to show error
+            console.error('Failed to save safe configuration automatically');
+          }
+        };
+        saveConfig();
+        return;
+      }
+
+      // Fallback: try to get from existingSafe if deployment result doesn't have it
+      if (existingSafe && !isCheckingAgentSafe) {
+        console.log('Falling back to existingSafe:', {
+          safeId: existingSafe.safeId,
+          agentId: existingSafe.userInfo?.agentId,
+          agentType: existingSafe.userInfo?.agentType,
+        });
+
+        // Only proceed if the agentType matches what we're expecting
+        if (existingSafe.userInfo?.agentType === selectedType) {
+          // Get the Safe address from the existingSafe's deployments for the current network
+          const safeDeployments = existingSafe.deployments;
+          if (safeDeployments && currentNetworkKey && safeDeployments[currentNetworkKey] && selectedType) {
+            const safeAddress = safeDeployments[currentNetworkKey].address;
+            setSafeAddress(safeAddress);
+            console.log(`Safe deployment successful! Found ${selectedType} agent Safe address from existingSafe:`, safeAddress);
+
+            // Automatically save configuration and move to funding step
+            const saveConfig = async () => {
+              const success = await saveSafeConfiguration(safeAddress, selectedType);
+              if (success) {
+                setTimeout(() => setCurrentStep('funding'), 1000);
+              } else {
+                console.error('Failed to save safe configuration automatically');
+              }
+            };
+            saveConfig();
+          } else {
+            console.error('No deployment found for current network in existingSafe:', {
+              safeDeployments: Object.keys(safeDeployments || {}),
+              currentNetworkKey,
+              selectedType: selectedType || 'undefined'
+            });
+          }
         } else {
-          console.error('No deployment found for current network:', {
-            deployments: Object.keys(deployments || {}),
-            currentNetworkKey
+          console.log('Skipping useEffect - agentType mismatch:', {
+            existingAgentType: existingSafe.userInfo?.agentType,
+            expectedAgentType: selectedType
           });
         }
       } else {
-        console.log('Skipping useEffect - agentType mismatch:', {
-          existingAgentType: existingSafe.userInfo?.agentType,
-          expectedAgentType: selectedType
-        });
+        console.error('No deployment found for current network in deployment result or existingSafe');
       }
     }
   }, [deploymentStatus, deploymentResult, existingSafe, currentNetworkKey, selectedType, isCheckingAgentSafe]);
@@ -103,27 +162,46 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
     setError('');
   };
 
+  // Clear error when starting a new deployment
+  const handleTypeSelect = (type: 'perpetuals' | 'spot') => {
+    setSelectedType(type);
+    setError(''); // Clear any previous errors
+    setCurrentStep('safe-creation');
+  };
+
   const handleClose = () => {
     resetModal();
     onClose();
   };
 
-  const handleTypeSelect = (type: 'perpetuals' | 'spot') => {
-    setSelectedType(type);
-    setCurrentStep('safe-creation');
-  };
-
-  const handleConfirm = async () => {
-    if (!safeAddress || !selectedType) {
-      setError('No Safe wallet address available');
-      return;
+  const saveSafeConfiguration = async (address: string, agentType: 'perpetuals' | 'spot') => {
+    // Validate all required parameters
+    if (!address || !agentType || !agentId || !currentNetworkKey) {
+      console.error('Cannot save configuration: missing required parameters', { 
+        address: !!address, 
+        agentType: !!agentType, 
+        agentId: !!agentId, 
+        currentNetworkKey: !!currentNetworkKey 
+      });
+      setError('Missing required configuration parameters');
+      return false;
     }
 
     setIsLoading(true);
     setError('');
 
     try {
-      // Save safe configuration to user document
+      console.log('Saving safe configuration automatically...', {
+        agentId,
+        type: agentType,
+        safeAddress: address,
+        networkKey: currentNetworkKey
+      });
+
+      // Add timeout to prevent hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
       const response = await fetch('/api/update-safe-config', {
         method: 'POST',
         headers: {
@@ -131,11 +209,14 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
         },
         body: JSON.stringify({
           agentId,
-          type: selectedType,
-          safeAddress,
-          networkKey: currentNetworkKey || 'arbitrum_sepolia',
+          type: agentType,
+          safeAddress: address,
+          networkKey: currentNetworkKey,
         }),
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       const data = await response.json();
 
@@ -143,9 +224,20 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
         throw new Error(data.error || 'Failed to save configuration');
       }
 
-      setCurrentStep('confirmation');
+      console.log('Safe configuration saved successfully');
+      return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save configuration');
+      console.error('Failed to save safe configuration:', err);
+      if (err instanceof Error) {
+        if (err.name === 'AbortError') {
+          setError('Configuration save timed out. Please try again.');
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError('Failed to save configuration');
+      }
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -166,8 +258,6 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
       setCurrentStep('type-selection');
     } else if (currentStep === 'funding') {
       setCurrentStep('safe-creation');
-    } else if (currentStep === 'confirmation') {
-      setCurrentStep('type-selection');
     }
   };
 
@@ -322,8 +412,12 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
                   <div className="mx-auto w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-full flex items-center justify-center mb-4">
                     <Coins className="w-8 h-8 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-2">Fund Your Safe Wallet</h3>
-                  <p className="text-gray-400">Deposit funds to start automated trading</p>
+                  <h3 className="text-2xl font-bold text-white mb-2">
+                    {isLoading ? 'Configuring Your Agent...' : 'Fund Your Safe Wallet'}
+                  </h3>
+                  <p className="text-gray-400">
+                    {isLoading ? 'Setting up your agent configuration' : 'Deposit funds to start automated trading'}
+                  </p>
                 </div>
 
                 <div className="bg-gray-700/50 rounded-xl p-6">
@@ -340,25 +434,59 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
                     </div>
                   </div>
 
-                  <p className="text-gray-300 mb-6">
-                    To start trading, you need to deposit funds into your Safe wallet. Click the button below to open the Safe app and add funds.
-                  </p>
+                  {/* Show configuration status prominently */}
+                  {isLoading && (
+                    <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                        <p className="text-sm text-blue-400 font-medium">
+                          Saving agent configuration to your account...
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
-                  <button
-                    onClick={redirectToSafeApp}
-                    className="w-full px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-all flex items-center justify-center gap-2 mb-4"
-                  >
-                    Open Safe App to Add Funds
-                    <ExternalLink className="w-4 h-4" />
-                  </button>
+                  {!isLoading && !error && safeAddress && (
+                    <div className="mb-6 p-4 bg-green-500/10 border border-green-500/50 rounded-lg">
+                      <p className="text-sm text-green-400 font-medium">
+                        ✅ Agent configuration saved successfully!
+                      </p>
+                    </div>
+                  )}
 
-                  <button
-                    onClick={handleConfirm}
-                    disabled={isLoading || isCheckingAgentSafe || !safeAddress}
-                    className="w-full px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg hover:from-indigo-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  >
-                    {isCheckingAgentSafe ? 'Finding Safe Wallet...' : isLoading ? 'Confirming Deployment...' : 'Confirm Deployment'}
-                  </button>
+                  {error && (
+                    <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg">
+                      <p className="text-sm text-red-400 font-medium">
+                        ❌ Configuration Error: {error}
+                      </p>
+                    </div>
+                  )}
+
+                  {!isLoading && (
+                    <>
+                      <p className="text-gray-300 mb-6">
+                        To start trading, you need to deposit funds into your Safe wallet. Click the button below to open the Safe app and add funds.
+                      </p>
+
+                      <button
+                        onClick={redirectToSafeApp}
+                        disabled={!safeAddress}
+                        className="w-full px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 mb-4"
+                      >
+                        Open Safe App to Add Funds
+                        <ExternalLink className="w-4 h-4" />
+                      </button>
+
+                      {!error && safeAddress && (
+                        <button
+                          onClick={handleClose}
+                          className="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all"
+                        >
+                          Back to Marketplace
+                        </button>
+                      )}
+                    </>
+                  )}
 
                   <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/50 rounded-lg">
                     <p className="text-sm text-blue-400">
@@ -366,48 +494,6 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
                     </p>
                   </div>
                 </div>
-              </div>
-            )}
-
-            {/* Confirmation Step */}
-            {currentStep === 'confirmation' && selectedType && (
-              <div className="space-y-6 text-center">
-                <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle className="w-10 h-10 text-white" />
-                </div>
-
-                <h3 className="text-3xl font-bold text-white mb-2">Agent Deployed!</h3>
-                <p className="text-gray-300 mb-6">
-                  Your {selectedType} trading agent has been successfully deployed with Safe wallet {safeAddress?.slice(0, 6)}...{safeAddress?.slice(-4)}
-                </p>
-
-                <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700 text-left">
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Agent:</span>
-                      <span className="text-white">@{agentUsername}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Type:</span>
-                      <span className="text-white capitalize">{selectedType}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Safe Address:</span>
-                      <span className="text-white font-mono text-sm">{safeAddress?.slice(0, 10)}...{safeAddress?.slice(-8)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Status:</span>
-                      <span className="text-yellow-400">Ready for Funding</span>
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleClose}
-                  className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-4 rounded-xl transition-all duration-200"
-                >
-                  Back to Marketplace
-                </button>
               </div>
             )}
           </>
@@ -424,7 +510,7 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
           </button>
 
           <div className="text-sm text-gray-500">
-            Step {currentStep === 'type-selection' ? 1 : currentStep === 'safe-creation' ? 2 : currentStep === 'funding' ? 3 : 4} of 4
+            Step {currentStep === 'type-selection' ? 1 : currentStep === 'safe-creation' ? 2 : 3} of 3
           </div>
         </div>
       </div>

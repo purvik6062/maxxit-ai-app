@@ -12,8 +12,7 @@ import { motion, easeOut } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useLoginModal } from "@/context/LoginModalContext";
 import { useCredits } from "@/context/CreditsContext";
-import CustomizeAgentModal from "../Global/CustomizeAgentModal";
-import type { CustomizationOptions } from "../Global/OnboardingModals";
+import CustomizeAgentModal, { CustomizationOptions } from "../Global/CustomizeAgentModal";
 
 interface Agent {
   twitterHandle: string;
@@ -375,8 +374,17 @@ const MobileAnalystCard: React.FC<MobileAnalystCardProps> = ({
           isOpen={isCustomizeOpen}
           onClose={() => setIsCustomizeOpen(false)}
           onSkip={() => setIsCustomizeOpen(false)}
+          onContinue={() => {
+            // Regular usage: modal will handle API call and close itself
+            // This callback is just for interface completion
+          }}
           customizationOptions={customizationOptions}
           setCustomizationOptions={setCustomizationOptions}
+          hasCustomizedAgent={isAgentCustomized}
+          setHasCustomizedAgent={() => {
+            // This will be handled by the modal's API call
+          }}
+          isOnboardingFlow={false}
         />
       </motion.div>
     </motion.div>

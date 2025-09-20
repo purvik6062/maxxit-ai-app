@@ -69,6 +69,40 @@ const EditableMetricCard: React.FC<EditableMetricCardProps> = ({
   onChange
 }) => {
   const [showInfo, setShowInfo] = useState(false);
+  const [inputValue, setInputValue] = useState<string>('');
+  const [isFocused, setIsFocused] = useState(false);
+
+  // Initialize input value when entering edit mode or value changes
+  React.useEffect(() => {
+    if (isEditing) {
+      setInputValue(value.toString());
+    }
+  }, [isEditing, value]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setInputValue(val);
+    
+    const numValue = val === '' ? 0 : parseInt(val);
+    if (!isNaN(numValue)) {
+      onChange(numValue);
+    }
+  };
+
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    setIsFocused(true);
+    // Select all text on focus for easy replacement
+    e.target.select();
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    if (inputValue === '') {
+      setInputValue('0');
+      onChange(0);
+    }
+  };
+
   const [isHovered, setIsHovered] = useState(false);
 
   const getValueColor = () => {
@@ -86,33 +120,17 @@ const EditableMetricCard: React.FC<EditableMetricCardProps> = ({
   const normalizedValue = Math.min(Math.max(Math.abs(value), 0), 100);
 
   return (
-    <div
-      className="bg-[#0D1321] rounded-xl p-4 border-2 transition-all duration-300 relative overflow-hidden hover:scale-[1.02] hover:shadow-xl group"
-      style={{
-        borderColor: isHovered ? "#4A5568" : "#353940",
-        boxShadow: isHovered ? "0 10px 25px rgba(0, 0, 0, 0.2)" : "0 2px 4px rgba(0, 0, 0, 0.1)"
-      }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {/* Animated background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
-
-      {/* Animated border glow */}
-      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm -z-10" style={{ padding: "2px" }}>
-        <div className="w-full h-full bg-[#0D1321] rounded-xl" />
-      </div>
-
-      <div className="flex items-center justify-between mb-3 relative z-10">
-        <span className="text-gray-400 text-sm font-medium group-hover:text-white transition-colors duration-300">{label}</span>
+    <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50 hover:border-gray-600/50 transition-colors relative group">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
+          <span className="text-gray-400 text-sm font-medium">{label}</span>
           {explanation && (
             <button
               onClick={() => setShowInfo(!showInfo)}
               className="p-1.5 rounded-lg hover:bg-gray-700/50 transition-all duration-200 hover:scale-110"
               title="Click for more info"
             >
-              <Info className="w-3 h-3 text-gray-500 hover:text-blue-400 transition-colors" />
+              <Info className="w-4 h-4 text-gray-500 hover:text-blue-400 transition-colors group-hover/info:scale-110" />
             </button>
           )}
           <div className={`${color} group-hover:scale-110 transition-transform duration-300`}>
@@ -274,14 +292,8 @@ const MyAgent: React.FC = () => {
   const handleMetricChange = (key: keyof CustomizationOptions, value: number) => {
     if (!editData) return;
 
-    let validatedValue = value;
-
-    // Validate ranges
-    if (key === "d_galaxy_6h") {
-      validatedValue = Math.max(-10, Math.min(10, value));
-    } else {
-      validatedValue = Math.max(-100, Math.min(100, value));
-    }
+    // Validate ranges - all metrics use 0-100 range for weightages
+    const validatedValue = Math.max(0, Math.min(100, value));
 
     setEditData(prev => ({
       ...prev!,
@@ -434,58 +446,58 @@ const MyAgent: React.FC = () => {
   const metricExplanations: Record<string, MetricExplanation> = {
     r_last6h_pct: {
       label: "Price Momentum",
-      description: "6-hour price return threshold. Triggers signals when price moves by this percentage.",
+      description: "6-hour price return threshold. Higher values increase sensitivity to price movements and generate more frequent trading signals.",
       category: "technical",
-      range: "-100% to +100%",
+      range: "0% to 100%",
       impact: "high"
     },
     d_pct_mktvol_6h: {
       label: "Market Volume",
-      description: "Trading volume change over 6 hours. Higher values emphasize volume-based signals.",
+      description: "Trading volume change weight over 6 hours. Higher values prioritize volume-driven opportunities for better signal accuracy.",
       category: "technical",
-      range: "-100% to +100%",
+      range: "0% to 100%",
       impact: "high"
     },
     d_pct_socvol_6h: {
       label: "Social Volume",
-      description: "Social media mentions weight. Focuses on community buzz and discussion volume.",
+      description: "Social media mentions weight. Higher values focus on community buzz and viral trends for early opportunity detection.",
       category: "social",
-      range: "-100% to +100%",
+      range: "0% to 100%",
       impact: "medium"
     },
     d_pct_sent_6h: {
       label: "Sentiment",
-      description: "Market sentiment analysis weight. Considers bullish/bearish sentiment in discussions.",
+      description: "Market sentiment analysis weight. Higher values emphasize bullish/bearish sentiment trends in community discussions.",
       category: "social",
-      range: "-100% to +100%",
+      range: "0% to 100%",
       impact: "medium"
     },
     d_pct_users_6h: {
       label: "User Growth",
-      description: "Community growth rate weight. Measures new user adoption and engagement.",
+      description: "Community growth rate weight. Higher values track new user adoption and engagement momentum for project health.",
       category: "social",
-      range: "-100% to +100%",
+      range: "0% to 100%",
       impact: "low"
     },
     d_pct_infl_6h: {
       label: "Influencers",
-      description: "Influencer mentions weight. Tracks when key opinion leaders discuss the asset.",
+      description: "Influencer mentions weight. Higher values prioritize signals when key opinion leaders discuss assets for market impact.",
       category: "social",
-      range: "-100% to +100%",
+      range: "0% to 100%",
       impact: "medium"
     },
     d_galaxy_6h: {
       label: "Heartbeat Score",
-      description: "Composite health metric combining multiple factors. Overall project health indicator.",
+      description: "Composite health metric weightage combining multiple factors. Higher values prioritize signals from projects with stronger fundamentals and ecosystem health.",
       category: "fundamental",
-      range: "-10 to +10 points",
+      range: "0% to 100%",
       impact: "high"
     },
     neg_d_altrank_6h: {
       label: "Market Edge",
-      description: "Relative ranking among all assets. Lower rank means higher market position.",
+      description: "Relative market positioning weight. Higher values prioritize assets with better rankings and competitive advantages.",
       category: "fundamental",
-      range: "-100% to +100%",
+      range: "0% to 100%",
       impact: "high"
     }
   };
@@ -819,7 +831,7 @@ const MyAgent: React.FC = () => {
                 <Users className="w-12 h-12 text-gray-600 mx-auto mb-4" />
                 <p className="text-gray-400 mb-4">No subscriptions yet</p>
                 <Link
-                  href="/influencer"
+                  href="/"
                   className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                 >
                   Browse Influencers

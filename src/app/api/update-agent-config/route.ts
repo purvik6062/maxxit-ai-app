@@ -19,6 +19,16 @@ export async function POST(request: Request): Promise<Response> {
     // Parse and validate request body
     const body = await request.json();
 
+    // Extract agentConfig from the request body
+    const { twitterId, agentConfig } = body;
+
+    if (!agentConfig || typeof agentConfig !== 'object') {
+      return NextResponse.json(
+        { success: false, error: { message: "Missing or invalid agentConfig" } },
+        { status: 400 }
+      );
+    }
+
     // Validate required fields
     const requiredFields: (keyof UpdateRequest)[] = [
       'r_last6h_pct', 'd_pct_mktvol_6h', 'd_pct_socvol_6h',
@@ -27,7 +37,7 @@ export async function POST(request: Request): Promise<Response> {
     ];
 
     for (const field of requiredFields) {
-      if (typeof body[field] !== 'number') {
+      if (typeof agentConfig[field] !== 'number') {
         return NextResponse.json(
           { success: false, error: { message: `Invalid value for ${field}` } },
           { status: 400 }
@@ -35,64 +45,64 @@ export async function POST(request: Request): Promise<Response> {
       }
     }
 
-    // Validate ranges
-    const { r_last6h_pct, d_pct_mktvol_6h, d_pct_socvol_6h, d_pct_sent_6h, d_pct_users_6h, d_pct_infl_6h, d_galaxy_6h, neg_d_altrank_6h } = body;
+    // Validate ranges (all fields must be between 0 and 100)
+    const { r_last6h_pct, d_pct_mktvol_6h, d_pct_socvol_6h, d_pct_sent_6h, d_pct_users_6h, d_pct_infl_6h, d_galaxy_6h, neg_d_altrank_6h } = agentConfig;
 
-    if (r_last6h_pct < -100 || r_last6h_pct > 100) {
-      return NextResponse.json(
-        { success: false, error: { message: "Price momentum must be between -100 and 100" } },
-        { status: 400 }
-      );
-    }
+     if (r_last6h_pct < 0 || r_last6h_pct > 100) {
+       return NextResponse.json(
+         { success: false, error: { message: "Price momentum must be between 0 and 100" } },
+         { status: 400 }
+       );
+     }
 
-    if (d_pct_mktvol_6h < -100 || d_pct_mktvol_6h > 100) {
-      return NextResponse.json(
-        { success: false, error: { message: "Market volume must be between -100 and 100" } },
-        { status: 400 }
-      );
-    }
+     if (d_pct_mktvol_6h < 0 || d_pct_mktvol_6h > 100) {
+       return NextResponse.json(
+         { success: false, error: { message: "Market volume must be between 0 and 100" } },
+         { status: 400 }
+       );
+     }
 
-    if (d_pct_socvol_6h < -100 || d_pct_socvol_6h > 100) {
-      return NextResponse.json(
-        { success: false, error: { message: "Social volume must be between -100 and 100" } },
-        { status: 400 }
-      );
-    }
+     if (d_pct_socvol_6h < 0 || d_pct_socvol_6h > 100) {
+       return NextResponse.json(
+         { success: false, error: { message: "Social volume must be between 0 and 100" } },
+         { status: 400 }
+       );
+     }
 
-    if (d_pct_sent_6h < -100 || d_pct_sent_6h > 100) {
-      return NextResponse.json(
-        { success: false, error: { message: "Sentiment must be between -100 and 100" } },
-        { status: 400 }
-      );
-    }
+     if (d_pct_sent_6h < 0 || d_pct_sent_6h > 100) {
+       return NextResponse.json(
+         { success: false, error: { message: "Sentiment must be between 0 and 100" } },
+         { status: 400 }
+       );
+     }
 
-    if (d_pct_users_6h < -100 || d_pct_users_6h > 100) {
-      return NextResponse.json(
-        { success: false, error: { message: "User growth must be between -100 and 100" } },
-        { status: 400 }
-      );
-    }
+     if (d_pct_users_6h < 0 || d_pct_users_6h > 100) {
+       return NextResponse.json(
+         { success: false, error: { message: "User growth must be between 0 and 100" } },
+         { status: 400 }
+       );
+     }
 
-    if (d_pct_infl_6h < -100 || d_pct_infl_6h > 100) {
-      return NextResponse.json(
-        { success: false, error: { message: "Influencers must be between -100 and 100" } },
-        { status: 400 }
-      );
-    }
+     if (d_pct_infl_6h < 0 || d_pct_infl_6h > 100) {
+       return NextResponse.json(
+         { success: false, error: { message: "Influencers must be between 0 and 100" } },
+         { status: 400 }
+       );
+     }
 
-    if (d_galaxy_6h < -10 || d_galaxy_6h > 10) {
-      return NextResponse.json(
-        { success: false, error: { message: "Heartbeat Score must be between -10 and 10" } },
-        { status: 400 }
-      );
-    }
+     if (d_galaxy_6h < 0 || d_galaxy_6h > 100) {
+       return NextResponse.json(
+         { success: false, error: { message: "Heartbeat Score must be between 0 and 100" } },
+         { status: 400 }
+       );
+     }
 
-    if (neg_d_altrank_6h < -100 || neg_d_altrank_6h > 100) {
-      return NextResponse.json(
-        { success: false, error: { message: "Market Edge must be between -100 and 100" } },
-        { status: 400 }
-      );
-    }
+     if (neg_d_altrank_6h < 0 || neg_d_altrank_6h > 100) {
+       return NextResponse.json(
+         { success: false, error: { message: "Market Edge must be between 0 and 100" } },
+         { status: 400 }
+       );
+     }
 
     // Get session and authenticate user
     const session = await getServerSession(authOptions);
@@ -104,11 +114,31 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
+    // Verify the twitterId matches the session
+    if (session.user.id !== twitterId) {
+      return NextResponse.json(
+        { success: false, error: { message: "Unauthorized - Twitter ID mismatch" } },
+        { status: 403 }
+      );
+    }
+
     // Use the safe database operation helper
     const result = await executeDbOperation(async (db) => {
-      // Update user's customization options
+      // Check if user exists
+      const existingUser = await db.collection("users").findOne({
+        twitterId: twitterId
+      });
+
+      if (!existingUser) {
+        return NextResponse.json(
+          { success: false, error: { message: "User not found" } },
+          { status: 404 }
+        );
+      }
+
+      // Update user with agent configuration
       const updateResult = await db.collection("users").updateOne(
-        { twitterUsername: session.user.username },
+        { twitterId: twitterId },
         {
           $set: {
             customizationOptions: {
@@ -121,23 +151,24 @@ export async function POST(request: Request): Promise<Response> {
               d_galaxy_6h,
               neg_d_altrank_6h
             },
+            isAgentCustomized: true,
             updatedAt: new Date().toISOString()
           }
         }
       );
 
-      if (updateResult.matchedCount === 0) {
-        throw new Error("User not found");
-      }
-
       return updateResult;
     });
+
+    if (result instanceof NextResponse) {
+      return result; // Return error response from the database operation
+    }
 
     return NextResponse.json({
       success: true,
       data: {
         message: "Agent configuration updated successfully",
-        updatedFields: result.modifiedCount
+        customizationOptions: agentConfig
       }
     });
 

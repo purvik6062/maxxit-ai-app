@@ -97,16 +97,10 @@ export async function POST(request: Request): Promise<Response> {
       chatId,
       credits: initialCredits,
       subscribedAccounts: [],
-      customizationOptions: customizationOptions || {
-        r_last6h_pct: 0,
-        d_pct_mktvol_6h: 0,
-        d_pct_socvol_6h: 0,
-        d_pct_sent_6h: 0,
-        d_pct_users_6h: 0,
-        d_pct_infl_6h: 0,
-        d_galaxy_6h: 0,
-        neg_d_altrank_6h: 0,
-      },
+      // Only include customizationOptions if explicitly provided (not when user skips customization)
+      ...(customizationOptions && {
+        customizationOptions: customizationOptions
+      }),
       createdAt: now,
       updatedAt: now,
       verified: true, // Mark as verified since we confirmed user exists in welcomed_users
