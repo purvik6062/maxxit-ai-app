@@ -233,6 +233,8 @@ const Header: React.FC<HeaderProps> = () => {
       d_galaxy_6h: 0,
       neg_d_altrank_6h: 0,
     });
+  // Track whether user has actually customized their agent or skipped it
+  const [hasCustomizedAgent, setHasCustomizedAgent] = useState(false);
 
   // Error mapping for telegram registration
   const ERROR_MAPPING: { [key: string]: string } = {
@@ -513,7 +515,8 @@ const Header: React.FC<HeaderProps> = () => {
           twitterId: session?.user?.id,
           telegramId: telegramUsername,
           credits: 500,
-          customizationOptions: customizationOptions,
+          // Only send customizationOptions if user has actually customized their agent
+          ...(hasCustomizedAgent && { customizationOptions: customizationOptions }),
         }),
       });
 
@@ -943,6 +946,8 @@ const Header: React.FC<HeaderProps> = () => {
         setTelegramStep={setTelegramStep}
         setTelegramUsername={setTelegramUsername}
         setCustomizationOptions={setCustomizationOptions}
+        hasCustomizedAgent={hasCustomizedAgent}
+        setHasCustomizedAgent={setHasCustomizedAgent}
         setOnboardingStep={setOnboardingStep}
         handleSubmit={handleSubmit}
         setSuccessModalOpen={setShowSuccessModal}

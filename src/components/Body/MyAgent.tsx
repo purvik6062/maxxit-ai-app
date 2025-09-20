@@ -69,63 +69,105 @@ const EditableMetricCard: React.FC<EditableMetricCardProps> = ({
   onChange
 }) => {
   const [showInfo, setShowInfo] = useState(false);
+  const [inputValue, setInputValue] = useState<string>('');
+  const [isFocused, setIsFocused] = useState(false);
+
+  // Initialize input value when entering edit mode or value changes
+  React.useEffect(() => {
+    if (isEditing) {
+      setInputValue(value.toString());
+    }
+  }, [isEditing, value]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setInputValue(val);
+    
+    const numValue = val === '' ? 0 : parseInt(val);
+    if (!isNaN(numValue)) {
+      onChange(numValue);
+    }
+  };
+
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    setIsFocused(true);
+    // Select all text on focus for easy replacement
+    e.target.select();
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    if (inputValue === '') {
+      setInputValue('0');
+      onChange(0);
+    }
+  };
 
   return (
     <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50 hover:border-gray-600/50 transition-colors relative group">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-gray-400 text-sm font-medium">{label}</span>
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
+          <span className="text-gray-400 text-sm font-medium">{label}</span>
           {explanation && (
             <button
               onClick={() => setShowInfo(!showInfo)}
-              className="p-1 rounded hover:bg-gray-700/50 transition-colors"
-              title="Click for more info"
+              className="p-1 rounded hover:bg-gray-700/50 transition-colors group/info"
+              title="Click for detailed explanation"
             >
-              <Info className="w-3 h-3 text-gray-500 hover:text-blue-400 transition-colors" />
+              <Info className="w-4 h-4 text-gray-500 hover:text-blue-400 transition-colors group-hover/info:scale-110" />
             </button>
           )}
-          <div className={color}>
-            {icon}
-          </div>
+        </div>
+        <div className={`${color} p-1 rounded-lg bg-gray-700/30`}>
+          {icon}
         </div>
       </div>
 
       {isEditing ? (
         <div className="flex items-center gap-2">
-          <input
-            type="number"
-            value={value}
-            onChange={(e) => onChange(parseInt(e.target.value) || 0)}
-            min={label === "Heartbeat Score" ? -10 : -100}
-            max={label === "Heartbeat Score" ? 10 : 100}
-            className="w-20 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:border-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-          />
-          <span className="text-white text-sm">%</span>
+          <div className="relative flex-1">
+            <input
+              type="number"
+              value={inputValue}
+              onChange={handleInputChange}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              min={0}
+              max={100}
+              placeholder="Enter value"
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none transition-all"
+            />
+          </div>
+          <span className="text-gray-300 text-sm font-medium min-w-fit">
+            %
+          </span>
         </div>
       ) : (
-        <div className="text-white text-lg font-semibold">
-          {value}{label === "Heartbeat Score" ? "" : "%"}
+        <div className="text-white text-xl font-bold">
+          {value}
+          <span className="text-sm text-gray-400 ml-1">%</span>
         </div>
       )}
 
+      {/* Enhanced information tooltip */}
       {explanation && showInfo && (
-        <div className="absolute top-full left-0 right-0 mt-2 p-3 bg-gray-900 border border-gray-700 rounded-lg shadow-lg z-10">
-          <div className="text-sm text-white font-medium mb-1">{explanation.label}</div>
-          <div className="text-xs text-gray-300 mb-2">{explanation.description}</div>
-          <div className="flex items-center gap-4 text-xs">
-            <span className={`px-2 py-1 rounded ${
-              explanation.category === 'technical' ? 'bg-blue-500/20 text-blue-400' :
-              explanation.category === 'social' ? 'bg-purple-500/20 text-purple-400' :
-              'bg-green-500/20 text-green-400'
-            }`}>
+        <div className="absolute top-full left-0 right-0 mt-2 p-4 bg-gray-900/95 backdrop-blur-sm border border-gray-700 rounded-xl shadow-xl z-20">
+          <div className="text-sm text-white font-semibold mb-2">{explanation.label}</div>
+          <div className="text-xs text-gray-300 mb-3 leading-relaxed">{explanation.description}</div>
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className={`px-2 py-1 rounded-md font-medium ${explanation.category === 'technical' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' :
+                explanation.category === 'social' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' :
+                  'bg-green-500/20 text-green-300 border border-green-500/30'
+              }`}>
               {explanation.category}
             </span>
-            <span className="text-gray-400">Range: {explanation.range}</span>
-            <span className={`px-2 py-1 rounded ${
-              explanation.impact === 'high' ? 'bg-red-500/20 text-red-400' :
-              explanation.impact === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-              'bg-green-500/20 text-green-400'
-            }`}>
+            <span className="text-gray-400 bg-gray-800/50 px-2 py-1 rounded-md">
+              Range: {explanation.range}
+            </span>
+            <span className={`px-2 py-1 rounded-md font-medium ${explanation.impact === 'high' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
+                explanation.impact === 'medium' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
+                  'bg-green-500/20 text-green-300 border border-green-500/30'
+              }`}>
               {explanation.impact} impact
             </span>
           </div>
@@ -143,7 +185,7 @@ const MyAgent: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<CustomizationOptions | null>(null);
   const [saving, setSaving] = useState(false);
-  const [expandedAccounts, setExpandedAccounts] = useState<{[key: string]: boolean}>({});
+  const [expandedAccounts, setExpandedAccounts] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     const fetchAgentData = async () => {
@@ -224,14 +266,8 @@ const MyAgent: React.FC = () => {
   const handleMetricChange = (key: keyof CustomizationOptions, value: number) => {
     if (!editData) return;
 
-    let validatedValue = value;
-
-    // Validate ranges
-    if (key === "d_galaxy_6h") {
-      validatedValue = Math.max(-10, Math.min(10, value));
-    } else {
-      validatedValue = Math.max(-100, Math.min(100, value));
-    }
+    // Validate ranges - all metrics use 0-100 range for weightages
+    const validatedValue = Math.max(0, Math.min(100, value));
 
     setEditData(prev => ({
       ...prev!,
@@ -255,7 +291,7 @@ const MyAgent: React.FC = () => {
 
   const renderInfluencerAvatar = (account: SubscribedAccount) => {
     const imageUrl = account.influencerInfo?.userProfileUrl ||
-                   `https://picsum.photos/seed/${account.twitterHandle}/64/64`;
+      `https://picsum.photos/seed/${account.twitterHandle}/64/64`;
 
     return (
       <div
@@ -384,58 +420,58 @@ const MyAgent: React.FC = () => {
   const metricExplanations: Record<string, MetricExplanation> = {
     r_last6h_pct: {
       label: "Price Momentum",
-      description: "6-hour price return threshold. Triggers signals when price moves by this percentage.",
+      description: "6-hour price return threshold. Higher values increase sensitivity to price movements and generate more frequent trading signals.",
       category: "technical",
-      range: "-100% to +100%",
+      range: "0% to 100%",
       impact: "high"
     },
     d_pct_mktvol_6h: {
       label: "Market Volume",
-      description: "Trading volume change over 6 hours. Higher values emphasize volume-based signals.",
+      description: "Trading volume change weight over 6 hours. Higher values prioritize volume-driven opportunities for better signal accuracy.",
       category: "technical",
-      range: "-100% to +100%",
+      range: "0% to 100%",
       impact: "high"
     },
     d_pct_socvol_6h: {
       label: "Social Volume",
-      description: "Social media mentions weight. Focuses on community buzz and discussion volume.",
+      description: "Social media mentions weight. Higher values focus on community buzz and viral trends for early opportunity detection.",
       category: "social",
-      range: "-100% to +100%",
+      range: "0% to 100%",
       impact: "medium"
     },
     d_pct_sent_6h: {
       label: "Sentiment",
-      description: "Market sentiment analysis weight. Considers bullish/bearish sentiment in discussions.",
+      description: "Market sentiment analysis weight. Higher values emphasize bullish/bearish sentiment trends in community discussions.",
       category: "social",
-      range: "-100% to +100%",
+      range: "0% to 100%",
       impact: "medium"
     },
     d_pct_users_6h: {
       label: "User Growth",
-      description: "Community growth rate weight. Measures new user adoption and engagement.",
+      description: "Community growth rate weight. Higher values track new user adoption and engagement momentum for project health.",
       category: "social",
-      range: "-100% to +100%",
+      range: "0% to 100%",
       impact: "low"
     },
     d_pct_infl_6h: {
       label: "Influencers",
-      description: "Influencer mentions weight. Tracks when key opinion leaders discuss the asset.",
+      description: "Influencer mentions weight. Higher values prioritize signals when key opinion leaders discuss assets for market impact.",
       category: "social",
-      range: "-100% to +100%",
+      range: "0% to 100%",
       impact: "medium"
     },
     d_galaxy_6h: {
       label: "Heartbeat Score",
-      description: "Composite health metric combining multiple factors. Overall project health indicator.",
+      description: "Composite health metric weightage combining multiple factors. Higher values prioritize signals from projects with stronger fundamentals and ecosystem health.",
       category: "fundamental",
-      range: "-10 to +10 points",
+      range: "0% to 100%",
       impact: "high"
     },
     neg_d_altrank_6h: {
       label: "Market Edge",
-      description: "Relative ranking among all assets. Lower rank means higher market position.",
+      description: "Relative market positioning weight. Higher values prioritize assets with better rankings and competitive advantages.",
       category: "fundamental",
-      range: "-100% to +100%",
+      range: "0% to 100%",
       impact: "high"
     }
   };
@@ -469,8 +505,8 @@ const MyAgent: React.FC = () => {
 
   if (error) {
     const isConnectionError = error.includes("Database temporarily unavailable") ||
-                              error.includes("connection") ||
-                              error.includes("database");
+      error.includes("connection") ||
+      error.includes("database");
 
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
@@ -746,7 +782,7 @@ const MyAgent: React.FC = () => {
                 <Users className="w-12 h-12 text-gray-600 mx-auto mb-4" />
                 <p className="text-gray-400 mb-4">No subscriptions yet</p>
                 <Link
-                  href="/influencer"
+                  href="/"
                   className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                 >
                   Browse Influencers

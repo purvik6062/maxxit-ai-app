@@ -1008,7 +1008,7 @@ const AllAgentsMarketplace: React.FC = () => {
         </div>
 
         {/* Enhanced Stats Bar */}
-        <div className="bg-[#0D1321] rounded-2xl p-6 md:p-8 mb-10 border" style={{ borderColor: "#353940" }}>
+        {/* <div className="bg-[#0D1321] rounded-2xl p-6 md:p-8 mb-10 border" style={{ borderColor: "#353940" }}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center group">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-200">
@@ -1047,10 +1047,10 @@ const AllAgentsMarketplace: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Enhanced Search and Filter */}
-        <div className="bg-[#0D1321] rounded-2xl p-6 md:p-8 mb-10 border" style={{ borderColor: "#353940" }}>
+        {/* <div className="bg-[#0D1321] rounded-2xl p-6 md:p-8 mb-10 border" style={{ borderColor: "#353940" }}>
           <div className="flex flex-col xl:flex-row gap-6 items-center">
             <div className="flex-1 w-full">
               <div className="relative">
@@ -1067,7 +1067,6 @@ const AllAgentsMarketplace: React.FC = () => {
             </div>
 
             <div className="flex flex-wrap gap-3 w-full xl:w-auto">
-              {/* Category Filters */}
               <div className="flex bg-[#0D1321] rounded-full p-1.5 border" style={{ borderColor: "#353940" }}>
                 {[
                   {
@@ -1105,7 +1104,6 @@ const AllAgentsMarketplace: React.FC = () => {
                 ))}
               </div>
 
-              {/* Sort Options */}
               <div className="flex bg-[#0D1321] rounded-full p-1.5 border" style={{ borderColor: "#353940" }}>
                 {[
                   {
@@ -1143,7 +1141,7 @@ const AllAgentsMarketplace: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Enhanced Agents Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
@@ -1190,39 +1188,37 @@ const AllAgentsMarketplace: React.FC = () => {
                     </div>
                   </div>
 
-                  {!isOwn && (
-                    <div className="text-right">
-                      {availableTypes.length === 0 ? (
-                        <div className="px-4 py-2 bg-green-500/20 text-green-400 rounded-xl text-sm font-medium border border-green-500/30">
-                          <CheckCircle className="w-4 h-4 inline mr-1" />
-                          All Deployed
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() =>
-                            setDeploymentModal({
-                              isOpen: true,
-                              agentUsername: agent.twitterUsername,
-                              agentId: agent._id,
-                            })
-                          }
-                          className={`px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 hover:scale-105 shadow-lg ${availableTypes.length === 2
-                            ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600"
-                            : "bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-600 hover:to-orange-600"
-                            }`}
-                        >
-                          <Rocket className="w-4 h-4" />
-                          {availableTypes.length === 2
-                            ? "Deploy Agent"
-                            : `Deploy ${availableTypes[0] === "perpetuals" ? "Perpetuals" : "Spot"}`}
-                        </button>
-                      )}
-                    </div>
-                  )}
+                  <div className="text-right">
+                    {availableTypes.length === 0 ? (
+                      <div className="px-4 py-2 bg-green-500/20 text-green-400 rounded-xl text-sm font-medium border border-green-500/30">
+                        <CheckCircle className="w-4 h-4 inline mr-1" />
+                        All Deployed
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() =>
+                          setDeploymentModal({
+                            isOpen: true,
+                            agentUsername: agent.twitterUsername,
+                            agentId: agent._id,
+                          })
+                        }
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 hover:scale-105 shadow-lg ${availableTypes.length === 2
+                          ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600"
+                          : "bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-600 hover:to-orange-600"
+                          }`}
+                      >
+                        <Rocket className="w-4 h-4" />
+                        {availableTypes.length === 2
+                          ? "Deploy Agent"
+                          : `Deploy ${availableTypes[0] === "perpetuals" ? "Perpetuals" : "Spot"}`}
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Enhanced Key Metrics */}
-                <div className="grid grid-cols-2 gap-4 mb-6">
+                {/* <div className="grid grid-cols-2 gap-4 mb-6">
                   <MetricCard
                     label="Price Momentum"
                     value={agent.customizationOptions.r_last6h_pct}
@@ -1271,6 +1267,58 @@ const AllAgentsMarketplace: React.FC = () => {
                           : "neutral"
                     }
                   />
+                </div> */}
+
+                {/* Compact APR Metrics */}
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                    <span className="text-gray-300 text-sm font-medium">Trading Performance APR</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-4">
+                    {/* GMX APR */}
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-1 mb-2">
+                        <TrendingUp className="w-3 h-3 text-green-400" />
+                        <span className="text-gray-300 text-xs">GMX</span>
+                        <ArrowUpRight className="w-3 h-3 text-green-400" />
+                      </div>
+                      <div className="text-green-400 font-bold text-base">+7.2%</div>
+                      <div className="text-xs text-gray-500 mb-2">APR</div>
+                      <div className="w-full h-1 bg-gray-700 rounded-full">
+                        <div className="w-4/5 h-full bg-green-400 rounded-full"></div>
+                      </div>
+                    </div>
+
+                    {/* Hyperliquid APR */}
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-1 mb-2">
+                        <BarChart3 className="w-3 h-3 text-blue-400" />
+                        <span className="text-gray-300 text-xs">Hyperliquid</span>
+                        <ArrowUpRight className="w-3 h-3 text-blue-400" />
+                      </div>
+                      <div className="text-blue-400 font-bold text-base">+4.8%</div>
+                      <div className="text-xs text-gray-500 mb-2">APR</div>
+                      <div className="w-full h-1 bg-gray-700 rounded-full">
+                        <div className="w-3/5 h-full bg-blue-400 rounded-full"></div>
+                      </div>
+                    </div>
+
+                    {/* Spot Trading APR */}
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-1 mb-2">
+                        <Star className="w-3 h-3 text-yellow-400" />
+                        <span className="text-gray-300 text-xs">Spot Trading</span>
+                        <div className="w-3 h-3 border border-gray-500 rounded-full"></div>
+                      </div>
+                      <div className="text-yellow-400 font-bold text-base">+2.1%</div>
+                      <div className="text-xs text-gray-500 mb-2">APR</div>
+                      <div className="w-full h-1 bg-gray-700 rounded-full">
+                        <div className="w-2/5 h-full bg-yellow-400 rounded-full"></div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Subscriptions Section */}
@@ -1288,10 +1336,10 @@ const AllAgentsMarketplace: React.FC = () => {
 
                 {/* Footer */}
                 <div className="flex items-center justify-between pt-4 border-t text-sm" style={{ borderColor: "#353940", color: "#8ba1bc" }}>
-                  <span className="flex items-center gap-1">
+                  {/* <span className="flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     Updated {formatDate(agent.updatedAt)}
-                  </span>
+                  </span> */}
                   {deployedTypes.length > 0 && (
                     <div className="flex gap-1">
                       {deployedTypes.map((type) => (
