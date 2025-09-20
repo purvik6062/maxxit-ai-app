@@ -4,9 +4,15 @@ import { useWallet } from "@/components/enzyme/WalletConnector";
 import { SafeData, SafeDeploymentResponse, IUserInfo } from "../types";
 import toast from "react-hot-toast";
 
-export const useAgentSafeDeployment = () => {
+interface UseAgentSafeDeploymentOptions {
+  agentId?: string;
+  agentType?: 'perpetuals' | 'spot';
+}
+
+export const useAgentSafeDeployment = (options?: UseAgentSafeDeploymentOptions) => {
   const { data: session } = useSession();
   const { account, isCorrectNetwork, chainId } = useWallet();
+  const { agentId, agentType } = options || {};
 
   // Deployment states
   const [isDeploying, setIsDeploying] = useState(false);
@@ -117,7 +123,13 @@ export const useAgentSafeDeployment = () => {
         const updateData = await updateResponse.json();
 
         if (updateData.success && updateData.data) {
-          console.log('Found agent-specific Safe document:', updateData.data);
+          console.log('Found agent-specific Safe document:', {
+            safeId: updateData.data.safeId,
+            agentId: updateData.data.userInfo?.agentId,
+            agentType: updateData.data.userInfo?.agentType,
+            deployments: Object.keys(updateData.data.deployments || {}),
+            currentNetworkKey
+          });
           // Convert the format to match what our component expects
           const safeData = {
             ...updateData.data,
@@ -252,11 +264,11 @@ export const useAgentSafeDeployment = () => {
         setDeploymentResult(result.data);
         toast.success("Safe wallet deployed successfully!");
         if (account) {
-          // Wait 10 seconds for database consistency, then check for agent-specific Safe
+          // Wait 15 seconds for database consistency, then check for agent-specific Safe
           setTimeout(() => {
             console.log('Checking for agent-specific Safe document after deployment...');
             checkAgentSpecificSafe(account, agentId, agentType);
-          }, 10000);
+          }, 15000);
         }
       } else {
         throw new Error(result.error || "Deployment failed");
@@ -294,9 +306,16 @@ export const useAgentSafeDeployment = () => {
 
     // Only check for existing Safe if we have valid account and network
     if (account && isCorrectNetwork) {
-      checkExistingSafe(account);
+      // Use agent-specific check if we have agent info, otherwise fallback to general check
+      if (agentId && agentType) {
+        console.log(`Checking for agent-specific Safe: agentId=${agentId}, agentType=${agentType}`);
+        checkAgentSpecificSafe(account, agentId, agentType);
+      } else {
+        console.log('No agent info provided, using general Safe check');
+        checkExistingSafe(account);
+      }
     }
-  }, [account, isCorrectNetwork, session?.user?.id, chainId]);
+  }, [account, isCorrectNetwork, session?.user?.id, chainId, agentId, agentType]);
 
   return {
     // State

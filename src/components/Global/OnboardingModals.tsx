@@ -5,72 +5,8 @@ import { X, OctagonAlert, CheckCircle2 } from "lucide-react";
 import { FaTelegram } from "react-icons/fa6";
 import { IoShieldCheckmark } from "react-icons/io5";
 import Link from "next/link";
-import CustomizeAgentModal from "./CustomizeAgentModal";
+import CustomizeAgentModal, { CustomizationOptions } from "./CustomizeAgentModal";
 
-// Custom CSS for enhanced sliders
-const sliderStyles = `
-  .slider-enhanced {
-    -webkit-appearance: none;
-    appearance: none;
-  }
-  
-  .slider-enhanced::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    height: 20px;
-    width: 20px;
-    border-radius: 50%;
-    background: #ffffff;
-    cursor: pointer;
-    border: 2px solid #3b82f6;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    transition: all 0.2s ease;
-  }
-  
-  .slider-enhanced::-webkit-slider-thumb:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-  }
-  
-  .slider-enhanced::-moz-range-thumb {
-    height: 20px;
-    width: 20px;
-    border-radius: 50%;
-    background: #ffffff;
-    cursor: pointer;
-    border: 2px solid #3b82f6;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    transition: all 0.2s ease;
-  }
-  
-  .slider-enhanced::-moz-range-thumb:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-  }
-`;
-
-// Inject styles
-if (typeof document !== 'undefined') {
-  const styleElement = document.getElementById('slider-styles') || document.createElement('style');
-  styleElement.id = 'slider-styles';
-  styleElement.textContent = sliderStyles;
-  if (!document.getElementById('slider-styles')) {
-    document.head.appendChild(styleElement);
-  }
-}
-
-interface CustomizationOptions {
-  r_last6h_pct: number;
-  d_pct_mktvol_6h: number;
-  d_pct_socvol_6h: number;
-  d_pct_sent_6h: number;
-  d_pct_users_6h: number;
-  d_pct_infl_6h: number;
-  d_galaxy_6h: number;
-  neg_d_altrank_6h: number;
-}
-
-export type { CustomizationOptions };
 
 interface OnboardingModalsProps {
   isOnboardingModalOpen: boolean;
@@ -94,6 +30,8 @@ interface OnboardingModalsProps {
   setTelegramStep: (step: number) => void;
   setTelegramUsername: (username: string) => void;
   setCustomizationOptions: (options: CustomizationOptions) => void;
+  hasCustomizedAgent: boolean;
+  setHasCustomizedAgent: (hasCustomized: boolean) => void;
   setOnboardingStep: (step: number) => void;
   handleSubmit: () => void;
   setSuccessModalOpen: (isOpen: boolean) => void;
@@ -120,6 +58,8 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
   setTelegramStep,
   setTelegramUsername,
   setCustomizationOptions,
+  hasCustomizedAgent,
+  setHasCustomizedAgent,
   setOnboardingStep,
   handleSubmit,
   setSuccessModalOpen,
@@ -128,21 +68,9 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
 
   // Validation function for customization options
   const validateCustomizationOptions = (options: CustomizationOptions): boolean => {
-    // Basic validation to ensure values are within expected ranges
-    const ranges = {
-      r_last6h_pct: { min: 0, max: 100 },
-      d_pct_mktvol_6h: { min: 0, max: 100 },
-      d_pct_socvol_6h: { min: 0, max: 100 },
-      d_pct_sent_6h: { min: 0, max: 100 },
-      d_pct_users_6h: { min: 0, max: 100 },
-      d_pct_infl_6h: { min: 0, max: 100 },
-      d_galaxy_6h: { min: 0, max: 10 },
-      neg_d_altrank_6h: { min: 0, max: 100 },
-    };
-
+    // All metrics use 0-100 range for weightages
     for (const [key, value] of Object.entries(options)) {
-      const range = ranges[key as keyof CustomizationOptions];
-      if (value < range.min || value > range.max) {
+      if (value < 0 || value > 100) {
         return false;
       }
     }
@@ -158,54 +86,59 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
     setCustomizationOptions(initialCustomizationRef.current);
   };
 
+  // Helper function to update customization options and mark as customized
+  const updateCustomizationOptions = (options: CustomizationOptions) => {
+    setHasCustomizedAgent(true);
+    setCustomizationOptions(options);
+  };
+
   const applyCustomizationPreset = (preset: "Balanced" | "Momentum" | "Meme Rush" | "Defensive") => {
+    // Mark that user has customized their agent
+    setHasCustomizedAgent(true);
+    
     if (preset === "Balanced") {
       setCustomizationOptions({
-        ...customizationOptions,
-        r_last6h_pct: 10,
-        d_pct_mktvol_6h: 15,
-        d_pct_socvol_6h: 10,
-        d_pct_sent_6h: 5,
-        d_pct_users_6h: 10,
-        d_pct_infl_6h: 5,
-        d_galaxy_6h: 2,
-        neg_d_altrank_6h: 10,
+        r_last6h_pct: 60,
+        d_pct_mktvol_6h: 65,
+        d_pct_socvol_6h: 55,
+        d_pct_sent_6h: 50,
+        d_pct_users_6h: 45,
+        d_pct_infl_6h: 50,
+        d_galaxy_6h: 60,
+        neg_d_altrank_6h: 55,
       });
     } else if (preset === "Momentum") {
       setCustomizationOptions({
-        ...customizationOptions,
-        r_last6h_pct: 40,
-        d_pct_mktvol_6h: 35,
-        d_pct_socvol_6h: 10,
-        d_pct_sent_6h: 10,
-        d_pct_users_6h: 5,
-        d_pct_infl_6h: 5,
-        d_galaxy_6h: 4,
-        neg_d_altrank_6h: 20,
+        r_last6h_pct: 80,
+        d_pct_mktvol_6h: 75,
+        d_pct_socvol_6h: 40,
+        d_pct_sent_6h: 45,
+        d_pct_users_6h: 35,
+        d_pct_infl_6h: 40,
+        d_galaxy_6h: 65,
+        neg_d_altrank_6h: 70,
       });
     } else if (preset === "Meme Rush") {
       setCustomizationOptions({
-        ...customizationOptions,
-        r_last6h_pct: 10,
-        d_pct_mktvol_6h: 10,
-        d_pct_socvol_6h: 40,
-        d_pct_sent_6h: 25,
-        d_pct_users_6h: 25,
-        d_pct_infl_6h: 25,
-        d_galaxy_6h: 1,
-        neg_d_altrank_6h: 15,
+        r_last6h_pct: 45,
+        d_pct_mktvol_6h: 50,
+        d_pct_socvol_6h: 85,
+        d_pct_sent_6h: 80,
+        d_pct_users_6h: 75,
+        d_pct_infl_6h: 80,
+        d_galaxy_6h: 40,
+        neg_d_altrank_6h: 60,
       });
     } else if (preset === "Defensive") {
       setCustomizationOptions({
-        ...customizationOptions,
-        r_last6h_pct: -10,
-        d_pct_mktvol_6h: 25,
-        d_pct_socvol_6h: -10,
-        d_pct_sent_6h: -5,
-        d_pct_users_6h: 5,
-        d_pct_infl_6h: -5,
-        d_galaxy_6h: 3,
-        neg_d_altrank_6h: 20,
+        r_last6h_pct: 50,
+        d_pct_mktvol_6h: 70,
+        d_pct_socvol_6h: 40,
+        d_pct_sent_6h: 35,
+        d_pct_users_6h: 55,
+        d_pct_infl_6h: 35,
+        d_galaxy_6h: 85,
+        neg_d_altrank_6h: 65,
       });
     }
   };
@@ -725,9 +658,22 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
         <CustomizeAgentModal
           isOpen={isCustomizationModalOpen}
           onClose={() => setCustomizationModalOpen(false)}
-          onSkip={() => setOnboardingStep(2)}
+          onSkip={() => {
+            // Reset to initial values and mark as not customized
+            setHasCustomizedAgent(false);
+            setCustomizationModalOpen(false);
+            setOnboardingStep(2);
+          }}
+          onContinue={() => {
+            // Close customization modal and move to telegram step
+            setCustomizationModalOpen(false);
+            setOnboardingStep(2);
+          }}
           customizationOptions={customizationOptions}
           setCustomizationOptions={setCustomizationOptions}
+          hasCustomizedAgent={hasCustomizedAgent}
+          setHasCustomizedAgent={setHasCustomizedAgent}
+          isOnboardingFlow={true}
         />
         // <div className="fixed inset-0 z-50 flex items-center justify-center p-4 font-leagueSpartan">
         //   <div
@@ -762,27 +708,27 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
         //       </div>
         //     </div>
 
-        //     {/* Tabs */}
-        //     <div className="flex border-b border-gray-700/50 bg-gray-800/30">
-        //       <button
-        //         onClick={() => setActiveCustomizationTab("metrics")}
-        //         className={`flex-1 px-6 py-3 text-sm font-medium transition-colors ${activeCustomizationTab === "metrics"
-        //           ? "text-white border-b-2 border-blue-500 bg-blue-500/10"
-        //           : "text-gray-400 hover:text-white hover:bg-gray-800/50"
-        //           }`}
-        //       >
-        //         Agent Metrics
-        //       </button>
-        //       <button
-        //         onClick={() => setActiveCustomizationTab("presets")}
-        //         className={`flex-1 px-6 py-3 text-sm font-medium transition-colors ${activeCustomizationTab === "presets"
-        //           ? "text-white border-b-2 border-purple-500 bg-purple-500/10"
-        //           : "text-gray-400 hover:text-white hover:bg-gray-800/50"
-        //           }`}
-        //       >
-        //         Agent Presets
-        //       </button>
-        //     </div>
+        //      {/* Tabs */}
+        //      <div className="flex border-b border-gray-700/50 bg-gray-800/30">
+        //        <button
+        //          onClick={() => setActiveCustomizationTab("metrics")}
+        //          className={`flex-1 px-6 py-3 text-sm font-medium transition-colors ${activeCustomizationTab === "metrics"
+        //            ? "text-white border-b-2 border-blue-500 bg-blue-500/10"
+        //            : "text-gray-400 hover:text-white hover:bg-gray-800/50"
+        //            }`}
+        //        >
+        //          Agent Metrics
+        //        </button>
+        //        <button
+        //          onClick={() => setActiveCustomizationTab("presets")}
+        //          className={`flex-1 px-6 py-3 text-sm font-medium transition-colors ${activeCustomizationTab === "presets"
+        //            ? "text-white border-b-2 border-purple-500 bg-purple-500/10"
+        //            : "text-gray-400 hover:text-white hover:bg-gray-800/50"
+        //            }`}
+        //        >
+        //          Agent Presets
+        //        </button>
+        //      </div>
 
         //     {/* Main Content */}
         //     <div className="flex flex-col lg:flex-row flex-1 min-h-0">
@@ -1322,12 +1268,12 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
         //             </button>
         //           </div>
 
-        //           <div className="mt-6 p-4 bg-gray-800/30 rounded-lg border border-gray-700/50">
-        //             <p className="text-xs text-gray-400">
-        //               💡 <strong>Tip:</strong> After selecting a preset, switch to "Agent Metrics" tab to fine-tune individual thresholds.
-        //             </p>
-        //           </div>
-        //         </div>
+        //            <div className="mt-6 p-4 bg-gray-800/30 rounded-lg border border-gray-700/50">
+        //              <p className="text-xs text-gray-400">
+        //                💡 <strong>Tip:</strong> After selecting a preset, switch to "Agent Metrics" tab to fine-tune individual thresholds.
+        //              </p>
+        //            </div>
+        //          </div>
         //       ) : null}
 
         //       {/* Details / Preview Panel */}
@@ -1433,44 +1379,44 @@ const OnboardingModals: React.FC<OnboardingModalsProps> = ({
         //       </div>
         //     </div>
 
-        //     {/* Footer */}
-        //     <div className="border-t border-gray-700/50 p-4 bg-gray-800/30">
+        //      {/* Footer */}
+        //      <div className="border-t border-gray-700/50 p-4 bg-gray-800/30">
         //       <div className="flex gap-3">
-        //         <button
-        //           onClick={resetCustomizationToDefaults}
-        //           className="px-4 py-3 text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-colors"
-        //         >
-        //           Reset
-        //         </button>
-        //         <button
-        //           onClick={() => setCustomizationModalOpen(false)}
-        //           className="flex-1 flex items-center justify-center gap-1 rounded-lg border border-gray-600 px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-800"
-        //         >
-        //           <span>Cancel</span>
-        //         </button>
-        //         <button
-        //           onClick={() => {
-        //             if (validateCustomizationOptions(customizationOptions)) {
-        //               setCustomizationModalOpen(false);
-        //               setOnboardingStep(2);
-        //             }
-        //           }}
-        //           disabled={!isCustomizationValid}
-        //           className={`flex-1 rounded-lg px-4 py-3 text-sm font-medium flex items-center justify-center gap-1 transition-all ${isCustomizationValid
-        //             ? "bg-gradient-to-r from-blue-500 to-blue-700 text-white hover:from-blue-600 hover:to-blue-800"
-        //             : "bg-gray-700 text-gray-400 cursor-not-allowed"
-        //             }`}
-        //         >
-        //           <span>Create Agent & Continue</span>
-        //           {isCustomizationValid && (
-        //             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        //               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-        //             </svg>
-        //           )}
-        //         </button>
-        //       </div>
-        //     </div>
-        //   </div>
+        //          <button
+        //            onClick={resetCustomizationToDefaults}
+        //            className="px-4 py-3 text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-colors"
+        //          >
+        //            Reset
+        //          </button>
+        //          <button
+        //            onClick={() => setCustomizationModalOpen(false)}
+        //            className="flex-1 flex items-center justify-center gap-1 rounded-lg border border-gray-600 px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-800"
+        //          >
+        //            <span>Cancel</span>
+        //          </button>
+        //          <button
+        //            onClick={() => {
+        //              if (validateCustomizationOptions(customizationOptions)) {
+        //            setCustomizationModalOpen(false);
+        //            setOnboardingStep(2);
+        //            }
+        //            }}
+        //            disabled={!isCustomizationValid}
+        //            className={`flex-1 rounded-lg px-4 py-3 text-sm font-medium flex items-center justify-center gap-1 transition-all ${isCustomizationValid
+        //              ? "bg-gradient-to-r from-blue-500 to-blue-700 text-white hover:from-blue-600 hover:to-blue-800"
+        //              : "bg-gray-700 text-gray-400 cursor-not-allowed"
+        //              }`}
+        //          >
+        //            <span>Create Agent & Continue</span>
+        //            {isCustomizationValid && (
+        //              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        //                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+        //              </svg>
+        //            )}
+        //          </button>
+        //        </div>
+        //      </div>
+        //    </div>
         // </div>
       )}
 

@@ -10,7 +10,7 @@ import { LuWandSparkles } from "react-icons/lu";
 import { Car, Heart, Sparkles } from "lucide-react";
 import { Header, Footer, TopInfluencersGraph } from "../components/index";
 import CustomizeAgentModal from "@/components/Global/CustomizeAgentModal";
-import type { CustomizationOptions } from "@/components/Global/OnboardingModals";
+import  type { CustomizationOptions} from "@/components/Global/CustomizeAgentModal"
 import SocialGraph from "@/components/Body/SocialGraph";
 import AnalystLeaderboard from "@/components/Body/AnalystLeaderboard";
 import TabNavigation from "@/components/Body/TabNavigation";
@@ -463,9 +463,23 @@ const HomePage: React.FC = () => {
       <CustomizeAgentModal
         isOpen={isCustomizeOpen}
         onClose={() => setIsCustomizeOpen(false)}
-        onSkip={() => setIsCustomizeOpen(false)}
+        onSkip={() => {
+          // Skip customization and close modal
+          setIsCustomizeOpen(false);
+        }}
+        onContinue={() => {
+          // Complete customization and close modal
+          setIsCustomizeOpen(false);
+          // The agent is now considered customized through the context
+        }}
         customizationOptions={customizationOptions}
         setCustomizationOptions={setCustomizationOptions}
+        hasCustomizedAgent={isAgentCustomized}
+        setHasCustomizedAgent={(hasCustomized) => {
+          // This will be handled through the credits context
+          // when customization options are updated
+        }}
+        isOnboardingFlow={false}
       />
     </div>
   );
