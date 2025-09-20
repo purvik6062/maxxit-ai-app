@@ -103,6 +103,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
   isPercentage = true,
 }) => {
   const [showInfo, setShowInfo] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   const getValueColor = () => {
     if (value > 0) return "text-green-400";
@@ -111,29 +112,45 @@ const MetricCard: React.FC<MetricCardProps> = ({
   };
 
   const getProgressColor = () => {
-    if (value > 0) return "bg-green-500";
-    if (value < 0) return "bg-red-500";
-    return "bg-gray-500";
+    if (value > 0) return "bg-gradient-to-r from-green-500 to-green-400";
+    if (value < 0) return "bg-gradient-to-r from-red-500 to-red-400";
+    return "bg-gradient-to-r from-gray-500 to-gray-400";
   };
 
   const getTrendIcon = () => {
     if (trend === "up")
-      return <ArrowUpRight className="w-3 h-3 text-green-400" />;
+      return <ArrowUpRight className="w-3 h-3 text-green-400 animate-pulse" />;
     if (trend === "down")
-      return <ArrowDownRight className="w-3 h-3 text-red-400" />;
+      return <ArrowDownRight className="w-3 h-3 text-red-400 animate-pulse" />;
     return null;
   };
 
   const normalizedValue = Math.min(Math.max(Math.abs(value), 0), 100);
 
   return (
-    <div className="group bg-gray-800/60 rounded-xl p-4 border border-gray-700/50 hover:border-gray-600/70 hover:bg-gray-800/80 transition-all duration-300 relative">
-      <div className="flex items-center justify-between mb-3">
+    <div
+      className="group bg-[#0D1321] rounded-xl p-4 border-2 transition-all duration-300 relative overflow-hidden hover:scale-[1.02] hover:shadow-xl"
+      style={{
+        borderColor: isHovered ? "#4A5568" : "#353940",
+        boxShadow: isHovered ? "0 10px 25px rgba(0, 0, 0, 0.2)" : "0 2px 4px rgba(0, 0, 0, 0.1)"
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Animated background gradient */}
+      <div className={`absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl`} />
+
+      {/* Animated border glow */}
+      <div className={`absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm -z-10`} style={{ padding: "2px" }}>
+        <div className="w-full h-full bg-[#0D1321] rounded-xl" />
+      </div>
+
+      <div className="flex items-center justify-between mb-3 relative z-10">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-gray-700/50 text-gray-400 group-hover:text-white transition-colors">
+          <div className="p-2 rounded-lg bg-gradient-to-br from-gray-700/50 to-gray-600/50 text-gray-400 group-hover:text-white group-hover:scale-110 transition-all duration-300">
             {icon}
           </div>
-          <span className="text-gray-400 text-sm font-medium">{label}</span>
+          <span className="text-gray-400 text-sm font-medium group-hover:text-white transition-colors duration-300">{label}</span>
         </div>
         <div className="flex items-center gap-1">
           {getTrendIcon()}
@@ -143,7 +160,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
                 e.stopPropagation();
                 setShowInfo(!showInfo);
               }}
-              className="p-1 rounded-md hover:bg-gray-700/50 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-gray-700/50 transition-all duration-200 hover:scale-110"
             >
               <Info className="w-3 h-3 text-gray-500 hover:text-blue-400 transition-colors" />
             </button>
@@ -151,26 +168,30 @@ const MetricCard: React.FC<MetricCardProps> = ({
         </div>
       </div>
 
-      <div className="mb-3">
-        <div className={`text-xl font-bold ${getValueColor()}`}>
+      <div className="mb-3 relative z-10">
+        <div className={`text-xl font-bold transition-all duration-300 group-hover:scale-105 ${getValueColor()}`}>
           {isPercentage && value !== 0 && (value > 0 ? "+" : "")}
           {value}
           {isPercentage ? "%" : ""}
         </div>
 
-        {/* Progress bar */}
-        <div className="mt-2 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+        {/* Enhanced progress bar */}
+        <div className="mt-3 h-2 bg-gray-700/50 rounded-full overflow-hidden">
           <div
-            className={`h-full ${getProgressColor()} rounded-full transition-all duration-500 ease-out`}
+            className={`h-full ${getProgressColor()} rounded-full transition-all duration-700 ease-out relative`}
             style={{ width: `${normalizedValue}%` }}
-          />
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse" />
+          </div>
         </div>
       </div>
 
-      {/* Tooltip */}
+      {/* Enhanced tooltip */}
       {explanation && showInfo && (
-        <div className="absolute top-full left-0 right-0 mt-2 p-4 bg-gray-900/95 backdrop-blur-sm border border-gray-700 rounded-xl shadow-xl z-20 transition-all duration-200">
-          <div className="text-sm text-white font-semibold mb-2">
+        <div className="absolute top-full left-0 right-0 mt-3 p-4 bg-[#0D1321]/95 backdrop-blur-md border-2 rounded-xl shadow-2xl z-30 transition-all duration-300 animate-fade-in-up"
+          style={{ borderColor: "#4A5568" }}>
+          <div className="text-sm text-white font-semibold mb-2 flex items-center gap-2">
+            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
             {explanation.label}
           </div>
           <div className="text-xs text-gray-300 mb-3 leading-relaxed">
@@ -178,24 +199,24 @@ const MetricCard: React.FC<MetricCardProps> = ({
           </div>
           <div className="flex flex-wrap gap-2 text-xs">
             <span
-              className={`px-2 py-1 rounded-md ${explanation.category === "technical"
-                ? "bg-blue-500/20 text-blue-400"
+              className={`px-3 py-1.5 rounded-lg font-medium ${explanation.category === "technical"
+                ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
                 : explanation.category === "social"
-                  ? "bg-purple-500/20 text-purple-400"
-                  : "bg-green-500/20 text-green-400"
+                  ? "bg-purple-500/20 text-purple-400 border border-purple-500/30"
+                  : "bg-green-500/20 text-green-400 border border-green-500/30"
                 }`}
             >
               {explanation.category}
             </span>
-            <span className="px-2 py-1 bg-gray-700/50 text-gray-300 rounded-md">
+            <span className="px-3 py-1.5 bg-gray-700/50 text-gray-300 rounded-lg border border-gray-600/50">
               {explanation.range}
             </span>
             <span
-              className={`px-2 py-1 rounded-md ${explanation.impact === "high"
-                ? "bg-red-500/20 text-red-400"
+              className={`px-3 py-1.5 rounded-lg font-medium ${explanation.impact === "high"
+                ? "bg-red-500/20 text-red-400 border border-red-500/30"
                 : explanation.impact === "medium"
-                  ? "bg-yellow-500/20 text-yellow-400"
-                  : "bg-green-500/20 text-green-400"
+                  ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                  : "bg-green-500/20 text-green-400 border border-green-500/30"
                 }`}
             >
               {explanation.impact} impact
@@ -702,9 +723,9 @@ const AllAgentsMarketplace: React.FC = () => {
   const getStrategyColor = (strategyType: string): string => {
     switch (strategyType) {
       case "Social-Driven":
-        return "from-purple-500 to-pink-500";
-      case "Momentum":
         return "from-blue-500 to-cyan-500";
+      case "Momentum":
+        return "from-indigo-500 to-indigo-600";
       case "Fundamental":
         return "from-green-500 to-emerald-500";
       default:
@@ -995,7 +1016,14 @@ const AllAgentsMarketplace: React.FC = () => {
 
   return (
     <div className="min-h-screen pb-[4rem]">
-      <div className="py-6 md:py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-3/4 left-1/2 w-64 h-64 bg-green-500/5 rounded-full blur-3xl animate-pulse delay-500" />
+      </div>
+
+      <div className="relative py-6 md:py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8 md:mb-12">
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent font-napzerRounded mb-4">
@@ -1008,7 +1036,7 @@ const AllAgentsMarketplace: React.FC = () => {
         </div>
 
         {/* Enhanced Stats Bar */}
-        <div className="bg-[#0D1321] rounded-2xl p-6 md:p-8 mb-10 border" style={{ borderColor: "#353940" }}>
+        <div className="bg-[#0d1321ca] rounded-2xl p-6 md:p-8 mb-10 border" style={{ borderColor: "#353940" }}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center group">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-200">
@@ -1022,10 +1050,10 @@ const AllAgentsMarketplace: React.FC = () => {
               </div>
             </div>
             <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-200">
+              <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-200">
                 <Star className="w-8 h-8 text-white" />
               </div>
-              <div className="text-3xl font-bold text-green-400 mb-1">
+              <div className="text-3xl font-bold text-indigo-400 mb-1">
                 {agents.reduce(
                   (sum, agent) => sum + agent.subscribedAccounts.length,
                   0,
@@ -1036,10 +1064,10 @@ const AllAgentsMarketplace: React.FC = () => {
               </div>
             </div>
             <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-200">
+              <div className="w-16 h-16 bg-gradient-to-r from-cyan-500 to-cyan-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-200">
                 <Zap className="w-8 h-8 text-white" />
               </div>
-              <div className="text-3xl font-bold text-purple-400 mb-1">
+              <div className="text-3xl font-bold text-cyan-400 mb-1">
                 {userSafeConfigs.length}
               </div>
               <div className="text-sm text-[#8ba1bc] font-medium">
@@ -1147,7 +1175,7 @@ const AllAgentsMarketplace: React.FC = () => {
 
         {/* Enhanced Agents Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-          {filteredAgents.map((agent) => {
+          {filteredAgents.map((agent, index) => {
             const strategyType = getAgentStrategyType(agent);
             const deployedTypes = getAgentDeployedTypes(agent._id);
             const availableTypes = getAvailableAgentTypes(agent._id);
@@ -1156,45 +1184,59 @@ const AllAgentsMarketplace: React.FC = () => {
             return (
               <div
                 key={agent._id}
-                className="group bg-[#0D1321] rounded-2xl p-6 border transition-all duration-300 hover:scale-[1.02]"
-                style={{ borderColor: "#353940" }}
+                className="group bg-[#0D1321] rounded-2xl p-6 border-2 transition-all duration-500 hover:scale-[1.03] shadow-2xl relative overflow-hidden animate-fade-in-up"
+                style={{
+                  borderColor: "#353940",
+                  animationDelay: `${index * 100}ms`
+                }}
               >
+                {/* Animated background gradient */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-100 transition-opacity duration-500 rounded-2xl" />
+
+                {/* Animated border glow */}
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 opacity-100 transition-opacity duration-500 blur-sm -z-10" style={{ padding: "2px" }}>
+                  <div className="w-full h-full bg-[#0D1321] rounded-2xl" />
+                </div>
                 {/* Agent Header */}
-                <div className="flex items-start justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-16 h-16 bg-gradient-to-br ${getStrategyColor(strategyType)} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}
-                    >
-                      <Users className="w-8 h-8 text-white" />
+                <div className="flex items-start justify-between mb-6 relative z-10">
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      <div
+                        className={`w-16 h-16 bg-gradient-to-br ${getStrategyColor(strategyType)} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}
+                      >
+                        <Users className="w-8 h-8 text-white group-hover:scale-110 transition-transform duration-300" />
+                      </div>
+                      {/* Animated ring around icon */}
+                      <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${getStrategyColor(strategyType)} opacity-0 group-hover:opacity-30 group-hover:scale-125 transition-all duration-500 blur-sm -z-10`} />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-white mb-1">
+                      <h3 className="text-lg font-bold text-white mb-2 group-hover:text-[#AAC9FA] transition-colors duration-300">
                         @{agent.twitterUsername}
                       </h3>
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 mb-3">
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${getStrategyColor(strategyType)} text-white`}
+                          className={`px-3 py-1.5 rounded-full text-xs font-medium bg-gradient-to-r ${getStrategyColor(strategyType)} text-white shadow-lg group-hover:shadow-xl transition-all duration-300`}
                         >
                           {strategyType}
                         </span>
                         {isOwn && (
-                          <span className="px-2 py-1 bg-gray-600/50 text-gray-300 rounded-full text-xs">
+                          <span className="px-2 py-1 bg-gradient-to-r from-gray-600/50 to-gray-700/50 text-gray-300 rounded-full text-xs border border-gray-600/50 group-hover:border-gray-500/50 transition-all duration-300">
                             Your Agent
                           </span>
                         )}
                       </div>
-                      <p className="text-[#8ba1bc] text-sm flex items-center gap-1">
-                        <Users className="w-3 h-3" />
+                      <p className="text-[#8ba1bc] text-sm flex items-center gap-2 group-hover:text-[#B8C5D1] transition-colors duration-300">
+                        <Users className="w-3 h-3 group-hover:scale-110 transition-transform duration-300" />
                         {agent.subscribedAccounts.length} subscriptions
                       </p>
                     </div>
                   </div>
 
                   {!isOwn && (
-                    <div className="text-right">
+                    <div className="text-right relative z-10">
                       {availableTypes.length === 0 ? (
-                        <div className="px-4 py-2 bg-green-500/20 text-green-400 rounded-xl text-sm font-medium border border-green-500/30">
-                          <CheckCircle className="w-4 h-4 inline mr-1" />
+                        <div className="px-4 py-2.5 bg-gradient-to-r from-green-500/20 to-green-600/20 text-green-400 rounded-xl text-sm font-medium border-2 border-green-500/30 group-hover:border-green-400/50 group-hover:shadow-lg transition-all duration-300 flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
                           All Deployed
                         </div>
                       ) : (
@@ -1206,15 +1248,19 @@ const AllAgentsMarketplace: React.FC = () => {
                               agentId: agent._id,
                             })
                           }
-                          className={`px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 hover:scale-105 shadow-lg ${availableTypes.length === 2
-                            ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600"
+                          className={`px-2 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2 hover:scale-110 shadow-lg group-hover:shadow-xl relative overflow-hidden ${availableTypes.length === 2
+                            ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700"
                             : "bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-600 hover:to-orange-600"
                             }`}
                         >
-                          <Rocket className="w-4 h-4" />
-                          {availableTypes.length === 2
-                            ? "Deploy Agent"
-                            : `Deploy ${availableTypes[0] === "perpetuals" ? "Perpetuals" : "Spot"}`}
+                          {/* Animated background */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          <Rocket className="w-4 h-4 relative z-10 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
+                          <span className="relative z-10">
+                            {availableTypes.length === 2
+                              ? "Deploy Agent"
+                              : `Deploy ${availableTypes[0] === "perpetuals" ? "Perpetuals" : "Spot"}`}
+                          </span>
                         </button>
                       )}
                     </div>
@@ -1287,7 +1333,7 @@ const AllAgentsMarketplace: React.FC = () => {
                 <DeployedSafeWallets agentId={agent._id} />
 
                 {/* Footer */}
-                <div className="flex items-center justify-between pt-4 border-t text-sm" style={{ borderColor: "#353940", color: "#8ba1bc" }}>
+                {/* <div className="flex items-center justify-between pt-4 border-t text-sm" style={{ borderColor: "#353940", color: "#8ba1bc" }}>
                   <span className="flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     Updated {formatDate(agent.updatedAt)}
@@ -1307,7 +1353,7 @@ const AllAgentsMarketplace: React.FC = () => {
                       ))}
                     </div>
                   )}
-                </div>
+                </div> */}
               </div>
             );
           })}
@@ -1362,6 +1408,24 @@ const AllAgentsMarketplace: React.FC = () => {
         agentId={deploymentModal.agentId}
         existingSafeConfigs={userSafeConfigs}
       />
+
+      <style jsx>{`
+        @keyframes fade-in-up {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-fade-in-up {
+          animation: fade-in-up 0.6s ease-out forwards;
+          opacity: 0;
+        }
+      `}</style>
     </div>
   );
 };
