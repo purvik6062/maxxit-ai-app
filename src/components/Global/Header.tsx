@@ -9,7 +9,7 @@ import { useCredits } from "@/context/CreditsContext";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import OnboardingModals from "./OnboardingModals";
-import { CustomizationOptions } from "./OnboardingModals";
+import { CustomizationOptions } from "./CustomizeAgentModal";
 
 // Navigation configuration
 const NAVIGATION_ITEMS = [
