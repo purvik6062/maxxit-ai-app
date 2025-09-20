@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { ProfileHeader } from "./ProfileHeader";
 import { SubscriptionsList } from "./SubscriptionsList";
 import type { UserProfile as UserProfileType } from "./types";
-import { Loader2, Eye, EyeOff, Copy, Key, AlertCircle } from "lucide-react";
+import { Loader2, Eye, EyeOff, Copy, Key, AlertCircle, Gift, Sparkles } from "lucide-react";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import ApiCredentialsSection from "./ApiCredentialSection";
@@ -311,7 +311,7 @@ const UserProfile = () => {
         </div>
 
         {/* Responsive grid layout */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-10 font-leagueSpartan ">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-10 font-leagueSpartan">
           {/* Profile Header - full width on mobile, sidebar on larger screens */}
           <div className="col-span-1 md:col-span-1">
             <ProfileHeader profile={profile} />
@@ -330,7 +330,10 @@ const UserProfile = () => {
                     aria-expanded={isDropdownOpen}
                     aria-haspopup="true"
                   >
-                    <span>{sectionDisplayText[activeSection]}</span>
+                    <span className="flex items-center gap-2">
+                      {activeSection === "refer" && <Gift className="w-4 h-4 text-yellow-400" />}
+                      {sectionDisplayText[activeSection]}
+                    </span>
                     <svg
                       className={`w-4 h-4 transform transition-transform ${isDropdownOpen ? "rotate-180" : ""
                         }`}
@@ -350,10 +353,10 @@ const UserProfile = () => {
                   {isDropdownOpen && (
                     <div className="absolute w-[calc(100%-3rem)] flex flex-col gap-1 mt-2 p-1 bg-[#0D1321] border border-[#353940] rounded-lg shadow-lg z-50" style={{ border: "1px solid #353940" }}>
                       {[
-                        { key: "subscriptions", label: "Subscriptions" },
-                        { key: "signals", label: "Signals" },
-                        { key: "api", label: "API Access" },
-                        { key: "refer", label: "Refer & Earn" },
+                        { key: "subscriptions", label: "Subscriptions", icon: null },
+                        { key: "signals", label: "Signals", icon: null },
+                        { key: "api", label: "API Access", icon: null },
+                        { key: "refer", label: "Refer & Earn", icon: Gift, special: true },
                       ].map((option) => (
                         <button
                           key={option.key}
@@ -367,12 +370,18 @@ const UserProfile = () => {
                             );
                             setIsDropdownOpen(false);
                           }}
-                          className={`w-full text-left px-4 py-2 text-sm font-medium rounded-lg ${activeSection === option.key
-                            ? "bg-[#1a2234] text-white"
-                            : "text-[#8ba1bc] hover:bg-[#1a2234] hover:text-white"
+                          className={`w-full text-left px-4 py-2 text-sm font-medium rounded-lg flex items-center gap-2 ${activeSection === option.key
+                            ? option.special
+                              ? "bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-300 border border-yellow-500/30"
+                              : "bg-[#1a2234] text-white"
+                            : option.special
+                              ? "text-yellow-400 hover:bg-gradient-to-r hover:from-yellow-500/10 hover:to-orange-500/10 hover:text-yellow-300"
+                              : "text-[#8ba1bc] hover:bg-[#1a2234] hover:text-white"
                             }`}
                         >
+                          {option.icon && <option.icon className="w-4 h-4" />}
                           {option.label}
+                          {option.special && activeSection === option.key && <Sparkles className="w-4 h-4 ml-auto animate-pulse" />}
                         </button>
                       ))}
                     </div>
@@ -415,41 +424,68 @@ const UserProfile = () => {
                       API Access
                     </button>
                     <button
-                      className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all ${activeSection === "refer"
-                        ? "bg-[#1a2234] text-white font-medium shadow-inner"
-                        : "text-[#8ba1bc] hover:text-white"
+                      className={`px-2 py-2.5 text-center text-sm md:text-base rounded-full transition-all relative group ${activeSection === "refer"
+                        ? "bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-300 font-medium shadow-inner border border-yellow-500/30"
+                        : "text-yellow-400 hover:text-yellow-300 hover:bg-gradient-to-r hover:from-yellow-500/10 hover:to-orange-500/10"
                         }`}
                       onClick={() => setActiveSection("refer")}
                     >
-                      Refer & Earn
+                      <span className="flex items-center justify-center gap-1">
+                        <Gift className="w-4 h-4" />
+                        Refer & Earn
+                        {activeSection === "refer" && <Sparkles className="w-4 h-4 animate-pulse" />}
+                      </span>
+                      {/* Highlight glow effect */}
+                      <div className={`absolute inset-0 rounded-full bg-gradient-to-r from-yellow-400/20 to-orange-400/20 blur-sm transition-opacity ${activeSection === "refer" ? "opacity-100" : "opacity-0 group-hover:opacity-50"
+                        }`}></div>
                     </button>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Conditionally Render Sections */}
-            {activeSection === "subscriptions" && (
-              <SubscriptionsList subscriptions={profile.subscribedAccounts} />
-            )}
-            {activeSection === "signals" && (
-              <UserSignals twitterId={session?.user.id} profile={profile} />
-            )}
-            {activeSection === "api" && (
-              <ApiCredentialsSection
-                apiKey={apiKey}
-                endpoint={
-                  process.env.NODE_ENV === "production"
-                    ? "https://app.maxxit.ai"
-                    : "https://app.maxxit.ai"
-                }
-                twitterId={session?.user.id}
-                onGenerateNewKey={handleNewKeyGenerated}
-                onApiKeyUpdate={handleApiKeyUpdate}
-                profile={profile}
-              />
-            )}
-            {activeSection === "refer" && <ReferAndEarn />}
+            {/* Conditionally Render Sections with special highlighting for Refer & Earn */}
+            <div className={`transition-all duration-300 ${activeSection === "refer"
+                ? "ring-2 ring-yellow-400/30 ring-offset-2 ring-offset-[#070915] rounded-xl"
+                : ""
+              }`}>
+              {activeSection === "subscriptions" && (
+                <SubscriptionsList subscriptions={profile.subscribedAccounts} />
+              )}
+              {activeSection === "signals" && (
+                <UserSignals twitterId={session?.user.id} profile={profile} />
+              )}
+              {activeSection === "api" && (
+                <ApiCredentialsSection
+                  apiKey={apiKey}
+                  endpoint={
+                    process.env.NODE_ENV === "production"
+                      ? "https://app.maxxit.ai"
+                      : "https://app.maxxit.ai"
+                  }
+                  twitterId={session?.user.id}
+                  onGenerateNewKey={handleNewKeyGenerated}
+                  onApiKeyUpdate={handleApiKeyUpdate}
+                  profile={profile}
+                />
+              )}
+              {activeSection === "refer" && (
+                <div className="relative">
+                  {/* Background highlight effect */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 via-orange-500/5 to-red-500/5 rounded-xl -z-10"></div>
+
+                  {/* Special header for Refer & Earn section */}
+                  <div className="py-6 text-center">
+                    <h2 className="text-2xl font-bold font-leagueSpartan bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
+                      Earn Rewards by Referring Friends!
+                    </h2>
+                    <p className="text-gray-300 mt-2">Share the love and get rewarded for every successful referral</p>
+                  </div>
+
+                  <ReferAndEarn />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

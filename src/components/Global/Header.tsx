@@ -18,7 +18,7 @@ const NAVIGATION_ITEMS = [
   {
     path: "/vault",
     label: "Public Vaults",
-    id: "public-vaults",
+    id: "vault",
     isExternal: false,
   },
   // { path: "/create-safe", label: "Safe", id: "create-safe" },
@@ -276,8 +276,8 @@ const Header: React.FC<HeaderProps> = () => {
   useEffect(() => {
     if (pathname?.includes("/influencer")) setActiveLink("influencer");
     else if (pathname?.includes("/create-vault")) setActiveLink("create-vault");
-    else if (pathname?.includes("/public-vaults"))
-      setActiveLink("public-vaults");
+    else if (pathname?.includes("/vault"))
+      setActiveLink("vault");
     else if (pathname?.includes("/create-safe")) setActiveLink("create-safe");
     else if (pathname?.includes("/agentic")) setActiveLink("agentic");
     else if (pathname?.includes("/agents-marketplace"))

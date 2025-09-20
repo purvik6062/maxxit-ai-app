@@ -226,13 +226,12 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
           <div className="bg-[#0D1321] border border-[rgba(206,212,218,0.15)] rounded-md p-3">
             <div className="flex items-center space-x-3">
               <div
-                className={`bg-[#1a1f29] border border-[rgba(206,212,218,0.15)] rounded-md p-2 ${
-                  weeklyStats?.totalPnL && weeklyStats.totalPnL >= 0
+                className={`bg-[#1a1f29] border border-[rgba(206,212,218,0.15)] rounded-md p-2 ${weeklyStats?.totalPnL && weeklyStats.totalPnL >= 0
                     ? "bg-green-500/10"
                     : weeklyStats?.totalPnL
-                    ? "bg-red-500/10"
-                    : ""
-                }`}
+                      ? "bg-red-500/10"
+                      : ""
+                  }`}
               >
                 {weeklyStats?.totalPnL && weeklyStats.totalPnL < 0 ? (
                   <TrendingDown className="w-5 h-5 text-red-400" />
@@ -247,16 +246,14 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
                 ) : (
                   <>
                     <p
-                      className={`text-xl font-semibold ${
-                        weeklyStats?.totalPnL && weeklyStats.totalPnL >= 0
+                      className={`text-xl font-semibold ${weeklyStats?.totalPnL && weeklyStats.totalPnL >= 0
                           ? "text-green-400"
                           : "text-red-400"
-                      }`}
+                        }`}
                     >
                       {weeklyStats?.totalPnL
-                        ? `${
-                            weeklyStats.totalPnL >= 0 ? "+" : ""
-                          }${weeklyStats.totalPnL.toFixed(2)}%`
+                        ? `${weeklyStats.totalPnL >= 0 ? "+" : ""
+                        }${weeklyStats.totalPnL.toFixed(2)}%`
                         : "N/A"}
                     </p>
                   </>
@@ -309,9 +306,8 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
                     </div>
                     {/* Dropdown Content */}
                     <div
-                      className={`overflow-hidden transition-all duration-300 ${
-                        isOpen ? "max-h-40 p-3" : "max-h-0"
-                      }`}
+                      className={`overflow-hidden transition-all duration-300 ${isOpen ? "max-h-40 p-3" : "max-h-0"
+                        }`}
                     >
                       <div className="space-y-2">
                         <div className="flex items-center text-[#4b5563]">
@@ -334,13 +330,13 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
                           <span className="text-sm font-medium text-[#111827]">
                             {sub?.expiryDate
                               ? new Date(sub.expiryDate).toLocaleDateString(
-                                  "en-US",
-                                  {
-                                    year: "numeric",
-                                    month: "short",
-                                    day: "numeric",
-                                  }
-                                )
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                }
+                              )
                               : "Apr 23, 2025"}
                           </span>
                         </div>
@@ -405,10 +401,10 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
                     <span className="text-sm font-medium text-[#111827]">
                       {sub?.expiryDate
                         ? new Date(sub.expiryDate).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          })
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })
                         : "Apr 23, 2025"}
                     </span>
                   </div>
@@ -438,11 +434,10 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
           <div className="flex items-center space-x-2">
             {/* Previous Button */}
             <button
-              className={`bg-[#1C2333] border border-[rgba(206,212,218,0.15)] rounded-md p-2 text-[#AAC9FA] text-sm font-medium transition-colors ${
-                currentPage === 1
+              className={`bg-[#1C2333] border border-[rgba(206,212,218,0.15)] rounded-md p-2 text-[#AAC9FA] text-sm font-medium transition-colors ${currentPage === 1
                   ? "opacity-50 cursor-not-allowed"
                   : "hover:bg-[#AAC9FA] hover:text-[#1C2333]"
-              }`}
+                }`}
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
             >
@@ -454,11 +449,10 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
               typeof page === "number" ? (
                 <button
                   key={page}
-                  className={`px-3 py-1 h-full text-sm font-medium rounded-md border border-[rgba(206,212,218,0.15)] transition-colors ${
-                    currentPage === page
+                  className={`px-3 py-1 h-full text-sm font-medium rounded-md border border-[rgba(206,212,218,0.15)] transition-colors ${currentPage === page
                       ? "bg-[#AAC9FA] text-[#1C2333]"
                       : "bg-[#1C2333] text-[#AAC9FA] hover:bg-[#AAC9FA] hover:text-[#1C2333]"
-                  }`}
+                    }`}
                   onClick={() => handlePageChange(page)}
                 >
                   {page}
@@ -475,11 +469,10 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
 
             {/* Next Button */}
             <button
-              className={`bg-[#1C2333] border border-[rgba(206,212,218,0.15)] rounded-md p-2 text-[#AAC9FA] text-sm font-medium transition-colors ${
-                currentPage === totalPages
+              className={`bg-[#1C2333] border border-[rgba(206,212,218,0.15)] rounded-md p-2 text-[#AAC9FA] text-sm font-medium transition-colors ${currentPage === totalPages
                   ? "opacity-50 cursor-not-allowed"
                   : "hover:bg-[#AAC9FA] hover:text-[#1C2333]"
-              }`}
+                }`}
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
             >

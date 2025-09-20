@@ -442,7 +442,7 @@ const MyAgent: React.FC = () => {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 text-blue-500 animate-spin mx-auto mb-4" />
           <p className="text-gray-400">Loading your agent...</p>
@@ -574,11 +574,11 @@ const MyAgent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 py-8 px-4">
+    <div className="min-h-screen py-8 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold mb-4 font-napzerRounded bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent">
             My Agent Configuration
           </h1>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
@@ -594,7 +594,7 @@ const MyAgent: React.FC = () => {
                 <Users className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-white">@{agentData.twitterUsername}</h2>
+                <h2 className="text-xl font-bold text-white font-leagueSpartan">@{agentData.twitterUsername}</h2>
                 <p className="text-gray-400">Personal Trading Agent</p>
               </div>
             </div>
@@ -642,7 +642,7 @@ const MyAgent: React.FC = () => {
           {/* Agent Configuration */}
           <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-white flex items-center gap-2">
+              <h3 className="font-leagueSpartan text-xl font-semibold text-white flex items-center gap-2">
                 <Settings className="w-5 h-5 text-blue-400" />
                 Agent Configuration
                 {isEditing && (
@@ -732,7 +732,7 @@ const MyAgent: React.FC = () => {
           {/* Subscribed Accounts */}
           <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-white flex items-center gap-2">
+              <h3 className="font-leagueSpartan text-xl font-semibold text-white flex items-center gap-2">
                 <Users className="w-5 h-5 text-purple-400" />
                 Subscribed Accounts
               </h3>

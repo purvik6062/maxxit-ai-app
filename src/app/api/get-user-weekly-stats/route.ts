@@ -21,14 +21,16 @@ export async function GET(request: Request): Promise<Response> {
     const db = client.db("ctxbt-signal-flow");
     const usersCollection = db.collection("users");
     const tradingSignalsCollection = db.collection("trading-signals");
-    
+
     // For backtesting data
     const backtestingDb = client.db("backtesting_db");
-    const backtestingCollection = backtestingDb.collection("backtesting_results_with_reasoning");
+    const backtestingCollection = backtestingDb.collection(
+      "backtesting_results_with_reasoning"
+    );
 
     // Get user profile with subscriptions
     const userProfile = await usersCollection.findOne({ twitterId });
-    
+
     if (!userProfile) {
       return NextResponse.json(
         { success: false, error: { message: "User not found" } },
@@ -40,11 +42,11 @@ export async function GET(request: Request): Promise<Response> {
     const now = new Date();
     const currentDay = now.getDay(); // 0 for Sunday, 1 for Monday, etc.
     const daysSinceMonday = currentDay === 0 ? 6 : currentDay - 1; // Adjust to make Monday the first day
-    
+
     const weekStart = new Date(now);
     weekStart.setDate(now.getDate() - daysSinceMonday);
     weekStart.setHours(0, 0, 0, 0);
-    
+
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 6);
     weekEnd.setHours(23, 59, 59, 999);
@@ -99,16 +101,16 @@ export async function GET(request: Request): Promise<Response> {
       const pnlString = result["Final P&L"];
       if (pnlString) {
         exitedTradesCount++;
-        
+
         // Extract numeric value from PnL string (e.g., "+12.45%" → 12.45)
         // This matches the totalPnL.js approach - simply remove % and parse
-        const pnlValue = parseFloat(pnlString.replace('%', ''));
+        const pnlValue = parseFloat(pnlString.replace("%", ""));
         const isProfit = pnlValue >= 0;
-        
+
         if (isProfit) {
           profitableTradesCount++;
         }
-        
+
         // Add to total with the correct sign (already included in the parsed value)
         totalPnL += pnlValue;
       }
@@ -123,7 +125,7 @@ export async function GET(request: Request): Promise<Response> {
       const coin = signal.coin;
       const key = `${tweetLink}:${coin}`;
       const backtestResult = backtestingMap.get(key);
-      
+
       // Process PnL value to ensure consistent format
       let pnlValue = null;
       if (backtestResult && backtestResult["Final P&L"]) {
@@ -131,7 +133,7 @@ export async function GET(request: Request): Promise<Response> {
         // This matches the totalPnL.js approach
         pnlValue = backtestResult["Final P&L"];
       }
-      
+
       return {
         id: signal._id.toString(),
         coin: signal.coin,
@@ -142,7 +144,10 @@ export async function GET(request: Request): Promise<Response> {
         pnl: pnlValue,
         entryPrice: backtestResult ? backtestResult["Entry Price"] : null,
         exitPrice: backtestResult ? backtestResult["Final Exit Price"] : null,
-        status: backtestResult && backtestResult["Final Exit Price"] ? "exited" : "active"
+        status:
+          backtestResult && backtestResult["Final Exit Price"]
+            ? "exited"
+            : "active",
       };
     });
 
@@ -158,7 +163,7 @@ export async function GET(request: Request): Promise<Response> {
           weekStart: weekStart.toISOString(),
           weekEnd: weekEnd.toISOString(),
         },
-        weeklySignalsWithPnL
+        weeklySignalsWithPnL,
       },
     });
   } catch (error) {
@@ -176,4 +181,4 @@ export async function GET(request: Request): Promise<Response> {
       { status: 500 }
     );
   }
-} 
+}

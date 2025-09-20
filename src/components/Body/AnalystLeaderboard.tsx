@@ -22,9 +22,9 @@ import {
   ChevronUp,
   Shield,
   Users,
-  ArrowUpDown,
   X,
   Search,
+  Filter
 } from "lucide-react";
 import { LuWandSparkles } from "react-icons/lu";
 import { useSession } from "next-auth/react";
@@ -368,8 +368,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
       <div
         key={agent.twitterHandle}
         className={`impact-card list-item relative ${isCurrentUser
-            ? "bg-gradient-to-br from-gray-900 via-blue-950/80 to-gray-900 border-blue-500/60 shadow-[0_0_15px_rgba(59,130,246,0.4)] hover:scale-[1.01] hover:shadow-[0_0_25px_rgba(59,130,246,0.7)]"
-            : "bg-gray-900/50 border-gray-800/50 hover:bg-cyan-950"
+          ? "bg-gradient-to-br from-gray-900 via-blue-950/80 to-gray-900 border-blue-500/60 shadow-[0_0_15px_rgba(59,130,246,0.4)] hover:scale-[1.01] hover:shadow-[0_0_25px_rgba(59,130,246,0.7)]"
+          : "bg-gray-900/50 border-gray-800/50 hover:bg-cyan-950"
           } backdrop-blur-sm border rounded-lg overflow-hidden transition-all duration-200 hover:cursor-pointer`}
         onClick={() => window.open(`/influencer/${cleanHandle}`, "_blank")}
       >
@@ -489,8 +489,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             <div className="w-24 flex justify-center">
               <button
                 className={`flex items-center justify-center px-3 py-1.5 rounded-lg text-xs w-full transition-all duration-300 whitespace-nowrap shadow-md ${isSubscribed || isCurrentlySubscribing
-                    ? "bg-gradient-to-r from-green-600/50 to-green-500/50 text-green-200 border border-green-500/30"
-                    : "bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-600 hover:to-blue-500 text-white border border-blue-500/50 hover:shadow-[0_0_15px_rgba(59,130,246,0.4)]"
+                  ? "bg-gradient-to-r from-green-600/50 to-green-500/50 text-green-200 border border-green-500/30"
+                  : "bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-600 hover:to-blue-500 text-white border border-blue-500/50 hover:shadow-[0_0_15px_rgba(59,130,246,0.4)]"
                   } ${isCurrentlySubscribing ? "animate-pulse" : ""}`}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -612,7 +612,7 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
     mode === "impact" ? "Impact Factor Rankings" : "Market Heartbeat Dashboard";
   const description =
     mode === "impact"
-      ? "Discover crypto analysts ranked by their market influence and prediction accuracy"
+      ? "Discover crypto analysts ranked by their market influence and prediction accuracy. Track analyst influence based on market impact metrics. Higher scores indicate stronger market correlation."
       : "Discover analysts ranked by their real-time market pulse";
   const primaryLabel = mode === "impact" ? "Impact" : "Beat";
   const primaryIcon = mode === "impact" ? LuWandSparkles : HeartPulse;
@@ -690,104 +690,53 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             </span>
           </div>
           <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2 sm:mt-0 items-center">
-            <div className="relative group">
-              <ArrowUpDown className="w-3 h-3 sm:w-4 sm:h-4 text-cyan-500 cursor-help" />
-              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-2 py-1 sm:px-3 sm:py-2 bg-gray-800 text-gray-200 text-[10px] sm:text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                Tap to sort analysts
+            <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2 sm:mt-0 items-center">
+              <div className="relative group">
+                <Filter className="w-3 h-3 sm:w-4 sm:h-4 text-cyan-500 cursor-help" />
+                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-2 py-1 sm:px-3 sm:py-2 bg-gray-800 text-gray-200 text-[10px] sm:text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                  Select sort criteria
+                </div>
               </div>
-            </div>
-            <div
-              onClick={() => sortAgents(primaryField)}
-              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${effectiveSortField === primaryField
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-                }`}
-            >
-              {React.createElement(primaryIcon, { size: 12 })}
-              <span>{mode === "impact" ? "Impact" : "Heartbeat"}</span>
-              {effectiveSortField === primaryField &&
-                (sortDirection === "asc" ? (
-                  <FaChevronUp className="ml-1 w-3 h-3" />
-                ) : (
-                  <FaChevronDown className="ml-1 w-3 h-3" />
-                ))}
-            </div>
-            <div
-              onClick={() => sortAgents("mindshare")}
-              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${userSortField === "mindshare"
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-                }`}
-            >
-              <BarChart2 size={12} />
-              <span>Mindshare</span>
-              {userSortField === "mindshare" &&
-                (sortDirection === "asc" ? (
-                  <FaChevronUp className="ml-1 w-3 h-3" />
-                ) : (
-                  <FaChevronDown className="ml-1 w-3 h-3" />
-                ))}
-            </div>
-            <div
-              onClick={() => sortAgents("followers")}
-              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${userSortField === "followers"
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-                }`}
-            >
-              <Users size={12} />
-              <span>Followers</span>
-              {userSortField === "followers" &&
-                (sortDirection === "asc" ? (
-                  <FaChevronUp className="ml-1 w-3 h-3" />
-                ) : (
-                  <FaChevronDown className="ml-1 w-3 h-3" />
-                ))}
-            </div>
-            <div
-              onClick={() => sortAgents("herdedVsHidden")}
-              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${userSortField === "herdedVsHidden"
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-                }`}
-            >
-              <span>Herded-Hidden</span>
-              {userSortField === "herdedVsHidden" &&
-                (sortDirection === "asc" ? (
-                  <FaChevronUp className="ml-1 w-3 h-3" />
-                ) : (
-                  <FaChevronDown className="ml-1 w-3 h-3" />
-                ))}
-            </div>
-            <div
-              onClick={() => sortAgents("convictionVsHype")}
-              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${userSortField === "convictionVsHype"
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-                }`}
-            >
-              <span>Conviction-Hype</span>
-              {userSortField === "convictionVsHype" &&
-                (sortDirection === "asc" ? (
-                  <FaChevronUp className="ml-1 w-3 h-3" />
-                ) : (
-                  <FaChevronDown className="ml-1 w-3 h-3" />
-                ))}
-            </div>
-            <div
-              onClick={() => sortAgents("memeVsInstitutional")}
-              className={`px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs rounded-md cursor-pointer flex items-center gap-1 ${userSortField === "memeVsInstitutional"
-                  ? "bg-blue-900/50 text-blue-300"
-                  : "bg-gray-800/50 text-gray-400 hover:bg-gray-800"
-                }`}
-            >
-              <span>Meme-Institutional</span>
-              {userSortField === "memeVsInstitutional" &&
-                (sortDirection === "asc" ? (
-                  <FaChevronUp className="ml-1 w-3 h-3" />
-                ) : (
-                  <FaChevronDown className="ml-1 w-3 h-3" />
-                ))}
+
+              <div className="flex items-center gap-2 text-[10px] sm:text-xs">
+                <span className="text-gray-400">Sort by:</span>
+
+                <div className="relative">
+                  <select
+                    value={effectiveSortField}
+                    onChange={(e) => sortAgents(e.target.value as SortField)}
+                    className="bg-gray-800 text-gray-300 border border-gray-700 rounded px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs focus:border-cyan-400 focus:outline-none appearance-none pr-6 sm:pr-8 cursor-pointer hover:bg-gray-700 transition-colors"
+                  >
+                    <option value={primaryField}>
+                      {mode === "impact" ? "Impact" : "Heartbeat"}
+                    </option>
+                    <option value="mindshare">Mindshare</option>
+                    <option value="followers">Followers</option>
+                    <option value="herdedVsHidden">Herded-Hidden</option>
+                    <option value="convictionVsHype">Conviction-Hype</option>
+                    <option value="memeVsInstitutional">Meme-Institutional</option>
+                  </select>
+                  <FaChevronDown className="absolute right-1.5 sm:right-2 top-1/2 transform -translate-y-1/2 w-2 h-2 sm:w-3 sm:h-3 text-gray-400 pointer-events-none" />
+                </div>
+
+                <button
+                  onClick={() => {
+                    // Toggle sort direction for current field
+                    const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                    // You'll need to update your sortAgents function to handle direction changes
+                    // or create a separate function for this
+                    sortAgents(effectiveSortField);
+                  }}
+                  className="text-gray-400 hover:text-cyan-300 transition-colors p-1 rounded hover:bg-gray-800"
+                  title={`Sort ${sortDirection === 'asc' ? 'descending' : 'ascending'}`}
+                >
+                  {sortDirection === 'asc' ? (
+                    <FaChevronUp className="w-3 h-3 sm:w-4 sm:h-4" />
+                  ) : (
+                    <FaChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -815,10 +764,10 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
             <div
               key={agent.twitterHandle}
               className={`impact-card top-card relative overflow-hidden rounded-lg border ${rank === 1
-                  ? "border-yellow-500/30"
-                  : rank === 2
-                    ? "border-gray-400/30"
-                    : "border-amber-700/30"
+                ? "border-yellow-500/30"
+                : rank === 2
+                  ? "border-gray-400/30"
+                  : "border-amber-700/30"
                 } bg-gradient-to-br from-gray-900/80 via-gray-900/60 to-blue-900/20 backdrop-blur-sm min-w-0`}
               onClick={() =>
                 window.open(`/influencer/${cleanHandle}`, "_blank")
@@ -841,10 +790,10 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                       <div className="absolute inset-0.5 rounded-full bg-gray-900/80"></div>
                       <FaTrophy
                         className={`relative w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 ${rank === 1
-                            ? "text-yellow-300"
-                            : rank === 2
-                              ? "text-gray-300"
-                              : "text-amber-700"
+                          ? "text-yellow-300"
+                          : rank === 2
+                            ? "text-gray-300"
+                            : "text-amber-700"
                           }`}
                       />
                     </div>
@@ -960,8 +909,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                 )}
                 <div
                   className={`transition-all duration-300 overflow-hidden ${showStats[agent.twitterHandle]
-                      ? "max-h-[500px] opacity-100 mb-3 sm:mb-4"
-                      : "max-h-0 opacity-0"
+                    ? "max-h-[500px] opacity-100 mb-3 sm:mb-4"
+                    : "max-h-0 opacity-0"
                     }`}
                 >
                   <div className="grid grid-cols-3 gap-1 sm:gap-2 mb-2 sm:mb-3">
@@ -1219,8 +1168,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                 </button>
                 <button
                   className={`w-full flex items-center justify-center gap-1 sm:gap-2 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs lg:text-sm font-medium ${isSubscribed || isCurrentlySubscribing
-                      ? "bg-green-600/30 text-green-300"
-                      : "bg-gradient-to-r from-blue-700 to-cyan-700 hover:from-cyan-700 hover:to-blue-800 text-white"
+                    ? "bg-green-600/30 text-green-300"
+                    : "bg-gradient-to-r from-blue-700 to-cyan-700 hover:from-cyan-700 hover:to-blue-800 text-white"
                     } transition-all duration-200 ${isCurrentlySubscribing ? "animate-pulse" : ""
                     }`}
                   onClick={(e) => {
@@ -1310,8 +1259,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                 <div
                   key={agent.twitterHandle}
                   className={`impact-card list-item relative ${isCurrentUser
-                      ? "bg-gradient-to-br from-gray-900 via-blue-950/80 to-gray-900 border-blue-500/60 shadow-[0_0_15px_rgba(59,130,246,0.4)] hover:scale-[1.01] hover:shadow-[0_0_25px_rgba(59,130,246,0.7)]"
-                      : "bg-gray-900/50 border-gray-800/50 hover:bg-cyan-950"
+                    ? "bg-gradient-to-br from-gray-900 via-blue-950/80 to-gray-900 border-blue-500/60 shadow-[0_0_15px_rgba(59,130,246,0.4)] hover:scale-[1.01] hover:shadow-[0_0_25px_rgba(59,130,246,0.7)]"
+                    : "bg-gray-900/50 border-gray-800/50 hover:bg-cyan-950"
                     } backdrop-blur-sm border rounded-lg overflow-hidden transition-all duration-200 hover:cursor-pointer`}
                   onClick={() =>
                     window.open(`/influencer/${cleanHandle}`, "_blank")
@@ -1427,8 +1376,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                       <div className="w-24 flex justify-center">
                         <button
                           className={`flex items-center justify-center px-2 py-1.5 rounded-md text-xs w-full ${isSubscribed || isCurrentlySubscribing
-                              ? "bg-green-500/20 text-green-300"
-                              : "bg-blue-600/80 hover:bg-blue-700 text-white"
+                            ? "bg-green-500/20 text-green-300"
+                            : "bg-blue-600/80 hover:bg-blue-700 text-white"
                             } transition-all duration-200 whitespace-nowrap ${isCurrentlySubscribing ? "animate-pulse" : ""
                             }`}
                           onClick={(e) => {
@@ -1553,8 +1502,8 @@ const AnalystLeaderboard: React.FC<AnalystLeaderboardProps> = ({
                           )
                         }
                         className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 shadow-lg ${currentPage === page
-                            ? "bg-gradient-to-br from-blue-600 to-cyan-600 text-white shadow-blue-900/30"
-                            : "bg-gradient-to-br from-gray-700 to-blue-900 text-gray-300 hover:text-white hover:shadow-blue-900/30"
+                          ? "bg-gradient-to-br from-blue-600 to-cyan-600 text-white shadow-blue-900/30"
+                          : "bg-gradient-to-br from-gray-700 to-blue-900 text-gray-300 hover:text-white hover:shadow-blue-900/30"
                           }`}
                       >
                         {page}
