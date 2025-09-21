@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Shield } from "lucide-react";
-import { useWallet } from "@/components/enzyme/WalletConnector";
+import { useAccount, useChainId } from "wagmi";
 import { useSafeWallet } from "./hooks/useSafeWallet";
 import { ExistingSafeDisplay } from "./components/ExistingSafeDisplay";
 import { SafeDeploymentForm } from "./components/SafeDeploymentForm";
@@ -17,7 +17,16 @@ interface SafeWalletDeploymentProps {
 export const SafeWalletDeployment: React.FC<SafeWalletDeploymentProps> = ({
   className = "",
 }) => {
-  const { account, isCorrectNetwork } = useWallet();
+  const { address: account, isConnected } = useAccount();
+  const chainId = useChainId();
+  
+  // Supported testnet chain IDs
+  const ARBITRUM_SEPOLIA_CHAIN_ID = 421614;
+  const ETHEREUM_SEPOLIA_CHAIN_ID = 11155111;
+  const ARBITRUM_MAINNET_CHAIN_ID = 42161;
+  const SUPPORTED_CHAIN_IDS = [ARBITRUM_SEPOLIA_CHAIN_ID, ETHEREUM_SEPOLIA_CHAIN_ID, ARBITRUM_MAINNET_CHAIN_ID];
+  const isCorrectNetwork = chainId ? SUPPORTED_CHAIN_IDS.includes(chainId) : false;
+  
   const {
     isDeploying,
     deploymentStatus,
@@ -32,6 +41,11 @@ export const SafeWalletDeployment: React.FC<SafeWalletDeploymentProps> = ({
     handleRefresh,
     checkExistingSafe,
   } = useSafeWallet();
+
+  console.error("🚀 SafeWalletDeployment - hook values:");
+  console.error("canDeploy from hook:", canDeploy);
+  console.error("isDeploying:", isDeploying);
+  console.error("existingSafe:", existingSafe);
 
   return (
     <div className={`min-h-screen py-12 px-4 font-leagueSpartan ${className}`}>
@@ -50,7 +64,7 @@ export const SafeWalletDeployment: React.FC<SafeWalletDeploymentProps> = ({
         </div>
 
         {/* Loading state */}
-        {isCheckingSafe && account && isCorrectNetwork && (
+        {isCheckingSafe && isConnected && isCorrectNetwork && (
           <LoadingState
             title="Checking Safe Status"
             description="Verifying if your wallet already has a Safe account..."

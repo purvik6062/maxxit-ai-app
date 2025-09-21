@@ -1,7 +1,6 @@
 import React from "react";
 import { useSession } from "next-auth/react";
-import { useWallet } from "@/components/enzyme/WalletConnector";
-import { WalletConnector } from "@/components/enzyme/WalletConnector";
+import { useAccount, useChainId } from "wagmi";
 import {
   Shield,
   CheckCircle,
@@ -32,7 +31,21 @@ export const SafeDeploymentForm: React.FC<SafeDeploymentFormProps> = ({
   agentType,
 }) => {
   const { data: session } = useSession();
-  const { account, isCorrectNetwork } = useWallet();
+  const { address: account, isConnected } = useAccount();
+  const chainId = useChainId();
+  
+  // Supported testnet chain IDs
+  const ARBITRUM_SEPOLIA_CHAIN_ID = 421614;
+  const ETHEREUM_SEPOLIA_CHAIN_ID = 11155111;
+  const ARBITRUM_MAINNET_CHAIN_ID = 42161;
+  const SUPPORTED_CHAIN_IDS = [ARBITRUM_SEPOLIA_CHAIN_ID, ETHEREUM_SEPOLIA_CHAIN_ID, ARBITRUM_MAINNET_CHAIN_ID];
+  const isCorrectNetwork = chainId ? SUPPORTED_CHAIN_IDS.includes(chainId) : false;
+  
+  console.log("account::::", account);
+  console.log("isConnected::::", isConnected);
+  console.log("chainId::::", chainId);
+  console.log("isCorrectNetwork::::", isCorrectNetwork);
+  console.log("canDeploy prop received:", canDeploy);
 
   const getStatusIconComponent = () => {
     switch (deploymentStatus) {
@@ -131,7 +144,7 @@ export const SafeDeploymentForm: React.FC<SafeDeploymentFormProps> = ({
       )}
 
       {/* Wallet Connector */}
-      {!account && (
+      {!isConnected && (
         <div className="mt-8 flex justify-center">
           <ConnectButton />
         </div>
@@ -146,7 +159,7 @@ export const SafeDeploymentForm: React.FC<SafeDeploymentFormProps> = ({
               <h3 className="font-bold text-amber-300 mb-2">Requirements Checklist</h3>
               <ul className="text-sm text-amber-200 space-y-1">
                 {!session?.user?.id && <li>• Connect your Twitter account for identity verification</li>}
-                {!account && <li>• Connect your wallet to enable deployment</li>}
+                {!isConnected && <li>• Connect your wallet to enable deployment</li>}
                 {!isCorrectNetwork && <li>• Switch to a supported network (Arbitrum Sepolia or Ethereum Sepolia)</li>}
               </ul>
             </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { useWallet } from "@/components/enzyme/WalletConnector";
+import { useAccount, useChainId } from "wagmi";
 import { SafeData, SafeDeploymentResponse, IUserInfo } from "../types";
 import toast from "react-hot-toast";
 
@@ -11,8 +11,16 @@ interface UseAgentSafeDeploymentOptions {
 
 export const useAgentSafeDeployment = (options?: UseAgentSafeDeploymentOptions) => {
   const { data: session } = useSession();
-  const { account, isCorrectNetwork, chainId } = useWallet();
+  const { address: account, isConnected } = useAccount();
+  const chainId = useChainId();
   const { agentId, agentType } = options || {};
+  
+  // Supported testnet chain IDs
+  const ARBITRUM_SEPOLIA_CHAIN_ID = 421614;
+  const ETHEREUM_SEPOLIA_CHAIN_ID = 11155111;
+  const ARBITRUM_MAINNET_CHAIN_ID = 42161;
+  const SUPPORTED_CHAIN_IDS = [ARBITRUM_SEPOLIA_CHAIN_ID, ETHEREUM_SEPOLIA_CHAIN_ID, ARBITRUM_MAINNET_CHAIN_ID];
+  const isCorrectNetwork = chainId ? SUPPORTED_CHAIN_IDS.includes(chainId) : false;
 
   // Deployment states
   const [isDeploying, setIsDeploying] = useState(false);
@@ -38,7 +46,7 @@ export const useAgentSafeDeployment = (options?: UseAgentSafeDeploymentOptions) 
     84532: "base_sepolia",
   };
 
-  const currentNetworkKey = chainIdToNetworkKey[chainId || 0];
+  const currentNetworkKey = chainId ? chainIdToNetworkKey[chainId] : undefined;
 
   // For agent deployments, we allow creating new Safes even if one exists
   // The business logic is handled at the agent configuration level

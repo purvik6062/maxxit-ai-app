@@ -1,12 +1,20 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { useWallet } from "@/components/enzyme/WalletConnector";
+import { useAccount, useChainId } from "wagmi";
 import { SafeData, SafeDeploymentResponse, IUserInfo } from "../types";
 import toast from "react-hot-toast";
 
 export const useSafeWallet = () => {
   const { data: session } = useSession();
-  const { account, isCorrectNetwork, chainId } = useWallet();
+  const { address: account, isConnected } = useAccount();
+  const chainId = useChainId();
+  
+  // Supported testnet chain IDs
+  const ARBITRUM_SEPOLIA_CHAIN_ID = 421614;
+  const ETHEREUM_SEPOLIA_CHAIN_ID = 11155111;
+  const ARBITRUM_MAINNET_CHAIN_ID = 42161;
+  const SUPPORTED_CHAIN_IDS = [ARBITRUM_SEPOLIA_CHAIN_ID, ETHEREUM_SEPOLIA_CHAIN_ID, ARBITRUM_MAINNET_CHAIN_ID];
+  const isCorrectNetwork = chainId ? SUPPORTED_CHAIN_IDS.includes(chainId) : false;
 
   // Deployment states
   const [isDeploying, setIsDeploying] = useState(false);
@@ -31,7 +39,7 @@ export const useSafeWallet = () => {
     84532: "base_sepolia",
   };
 
-  const currentNetworkKey = chainIdToNetworkKey[chainId || 0];
+  const currentNetworkKey = chainId ? chainIdToNetworkKey[chainId] : undefined;
   const canExpandNetwork =
     existingSafe && currentNetworkKey
       ? !existingSafe.metadata?.activeNetworks?.includes(currentNetworkKey)
@@ -171,6 +179,18 @@ export const useSafeWallet = () => {
       !isDeploying &&
       !existingSafe
   );
+
+  // Debug logging to see what's preventing deployment
+  console.error("🔍 DEBUGGING canDeploy - START");
+  console.error("session?.user?.id:", session?.user?.id);
+  console.error("account:", account);
+  console.error("isConnected:", isConnected);
+  console.error("isCorrectNetwork:", isCorrectNetwork);
+  console.error("chainId:", chainId);
+  console.error("isDeploying:", isDeploying);
+  console.error("existingSafe:", existingSafe);
+  console.error("canDeploy RESULT:", canDeploy);
+  console.error("🔍 DEBUGGING canDeploy - END");
 
   // Reset all states when dependencies change
   const resetAllStates = () => {
