@@ -584,8 +584,19 @@ const AllAgentsMarketplace: React.FC = () => {
   useEffect(() => {
     const fetchAgents = async () => {
       try {
+        const start = performance.now();
+        console.log("[AllAgentsMarketplace] Fetch(/api/all-agents) started");
         const response = await fetch("/api/all-agents");
+        const httpMs = performance.now() - start;
+        const jsonStart = performance.now();
         const data = await response.json();
+        const jsonMs = performance.now() - jsonStart;
+        console.log("[AllAgentsMarketplace] Fetch(/api/all-agents) completed", {
+          httpMs: Math.round(httpMs),
+          jsonParseMs: Math.round(jsonMs),
+          status: response.status,
+          totalAgents: data?.data?.totalAgents ?? (Array.isArray(data?.data) ? data.data.length : undefined),
+        });
 
         if (!data.success) {
           if (data.error?.retryable) {
@@ -611,8 +622,20 @@ const AllAgentsMarketplace: React.FC = () => {
   useEffect(() => {
     const fetchUserSafeConfigs = async () => {
       try {
+        const start = performance.now();
+        console.log("[AllAgentsMarketplace] Fetch(/api/user-agents) started");
         const response = await fetch("/api/user-agents");
+        const httpMs = performance.now() - start;
+        const jsonStart = performance.now();
         const data = await response.json();
+        const jsonMs = performance.now() - jsonStart;
+        console.log("[AllAgentsMarketplace] Fetch(/api/user-agents) completed", {
+          httpMs: Math.round(httpMs),
+          jsonParseMs: Math.round(jsonMs),
+          status: response.status,
+          hasData: !!data?.success,
+          safeConfigsCount: data?.data?.safeConfigs?.length,
+        });
 
         if (data.success) {
           setUserSafeConfigs(data.data.safeConfigs || []);

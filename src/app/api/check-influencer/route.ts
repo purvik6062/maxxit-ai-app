@@ -6,6 +6,7 @@ import { MongoClient } from "mongodb";
 export async function POST(request: Request) {
   let client: MongoClient;
   try {
+    const handlerStartMs = Date.now();
     const { username } = await request.json();
     console.log("api check-influencer", username);
 
@@ -15,30 +16,75 @@ export async function POST(request: Request) {
 
     client = await dbConnect();
     const database = client.db("ctxbt-signal-flow");
-    const collection = database.collection("influencers"); 
+    const collection = database.collection("influencers");
 
-    const user = await collection.findOne({ twitterHandle: username });
+    const aggStartMs = Date.now();
+    const docs = await collection
+      .aggregate([
+        { $match: { twitterHandle: username } },
+        {
+          $project: {
+            twitterHandle: 1,
+            walletAddress: 1,
+            subscribersCount: { $size: { $ifNull: ["$subscribers", []] } },
+            creditAmount: 1,
+            creditExpiry: 1,
+            tweetsCount: { $size: { $ifNull: ["$tweets", []] } },
+            monthlyPayouts: 1,
+          },
+        },
+        {
+          $addFields: {
+            latestPayout: {
+              $let: {
+                vars: {
+                  sorted: {
+                    $slice: [
+                      {
+                        $sortArray: {
+                          input: { $ifNull: ["$monthlyPayouts", []] },
+                          sortBy: { updatedAt: 1 },
+                        },
+                      },
+                      -1,
+                    ],
+                  },
+                },
+                in: { $ifNull: [{ $arrayElemAt: ["$$sorted", 0] }, null] },
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            monthlyPayouts: 0,
+          },
+        },
+      ])
+      .toArray();
+    const aggMs = Date.now() - aggStartMs;
+    const user = docs[0];
 
     if (user) {
-      // Return additional user data for the front-end
-      const monthlyPayouts = user.monthlyPayouts ?? [];
-      const latestPayout = monthlyPayouts.length > 0
-        ? monthlyPayouts.reduce((latest, current) =>
-            new Date(current.updatedAt) > new Date(latest.updatedAt) ? current : latest
-          )
-        : null;
-      const latestPayoutAmount = latestPayout?.payout ?? 0;
+      const latestPayoutAmount = user.latestPayout?.payout ?? 0;
 
-      return NextResponse.json({ 
+      const totalMs = Date.now() - handlerStartMs;
+      console.log("[check-influencer] request completed", {
+        username,
+        aggMs,
+        totalMs,
+      });
+
+      return NextResponse.json({
         exists: true,
         userId: user._id.toString(),
         username: user.twitterHandle,
         walletAddress: user.walletAddress || null,
-        subscriberCount: user.subscribers ? user.subscribers.length : 0,
+        subscriberCount: user.subscribersCount || 0,
         creditAmount: user.creditAmount || 0,
         creditExpiry: user.creditExpiry || null,
-        tweetsCount: user.tweets ? user.tweets.length : 0,
-        latestPayout : latestPayoutAmount,
+        tweetsCount: user.tweetsCount || 0,
+        latestPayout: latestPayoutAmount,
       }, { status: 200 });
     } else {
       return NextResponse.json({ exists: false }, { status: 200 });

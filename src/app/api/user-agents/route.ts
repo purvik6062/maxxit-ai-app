@@ -60,6 +60,7 @@ interface InfluencerData {
 
 export async function GET(): Promise<Response> {
   try {
+    const handlerStartMs = Date.now();
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user) {
@@ -71,48 +72,117 @@ export async function GET(): Promise<Response> {
 
     // Use the safe database operation helper
     const userAgentData = await executeDbOperation(async (db, client) => {
-      // Get user data
-      const user = await db.collection("users").findOne({
-        twitterUsername: session.user.username
-      });
+      const aggStart = Date.now();
+      const pipeline = [
+        { $match: { twitterUsername: session.user.username } },
+        {
+          $project: {
+            twitterUsername: 1,
+            twitterId: 1,
+            telegramId: 1,
+            credits: 1,
+            subscribedAccounts: 1,
+            customizationOptions: 1,
+            safeConfigs: 1,
+          },
+        },
+        {
+          $addFields: {
+            subscribedHandles: {
+              $map: { input: "$subscribedAccounts", as: "s", in: "$$s.twitterHandle" },
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: "influencers",
+            let: { handles: "$subscribedHandles" },
+            pipeline: [
+              { $match: { $expr: { $in: ["$twitterHandle", "$$handles"] } } },
+              {
+                $project: {
+                  _id: 1,
+                  twitterHandle: 1,
+                  name: 1,
+                  "userData.userProfileUrl": 1,
+                  "userData.verified": 1,
+                  "userData.publicMetrics.followers_count": 1,
+                },
+              },
+            ],
+            as: "influencers",
+          },
+        },
+        {
+          $addFields: {
+            subscribedAccounts: {
+              $map: {
+                input: "$subscribedAccounts",
+                as: "sub",
+                in: {
+                  $mergeObjects: [
+                    "$$sub",
+                    {
+                      influencerInfo: {
+                        $let: {
+                          vars: {
+                            match: {
+                              $first: {
+                                $filter: {
+                                  input: "$influencers",
+                                  as: "inf",
+                                  cond: { $eq: ["$$inf.twitterHandle", "$$sub.twitterHandle"] },
+                                },
+                              },
+                            },
+                          },
+                          in: {
+                            $cond: [
+                              { $ifNull: ["$$match", false] },
+                              {
+                                _id: "$$match._id",
+                                twitterHandle: "$$match.twitterHandle",
+                                name: "$$match.name",
+                                userProfileUrl: "$$match.userData.userProfileUrl",
+                                verified: "$$match.userData.verified",
+                                followersCount: "$$match.userData.publicMetrics.followers_count",
+                              },
+                              null,
+                            ],
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+        { $project: { influencers: 0, subscribedHandles: 0 } },
+      ];
 
-      if (!user) {
+      const users = await db.collection("users").aggregate(pipeline).toArray();
+      if (users.length === 0) {
         throw new Error("User not found");
       }
+      const user = users[0] as any;
+      const aggMs = Date.now() - aggStart;
+      console.log("[user-agents] aggregation completed", { aggMs, hasSubs: (user.subscribedAccounts || []).length });
 
-      // Get influencer data for subscribed accounts
-      const subscribedHandles = user.subscribedAccounts?.map((sub: any) => sub.twitterHandle) || [];
-      const influencers = await db.collection("influencers")
-        .find({ twitterHandle: { $in: subscribedHandles } })
-        .toArray();
-
-      // Create a map for quick lookup
-      const influencerMap = new Map();
-      influencers.forEach((influencer: any) => {
-        influencerMap.set(influencer.twitterHandle, {
-          _id: influencer._id,
-          twitterHandle: influencer.twitterHandle,
-          name: influencer.name,
-          userProfileUrl: influencer.userData?.userProfileUrl,
-          verified: influencer.userData?.verified,
-          followersCount: influencer.userData?.publicMetrics?.followers_count
-        });
-      });
-
-      // Transform user data with influencer information
       const result: UserAgentData = {
         _id: user._id.toString(),
         twitterUsername: user.twitterUsername,
         twitterId: user.twitterId,
         telegramId: user.telegramId,
         credits: user.credits,
-        subscribedAccounts: user.subscribedAccounts?.map((sub: any) => ({
+        subscribedAccounts: (user.subscribedAccounts || []).map((sub: any) => ({
           twitterHandle: sub.twitterHandle,
           subscriptionDate: sub.subscriptionDate,
           expiryDate: sub.expiryDate,
           costPaid: sub.costPaid,
-          influencerInfo: influencerMap.get(sub.twitterHandle) || null
-        })) || [],
+          influencerInfo: sub.influencerInfo || null,
+        })),
         customizationOptions: user.customizationOptions || {
           r_last6h_pct: 0,
           d_pct_mktvol_6h: 0,
@@ -123,10 +193,16 @@ export async function GET(): Promise<Response> {
           d_galaxy_6h: 0,
           neg_d_altrank_6h: 0,
         },
-        safeConfigs: user.safeConfigs || []
+        safeConfigs: user.safeConfigs || [],
       };
 
       return result;
+    });
+
+    const totalMs = Date.now() - handlerStartMs;
+    console.log("[user-agents] request completed", {
+      totalMs,
+      hasData: !!userAgentData,
     });
 
     return NextResponse.json({

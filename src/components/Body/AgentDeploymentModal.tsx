@@ -75,8 +75,13 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
       let safeAddress: string | null = null;
 
       // Check if deploymentResult has deployments object (SafeData format)
-      if (deploymentResult.deployments && deploymentResult.deployments[currentNetworkKey]) {
-        safeAddress = deploymentResult.deployments[currentNetworkKey].address;
+      if (
+        deploymentResult.deployments &&
+        currentNetworkKey &&
+        typeof currentNetworkKey === 'string' &&
+        (deploymentResult.deployments as Record<string, any>)[currentNetworkKey]
+      ) {
+        safeAddress = (deploymentResult.deployments as Record<string, any>)[currentNetworkKey].address;
       }
       // Check if deploymentResult has networks array
       else if (deploymentResult.networks && Array.isArray(deploymentResult.networks)) {
@@ -86,7 +91,7 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
         }
       }
       // Check if deploymentResult is itself a deployment object
-      else if (deploymentResult.networkKey === currentNetworkKey) {
+      else if (deploymentResult.networkKey && deploymentResult.networkKey === currentNetworkKey) {
         safeAddress = deploymentResult.address;
       }
 
@@ -119,8 +124,14 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
         // Only proceed if the agentType matches what we're expecting
         if (existingSafe.userInfo?.agentType === selectedType) {
           // Get the Safe address from the existingSafe's deployments for the current network
-          const safeDeployments = existingSafe.deployments;
-          if (safeDeployments && currentNetworkKey && safeDeployments[currentNetworkKey] && selectedType) {
+          const safeDeployments = existingSafe.deployments as Record<string, any> | undefined;
+          if (
+            safeDeployments &&
+            currentNetworkKey &&
+            typeof currentNetworkKey === 'string' &&
+            safeDeployments[currentNetworkKey] &&
+            selectedType
+          ) {
             const safeAddress = safeDeployments[currentNetworkKey].address;
             setSafeAddress(safeAddress);
             console.log(`Safe deployment successful! Found ${selectedType} agent Safe address from existingSafe:`, safeAddress);

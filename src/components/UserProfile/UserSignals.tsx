@@ -69,15 +69,31 @@ function UserSignals({
       if (!profile?.telegramId) return;
 
       try {
+        const fetchStart = performance.now();
+        console.log("[UserSignals] Fetch(get-user-signals) started", {
+          telegramId: profile.telegramId,
+          page: pagination.currentPage,
+          limit: pagination.limit,
+          filterType,
+        });
         const response = await fetch(
           `/api/get-user-signals?telegramId=${profile.telegramId}&page=${pagination.currentPage}&limit=${pagination.limit}&filterType=${filterType}`
         );
+        const httpMs = performance.now() - fetchStart;
 
         if (!response.ok) {
           throw new Error("Failed to fetch trading signals");
         }
 
+        const jsonStart = performance.now();
         const data = await response.json();
+        const jsonMs = performance.now() - jsonStart;
+        console.log("[UserSignals] Fetch(get-user-signals) completed", {
+          httpMs: Math.round(httpMs),
+          jsonParseMs: Math.round(jsonMs),
+          status: response.status,
+          count: Array.isArray(data?.data) ? data.data.length : 0,
+        });
         if (data.success) {
           console.log("dataaaa", data.data)
           setSignals(data.data);
@@ -149,7 +165,7 @@ function UserSignals({
       </p>
       <div className="mt-4 sm:mt-6">
         <a
-          href="/marketplace"
+          href="/agents-marketplace"
           className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
           Browse Marketplace

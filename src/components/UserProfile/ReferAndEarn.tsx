@@ -71,7 +71,7 @@ const ReferAndEarn = () => {
         },
         body: JSON.stringify({
           twitterId: session.user.id,
-          twitterUsername: session.user.username,
+          // twitterUsername: session.user.username,
         }),
       });
 

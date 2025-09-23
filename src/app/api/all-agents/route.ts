@@ -45,62 +45,122 @@ interface MetricExplanation {
 
 export async function GET(): Promise<Response> {
   try {
+    const handlerStartMs = Date.now();
     // Use the safe database operation helper
     const result = await executeDbOperation(async (db) => {
-      // Get all users with customization options (these are configured agents)
-      const users = await db.collection("users")
-        .find({
-          "customizationOptions": { $exists: true, $ne: null }
-        })
-        .sort({ updatedAt: -1 })
-        .toArray();
+      const aggStart = Date.now();
+      const pipeline = [
+        { $match: { customizationOptions: { $exists: true, $ne: null } } },
+        {
+          $project: {
+            twitterUsername: 1,
+            twitterId: 1,
+            telegramId: 1,
+            credits: 1,
+            subscribedAccounts: 1,
+            customizationOptions: 1,
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        },
+        { $sort: { updatedAt: -1 } },
+        {
+          $addFields: {
+            subscribedHandles: {
+              $map: { input: "$subscribedAccounts", as: "s", in: "$$s.twitterHandle" },
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: "influencers",
+            let: { handles: "$subscribedHandles" },
+            pipeline: [
+              { $match: { $expr: { $in: ["$twitterHandle", "$$handles"] } } },
+              {
+                $project: {
+                  _id: 1,
+                  twitterHandle: 1,
+                  name: 1,
+                  "userData.userProfileUrl": 1,
+                  "userData.verified": 1,
+                  "userData.publicMetrics.followers_count": 1,
+                },
+              },
+            ],
+            as: "influencers",
+          },
+        },
+        {
+          $addFields: {
+            subscribedAccounts: {
+              $map: {
+                input: "$subscribedAccounts",
+                as: "sub",
+                in: {
+                  $mergeObjects: [
+                    "$$sub",
+                    {
+                      influencerInfo: {
+                        $let: {
+                          vars: {
+                            match: {
+                              $first: {
+                                $filter: {
+                                  input: "$influencers",
+                                  as: "inf",
+                                  cond: { $eq: ["$$inf.twitterHandle", "$$sub.twitterHandle"] },
+                                },
+                              },
+                            },
+                          },
+                          in: {
+                            $cond: [
+                              { $ifNull: ["$$match", false] },
+                              {
+                                _id: "$$match._id",
+                                twitterHandle: "$$match.twitterHandle",
+                                name: "$$match.name",
+                                userProfileUrl: "$$match.userData.userProfileUrl",
+                                verified: "$$match.userData.verified",
+                                followersCount: "$$match.userData.publicMetrics.followers_count",
+                              },
+                              null,
+                            ],
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+        { $project: { influencers: 0, subscribedHandles: 0 } },
+      ];
 
-      // Get all unique subscribed handles from all users
-      const allSubscribedHandles = new Set<string>();
-      users.forEach((user: any) => {
-        user.subscribedAccounts?.forEach((sub: any) => {
-          allSubscribedHandles.add(sub.twitterHandle);
-        });
-      });
-
-      // Fetch influencer data for all subscribed handles
-      const influencers = await db.collection("influencers")
-        .find({ twitterHandle: { $in: Array.from(allSubscribedHandles) } })
-        .toArray();
-
-      // Create a map for quick lookup
-      const influencerMap = new Map();
-      influencers.forEach((influencer: any) => {
-        influencerMap.set(influencer.twitterHandle, {
-          _id: influencer._id,
-          twitterHandle: influencer.twitterHandle,
-          name: influencer.name,
-          userProfileUrl: influencer.userData?.userProfileUrl,
-          verified: influencer.userData?.verified,
-          followersCount: influencer.userData?.publicMetrics?.followers_count
-        });
-      });
-
-      // Transform data for marketplace
-      const agents: AgentData[] = users.map((user: any) => ({
+      const agents = (await db.collection("users").aggregate(pipeline).toArray()) as any[];
+      const aggMs = Date.now() - aggStart;
+      console.log("[all-agents] aggregation completed", { count: agents.length, aggMs });
+      const transformed: AgentData[] = agents.map((user: any) => ({
         _id: user._id.toString(),
         twitterUsername: user.twitterUsername,
         twitterId: user.twitterId,
         telegramId: user.telegramId,
         credits: user.credits,
-        subscribedAccounts: user.subscribedAccounts?.map((sub: any) => ({
+        subscribedAccounts: (user.subscribedAccounts || []).map((sub: any) => ({
           twitterHandle: sub.twitterHandle,
           subscriptionDate: sub.subscriptionDate,
           expiryDate: sub.expiryDate,
           costPaid: sub.costPaid,
-          influencerInfo: influencerMap.get(sub.twitterHandle) || null
-        })) || [],
+          influencerInfo: sub.influencerInfo || null,
+        })),
         customizationOptions: user.customizationOptions,
         createdAt: user.createdAt,
-        updatedAt: user.updatedAt
+        updatedAt: user.updatedAt,
       }));
-
-      return agents;
+      return transformed;
     });
 
     // Metric explanations for the UI
@@ -162,6 +222,12 @@ export async function GET(): Promise<Response> {
         impact: "high"
       }
     };
+
+    const totalMs = Date.now() - handlerStartMs;
+    console.log("[all-agents] request completed", {
+      agents: result.length,
+      totalMs,
+    });
 
     return NextResponse.json({
       success: true,

@@ -99,7 +99,7 @@ const ApiCredentialsSection = ({
 
       if (apiKeyResponse.ok && apiKeyResult.success) {
         // Update the apiKey in the parent component via a new callback or state
-        onApiKeyUpdate(apiKeyResult.apiKey); // We'll add this prop to ApiCredentialsSection
+        onApiKeyUpdate(apiKeyResult.data.apiKey);
       }
       await updateCredits();
       toast.success("API key generated successfully!");
