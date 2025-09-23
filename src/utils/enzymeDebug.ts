@@ -111,7 +111,6 @@ export async function debugEnzymeVault(
         debugInfo.policies = enabledPolicies;
         
         if (enabledPolicies.length > 0) {
-          console.log('🔒 Vault has policies enabled:', enabledPolicies);
           
           // Check each policy
           for (const policyAddress of enabledPolicies) {
@@ -139,7 +138,6 @@ export async function debugEnzymeVault(
     // Check if vault owner allows deposits
     try {
       const vaultOwner = await vaultContract.getOwner();
-      console.log('🏠 Vault owner:', vaultOwner);
       
       // Check if the vault is a "private" vault (owner-only deposits)
       if (vaultOwner.toLowerCase() !== userAddress.toLowerCase()) {
@@ -169,9 +167,7 @@ export async function debugEnzymeVault(
           // Try deposit as fallback
           try {
             await vaultWithSigner.deposit.estimateGas(amountWei, minShares);
-            console.log('✅ deposit gas estimation successful');
           } catch (depositError) {
-            console.log('❌ deposit gas estimation failed:', depositError);
             errors.push(`Both buyShares and deposit gas estimation failed`);
           }
         }
@@ -194,16 +190,6 @@ export async function debugEnzymeVault(
 
 export function logEnzymeDebugInfo(debugInfo: EnzymeDebugInfo) {
   console.group('🔍 Enzyme Vault Debug Information');
-  console.log('Vault Address:', debugInfo.vaultAddress);
-  console.log('Comptroller Address:', debugInfo.comptrollerAddress);
-  console.log('Denomination Asset:', debugInfo.denominationAsset);
-  console.log('User Address:', debugInfo.userAddress);
-  console.log('User Balance:', debugInfo.userBalance);
-  console.log('User Allowance:', debugInfo.userAllowance);
-  console.log('Share Price:', debugInfo.sharePrice);
-  console.log('Total Supply:', debugInfo.totalSupply);
-  console.log('User Shares:', debugInfo.userShares);
-  console.log('Is Valid Deposit:', debugInfo.isValidDeposit);
   
   if (debugInfo.policies && debugInfo.policies.length > 0) {
     console.group('🔒 Vault Policies:');

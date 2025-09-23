@@ -55,9 +55,6 @@ const UserProfile = () => {
   const { credits, updateCredits } = useCredits();
   const [showRegistrationPrompt, setShowRegistrationPrompt] = useState(false);
 
-  console.log("session", session);
-  console.log("sessionStatus", sessionStatus);
-
   const handleApiKeyUpdate = (newKey: string) => {
     setApiKey(newKey);
   };

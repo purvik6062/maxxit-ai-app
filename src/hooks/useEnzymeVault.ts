@@ -218,18 +218,6 @@ export function useEnzymeDeposit() {
       const expectedShares = (amountWei * ethers.parseUnits('1', 18)) / sharePrice;
       const minShares = (expectedShares * BigInt(99)) / BigInt(100); // 1% slippage
 
-      console.log('Deposit parameters:', {
-        amount: amount,
-        amountWei: amountWei.toString(),
-        expectedShares: expectedShares.toString(),
-        minShares: minShares.toString(),
-        sharePrice: sharePrice.toString(),
-        balance: balance.toString(),
-        allowance: allowance.toString(),
-        comptrollerAddress: comptrollerAddress,
-        denominationAssetAddress: denominationAssetAddress
-      });
-
       // Estimate gas first to catch any revert issues early
       let gasEstimate;
       
@@ -249,14 +237,12 @@ export function useEnzymeDeposit() {
         args: [amountWei, minShares],
       });
       
-      console.log('Using ComptrollerProxy buyShares function for deposit');
       setHash(tx);
       setIsPending(false);
       setIsConfirming(true);
 
       // Wait for transaction confirmation
       const receipt = await waitForTransactionReceipt(publicClient, { hash: tx });
-      console.log('Deposit successful:', receipt);
       setIsConfirming(false);
       setIsSuccess(true);
     } catch (err) {
@@ -338,15 +324,6 @@ export function useEnzymeWithdraw() {
       const comptrollerAddress = await vaultContract.getAccessor();
       const comptrollerContract = new ethers.Contract(comptrollerAddress, COMPTROLLER_ABI, provider);
 
-      console.log('Withdrawal parameters:', {
-        vaultAddress,
-        comptrollerAddress,
-        shareAmount,
-        sharesWei: sharesWei.toString(),
-        userShares: userShares.toString(),
-        userAddress
-      });
-
       // Try different withdrawal methods based on Enzyme documentation
       let gasEstimate;
       let withdrawalMethod = 'redeemSharesInKind';
@@ -375,28 +352,19 @@ export function useEnzymeWithdraw() {
           [], // additionalAssets - empty array for standard redemption
           []  // assetsToSkip - empty array for standard redemption
         );
-        console.log('Gas estimate for comptroller redeemSharesInKind:', gasEstimate.toString());
         withdrawalMethod = 'comptrollerRedeemSharesInKind';
         
         // Log the function call data for debugging
         const functionData = comptrollerWithdrawContract.interface.encodeFunctionData('redeemSharesInKind', [userAddress, sharesWei, [], []]);
-        console.log('Function call data:', functionData);
         
         // Decode the function data to verify parameters
         try {
           const decoded = comptrollerWithdrawContract.interface.decodeFunctionData('redeemSharesInKind', functionData);
-          console.log('Decoded function parameters:', {
-            recipient: decoded[0],
-            sharesQuantity: decoded[1].toString(),
-            additionalAssets: decoded[2],
-            assetsToSkip: decoded[3]
-          });
         } catch (decodeError) {
           console.error('Failed to decode function data:', decodeError);
         }
       } catch (gasError) {
         console.error('Gas estimation failed for comptroller redeemSharesInKind:', gasError);
-        console.log('Failed transaction data:', gasError);
         
         // Fallback: try the old method on vault contract
         try {
@@ -405,12 +373,10 @@ export function useEnzymeWithdraw() {
             [], // additionalAssets - empty array for standard redemption
             []  // assetsToSkip - empty array for standard redemption
           );
-          console.log('Gas estimate for vault redeemSharesInKind:', gasEstimate.toString());
           withdrawalMethod = 'redeemSharesInKind';
           
           // Log the function call data for debugging
           const functionData = vaultContract.interface.encodeFunctionData('redeemSharesInKind', [sharesWei, [], []]);
-          console.log('Function call data:', functionData);
           
           // Decode the function data to verify parameters
           try {
