@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ExternalLink, Shield, Rocket, ArrowRight, Sparkles } from "lucide-react";
+import { ExternalLink, Shield, Rocket, ArrowRight, Sparkles, TrendingUp, Activity } from "lucide-react";
 import { useState } from "react";
 
 const VaultCard = ({
@@ -27,55 +27,60 @@ const VaultCard = ({
 
   const CardInner = (
     <div
-      className="group h-full bg-[#0D1321] rounded-2xl p-6 md:p-8 border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl relative overflow-hidden"
+      className="group h-full bg-[#0A0E1A] rounded-3xl p-8 md:p-10 border-2 transition-all duration-500 hover:scale-[1.03] relative overflow-hidden"
       style={{
-        borderColor: isHovered ? "#4A5568" : "#353940",
-        boxShadow: isHovered ? "0 20px 40px rgba(0, 0, 0, 0.3)" : "0 4px 6px rgba(0, 0, 0, 0.1)"
+        borderColor: isHovered ? "#2563EB" : "#1E293B",
+        boxShadow: isHovered
+          ? "0 25px 50px rgba(37, 99, 235, 0.25), 0 0 0 1px rgba(37, 99, 235, 0.1)"
+          : "0 8px 25px rgba(0, 0, 0, 0.15)"
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Animated background gradient overlay */}
+      {/* Enhanced animated background gradient */}
       <div
-        className={`absolute inset-0 bg-gradient-to-br ${gradientFrom} ${gradientTo} opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-2xl`}
+        className={`absolute inset-0 bg-gradient-to-br ${gradientFrom} ${gradientTo} opacity-0 group-hover:opacity-8 transition-all duration-500 rounded-3xl`}
       />
 
-      {/* Animated border glow */}
+      {/* Glowing border effect */}
       <div
-        className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${gradientFrom} ${gradientTo} opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm -z-10`}
-        style={{ padding: "2px" }}
-      >
-        <div className="w-full h-full bg-[#0D1321] rounded-2xl" />
+        className={`absolute inset-0 rounded-3xl transition-all duration-500 ${isHovered ? 'shadow-2xl shadow-blue-500/20' : ''}`}
+      />
+
+      {/* Enhanced icon with better styling */}
+      <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradientFrom} ${gradientTo} flex items-center justify-center mb-6 shadow-xl transition-all duration-500 group-hover:scale-110 group-hover:-rotate-3`}>
+        <Icon className="w-8 h-8 text-white transition-transform duration-500 group-hover:scale-110" />
       </div>
 
-      {/* Icon with enhanced animation */}
-      <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${gradientFrom} ${gradientTo} flex items-center justify-center mb-5 shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-3`}>
-        <Icon className="w-7 h-7 text-white transition-transform duration-300 group-hover:scale-110" />
-      </div>
-
-      {/* Title with enhanced typography */}
-      <h3 className="text-xl md:text-2xl font-bold text-white mb-3 transition-colors duration-300 group-hover:text-[#AAC9FA]">
+      {/* Enhanced title with better typography */}
+      <h3 className="font-leagueSpartan text-2xl md:text-3xl font-bold text-white mb-4 transition-all duration-300 group-hover:text-blue-200 leading-tight">
         {title}
       </h3>
 
-      {/* Description with better spacing */}
-      <p className="text-[#8ba1bc] text-sm md:text-base leading-relaxed mb-6 transition-colors duration-300 group-hover:text-[#B8C5D1]">
+      {/* Better description styling */}
+      <p className="text-slate-400 text-base md:text-lg leading-relaxed mb-8 transition-colors duration-300 group-hover:text-slate-300">
         {description}
       </p>
 
-      {/* Enhanced CTA button */}
-      <div className="flex items-center gap-3 text-sm">
-        <span className="px-4 py-3 rounded-xl bg-[#1a2234] text-white inline-flex items-center gap-2 transition-all duration-300 group-hover:bg-[#2A3441] group-hover:shadow-lg border border-[#353940] group-hover:border-[#4A5568]">
-          {external ? <ExternalLink className="w-4 h-4 transition-transform duration-300 group-hover:scale-110" /> : <Rocket className="w-4 h-4 transition-transform duration-300 group-hover:scale-110" />}
+      {/* Enhanced CTA button with better styling */}
+      <div className="flex items-center justify-between">
+        <span className="px-6 py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 text-white inline-flex items-center gap-3 transition-all duration-300 group-hover:from-blue-500 group-hover:to-blue-600 group-hover:shadow-lg hover:shadow-blue-500/25 font-medium text-base">
+          {external ? <ExternalLink className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" /> : <TrendingUp className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />}
           {cta}
         </span>
-        <ArrowRight className={`w-5 h-5 text-[#8ba1bc] transition-all duration-300 group-hover:text-white group-hover:translate-x-1 ${isHovered ? 'translate-x-1' : ''}`} />
+        <ArrowRight className={`w-6 h-6 text-slate-500 transition-all duration-300 group-hover:text-blue-400 group-hover:translate-x-2 ${isHovered ? 'translate-x-2 scale-110' : ''}`} />
       </div>
 
-      {/* Subtle sparkle effect on hover */}
-      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-        <Sparkles className="w-4 h-4 text-[#AAC9FA] animate-pulse" />
+      {/* Enhanced sparkle effect */}
+      <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-all duration-700">
+        <div className="relative">
+          <Sparkles className="w-6 h-6 text-blue-400 animate-pulse" />
+          <div className="absolute inset-0 w-6 h-6 bg-blue-400 rounded-full blur-sm opacity-20 animate-ping" />
+        </div>
       </div>
+
+      {/* Additional decorative elements */}
+      <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-blue-500/10 to-cyan-500/5 rounded-full blur-2xl transition-all duration-500 group-hover:scale-150" />
     </div>
   );
 
@@ -85,14 +90,14 @@ const VaultCard = ({
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="block h-full transition-transform duration-200 hover:scale-[1.01]"
+        className="block h-full transition-transform duration-300 hover:scale-[1.01]"
       >
         {CardInner}
       </a>
     );
   }
   return (
-    <Link href={href} className="block h-full transition-transform duration-200 hover:scale-[1.01]">
+    <Link href={href} className="block h-full transition-transform duration-300 hover:scale-[1.01]">
       {CardInner}
     </Link>
   );
@@ -101,49 +106,53 @@ const VaultCard = ({
 export default function VaultsPage() {
   return (
     <div className="min-h-screen pb-[4rem]">
-      {/* Animated background elements */}
+      {/* Enhanced animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-blue-500/8 to-cyan-400/4 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-gradient-to-br from-blue-600/6 to-indigo-500/3 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-gradient-to-br from-cyan-400/5 to-blue-500/3 rounded-full blur-3xl animate-pulse delay-2000" />
       </div>
 
-      <div className="relative py-6 md:py-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+      <div className="relative py-8 md:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Enhanced header section */}
-        <div className="text-center mb-8 md:mb-16">
-          <div className="inline-block">
-            <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-[#AAC9FA] via-[#E1EAF9] to-[#AAC9FA] bg-clip-text text-transparent font-napzerRounded mb-6 animate-fade-in-up">
+        <div className="text-center mb-12 md:mb-20">
+          <div className="inline-block relative">
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-white via-blue-100 to-blue-200 bg-clip-text text-transparent font-napzerRounded mb-6 animate-fade-in-up leading-tight">
               Public Vaults
             </h1>
+            {/* Enhanced decorative line */}
             <div className="h-1 w-24 bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] mx-auto rounded-full animate-fade-in-up delay-200" />
+            {/* Additional glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-blue-400/20 to-cyan-400/20 blur-3xl -z-10 animate-pulse" />
           </div>
-          <p className="text-[#8ba1bc] text-base md:text-xl max-w-3xl mx-auto leading-relaxed mt-8 animate-fade-in-up delay-300">
-            Explore our on-chain vaults. Monitor performance or create a new vault aligned with your strategy.
+          <p className="text-slate-300 text-lg md:text-2xl max-w-4xl mx-auto leading-relaxed mt-10 animate-fade-in-up delay-300 font-light">
+            Explore our cutting-edge on-chain vaults. Monitor live performance metrics or create a new vault perfectly aligned with your investment strategy.
           </p>
         </div>
 
         {/* Enhanced vault cards grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 mb-20">
           <div className="animate-fade-in-up delay-400">
             <VaultCard
               title="Hyperliquid Vault"
-              description="Perpetuals strategy vault on Hyperliquid testnet. View live positions, PnL, and activity with real-time monitoring."
+              description="Advanced perpetuals strategy vault on Hyperliquid testnet. Experience real-time position tracking, comprehensive PnL analysis, and live activity monitoring with institutional-grade precision."
               cta="Open on Hyperliquid"
               href="https://app.hyperliquid-testnet.xyz/vaults/0xb51423485c8fa348701f208618755b76b124a8e6"
               external
               gradientFrom="from-blue-500"
               gradientTo="to-cyan-500"
-              icon={Rocket}
+              icon={Activity}
             />
           </div>
 
           <div className="animate-fade-in-up delay-500">
             <VaultCard
               title="Enzyme Vault"
-              description="Create and manage an Enzyme vault with your configuration. Deploy, fund, and track performance with advanced analytics."
+              description="Create and manage sophisticated Enzyme vaults with your custom configuration. Deploy seamlessly, fund strategically, and track performance with advanced analytics and real-time insights."
               cta="Create Enzyme Vault"
               href="/vault/create-vault"
-              gradientFrom="from-purple-500"
-              gradientTo="to-pink-500"
+              gradientFrom="from-indigo-500"
+              gradientTo="to-blue-600"
               icon={Shield}
             />
           </div>
@@ -151,33 +160,29 @@ export default function VaultsPage() {
 
         {/* Enhanced info section */}
         <div className="animate-fade-in-up delay-600">
-          <div className="bg-[#0D1321] rounded-2xl p-6 md:p-8 border-2 transition-all duration-300 hover:border-[#4A5568] hover:shadow-xl" style={{ borderColor: "#353940" }}>
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#AAC9FA] to-[#E1EAF9] flex items-center justify-center flex-shrink-0 mt-1">
-                <Shield className="w-6 h-6 text-[#0D1321]" />
+          <div className="bg-gradient-to-br from-slate-900/90 to-slate-800/90 backdrop-blur-sm rounded-3xl p-8 md:p-12 border-2 transition-all duration-500 hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10" style={{ borderColor: "#1E293B" }}>
+            <div className="flex items-start gap-6">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0 mt-2 shadow-xl">
+                <Shield className="w-8 h-8 text-white" />
               </div>
-              <div>
-                <h2 className="text-lg md:text-xl font-semibold text-white mb-4 flex items-center gap-2">
+              <div className="flex-1">
+                <h2 className="font-leagueSpartan text-2xl md:text-3xl font-bold text-white mb-6 flex items-center gap-3">
                   What are vaults?
-                  <div className="w-2 h-2 bg-[#AAC9FA] rounded-full animate-pulse" />
+                  <div className="w-3 h-3 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full animate-pulse shadow-lg shadow-blue-400/50" />
                 </h2>
-                <p className="text-[#8ba1bc] text-sm md:text-base leading-relaxed mb-4">
-                  Vaults are managed baskets with defined strategies. Hyperliquid supports perpetuals strategies while Enzyme enables
-                  on-chain asset management for spot strategies. Choose the product that best fits your risk profile and objectives.
+                <p className="text-slate-300 text-lg md:text-xl leading-relaxed mb-8">
+                  Vaults are sophisticated managed investment baskets with clearly defined strategies and risk parameters. Hyperliquid specializes in perpetuals strategies for derivatives trading, while Enzyme enables comprehensive on-chain asset management for spot trading strategies. Select the product that best aligns with your risk tolerance and investment objectives.
                 </p>
-                <div className="flex flex-wrap gap-2 mt-4">
-                  <span className="px-3 py-1 rounded-full bg-[#1a2234] text-[#AAC9FA] text-xs font-medium border border-[#353940]">
-                    DeFi
-                  </span>
-                  <span className="px-3 py-1 rounded-full bg-[#1a2234] text-[#AAC9FA] text-xs font-medium border border-[#353940]">
-                    Perpetuals
-                  </span>
-                  <span className="px-3 py-1 rounded-full bg-[#1a2234] text-[#AAC9FA] text-xs font-medium border border-[#353940]">
-                    Asset Management
-                  </span>
-                  <span className="px-3 py-1 rounded-full bg-[#1a2234] text-[#AAC9FA] text-xs font-medium border border-[#353940]">
-                    On-chain
-                  </span>
+                <div className="flex flex-wrap gap-3 mt-6">
+                  {['DeFi', 'Perpetuals', 'Asset Management', 'On-chain', 'Real-time Analytics'].map((tag, index) => (
+                    <span
+                      key={tag}
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-900/50 to-slate-800/50 text-blue-200 text-sm font-semibold border border-blue-500/30 backdrop-blur-sm hover:border-blue-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20"
+                      style={{ animationDelay: `${index * 100}ms` }}
+                    >
+                      {tag}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>
@@ -189,7 +194,7 @@ export default function VaultsPage() {
         @keyframes fade-in-up {
           from {
             opacity: 0;
-            transform: translateY(30px);
+            transform: translateY(40px);
           }
           to {
             opacity: 1;
@@ -198,7 +203,7 @@ export default function VaultsPage() {
         }
         
         .animate-fade-in-up {
-          animation: fade-in-up 0.6s ease-out forwards;
+          animation: fade-in-up 0.8s ease-out forwards;
           opacity: 0;
         }
         
@@ -225,5 +230,3 @@ export default function VaultsPage() {
     </div>
   );
 }
-
-

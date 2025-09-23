@@ -178,10 +178,16 @@ export default function Influencer() {
 
   return (
     <>
-      <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-transparent">
+      <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8  relative overflow-hidden">
+        {/* Ambient background accents */}
+        {/* <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+          <div className="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-cyan-600/20 blur-[120px]"></div>
+          <div className="absolute -bottom-28 -right-28 h-[28rem] w-[28rem] rounded-full bg-purple-600/20 blur-[140px]"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(14,165,233,0.08),transparent_40%),radial-gradient(circle_at_80%_30%,rgba(168,85,247,0.08),transparent_35%),radial-gradient(circle_at_30%_80%,rgba(34,197,94,0.07),transparent_40%)]"></div>
+        </div> */}
         <div className="max-w-7xl mx-auto">
           {session ? (
-            <div className="w-full backdrop-blur-xl bg-white/5 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] p-8 border border-white/10">
+            <div className="w-full rounded-2xl p-8 border border-white/10 backdrop-blur-sm bg-white/5 shadow-[0_20px_80px_rgba(2,6,23,0.6)] ring-1 ring-white/10">
               <div className="flex flex-col items-center relative">
                 {/* Decorative elements */}
                 <div className="absolute top-0 right-0">
@@ -212,7 +218,7 @@ export default function Influencer() {
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2, duration: 0.5 }}
-                  className="text-3xl font-bold mb-4 text-center bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent"
+                  className="font-leagueSpartan text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-center bg-gradient-to-r from-white via-blue-100 to-cyan-100 bg-clip-text text-transparent"
                 >
                   Welcome, {session.user?.name}!
                 </motion.h1>
@@ -222,9 +228,9 @@ export default function Influencer() {
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="flex items-center gap-1 mt-4 text-white/80"
+                    className="flex items-center gap-2 mt-4 text-white/80"
                   >
-                    <Loader2 className="w-6 h-6 text-cyan-500 animate-spin mx-auto" />
+                    <Loader2 className="w-6 h-6 text-cyan-400 animate-spin mx-auto" />
                     <p className="text-gray-300">Checking your status...</p>
                   </motion.div>
                 ) : userExists ? (
@@ -235,25 +241,25 @@ export default function Influencer() {
                     animate="visible"
                   >
                     {submitSuccess ? (
-                      <div className="text-center mb-8 bg-gray-800/50 p-6 rounded-xl border border-gray-700/50 shadow-lg">
+                      <div className="text-center mb-8 bg-gradient-to-br from-slate-800/60 to-slate-900/60 p-6 rounded-2xl border border-slate-700/50 shadow-xl ring-1 ring-white/5">
                         {tweetsCount === 0 ? (
                           <>
-                            <div className="flex items-center justify-center mb-4">
-                              <div className="h-10 w-10 bg-green-500/20 rounded-full flex items-center justify-center mr-3">
-                                <Wallet2 className="h-5 w-5 text-green-400" />
+                            <div className="flex items-center justify-center mb-5">
+                              <div className="h-10 w-10 bg-green-500/15 rounded-full flex items-center justify-center mr-3 ring-1 ring-green-400/20">
+                                <Wallet2 className="h-5 w-5 text-green-300" />
                               </div>
-                              <h2 className="text-xl font-semibold text-green-400">
+                              <h2 className="text-xl font-semibold text-green-300">
                                 Wallet Connected
                               </h2>
                             </div>
                             <p className="text-white/80 mt-2">
                               Payments will be sent to:{" "}
-                              <span className="font-mono text-cyan-300 bg-gray-800 px-3 py-1 rounded-lg">
+                              <span className="font-mono text-cyan-300/90 bg-slate-800/70 px-3 py-1 rounded-lg ring-1 ring-cyan-400/20">
                                 {walletAddress}
                               </span>
                             </p>
-                            <div className="mt-4 py-3 px-4 bg-amber-900/20 border border-amber-700/30 rounded-lg">
-                              <p className="text-amber-400 flex items-start">
+                            <div className="mt-5 py-3 px-4 bg-amber-900/25 border border-amber-700/30 rounded-xl ring-1 ring-amber-400/10">
+                              <p className="text-amber-300 flex items-start">
                                 <InfoIcon className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
                                 <span>
                                   You haven&apos;t mentioned &quot;Maxxit&quot;
@@ -265,17 +271,17 @@ export default function Influencer() {
                             </div>
 
                             {/* Monthly Payout Section (Zero Payout) */}
-                            <div className="mt-6 py-4 px-5 bg-gray-900/50 border border-gray-800/40 rounded-lg">
+                            <div className="mt-6 py-5 px-6 bg-slate-950/40 border border-slate-800/50 rounded-2xl ring-1 ring-white/5">
                               <div className="flex flex-col items-center">
-                                <h3 className="text-lg font-medium text-gray-300 mb-2">
+                                <h3 className="text-lg font-semibold text-gray-200 mb-2 tracking-tight">
                                   Monthly Payout
                                 </h3>
-                                <p className="text-3xl font-bold text-white mb-3">
+                                <p className="text-4xl font-extrabold text-white mb-3">
                                   ${latestPayoutAmount.toFixed(2)}
                                 </p>
                                 <button
                                   onClick={handleRedeemPayout}
-                                  className="px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg text-white font-medium hover:shadow-lg hover:from-purple-600 hover:to-blue-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  className="px-5 py-2.5 bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl text-white font-semibold shadow-md hover:shadow-lg hover:from-purple-600 hover:to-blue-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                   disabled={latestPayoutAmount <= 0}
                                 >
                                   Redeem Payout
@@ -288,45 +294,45 @@ export default function Influencer() {
                           </>
                         ) : (
                           <>
-                            <div className="flex items-center justify-center mb-4">
-                              <div className="h-10 w-10 bg-green-500/20 rounded-full flex items-center justify-center mr-3">
-                                <Wallet2 className="h-5 w-5 text-green-400" />
+                            <div className="flex items-center justify-center mb-5">
+                              <div className="h-10 w-10 bg-green-500/15 rounded-full flex items-center justify-center mr-3 ring-1 ring-green-400/20">
+                                <Wallet2 className="h-5 w-5 text-green-300" />
                               </div>
-                              <h2 className="text-xl font-semibold text-green-400">
+                              <h2 className="text-xl font-semibold text-green-300">
                                 Wallet Connected
                               </h2>
                             </div>
                             <p className="text-white/80 mt-2">
                               Payments will be sent to:{" "}
-                              <span className="font-mono text-cyan-300 bg-gray-800 px-3 py-1 rounded-lg">
+                              <span className="font-mono text-cyan-300/90 bg-slate-800/70 px-3 py-1 rounded-lg ring-1 ring-cyan-400/20">
                                 {walletAddress}
                               </span>
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                              <div className="bg-gray-900/50 p-4 rounded-lg border border-gray-800">
-                                <p className="text-gray-400 text-xs uppercase">
+                              <div className="bg-slate-950/40 p-4 rounded-2xl border border-slate-800 ring-1 ring-white/5">
+                                <p className="text-gray-400 text-xs uppercase tracking-wide">
                                   Subscribers
                                 </p>
-                                <p className="text-xl font-semibold text-white flex items-center">
+                                <p className="text-xl font-semibold text-white flex items-center mt-1">
                                   <FaUserCheck className="text-blue-400 mr-2" />
                                   {subscriberCount}
                                 </p>
                               </div>
-                              <div className="bg-gray-900/50 p-4 rounded-lg border border-gray-800">
-                                <p className="text-gray-400 text-xs uppercase">
+                              <div className="bg-slate-950/40 p-4 rounded-2xl border border-slate-800 ring-1 ring-white/5">
+                                <p className="text-gray-400 text-xs uppercase tracking-wide">
                                   Credit Amount
                                 </p>
-                                <p className="text-xl font-semibold text-white flex items-center">
+                                <p className="text-xl font-semibold text-white flex items-center mt-1">
                                   <DollarSign className="text-green-400 mr-2" />
                                   ${creditAmount}
                                 </p>
                               </div>
                               {creditExpiry && (
-                                <div className="bg-gray-900/50 p-4 rounded-lg border border-gray-800">
-                                  <p className="text-gray-400 text-xs uppercase">
+                                <div className="bg-slate-950/40 p-4 rounded-2xl border border-slate-800 ring-1 ring-white/5">
+                                  <p className="text-gray-400 text-xs uppercase tracking-wide">
                                     Valid Until
                                   </p>
-                                  <p className="text-xl font-semibold text-white">
+                                  <p className="text-xl font-semibold text-white mt-1">
                                     {new Date(
                                       creditExpiry
                                     ).toLocaleDateString()}
@@ -336,18 +342,18 @@ export default function Influencer() {
                             </div>
 
                             {/* Monthly Payout Section */}
-                            <div className="mt-6 p-5 bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-indigo-800/40 rounded-lg shadow-lg">
+                            <div className="mt-6 p-6 bg-gradient-to-r from-blue-900/40 to-purple-900/40 border border-indigo-800/40 rounded-2xl shadow-xl ring-1 ring-white/5">
                               <div className="flex flex-col items-center">
-                                <h3 className="text-lg font-medium text-indigo-300 mb-2">
+                                <h3 className="text-lg font-semibold text-indigo-200 mb-2 tracking-tight">
                                   Monthly Payout Available
                                 </h3>
-                                <p className="text-4xl font-bold text-white mb-4 flex items-center">
-                                  <DollarSign className="h-8 w-8 text-green-400 mr-1" />
+                                <p className="text-4xl font-extrabold text-white mb-4 flex items-center">
+                                  <DollarSign className="h-8 w-8 text-green-400 mr-1 drop-shadow-[0_2px_8px_rgba(34,197,94,0.35)]" />
                                   {latestPayoutAmount.toFixed(2)}
                                 </p>
                                 <button
                                   onClick={handleRedeemPayout}
-                                  className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg text-white font-medium transform transition-all duration-300 hover:scale-105 hover:shadow-emerald-600/30 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                  className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl text-white font-semibold transform transition-all duration-300 hover:scale-105 hover:shadow-emerald-600/30 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                   disabled={latestPayoutAmount <= 0}
                                 >
                                   <Wallet2 className="w-5 h-5" />
@@ -363,13 +369,13 @@ export default function Influencer() {
                       </div>
                     ) : (
                       <motion.div
-                        className="bg-gradient-to-r from-teal-500/10 to-cyan-500/10 p-6 rounded-xl border border-teal-400/30 shadow-lg mb-8"
+                        className="bg-gradient-to-r from-teal-500/10 to-cyan-500/10 p-6 rounded-2xl border border-teal-400/30 shadow-xl ring-1 ring-white/5 mb-8"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
                       >
-                        <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                          <Wallet2 className="w-6 h-6 text-teal-300" />
+                        <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2 tracking-tight">
+                          <Wallet2 className="w-6 h-6 text-teal-300 drop-shadow-[0_2px_8px_rgba(45,212,191,0.35)]" />
                           Add Your Wallet Address
                         </h2>
                         <p className="text-white/80 mb-4">
@@ -383,12 +389,12 @@ export default function Influencer() {
                           onChange={(e) => setWalletAddress(e.target.value)}
                           placeholder="e.g., 0x1234...abcd"
                           color="green"
-                          className="w-full p-3 bg-white/10 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-all border border-teal-400/30 profileCss"
+                          className="w-full p-3.5 bg-white/10 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-4 focus:ring-teal-400/40 transition-all border border-teal-400/30 ring-1 ring-white/5 profileCss"
                         />
                         <button
                           onClick={handleWalletSubmit}
                           disabled={isSubmitting}
-                          className="mt-4 w-full py-3 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-lg text-white font-semibold shadow-lg transition-all duration-300 hover:shadow-teal-500/50 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="mt-4 w-full py-3 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-xl text-white font-semibold shadow-xl transition-all duration-300 hover:shadow-teal-500/50 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {isSubmitting ? "Saving..." : "Save Wallet Address"}
                         </button>
@@ -399,21 +405,21 @@ export default function Influencer() {
                     {userId && submitSuccess && (
                       <div className="mt-8 space-y-6">
                         {/* Metrics Section */}
-                        <div className="bg-gray-900/50 rounded-xl border border-gray-800/50 overflow-hidden">
+                        <div className="bg-slate-950/40 rounded-2xl border border-slate-800/50 overflow-hidden ring-1 ring-white/5">
                           <div
-                            className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-800/30 transition-colors"
+                            className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-800/30 transition-colors"
                             onClick={() => toggleSection("metrics")}
                           >
                             <div className="flex items-center">
-                              <BarChart3 className="w-5 h-5 text-blue-400 mr-2" />
-                              <h2 className="text-lg font-semibold text-white">
+                              <BarChart3 className="w-5 h-5 text-blue-400 mr-2 drop-shadow-[0_2px_8px_rgba(59,130,246,0.35)]" />
+                              <h2 className="text-lg font-semibold text-white tracking-tight">
                                 Influencer Metrics
                               </h2>
                             </div>
                             <ChevronDown
                               className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${activeSections.metrics
-                                  ? "transform rotate-180"
-                                  : ""
+                                ? "transform rotate-180"
+                                : ""
                                 }`}
                             />
                           </div>
@@ -431,21 +437,21 @@ export default function Influencer() {
                         </div>
 
                         {/* Signals Section */}
-                        <div className="bg-gray-900/50 rounded-xl border border-gray-800/50 overflow-hidden">
+                        <div className="bg-slate-950/40 rounded-2xl border border-slate-800/50 overflow-hidden ring-1 ring-white/5">
                           <div
-                            className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-800/30 transition-colors"
+                            className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-800/30 transition-colors"
                             onClick={() => toggleSection("signals")}
                           >
                             <div className="flex items-center">
-                              <LineChart className="w-5 h-5 text-green-400 mr-2" />
-                              <h2 className="text-lg font-semibold text-white">
+                              <LineChart className="w-5 h-5 text-green-400 mr-2 drop-shadow-[0_2px_8px_rgba(34,197,94,0.35)]" />
+                              <h2 className="text-lg font-semibold text-white tracking-tight">
                                 Trading Signals
                               </h2>
                             </div>
                             <ChevronDown
                               className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${activeSections.signals
-                                  ? "transform rotate-180"
-                                  : ""
+                                ? "transform rotate-180"
+                                : ""
                                 }`}
                             />
                           </div>
@@ -474,7 +480,7 @@ export default function Influencer() {
                     initial="hidden"
                     animate="visible"
                   >
-                    <div className="flex items-start gap-1 p-5 bg-blue-500/20 border-2 border-blue-500/30 rounded-lg text-blue-200 text-base">
+                    <div className="flex items-start gap-2 p-5 bg-blue-500/15 border border-blue-500/30 rounded-2xl text-blue-200 text-base ring-1 ring-white/5">
                       <InfoIcon className="w-5 h-5 mt-0.5 flex-shrink-0" />
                       <span>
                         You are not yet registered with &quot;Maxxit&quot;. This
@@ -485,7 +491,7 @@ export default function Influencer() {
                     </div>
                     <button
                       onClick={() => setIsModalOpen(true)}
-                      className="group relative px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl text-white font-semibold shadow-lg transition-all duration-300 hover:shadow-emerald-500/50 hover:scale-105 mt-6"
+                      className="group relative px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl text-white font-semibold shadow-xl transition-all duration-300 hover:shadow-emerald-500/50 hover:scale-105 mt-6"
                     >
                       Register Now
                       <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -496,7 +502,7 @@ export default function Influencer() {
                 {/* Sign Out Button */}
                 <button
                   onClick={() => signOut()}
-                  className="mt-8 group relative px-8 py-3 bg-gradient-to-r from-red-600 to-red-700 rounded-xl text-white font-semibold shadow-lg transition-all duration-300 hover:shadow-red-500/40 hover:scale-105"
+                  className="mt-8 group relative px-8 py-3 bg-gradient-to-r from-red-600 to-red-700 rounded-xl text-white font-semibold shadow-xl transition-all duration-300 hover:shadow-red-500/40 hover:scale-105"
                 >
                   Sign Out
                   <div className="absolute inset-0 bg-white/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -510,14 +516,14 @@ export default function Influencer() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7 }}
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl blur-2xl opacity-30"></div>
-              <div className="relative backdrop-blur-xl bg-white/10 p-8 rounded-2xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.2)] flex flex-col">
-                <h2 className="text-4xl font-bold mb-6 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/40 to-cyan-600/40 rounded-2xl blur-2xl opacity-40"></div>
+              <div className="relative backdrop-blur-xl bg-white/5 p-8 rounded-2xl border border-white/15 shadow-[0_20px_80px_rgba(2,6,23,0.6)] ring-1 ring-white/10 flex flex-col">
+                <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-6 bg-gradient-to-r from-white via-blue-100 to-cyan-100 bg-clip-text text-transparent">
                   Welcome
                 </h2>
                 <button
                   onClick={() => signIn("twitter")}
-                  className="group relative px-8 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl text-white font-semibold shadow-lg transition-all duration-300 hover:shadow-blue-500/50 hover:scale-105 flex items-center justify-center gap-2"
+                  className="group relative px-8 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl text-white font-semibold shadow-xl transition-all duration-300 hover:shadow-blue-500/50 hover:scale-105 flex items-center justify-center gap-2"
                 >
                   <FaXTwitter size={30} />
                   Login with X
@@ -526,11 +532,11 @@ export default function Influencer() {
 
                 {/* Disclaimer Section */}
                 <div className="mt-8">
-                  <h3 className="text-xl font-semibold mb-4 text-white">
+                  <h3 className="text-xl font-semibold mb-4 text-white tracking-tight">
                     How to Earn with Maxxit
                   </h3>
                   <div className="space-y-4 text-white/80">
-                    <div className="flex items-start gap-2 p-3 bg-gray-800/50 rounded-lg border border-gray-700/50 hover:bg-gray-800 transition-colors">
+                    <div className="flex items-start gap-2 p-3 bg-slate-900/50 rounded-xl border border-slate-800/60 hover:bg-slate-900/70 transition-colors ring-1 ring-white/5">
                       <DollarSign className="w-5 h-5 text-cyan-300 mt-1" />
                       <p>
                         Earn amounts by mentioning{" "}
@@ -540,27 +546,27 @@ export default function Influencer() {
                         or our platform link in your tweets
                       </p>
                     </div>
-                    <div className="flex items-start gap-2 p-3 bg-gray-800/50 rounded-lg border border-gray-700/50 hover:bg-gray-800 transition-colors">
+                    <div className="flex items-start gap-2 p-3 bg-slate-900/50 rounded-xl border border-slate-800/60 hover:bg-slate-900/70 transition-colors ring-1 ring-white/5">
                       <FaUserCheck className="w-5 h-5 text-cyan-300 mt-1" />
                       <p>
                         Connect your X account to verify you are a valid user
                       </p>
                     </div>
-                    <div className="flex items-start gap-2 p-3 bg-gray-800/50 rounded-lg border border-gray-700/50 hover:bg-gray-800 transition-colors">
+                    <div className="flex items-start gap-2 p-3 bg-slate-900/50 rounded-xl border border-slate-800/60 hover:bg-slate-900/70 transition-colors ring-1 ring-white/5">
                       <UserPlus className="w-5 h-5 text-cyan-300 mt-1" />
                       <p>
                         You will need to add yourself as an influencer through
                         our platform to be eligible for earnings
                       </p>
                     </div>
-                    <div className="flex items-start gap-2 p-3 bg-gray-800/50 rounded-lg border border-gray-700/50 hover:bg-gray-800 transition-colors">
+                    <div className="flex items-start gap-2 p-3 bg-slate-900/50 rounded-xl border border-slate-800/60 hover:bg-slate-900/70 transition-colors ring-1 ring-white/5">
                       <Wallet2 className="w-5 h-5 text-cyan-300 mt-1" />
                       <p>
                         Enter your wallet address to receive the credited amount
                         directly
                       </p>
                     </div>
-                    <div className="flex items-start gap-2 p-3 bg-gray-800/50 rounded-lg border border-gray-700/50 hover:bg-gray-800 transition-colors">
+                    <div className="flex items-start gap-2 p-3 bg-slate-900/50 rounded-xl border border-slate-800/60 hover:bg-slate-900/70 transition-colors ring-1 ring-white/5">
                       <TrendingUp className="w-5 h-5 text-cyan-300 mt-1" />
                       <p>
                         Mention{" "}

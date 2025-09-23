@@ -20,6 +20,8 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
+  Copy,
+  Check,
   Eye,
   ArrowUpRight,
   ArrowDownRight,
@@ -138,10 +140,10 @@ const MetricCard: React.FC<MetricCardProps> = ({
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Animated background gradient */}
-      <div className={`absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl`} />
+      <div className={`absolute inset-0 bg-gradient-to-br from-blue-500/5 to-blue-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl`} />
 
       {/* Animated border glow */}
-      <div className={`absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm -z-10`} style={{ padding: "2px" }}>
+      <div className={`absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm -z-10`} style={{ padding: "2px" }}>
         <div className="w-full h-full bg-[#0D1321] rounded-xl" />
       </div>
 
@@ -202,7 +204,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
               className={`px-3 py-1.5 rounded-lg font-medium ${explanation.category === "technical"
                 ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
                 : explanation.category === "social"
-                  ? "bg-purple-500/20 text-purple-400 border border-purple-500/30"
+                  ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"
                   : "bg-green-500/20 text-green-400 border border-green-500/30"
                 }`}
             >
@@ -248,6 +250,27 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [copiedHandle, setCopiedHandle] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isOpen, onClose]);
+
+  const handleCopy = async (e: React.MouseEvent, handle: string) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(`@${handle}`);
+      setCopiedHandle(handle);
+      setTimeout(() => setCopiedHandle(null), 1200);
+    } catch (_) {
+      setCopiedHandle(null);
+    }
+  };
 
   const filteredAndSortedAccounts = accounts
     .filter(
@@ -306,16 +329,16 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-300"
+        className="absolute inset-0 bg-black/70 backdrop-blur-md transition-opacity duration-300"
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-6xl mx-4 max-h-[90vh] rounded-2xl border shadow-2xl" style={{ background: "linear-gradient(to bottom, #0D1321, #070915)", borderColor: "#353940" }}>
+      <div className="relative w-full max-w-6xl mx-4 max-h-[90vh] rounded-2xl border shadow-2xl animate-fade-in-up transition-all duration-300" style={{ background: "linear-gradient(to bottom, #0D1321, #070915)", borderColor: "#353940" }}>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b" style={{ borderColor: "#353940" }}>
           <div>
-            <h2 className="text-2xl font-bold text-white">
+            <h2 className="font-leagueSpartan text-2xl font-bold text-white">
               Subscribed Influencers
             </h2>
             <p className="text-[#8ba1bc] mt-1">
@@ -324,14 +347,14 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-[#1a2234] transition-colors text-[#8ba1bc] hover:text-white"
+            className="p-2 rounded-xl hover:bg-[#1a2234] transition-all duration-200 text-[#8ba1bc] hover:text-white hover:rotate-90"
           >
             <X className="w-6 h-6" />
           </button>
         </div>
 
         {/* Controls */}
-        <div className="p-6 border-b" style={{ borderColor: "#353940", background: "#0D1321" }}>
+        <div className="p-6 border-b bg-[#141d31]" style={{ borderColor: "#353940" }}>
           <div className="flex flex-col lg:flex-row gap-4 items-center">
             {/* Search */}
             <div className="flex-1 w-full">
@@ -342,7 +365,7 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
                   placeholder="Search influencers..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-[#0D1321] border rounded-xl text-white placeholder-[#8ba1bc] focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  className="font-leagueSpartan w-full !pl-10 pr-4 py-3 bg-[#0D1321] border rounded-xl text-white placeholder-[#8ba1bc] focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                   style={{ borderColor: "#353940" }}
                 />
               </div>
@@ -357,7 +380,7 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
                   onChange={(e) =>
                     setSortBy(e.target.value as "followers" | "name" | "date")
                   }
-                  className="px-3 py-2 bg-[#0D1321] border rounded-lg text-white text-sm focus:outline-none focus:border-blue-500"
+                  className="px-3 py-2 bg-[#0D1321] border rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 hover:border-blue-500/50 transition-colors"
                   style={{ borderColor: "#353940" }}
                 >
                   <option value="followers">Followers</option>
@@ -368,7 +391,7 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
                   onClick={() =>
                     setSortOrder(sortOrder === "asc" ? "desc" : "asc")
                   }
-                  className="p-2 bg-[#0D1321] border rounded-lg hover:bg-[#1a2234] transition-colors"
+                  className="p-2 bg-[#0D1321] border rounded-lg hover:bg-[#1a2234] transition-colors hover:scale-105"
                   style={{ borderColor: "#353940" }}
                 >
                   {sortOrder === "asc" ? (
@@ -420,7 +443,7 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
               {filteredAndSortedAccounts.map((account) => (
                 <div
                   key={account.twitterHandle}
-                  className="group rounded-xl p-5 border transition-all duration-300 cursor-pointer"
+                  className="group rounded-xl p-5 border transition-all duration-300 cursor-pointer hover:-translate-y-1 hover:shadow-xl"
                   style={{ background: "#0D1321", borderColor: "#353940" }}
                   onClick={() =>
                     window.open(
@@ -431,7 +454,7 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
                 >
                   <div className="flex flex-col items-center text-center">
                     <div className="relative mb-4">
-                      <div className="w-20 h-20 rounded-full border-3 overflow-hidden transition-all duration-300" style={{ borderColor: "#353940", background: "#111528" }}>
+                      <div className="w-20 h-20 rounded-full border-3 overflow-hidden transition-all duration-300 group-hover:border-blue-500/50 group-hover:scale-105" style={{ borderColor: "#353940", background: "#111528" }}>
                         <img
                           src={
                             account.influencerInfo?.userProfileUrl ||
@@ -458,9 +481,22 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
                     <h3 className="text-white font-semibold mb-1 group-hover:text-blue-400 transition-colors">
                       {account.influencerInfo?.name || account.twitterHandle}
                     </h3>
-                    <p className="text-[#8ba1bc] text-sm mb-3">
-                      @{account.twitterHandle}
-                    </p>
+                    <div className="flex items-center gap-2 mb-3">
+                      <p className="text-[#8ba1bc] text-sm">
+                        @{account.twitterHandle}
+                      </p>
+                      <button
+                        onClick={(e) => handleCopy(e, account.twitterHandle)}
+                        className="px-2 py-1 rounded-md border text-xs text-[#8ba1bc] hover:text-white hover:border-blue-500 hover:bg-blue-500/10 transition-all"
+                        style={{ borderColor: "#353940" }}
+                      >
+                        {copiedHandle === account.twitterHandle ? (
+                          <span className="inline-flex items-center gap-1 text-green-400"><Check className="w-3 h-3" /> Copied</span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1"><Copy className="w-3 h-3" /> Copy</span>
+                        )}
+                      </button>
+                    </div>
 
                     <div className="flex items-center justify-center gap-4 text-xs text-[#8ba1bc] mb-4">
                       <div className="flex items-center gap-1">
@@ -490,7 +526,7 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
               {filteredAndSortedAccounts.map((account) => (
                 <div
                   key={account.twitterHandle}
-                  className="group flex items-center gap-4 p-4 rounded-xl border transition-all duration-300 cursor-pointer"
+                  className="group flex items-center gap-4 p-4 rounded-xl border transition-all duration-300 cursor-pointer hover:-translate-y-0.5 hover:shadow-lg"
                   style={{ background: "#0D1321", borderColor: "#353940" }}
                   onClick={() =>
                     window.open(
@@ -500,7 +536,7 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
                   }
                 >
                   <div className="relative">
-                    <div className="w-16 h-16 rounded-full border-2 overflow-hidden transition-all duration-300" style={{ borderColor: "#353940", background: "#111528" }}>
+                    <div className="w-16 h-16 rounded-full border-2 overflow-hidden transition-all duration-300 group-hover:border-blue-500/50 group-hover:scale-105" style={{ borderColor: "#353940", background: "#111528" }}>
                       <img
                         src={
                           account.influencerInfo?.userProfileUrl ||
@@ -527,9 +563,22 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
                     <h3 className="text-white font-semibold mb-1 group-hover:text-blue-400 transition-colors">
                       {account.influencerInfo?.name || account.twitterHandle}
                     </h3>
-                    <p className="text-[#8ba1bc] text-sm mb-2">
-                      @{account.twitterHandle}
-                    </p>
+                    <div className="flex items-center gap-2 mb-2">
+                      <p className="text-[#8ba1bc] text-sm">
+                        @{account.twitterHandle}
+                      </p>
+                      <button
+                        onClick={(e) => handleCopy(e, account.twitterHandle)}
+                        className="px-2 py-1 rounded-md border text-xs text-[#8ba1bc] hover:text-white hover:border-blue-500 hover:bg-blue-500/10 transition-all"
+                        style={{ borderColor: "#353940" }}
+                      >
+                        {copiedHandle === account.twitterHandle ? (
+                          <span className="inline-flex items-center gap-1 text-green-400"><Check className="w-3 h-3" /> Copied</span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1"><Copy className="w-3 h-3" /> Copy</span>
+                        )}
+                      </button>
+                    </div>
                     <div className="flex items-center gap-4 text-xs text-[#8ba1bc]">
                       <div className="flex items-center gap-1">
                         <Users className="w-3 h-3" />
@@ -725,7 +774,7 @@ const AllAgentsMarketplace: React.FC = () => {
       case "Social-Driven":
         return "from-blue-500 to-cyan-500";
       case "Momentum":
-        return "from-indigo-500 to-indigo-600";
+        return "from-blue-600 to-blue-700";
       case "Fundamental":
         return "from-green-500 to-emerald-500";
       default:
@@ -1029,7 +1078,9 @@ const AllAgentsMarketplace: React.FC = () => {
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent font-napzerRounded mb-4">
             Agents Marketplace
           </h1>
-          <p className="text-[#8ba1bc] text-base md:text-xl max-w-3xl mx-auto leading-relaxed">
+          <div className="h-1 w-24 bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] mx-auto rounded-full animate-fade-in-up delay-200" />
+
+          <p className="text-[#8ba1bc] pt-4 text-base md:text-xl max-w-3xl mx-auto leading-relaxed">
             Discover, explore, and deploy sophisticated trading agents
             configured by the community
           </p>
@@ -1189,18 +1240,18 @@ const AllAgentsMarketplace: React.FC = () => {
                 }}
               >
                 {/* Animated background gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-100 transition-opacity duration-500 rounded-2xl" />
+                <div className="absolute inset-0  bg-blue-500/5  duration-500 rounded-2xl" />
 
                 {/* Animated border glow */}
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 opacity-100 transition-opacity duration-500 blur-sm -z-10" style={{ padding: "2px" }}>
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-400/20 opacity-100 transition-opacity duration-500 blur-sm -z-10" style={{ padding: "2px" }}>
                   <div className="w-full h-full bg-[#0D1321] rounded-2xl" />
                 </div>
                 {/* Agent Header */}
-                <div className="flex items-start justify-between mb-6 relative z-10">
-                  <div className="flex items-center gap-4">
+                <div className="flex items-start justify-between mb-3 relative z-10">
+                  <div className="flex items-center gap-3">
                     <div className="relative">
                       <div
-                        className={`w-16 h-16 bg-gradient-to-br ${getStrategyColor(strategyType)} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}
+                        className={`w-14 h-14 bg-gradient-to-br ${getStrategyColor(strategyType)} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}
                       >
                         <Users className="w-8 h-8 text-white group-hover:scale-110 transition-transform duration-300" />
                       </div>
@@ -1208,7 +1259,7 @@ const AllAgentsMarketplace: React.FC = () => {
                       <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${getStrategyColor(strategyType)} opacity-0 group-hover:opacity-30 group-hover:scale-125 transition-all duration-500 blur-sm -z-10`} />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-white mb-2 group-hover:text-[#AAC9FA] transition-colors duration-300">
+                      <h3 className="text-base md:text-lg font-semibold tracking-tight text-white mb-2 group-hover:text-[#AAC9FA] transition-colors duration-300">
                         @{agent.twitterUsername}
                       </h3>
                       <div className="flex items-center gap-2 mb-3">
@@ -1218,45 +1269,47 @@ const AllAgentsMarketplace: React.FC = () => {
                           {strategyType}
                         </span>
                         {isOwn && (
-                          <span className="px-2 py-1 bg-gradient-to-r from-gray-600/50 to-gray-700/50 text-gray-300 rounded-full text-xs border border-gray-600/50 group-hover:border-gray-500/50 transition-all duration-300">
+                          <span className="px-2 py-1 bg-gradient-to-r from-gray-600/50 to-gray-700/50 text-gray-200 rounded-full text-xs border border-gray-600/50 group-hover:border-gray-500/50 transition-all duration-300">
                             Your Agent
                           </span>
                         )}
                       </div>
-                      <p className="text-[#8ba1bc] text-sm flex items-center gap-2 group-hover:text-[#B8C5D1] transition-colors duration-300">
-                        <Users className="w-3 h-3 group-hover:scale-110 transition-transform duration-300" />
-                        {agent.subscribedAccounts.length} subscriptions
-                      </p>
+
                     </div>
                   </div>
 
-                  <div className="text-right">
-                    {availableTypes.length === 0 ? (
-                      <div className="px-4 py-2 bg-green-500/20 text-green-400 rounded-xl text-sm font-medium border border-green-500/30">
-                        <CheckCircle className="w-4 h-4 inline mr-1" />
-                        All Deployed
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() =>
-                          setDeploymentModal({
-                            isOpen: true,
-                            agentUsername: agent.twitterUsername,
-                            agentId: agent._id,
-                          })
-                        }
-                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 hover:scale-105 shadow-lg ${availableTypes.length === 2
-                          ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600"
-                          : "bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-600 hover:to-orange-600"
-                          }`}
-                      >
-                        <Rocket className="w-4 h-4" />
-                        {availableTypes.length === 2
-                          ? "Deploy Agent"
-                          : `Deploy ${availableTypes[0] === "perpetuals" ? "Perpetuals" : "Spot"}`}
-                      </button>
-                    )}
-                  </div>
+                  <p className="text-[#8ba1bc] text-sm pl-2 flex items-center gap-1 group-hover:text-[#B8C5D1] transition-colors duration-300">
+                    <Users className="w-3 h-3 text-blue-300 group-hover:scale-110 transition-transform duration-300" />
+                    <span className="text-gray-300">{agent.subscribedAccounts.length} subscriptions</span>
+                  </p>
+                </div>
+
+                <div className="flex items-start justify-between relative z-10 text-right mb-4">
+                  {availableTypes.length === 0 ? (
+                    <div className="px-4 py-2 w-full text-center flex items-center justify-center bg-green-500/20 text-green-400 rounded-xl text-sm font-medium border border-green-500/30">
+                      <CheckCircle className="w-4 h-4 inline mr-1" />
+                      All Deployed
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() =>
+                        setDeploymentModal({
+                          isOpen: true,
+                          agentUsername: agent.twitterUsername,
+                          agentId: agent._id,
+                        })
+                      }
+                      className={`cursor-pointer px-4 py-2 w-full  rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2 hover:scale-105 shadow-lg ${availableTypes.length === 2
+                        ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-600"
+                        : "bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-600 hover:to-orange-600"
+                        }`}
+                    >
+                      <Rocket className="w-4 h-4" />
+                      {availableTypes.length === 2
+                        ? "Deploy Agent"
+                        : `Deploy ${availableTypes[0] === "perpetuals" ? "Perpetuals" : "Spot"}`}
+                    </button>
+                  )}
                 </div>
 
                 {/* Enhanced Key Metrics */}
@@ -1317,7 +1370,7 @@ const AllAgentsMarketplace: React.FC = () => {
                     <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                     <span className="text-gray-300 text-sm font-medium">Trading Performance APR</span>
                   </div>
-                  
+
                   <div className="grid grid-cols-3 gap-4">
                     {/* GMX APR */}
                     <div className="text-center">
@@ -1389,7 +1442,7 @@ const AllAgentsMarketplace: React.FC = () => {
                           key={type}
                           className={`px-2 py-1 rounded text-xs font-medium ${type === "perpetuals"
                             ? "bg-blue-500/20 text-blue-400"
-                            : "bg-purple-500/20 text-purple-400"
+                            : "bg-cyan-500/20 text-cyan-400"
                             }`}
                         >
                           {type}

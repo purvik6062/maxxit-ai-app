@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { Loader2, Settings, Edit2, Save, X, Users, TrendingUp, Shield, BarChart3, Info, ExternalLink } from "lucide-react";
+import { Loader2, Settings, Edit2, Save, X, Users, TrendingUp, Shield, BarChart3, Info, ExternalLink, Copy, Check } from "lucide-react";
 import Link from "next/link";
 
 interface SubscribedAccount {
@@ -82,7 +82,7 @@ const EditableMetricCard: React.FC<EditableMetricCardProps> = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setInputValue(val);
-    
+
     const numValue = val === '' ? 0 : parseInt(val);
     if (!isNaN(numValue)) {
       onChange(numValue);
@@ -130,7 +130,7 @@ const EditableMetricCard: React.FC<EditableMetricCardProps> = ({
               className="p-1.5 rounded-lg hover:bg-gray-700/50 transition-all duration-200 hover:scale-110"
               title="Click for more info"
             >
-              <Info className="w-4 h-4 text-gray-500 hover:text-blue-400 transition-colors group-hover/info:scale-110" />
+              <Info className="w-4 h-4 text-blue-300 hover:text-blue-400 transition-colors group-hover/info:scale-110" />
             </button>
           )}
           <div className={`${color} group-hover:scale-110 transition-transform duration-300`}>
@@ -153,7 +153,7 @@ const EditableMetricCard: React.FC<EditableMetricCardProps> = ({
         </div>
       ) : (
         <div className="relative z-10">
-          <div className={`text-xl font-bold transition-all duration-300 group-hover:scale-105 ${getValueColor()}`}>
+          <div className={`text-xl md:text-2xl font-semibold tracking-tight transition-all duration-300 group-hover:scale-105 ${getValueColor()}`}>
             {value}{label === "Heartbeat Score" ? "" : "%"}
           </div>
 
@@ -182,7 +182,7 @@ const EditableMetricCard: React.FC<EditableMetricCardProps> = ({
           </div>
           <div className="flex flex-wrap gap-2 text-xs">
             <span className={`px-3 py-1.5 rounded-lg font-medium ${explanation.category === 'technical' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
-              explanation.category === 'social' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' :
+              explanation.category === 'social' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' :
                 'bg-green-500/20 text-green-400 border border-green-500/30'
               }`}>
               {explanation.category}
@@ -191,7 +191,7 @@ const EditableMetricCard: React.FC<EditableMetricCardProps> = ({
               Range: {explanation.range}
             </span>
             <span className={`px-3 py-1.5 rounded-lg font-medium ${explanation.impact === 'high' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
-              explanation.impact === 'medium' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+              explanation.impact === 'medium' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
                 'bg-green-500/20 text-green-400 border border-green-500/30'
               }`}>
               {explanation.impact} impact
@@ -212,6 +212,7 @@ const MyAgent: React.FC = () => {
   const [editData, setEditData] = useState<CustomizationOptions | null>(null);
   const [saving, setSaving] = useState(false);
   const [expandedAccounts, setExpandedAccounts] = useState<{ [key: string]: boolean }>({});
+  const [copiedUser, setCopiedUser] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchAgentData = async () => {
@@ -286,6 +287,16 @@ const MyAgent: React.FC = () => {
       }, 100);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleCopyUsername = async () => {
+    try {
+      await navigator.clipboard.writeText(`@${agentData?.twitterUsername || ''}`);
+      setCopiedUser(true);
+      setTimeout(() => setCopiedUser(false), 1200);
+    } catch (_) {
+      setCopiedUser(false);
     }
   };
 
@@ -621,9 +632,9 @@ const MyAgent: React.FC = () => {
 
   if (!agentData) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
-          <div className="text-gray-400 mb-4">No agent configuration found. Please complete your onboarding first.</div>
+          <div className="text-gray-400 mb-4 text-2xl bg-[#141d31] p-4 rounded-lg">No agent configuration found. Please complete your onboarding first.</div>
           <Link
             href="/influencer"
             className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -648,7 +659,7 @@ const MyAgent: React.FC = () => {
         {/* Enhanced Header */}
         <div className="text-center mb-12 animate-fade-in-up">
           <div className="inline-block">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 font-napzerRounded bg-gradient-to-r from-[#AAC9FA] via-[#E1EAF9] to-[#AAC9FA] bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-6 font-napzerRounded bg-gradient-to-r from-[#AAC9FA] via-[#E1EAF9] to-[#AAC9FA] bg-clip-text text-transparent">
               My Agent Configuration
             </h1>
             <div className="h-1 w-24 bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] mx-auto rounded-full animate-fade-in-up delay-200" />
@@ -659,9 +670,16 @@ const MyAgent: React.FC = () => {
         </div>
 
         {/* Enhanced User Info Card */}
-        <div className="bg-gradient-to-br from-[#0D1321] to-[#1a2234] rounded-2xl p-8 mb-10 border-2 transition-all duration-300 hover:shadow-xl animate-fade-in-up delay-400"
+        <div className="relative bg-gradient-to-br from-[#0D1321] to-[#0F172A] rounded-2xl p-8 md:p-10 mb-10 border-2 transition-all duration-300 hover:shadow-2xl animate-fade-in-up delay-400 overflow-hidden"
           style={{ borderColor: "#353940" }}>
-          <div className="flex items-center justify-between flex-wrap gap-6">
+          {/* Decorative background glows */}
+          <div className="pointer-events-none absolute -top-24 -right-24 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-24 -left-24 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-10 right-1/3 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl" />
+
+          {/* Accent top bar */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500 opacity-30" />
+          <div className="relative flex items-center justify-between flex-wrap gap-6">
             <div className="flex items-center gap-6">
               <div className="relative">
                 <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -671,25 +689,39 @@ const MyAgent: React.FC = () => {
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500 opacity-0 group-hover:opacity-30 group-hover:scale-125 transition-all duration-500 blur-sm -z-10" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-white font-leagueSpartan mb-2 group-hover:text-[#AAC9FA] transition-colors duration-300">
-                  @{agentData.twitterUsername}
-                </h2>
-                <p className="text-gray-400 text-lg group-hover:text-[#B8C5D1] transition-colors duration-300">Personal Trading Agent</p>
+                <div className="flex items-center gap-3 mb-2">
+                  <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-white font-leagueSpartan group-hover:text-[#AAC9FA] transition-colors duration-300">
+                    @{agentData.twitterUsername}
+                  </h2>
+                  <button
+                    onClick={handleCopyUsername}
+                    className="px-2 py-1 rounded-md border text-xs text-gray-300 hover:text-white hover:border-blue-500 hover:bg-blue-500/10 transition-all"
+                    style={{ borderColor: "#353940" }}
+                    title="Copy username"
+                  >
+                    {copiedUser ? (
+                      <span className="inline-flex items-center gap-1 text-green-400"><Check className="w-3 h-3" /> Copied</span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1"><Copy className="w-3 h-3" /> Copy</span>
+                    )}
+                  </button>
+                </div>
+                <p className="text-gray-400 text-base md:text-lg group-hover:text-[#B8C5D1] transition-colors duration-300">Personal Trading Agent</p>
               </div>
             </div>
             <div className="flex items-center gap-8">
               <div className="text-center group">
-                <div className="text-3xl font-bold text-green-400 group-hover:scale-110 transition-transform duration-300">{agentData.credits}</div>
-                <div className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors duration-300">Credits</div>
+                <div className="text-3xl md:text-4xl font-semibold text-green-400 group-hover:scale-110 transition-transform duration-300">{agentData.credits}</div>
+                <div className="text-xs md:text-sm text-gray-400 group-hover:text-gray-300 transition-colors duration-300">Credits</div>
               </div>
               <div className="text-center group">
-                <div className="text-3xl font-bold text-blue-400 group-hover:scale-110 transition-transform duration-300">{agentData.subscribedAccounts.length}</div>
-                <div className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors duration-300">Subscriptions</div>
+                <div className="text-3xl md:text-4xl font-semibold text-blue-400 group-hover:scale-110 transition-transform duration-300">{agentData.subscribedAccounts.length}</div>
+                <div className="text-xs md:text-sm text-gray-400 group-hover:text-gray-300 transition-colors duration-300">Subscriptions</div>
               </div>
               {!isEditing ? (
                 <button
                   onClick={handleEdit}
-                  className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
+                  className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
                 >
                   <Edit2 className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" />
                   Edit Configuration
@@ -706,7 +738,7 @@ const MyAgent: React.FC = () => {
                   <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 hover:scale-105 disabled:opacity-50 shadow-lg hover:shadow-xl"
+                    className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-300 hover:scale-105 disabled:opacity-50 shadow-lg hover:shadow-xl"
                   >
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                     {saving ? "Saving..." : "Save"}
@@ -715,20 +747,31 @@ const MyAgent: React.FC = () => {
               )}
             </div>
           </div>
+          {isEditing && (
+            <div className="mt-6">
+              <div className="h-2 w-full bg-gray-800 rounded-full overflow-hidden">
+                <div className="h-full w-full bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500 animate-pulse" />
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Enhanced Agent Configuration */}
-          <div className="bg-[#0D1321] rounded-2xl p-8 border-2 transition-all duration-300 hover:shadow-xl animate-fade-in-up delay-500"
+          <div className="relative bg-[#0D1321] rounded-2xl p-8 md:p-10 border-2 transition-all duration-300 hover:shadow-2xl animate-fade-in-up delay-500 overflow-hidden"
             style={{ borderColor: "#353940" }}>
+            {/* Accent top bar */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-cyan-500 opacity-30" />
+            {/* Subtle patterned overlay */}
+            <div className="pointer-events-none absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)", backgroundSize: "12px 12px" }} />
             <div className="flex items-center justify-between mb-8">
-              <h3 className="font-leagueSpartan text-2xl font-semibold text-white flex items-center gap-3">
+              <h3 className="font-leagueSpartan text-2xl md:text-3xl font-semibold tracking-tight text-white flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/20">
                   <Settings className="w-6 h-6 text-blue-400" />
                 </div>
                 Agent Configuration
                 {isEditing && (
-                  <span className="text-sm text-yellow-400 bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 px-3 py-1.5 rounded-full border border-yellow-500/30 animate-pulse">
+                  <span className="text-xs md:text-sm text-amber-400 bg-gradient-to-r from-amber-500/20 to-amber-600/20 px-3 py-1.5 rounded-full border border-amber-500/30 animate-pulse">
                     Editing Mode
                   </span>
                 )}
@@ -812,16 +855,20 @@ const MyAgent: React.FC = () => {
           </div>
 
           {/* Enhanced Subscribed Accounts */}
-          <div className="bg-[#0D1321] rounded-2xl p-8 border-2 transition-all duration-300 hover:shadow-xl animate-fade-in-up delay-600"
+          <div className="relative bg-[#0D1321] rounded-2xl p-8 md:p-10 border-2 transition-all duration-300 hover:shadow-2xl animate-fade-in-up delay-600 overflow-hidden"
             style={{ borderColor: "#353940" }}>
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="font-leagueSpartan text-2xl font-semibold text-white flex items-center gap-3">
+            {/* Accent top bar */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 opacity-30" />
+            {/* Subtle patterned overlay */}
+            <div className="pointer-events-none absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)", backgroundSize: "12px 12px" }} />
+            <div className="flex items-center justify-between mb-8 relative z-10">
+              <h3 className="font-leagueSpartan text-2xl md:text-3xl font-semibold tracking-tight text-white flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-600/20">
-                  <Users className="w-6 h-6 text-purple-400" />
+                  <Users className="w-6 h-6 text-blue-400" />
                 </div>
                 Subscribed Accounts
               </h3>
-              <span className="text-sm text-gray-400 bg-[#1a2234] px-3 py-1.5 rounded-full border border-[#353940]">
+              <span className="text-xs md:text-sm text-gray-300 bg-[#1a2234] px-3 py-1.5 rounded-full border border-[#353940]">
                 {agentData.subscribedAccounts.length} active subscriptions
               </span>
             </div>
@@ -845,18 +892,18 @@ const MyAgent: React.FC = () => {
                 </div>
 
                 {/* Subscription Details */}
-                <div className="space-y-3 max-h-64 overflow-y-auto">
+                <div className="space-y-3 max-h-64 overflow-y-auto relative z-10">
                   {agentData.subscribedAccounts.map((account) => (
                     <div
                       key={account.twitterHandle}
-                      className="bg-gray-700/30 rounded-lg p-4 hover:bg-gray-700/50 transition-colors"
+                      className="bg-gray-700/30 rounded-lg p-4 hover:bg-gray-700/50 border border-transparent hover:border-blue-500/30 hover:-translate-y-0.5 hover:shadow-lg transition-all"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <img
                             src={account.influencerInfo?.userProfileUrl || `https://picsum.photos/seed/${account.twitterHandle}/40/40`}
                             alt={account.influencerInfo?.name || account.twitterHandle}
-                            className="w-10 h-10 rounded-full object-cover"
+                            className="w-10 h-10 rounded-full object-cover ring-2 ring-transparent group-hover:ring-blue-400 transition-all"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
                               target.src = `https://picsum.photos/seed/${account.twitterHandle}/40/40`;
