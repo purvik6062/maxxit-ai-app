@@ -2,59 +2,62 @@ import { NextResponse } from "next/server";
 import dbConnect from "src/utils/dbConnect";
 import { ObjectId } from "mongodb";
 
-export async function GET(request, { params }) {
-  const { id } = await params;
-  console.log("get-influencer-metrics called with ID:", id);
-
+export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
   try {
+    const handlerStartMs = Date.now();
+    const connectStartMs = Date.now();
     const client = await dbConnect();
+    const dbConnectMs = Date.now() - connectStartMs;
     const db = client.db("ctxbt-signal-flow");
 
-    // Try to determine if the id is an ObjectId or a Twitter handle
-    let query = {};
-    const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(id);
-    console.log("ID validation:", { id, isValidObjectId });
-    
-    if (isValidObjectId) {
-      // It appears to be a valid ObjectId
+    // Determine if id is ObjectId or twitterHandle
+    let query: any = {};
+    if (/^[0-9a-fA-F]{24}$/.test(id)) {
       try {
         query = { _id: new ObjectId(id) };
-        console.log("Using ObjectId query:", query);
-      } catch (error) {
-        // If ObjectId creation fails, fall back to twitterHandle
-        console.error("ObjectId creation failed, falling back to twitterHandle:", error);
+      } catch {
         query = { twitterHandle: id };
       }
     } else {
-      // Use it as a Twitter handle
-      console.log("Using twitterHandle query:", { twitterHandle: id });
       query = { twitterHandle: id };
     }
 
-    const influencer = await db
-      .collection("influencers")
-      .findOne(query);
+    const findStartMs = Date.now();
+    const influencer = await db.collection("influencers").findOne(query, {
+      projection: {
+        twitterHandle: 1,
+        subscriptionPrice: 1,
+        subscribers: 1,
+        userData: {
+          username: 1,
+          userProfileUrl: 1,
+          mindshare: 1,
+          herdedVsHidden: 1,
+          convictionVsHype: 1,
+          memeVsInstitutional: 1,
+          impactFactor: 1,
+          publicMetrics: { followers_count: 1 },
+        },
+      } as any,
+    });
+    const findMs = Date.now() - findStartMs;
 
     if (!influencer) {
-      console.log("No influencer found for query:", query);
-      return NextResponse.json(
-        { error: "Influencer not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Influencer not found" }, { status: 404 });
     }
 
-    console.log("Influencer found:", { 
-      id: influencer._id.toString(),
-      twitterHandle: influencer.twitterHandle,
-      hasUserData: !!influencer.userData
+    const totalMs = Date.now() - handlerStartMs;
+    console.log("[get-influencer-metrics] request completed", {
+      id,
+      dbConnectMs,
+      findMs,
+      totalMs,
     });
-    
+
     return NextResponse.json(influencer);
   } catch (error) {
     console.error("Error in get-influencer-metrics:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch influencer" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch influencer" }, { status: 500 });
   }
 }

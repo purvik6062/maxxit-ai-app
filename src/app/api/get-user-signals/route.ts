@@ -57,6 +57,7 @@ async function fetchFromIpfs(ipfsUrl: string) {
 export async function GET(request: Request): Promise<Response> {
   let client: MongoClient;
   try {
+    const handlerStartMs = Date.now();
     const { searchParams } = new URL(request.url);
     const telegramId = searchParams.get("telegramId");
     const page = parseInt(searchParams.get("page") || "1", 10);
@@ -86,7 +87,9 @@ export async function GET(request: Request): Promise<Response> {
     }
 
     // Connect to database
+    const connectStartMs = Date.now();
     client = await dbConnect();
+    const dbConnectMs = Date.now() - connectStartMs;
     const db = client.db("ctxbt-signal-flow");
     const tradingSignalsCollection = db.collection("trading-signals");
 
@@ -96,28 +99,78 @@ export async function GET(request: Request): Promise<Response> {
       "backtesting_results_with_reasoning"
     );
 
-    // Get user's trading signals
-    const userSignals = (await tradingSignalsCollection
-      .find({
-        subscribers: {
-          $elemMatch: {
-            username: telegramId,
-          },
+    // Build base filter (+ server-side signal filter where possible)
+    const baseFilter: any = {
+      subscribers: {
+        $elemMatch: {
+          username: telegramId,
         },
-      })
-      .toArray()) as SignalData[];
+      },
+    };
+    if (filterType === "buy" || filterType === "sell" || filterType === "hold") {
+      // Case-insensitive match on signal type
+      baseFilter["signal_data.signal"] = { $regex: `^${filterType}$`, $options: "i" };
+    }
 
-    // Get all tweet links for backtesting matching
-    const userTweetLinks = userSignals.map((signal) => signal.tweet_link);
+    // Count total matching signals for pagination (matches DB-side filter)
+    const countStartMs = Date.now();
+    const countPromise = tradingSignalsCollection.countDocuments(baseFilter);
 
-    // Find all backtesting results for these signals
-    const backtestingResults = await backtestingCollection
-      .find({
-        $or: userSignals.map((signal) => ({
-          $and: [{ Tweet: signal.tweet_link }, { "Token ID": signal.coin }],
-        })),
+    // Fetch only one page with projection and sort
+    const fetchSignalsStartMs = Date.now();
+    const pagePromise = tradingSignalsCollection
+      .find(baseFilter, {
+        projection: {
+          tweet_link: 1,
+          coin: 1,
+          generatedAt: 1,
+          "signal_data.token": 1,
+          "signal_data.signal": 1,
+          "signal_data.currentPrice": 1,
+          "signal_data.targets": 1,
+          "signal_data.stopLoss": 1,
+          "signal_data.exitValue": 1,
+          "signal_data.exitPnL": 1,
+          "signal_data.bestStrategy": 1,
+          "signal_data.ipfsLink": 1,
+        },
+        sort: { generatedAt: -1 },
+        skip: (page - 1) * limit,
+        limit,
       })
       .toArray();
+    const [totalSignals, userSignals] = await Promise.all([
+      countPromise,
+      pagePromise,
+    ]) as [number, SignalData[]];
+    const fetchSignalsMs = Date.now() - fetchSignalsStartMs;
+
+    // Fetch backtesting only for the current page
+    const backtestingFetchStartMs = Date.now();
+    const backtestingResults = await backtestingCollection
+      .find(
+        {
+          $or: userSignals.map((signal) => ({
+            $and: [{ Tweet: signal.tweet_link }, { "Token ID": signal.coin }],
+          })),
+        },
+        {
+          projection: {
+            Tweet: 1,
+            "Token ID": 1,
+            "Final Exit Price": 1,
+            "Final P&L": 1,
+            SL: 1,
+            TP1: 1,
+            TP2: 1,
+            "Best Strategy": 1,
+            "Price at Tweet": 1,
+            "IPFS Link": 1,
+          },
+        }
+      )
+      .toArray();
+    const backtestingFetchMs = Date.now() - backtestingFetchStartMs;
 
     // Create a map of tweet links to backtesting results for fast lookup
     const backtestingMap = new Map();
@@ -128,6 +181,7 @@ export async function GET(request: Request): Promise<Response> {
     });
 
     // Process each signal
+    const enrichStartMs = Date.now();
     const enrichedSignals = userSignals.map((signal) => {
       // Get matching backtesting result using composite key
       const compositeKey = `${signal.tweet_link}:${signal.coin}`;
@@ -205,6 +259,7 @@ export async function GET(request: Request): Promise<Response> {
         backtestingDone: true,
       } as SignalData;
     });
+    const enrichMs = Date.now() - enrichStartMs;
 
     // Apply filtering
     let filteredSignals: any[] = [];
@@ -223,20 +278,43 @@ export async function GET(request: Request): Promise<Response> {
       );
     }
 
-    // Sort by date (newest first)
-    filteredSignals.sort(
-      (a, b) =>
-        new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime()
-    );
+    // Already sorted by DB on generatedAt desc; keep order
 
-    // Calculate total count for pagination
-    const totalSignals = filteredSignals.length;
+    // Calculate total pages
     const totalPages = Math.ceil(totalSignals / limit);
 
-    // Apply pagination
-    const start = (page - 1) * limit;
-    const end = start + limit;
-    const paginatedSignals = filteredSignals.slice(start, end);
+    // We already fetched one page; now apply post-enrichment filtering if needed
+    let pageSignals = enrichedSignals;
+    if (filterType === "exited") {
+      pageSignals = enrichedSignals.filter((signal) => signal.hasExited);
+    } else if (
+      filterType === "buy" ||
+      filterType === "sell" ||
+      filterType === "hold"
+    ) {
+      pageSignals = enrichedSignals.filter(
+        (signal) =>
+          signal.signal_data.signal.toLowerCase() === filterType.toLowerCase()
+      );
+    }
+
+    // Note: If filter reduces below limit, that's expected; count remains totalSignals from base filter
+    const paginatedSignals = pageSignals;
+
+    const totalMs = Date.now() - handlerStartMs;
+    console.log("[get-user-signals] request completed", {
+      telegramId,
+      page,
+      limit,
+      filterType,
+      dbConnectMs,
+      fetchSignalsMs,
+      backtestingFetchMs,
+      enrichMs,
+      totalMs,
+      inputSignals: userSignals.length,
+      outputSignals: paginatedSignals.length,
+    });
 
     return NextResponse.json({
       success: true,

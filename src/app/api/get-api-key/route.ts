@@ -5,6 +5,7 @@ import { MongoClient } from "mongodb";
 export async function GET(request: Request): Promise<Response> {
   let client: MongoClient;
   try {
+    const handlerStartMs = Date.now();
     const { searchParams } = new URL(request.url);
     const twitterId = searchParams.get("twitterId");
 
@@ -15,11 +16,18 @@ export async function GET(request: Request): Promise<Response> {
       );
     }
 
+    const connectStartMs = Date.now();
     client = await dbConnect();
+    const dbConnectMs = Date.now() - connectStartMs;
     const db = client.db("ctxbt-signal-flow");
     const apiKeysCollection = db.collection("apiKeys");
 
-    const apiKeyDoc = await apiKeysCollection.findOne({ twitterId });
+    const findStartMs = Date.now();
+    const apiKeyDoc = await apiKeysCollection.findOne(
+      { twitterId },
+      { projection: { _id: 0, apiKey: 1, createdAt: 1 } }
+    );
+    const findMs = Date.now() - findStartMs;
 
     if (!apiKeyDoc) {
       return NextResponse.json(
@@ -27,6 +35,14 @@ export async function GET(request: Request): Promise<Response> {
         { status: 404 }
       );
     }
+
+    const totalMs = Date.now() - handlerStartMs;
+    console.log("[get-api-key] request completed", {
+      twitterId,
+      dbConnectMs,
+      findMs,
+      totalMs,
+    });
 
     return NextResponse.json({
       success: true,
@@ -36,6 +52,9 @@ export async function GET(request: Request): Promise<Response> {
       },
     });
   } catch (error) {
+    console.error("[get-api-key] error", {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return NextResponse.json(
       {
         success: false,

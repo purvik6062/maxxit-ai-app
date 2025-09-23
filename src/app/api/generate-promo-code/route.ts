@@ -6,6 +6,7 @@ import { ObjectId } from "mongodb";
 
 export async function POST(req: Request) {
   try {
+    const handlerStartMs = Date.now();
     // Authenticate the request
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -17,7 +18,7 @@ export async function POST(req: Request) {
 
     const { twitterId, twitterUsername } = await req.json();
 
-    if (!twitterId || !twitterUsername) {
+    if (!twitterId) {
       return NextResponse.json(
         { success: false, error: { message: "Missing required parameters" } },
         { status: 400 }
@@ -31,42 +32,61 @@ export async function POST(req: Request) {
       );
     }
 
+    const connectStartMs = Date.now();
     const client = await dbConnect();
+    const dbConnectMs = Date.now() - connectStartMs;
     const db = client.db("ctxbt-signal-flow");
     const promoCodesCollection = db.collection("promoCodes");
 
-    // Check if user already has a promo code
-    const existingPromoCode = await promoCodesCollection.findOne({
-      influencerId: twitterId,
-    });
-    if (existingPromoCode) {
+    // Determine username from session if not provided in body
+    const sessionUsername = session.user.username;
+    const finalUsername = (twitterUsername || sessionUsername || "").toString();
+    if (!finalUsername) {
       return NextResponse.json(
-        { success: true, data: existingPromoCode },
-        { status: 200 }
+        { success: false, error: { message: "Missing twitter username on session" } },
+        { status: 400 }
       );
     }
 
-    // Generate promo code from Twitter username + '10'
-    const promoCode = `${twitterUsername.toUpperCase()}10`;
+    // Generate promo code from username + '10'
+    const baseCode = `${finalUsername.toUpperCase()}10`;
 
-    // Create new promo code document
-    const promoCodeDoc = {
-      influencerName: twitterUsername,
-      promoCode,
-      influencerId: twitterId,
-      discountPercentage: 50,
-      maxDiscount: 10,
-      influencerEarningPercentage: 10,
-      createdAt: new Date(),
-      isActive: true,
-    };
-
-    const result = await promoCodesCollection.insertOne(promoCodeDoc);
-
-    return NextResponse.json(
-      { success: true, data: promoCodeDoc },
-      { status: 201 }
+    // Upsert idempotently: if exists return it; else create it
+    const upsertStartMs = Date.now();
+    const upsertResult = await promoCodesCollection.findOneAndUpdate(
+      { influencerId: twitterId },
+      {
+        $setOnInsert: {
+          influencerName: finalUsername,
+          promoCode: baseCode,
+          influencerId: twitterId,
+          discountPercentage: 50,
+          maxDiscount: 10,
+          influencerEarningPercentage: 10,
+          createdAt: new Date(),
+          isActive: true,
+        },
+      },
+      { upsert: true, returnDocument: "after", projection: { _id: 0, promoCode: 1, influencerId: 1 } }
     );
+    const upsertMs = Date.now() - upsertStartMs;
+
+    const totalMs = Date.now() - handlerStartMs;
+    console.log("[generate-promo-code] upsert", {
+      twitterId,
+      dbConnectMs,
+      upsertMs,
+      totalMs,
+    });
+
+    if (!upsertResult || !upsertResult.value) {
+      return NextResponse.json(
+        { success: false, error: { message: "Failed to generate or retrieve promo code" } },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ success: true, data: upsertResult.value }, { status: 201 });
   } catch (error) {
     console.error("Error generating promo code:", error);
     return NextResponse.json(

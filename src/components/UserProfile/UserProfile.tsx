@@ -100,11 +100,23 @@ const UserProfile = () => {
       try {
         setLoading(true);
 
-        // Fetch user profile
+        // Fetch user profile with timing logs
+        const profileFetchStart = performance.now();
+        console.log("[UserProfile] Fetch(get-user-profile) started", {
+          twitterId: session?.user.id,
+        });
         const profileResponse = await fetch(
           `/api/get-user-profile?twitterId=${session?.user.id}`
         );
+        const profileResponseMs = performance.now() - profileFetchStart;
+        const profileJsonStart = performance.now();
         const profileResult = await profileResponse.json();
+        const profileJsonMs = performance.now() - profileJsonStart;
+        console.log("[UserProfile] Fetch(get-user-profile) completed", {
+          httpMs: Math.round(profileResponseMs),
+          jsonParseMs: Math.round(profileJsonMs),
+          status: profileResponse.status,
+        });
 
         if (!profileResult.success) {
           if (profileResult.error?.message === "User not found") {
@@ -116,11 +128,23 @@ const UserProfile = () => {
           throw new Error("Failed to fetch user profile");
         }
 
-        // Fetch API key separately
+        // Fetch API key separately with timing logs
+        const apiFetchStart = performance.now();
+        console.log("[UserProfile] Fetch(get-api-key) started", {
+          twitterId: session?.user.id,
+        });
         const apiKeyResponse = await fetch(
           `/api/get-api-key?twitterId=${session.user.id}`
         );
+        const apiHttpMs = performance.now() - apiFetchStart;
+        const apiJsonStart = performance.now();
         const apiKeyResult = await apiKeyResponse.json();
+        const apiJsonMs = performance.now() - apiJsonStart;
+        console.log("[UserProfile] Fetch(get-api-key) completed", {
+          httpMs: Math.round(apiHttpMs),
+          jsonParseMs: Math.round(apiJsonMs),
+          status: apiKeyResponse.status,
+        });
 
         const newProfile = {
           ...profileResult.data,

@@ -16,11 +16,24 @@ interface UpdateRequest {
 
 export async function POST(request: Request): Promise<Response> {
   try {
+    const handlerStartMs = Date.now();
     // Parse and validate request body
     const body = await request.json();
 
-    // Extract agentConfig from the request body
-    const { twitterId, agentConfig } = body;
+    // Support both payload shapes:
+    // 1) { twitterId, agentConfig: { ...fields } }
+    // 2) { twitterId, r_last6h_pct, d_pct_mktvol_6h, ... }
+    const twitterId = body.twitterId;
+    const agentConfig: UpdateRequest = body.agentConfig ?? {
+      r_last6h_pct: body.r_last6h_pct,
+      d_pct_mktvol_6h: body.d_pct_mktvol_6h,
+      d_pct_socvol_6h: body.d_pct_socvol_6h,
+      d_pct_sent_6h: body.d_pct_sent_6h,
+      d_pct_users_6h: body.d_pct_users_6h,
+      d_pct_infl_6h: body.d_pct_infl_6h,
+      d_galaxy_6h: body.d_galaxy_6h,
+      neg_d_altrank_6h: body.neg_d_altrank_6h,
+    } as UpdateRequest;
 
     if (!agentConfig || typeof agentConfig !== 'object') {
       return NextResponse.json(
@@ -124,21 +137,9 @@ export async function POST(request: Request): Promise<Response> {
 
     // Use the safe database operation helper
     const result = await executeDbOperation(async (db) => {
-      // Check if user exists
-      const existingUser = await db.collection("users").findOne({
-        twitterId: twitterId
-      });
-
-      if (!existingUser) {
-        return NextResponse.json(
-          { success: false, error: { message: "User not found" } },
-          { status: 404 }
-        );
-      }
-
-      // Update user with agent configuration
+      const updateStartMs = Date.now();
       const updateResult = await db.collection("users").updateOne(
-        { twitterId: twitterId },
+        { twitterId },
         {
           $set: {
             customizationOptions: {
@@ -149,20 +150,24 @@ export async function POST(request: Request): Promise<Response> {
               d_pct_users_6h,
               d_pct_infl_6h,
               d_galaxy_6h,
-              neg_d_altrank_6h
+              neg_d_altrank_6h,
             },
             isAgentCustomized: true,
-            updatedAt: new Date().toISOString()
-          }
+            updatedAt: new Date().toISOString(),
+          },
         }
       );
-
+      const updateMs = Date.now() - updateStartMs;
+      console.log("[update-agent-config] updateOne completed", { updateMs, matchedCount: updateResult.matchedCount, modifiedCount: updateResult.modifiedCount });
       return updateResult;
     });
 
     if (result instanceof NextResponse) {
       return result; // Return error response from the database operation
     }
+
+    const totalMs = Date.now() - handlerStartMs;
+    console.log("[update-agent-config] request completed", { twitterId, totalMs });
 
     return NextResponse.json({
       success: true,

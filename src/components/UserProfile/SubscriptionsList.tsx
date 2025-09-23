@@ -53,10 +53,10 @@ export function SubscriptionsList({ subscriptions }: SubscriptionsListProps) {
             result.data.weeklySignalsWithPnL &&
             result.data.weeklySignalsWithPnL.length > 0
           ) {
-            console.log(
-              "Weekly Signals with PnL details:",
-              result.data.weeklySignalsWithPnL
-            );
+            // console.log(
+            //   "Weekly Signals with PnL details:",
+            //   result.data.weeklySignalsWithPnL
+            // );
 
             // Calculate totals from the detailed data using the same approach as totalPnL.js
             const totalSignals = result.data.weeklySignalsWithPnL.length;

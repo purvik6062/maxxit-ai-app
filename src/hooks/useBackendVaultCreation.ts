@@ -40,7 +40,7 @@ export function useBackendVaultCreation() {
   // Check if backend vault creation is available
   const checkAvailability = useCallback(async () => {
     console.log("🔍 Checking backend vault creation availability...");
-    console.log("Session status:", !!session);
+    // console.log("Session status:", !!session);
 
     try {
       console.log("🌐 Making fetch request to /api/vault/create");
