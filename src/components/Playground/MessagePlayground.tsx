@@ -57,7 +57,6 @@ const MessagePlayground = () => {
       }
 
       const responseText = await response.text();
-      console.log("Raw inference response:", responseText);
 
       let data: { result: string };
       try {
@@ -66,7 +65,6 @@ const MessagePlayground = () => {
         throw new Error("Failed to parse response as JSON");
       }
 
-      console.log("Inference result:", data.result);
 
       let parsedResult: {
         tokenSymbol: any;
@@ -90,7 +88,6 @@ const MessagePlayground = () => {
       ) {
         const tokenSymbolLower = parsedResult.tokenSymbol.toLowerCase();
         const coinId = getCoinIdFromJson(tokenSymbolLower);
-        console.log("Coin ID: ", coinId);
 
         const processData = {
           signal_data: {

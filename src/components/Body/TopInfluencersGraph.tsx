@@ -238,7 +238,6 @@ const CosmicWebInfluencerGraph: React.FC = () => {
           }
         }
 
-        console.log("influencer data: ", data.influencers);
 
         setInfluencers(data.influencers);
         setTotalProfit(data.totalProfit || 0);

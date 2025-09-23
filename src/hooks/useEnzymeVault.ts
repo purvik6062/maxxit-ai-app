@@ -223,7 +223,6 @@ export function useEnzymeDeposit() {
       
       try {
         gasEstimate = await comptrollerContract.buyShares.estimateGas(amountWei, minShares);
-        console.log('Gas estimate for comptroller buyShares:', gasEstimate.toString());
       } catch (gasError) {
         console.error('Gas estimation failed for comptroller buyShares:', gasError);
         throw new Error('Transaction would fail. This could be due to vault policies, insufficient allowance to ComptrollerProxy, or contract restrictions.');
@@ -381,11 +380,6 @@ export function useEnzymeWithdraw() {
           // Decode the function data to verify parameters
           try {
             const decoded = vaultContract.interface.decodeFunctionData('redeemSharesInKind', functionData);
-            console.log('Decoded function parameters:', {
-              sharesQuantity: decoded[0].toString(),
-              additionalAssets: decoded[1],
-              assetsToSkip: decoded[2]
-            });
           } catch (decodeError) {
             console.error('Failed to decode function data:', decodeError);
           }

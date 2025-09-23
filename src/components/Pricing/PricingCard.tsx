@@ -45,7 +45,6 @@ export default function PricingCard({
   };
 
   const handleCryptoSuccess = async (transactionHash: string) => {
-    console.log("Crypto payment successful:", transactionHash);
 
     try {
       if (session?.user?.id) {
