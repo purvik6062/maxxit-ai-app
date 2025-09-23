@@ -114,7 +114,7 @@ export async function GET(request: Request): Promise<Response> {
       dbConnectMs,
       userFindMs,
       totalMs,
-      hasSubscriptions: !!(user.subscribedAccounts && user.subscribedAccounts.length),
+      // hasSubscriptions: !!(user.subscribedAccounts && user.subscribedAccounts.length),
     });
 
     return NextResponse.json({

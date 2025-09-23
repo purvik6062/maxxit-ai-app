@@ -274,9 +274,9 @@ const HomePage: React.FC = () => {
           </div>
         </main>
 
-        {/* <div className="py-8">
+        <div className="py-8">
           <SocialGraph />
-        </div> */}
+        </div>
 
         {/* Subscription Confirmation Modal */}
         {showSubscribeModal && currentAgent && (

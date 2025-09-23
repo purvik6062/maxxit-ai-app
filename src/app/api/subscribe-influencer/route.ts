@@ -10,6 +10,7 @@ const DEFAULT_IMPACT_FACTOR = 1;
 export async function POST(request: Request): Promise<Response> {
   let client: MongoClient;
   try {
+    const handlerStartMs = Date.now();
     const { twitterId, influencerHandle, subscriptionFee } =
       await request.json();
 
@@ -30,7 +31,9 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
+    const connectStartMs = Date.now();
     client = await dbConnect();
+    const dbConnectMs = Date.now() - connectStartMs;
     const db = client.db("ctxbt-signal-flow");
     const usersCollection = db.collection("users");
     const influencersCollection = db.collection("influencers");
@@ -41,11 +44,18 @@ export async function POST(request: Request): Promise<Response> {
 
     try {
       await session.withTransaction(async () => {
-        // 1. Check and update user's credits
-        const user = await usersCollection.findOne({ twitterId });
+        // 1. Check and update user's credits (project only required fields)
+        const user = await usersCollection.findOne(
+          { twitterId },
+          { projection: { _id: 1, credits: 1, telegramId: 1, twitterId: 1, twitterUsername: 1, subscribedAccounts: 1 } }
+        );
 
         if (!user) {
           throw new Error("Register yourself first!");
+        }
+
+        if (!user.telegramId || typeof user.telegramId !== 'string') {
+          throw new Error("Please connect your Telegram to subscribe");
         }
 
         // 2. Check if user has enough credits for the subscription fee
@@ -61,16 +71,17 @@ export async function POST(request: Request): Promise<Response> {
         // Check if user is already subscribed (case-insensitive)
         if (
           user.subscribedAccounts?.some((account: { twitterHandle: string }) =>
-            new RegExp(`^${cleanHandle}$`, "i").test(account.twitterHandle)
+            (account.twitterHandle || "").toLowerCase() === cleanHandle.toLowerCase()
           )
         ) {
           throw new Error("Already subscribed to this influencer");
         }
 
-        // 3. Update or create influencer
-        const existingInfluencer = await influencersCollection.findOne({
-          twitterHandle: cleanHandle,
-        });
+        // 3. Update or create influencer (project impactFactor only)
+        const existingInfluencer = await influencersCollection.findOne(
+          { twitterHandle: cleanHandle },
+          { projection: { _id: 1, impactFactor: 1 } }
+        );
 
         if (existingInfluencer) {
           // Update existing influencer
@@ -84,16 +95,19 @@ export async function POST(request: Request): Promise<Response> {
           );
         } else {
           // Create new influencer with default impact factor
-          await influencersCollection.insertOne(
+          await influencersCollection.updateOne(
+            { twitterHandle: cleanHandle },
             {
-              twitterHandle: cleanHandle,
-              subscribers: [cleanTelegramId],
-              tweets: [],
-              processedTweetIds: [],
-              updatedAt: new Date(),
-              impactFactor: DEFAULT_IMPACT_FACTOR, // Set a default impact factor for new influencers
+              $setOnInsert: {
+                twitterHandle: cleanHandle,
+                subscribers: [cleanTelegramId],
+                tweets: [],
+                processedTweetIds: [],
+                updatedAt: new Date(),
+                impactFactor: DEFAULT_IMPACT_FACTOR,
+              },
             },
-            { session }
+            { upsert: true, session }
           );
         }
 
@@ -138,6 +152,15 @@ export async function POST(request: Request): Promise<Response> {
           },
           { session }
         );
+      });
+
+      const totalMs = Date.now() - handlerStartMs;
+      console.log("[subscribe-influencer] request completed", {
+        twitterId,
+        cleanHandle,
+        dbConnectMs,
+        subscriptionFee,
+        totalMs,
       });
 
       return NextResponse.json({

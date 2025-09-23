@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from "react";
 import { Network, DataSet } from "vis-network/standalone";
-import { Tooltip } from "react-tooltip";
 import { useSession } from "next-auth/react";
 import { useCredits } from "@/context/CreditsContext";
 import { Loader2 } from "lucide-react";
@@ -75,6 +74,7 @@ export default function SubscribedAccountsPage() {
   };
 
   useEffect(() => {
+    console.time('FetchSubscribedAccounts');
     const fetchSubscribedAccounts = async () => {
       if (!session?.user?.id) {
         setError("Please connect your X account to view your subscriptions.");
@@ -85,10 +85,12 @@ export default function SubscribedAccountsPage() {
       setLoading(true);
       setError(null);
       try {
+        console.time('API Fetch');
         const response = await fetch(
           `/api/get-subscribed-accounts?twitterId=${session.user.id}`
         );
         const data = await response.json();
+        console.timeEnd('API Fetch');
         if (data.success) {
           setGraphData({ nodes: [], edges: [] });
           setLoading(false);
@@ -96,6 +98,7 @@ export default function SubscribedAccountsPage() {
 
           const subscribedAccounts: SubscribedAccount[] = data.data || [];
 
+          console.time('Build Nodes and Edges');
           const nodes: GraphNode[] = [
             {
               id: session.user.id,
@@ -142,6 +145,7 @@ export default function SubscribedAccountsPage() {
               });
             }
           );
+          console.timeEnd('Build Nodes and Edges');
 
           setGraphData({ nodes, edges });
         }
@@ -154,99 +158,27 @@ export default function SubscribedAccountsPage() {
     };
 
     fetchSubscribedAccounts();
+    console.timeEnd('FetchSubscribedAccounts');
   }, [session?.user?.id, credits, isPlayable]);
 
   useEffect(() => {
+    console.time('ScrollHandlerSetup');
     const handleScroll = () => {
+      console.time('HandleScroll');
       if (!networkRef.current) return;
       const rect = networkRef.current.getBoundingClientRect();
       setShowScrollHelper(
         rect.top < window.innerHeight && rect.bottom > 0
       );
+      console.timeEnd('HandleScroll');
     };
 
     window.addEventListener('scroll', handleScroll);
     handleScroll(); // Check on initial load
     
+    console.timeEnd('ScrollHandlerSetup');
     return () => {
       window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!canvasRef.current) return;
-
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    // Set canvas size
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
-
-    // Star class
-    class Star {
-      x: number;
-      y: number;
-      radius: number;
-      opacity: number;
-      twinkleSpeed: number;
-      twinklePhase: number;
-
-      constructor() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.radius = Math.random() * 1.5 + 0.5;
-        this.opacity = 0.5;
-        this.twinkleSpeed = Math.random() * 0.02 + 0.01;
-        this.twinklePhase = Math.random() * Math.PI * 2;
-      }
-
-      update(time: number) {
-        this.opacity = 0.5 + Math.sin(time * this.twinkleSpeed + this.twinklePhase) * 0.3;
-      }
-
-      draw() {
-        if (!ctx) return;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
-        ctx.fill();
-      }
-    }
-
-    // Create stars
-    const starCount = 400;
-    const stars = Array.from({ length: starCount }, () => new Star());
-
-    // Animation loop
-    let startTime = Date.now();
-    const animate = () => {
-      if (!ctx || !canvas) return;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const currentTime = (Date.now() - startTime) / 1000;
-      stars.forEach((star) => {
-        star.update(currentTime);
-        star.draw();
-      });
-
-      animationRef.current = requestAnimationFrame(animate);
-    };
-
-    animate();
-
-    // Cleanup
-    return () => {
-      window.removeEventListener("resize", resizeCanvas);
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
     };
   }, []);
 
@@ -259,209 +191,8 @@ export default function SubscribedAccountsPage() {
     };
   }, [credits, isPlayable]);
 
-  const startSignalAnimation = (centralPos: any, surroundingNodeIds: string[], positions: any) => {
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-      animationRef.current = null;
-    }
-
-    // Apply initial glow effect to surrounding nodes
-    surroundingNodeIds.forEach((nodeId) => {
-      if (nodesDataSet.current) {
-        nodesDataSet.current.update({
-          id: nodeId,
-          shadow: {
-            enabled: true,
-            color: stringToColor(nodeId),
-            size: 70,
-            x: 0,
-            y: 0,
-          },
-        });
-      }
-    });
-
-    // Get central node data
-    const centralNodeData = nodesDataSet.current?.get(session?.user?.id);
-    const centralRadius = centralNodeData?.size;
-
-    // Create or update temporary nodes
-    const tempNodeIds = surroundingNodeIds.map((nodeId, index) => {
-      const tempNodeId = `temp-${index}`;
-      const nodePos = positions[nodeId];
-      const nodeData = nodesDataSet.current?.get(nodeId);
-      const nodeRadius = nodeData?.size;
-
-      // Calculate direction vector D
-      const D_x = centralPos.x - nodePos.x;
-      const D_y = centralPos.y - nodePos.y;
-      const d = Math.sqrt(D_x * D_x + D_y * D_y);
-
-      let startX, startY, endX, endY;
-      if (d > 0) {
-        startX = nodePos.x + (D_x / d) * nodeRadius;
-        startY = nodePos.y + (D_y / d) * nodeRadius;
-        endX = centralPos.x - (D_x / d) * centralRadius;
-        endY = centralPos.y - (D_y / d) * centralRadius;
-      } else {
-        startX = nodePos.x;
-        startY = nodePos.y;
-        endX = centralPos.x;
-        endY = centralPos.y;
-      }
-
-      if (nodesDataSet.current?.get(tempNodeId)) {
-        nodesDataSet.current.update({
-          id: tempNodeId,
-          x: startX,
-          y: startY,
-          startX: startX,
-          startY: startY,
-          endX: endX,
-          endY: endY,
-          hidden: false,
-        });
-      } else {
-        nodesDataSet.current?.add({
-          id: tempNodeId,
-          x: startX,
-          y: startY,
-          startX: startX,
-          startY: startY,
-          endX: endX,
-          endY: endY,
-          label: "",
-          size: 5,
-          color: stringToColor(nodeId),
-          shape: "dot",
-          fixed: { x: true, y: true },
-          chosen: false,
-          shadow: {
-            enabled: true,
-            color: stringToColor(nodeId),
-            size: 20,
-            x: 0,
-            y: 0,
-          },
-        });
-      }
-      return tempNodeId;
-    });
-
-    const animationDuration = 2000;
-    let startTime = Date.now();
-
-    const animate = () => {
-      const currentTime = Date.now();
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / animationDuration, 1);
-
-      tempNodeIds.forEach((tempNodeId) => {
-        const tempNode = nodesDataSet.current?.get(tempNodeId);
-        if (tempNode) {
-          const newX = tempNode.startX + (tempNode.endX - tempNode.startX) * progress;
-          const newY = tempNode.startY + (tempNode.endY - tempNode.startY) * progress;
-          nodesDataSet.current?.update({
-            id: tempNodeId,
-            x: newX,
-            y: newY,
-          });
-        }
-      });
-
-      if (progress < 1) {
-        animationRef.current = requestAnimationFrame(animate);
-      } else {
-        tempNodeIds.forEach((tempNodeId) => {
-          nodesDataSet.current?.update({
-            id: tempNodeId,
-            hidden: true,
-          });
-        });
-
-        setTimeout(() => {
-          surroundingNodeIds.forEach((nodeId) => {
-            if (nodesDataSet.current) {
-              nodesDataSet.current.update({
-                id: nodeId,
-                shadow: {
-                  enabled: true,
-                  color: "rgba(0,0,0,0.5)",
-                  size: 10,
-                  x: 0,
-                  y: 0,
-                },
-              });
-            }
-          });
-
-          tempNodeIds.forEach((tempNodeId) => {
-            const tempNode = nodesDataSet.current?.get(tempNodeId);
-            if (tempNode) {
-              nodesDataSet.current?.update({
-                id: tempNodeId,
-                x: tempNode.startX,
-                y: tempNode.startY,
-                hidden: false,
-              });
-            }
-          });
-
-          surroundingNodeIds.forEach((nodeId) => {
-            if (nodesDataSet.current) {
-              nodesDataSet.current.update({
-                id: nodeId,
-                shadow: {
-                  enabled: true,
-                  color: stringToColor(nodeId),
-                  size: 70,
-                  x: 0,
-                  y: 0,
-                },
-              });
-            }
-          });
-
-          startTime = Date.now();
-          animationRef.current = requestAnimationFrame(animate);
-        }, 1000);
-      }
-    };
-
-    animationRef.current = requestAnimationFrame(animate);
-  };
-
-  const startCentralPulse = (centralNodeId: string) => {
-    let start = Date.now();
-    const duration = 2000;
-
-    const animatePulse = () => {
-      const elapsed = Date.now() - start;
-      const t = (Math.sin((elapsed / duration) * 2 * Math.PI) + 1) / 2;
-      const shadowSize = 10 + t * 50;
-      const borderWidth = 2 + t * 4;
-
-      if (nodesDataSet.current) {
-        nodesDataSet.current.update({
-          id: centralNodeId,
-          shadow: {
-            enabled: true,
-            color: "rgba(0,0,0,0.7)",
-            size: shadowSize,
-            x: 0,
-            y: 0,
-          },
-          borderWidth,
-        });
-      }
-
-      requestAnimationFrame(animatePulse);
-    };
-
-    requestAnimationFrame(animatePulse);
-  };
-
   useEffect(() => {
+    console.time('NetworkSetup');
     if (networkRef.current && graphData.nodes.length > 0) {
       if (networkInstance.current) {
         networkInstance.current.destroy();
@@ -472,8 +203,10 @@ export default function SubscribedAccountsPage() {
         animationRef.current = null;
       }
 
+      console.time('CreateDataSets');
       nodesDataSet.current = new DataSet(graphData.nodes);
       edgesDataSet.current = new DataSet(graphData.edges as any);
+      console.timeEnd('CreateDataSets');
 
       const data = {
         nodes: nodesDataSet.current,
@@ -578,9 +311,12 @@ export default function SubscribedAccountsPage() {
         width: "100%",
       };
 
+      console.time('NetworkInitialization');
       networkInstance.current = new Network(networkRef.current, data, options);
+      console.timeEnd('NetworkInitialization');
 
       networkInstance.current.on("click", function (params) {
+        console.time('ClickEvent');
         if (params.nodes.length > 0) {
           const nodeId = params.nodes[0];
           setSelectedNode(nodeId);
@@ -590,26 +326,34 @@ export default function SubscribedAccountsPage() {
         } else {
           setSelectedNode(null);
         }
+        console.timeEnd('ClickEvent');
       });
 
       networkInstance.current.on("hoverNode", function (params) {
+        console.time('HoverNodeEvent');
         networkRef.current?.style.setProperty("cursor", "pointer");
         setHoveredNode(params.node);
         setShowTooltip(true);
+        console.timeEnd('HoverNodeEvent');
       });
 
       networkInstance.current.on("blurNode", function (params) {
+        console.time('BlurNodeEvent');
         networkRef.current?.style.setProperty("cursor", "default");
         setHoveredNode(null);
         setShowTooltip(false);
+        console.timeEnd('BlurNodeEvent');
       });
 
       networkInstance.current.on("zoom", function (params) {
+        console.time('ZoomEvent');
         const newScale = networkInstance.current?.getScale() || 1;
         setZoomLevel(newScale);
+        console.timeEnd('ZoomEvent');
       });
 
       networkInstance.current.once("stabilizationIterationsDone", function () {
+        console.time('StabilizationDone');
         networkInstance.current?.fit({
           animation: { duration: 1000, easingFunction: "easeInOutQuad" },
         });
@@ -624,11 +368,6 @@ export default function SubscribedAccountsPage() {
           const surroundingNodeIds = graphData.nodes
             .filter((node) => node.id !== centralNodeId)
             .map((node) => node.id);
-
-          if (surroundingNodeIds.length > 0) {
-            startSignalAnimation(centralPos, surroundingNodeIds, positions);
-            startCentralPulse(centralNodeId);
-          }
         } else {
           const surroundingNodeIds = graphData.nodes
             .filter((node) => node.id !== session?.user?.id)
@@ -638,8 +377,11 @@ export default function SubscribedAccountsPage() {
             // Optional: Add shadow interval logic if needed
           }
         }
+        console.timeEnd('StabilizationDone');
       });
     }
+
+    console.timeEnd('NetworkSetup');
 
     return () => {
       if (animationRef.current) {
@@ -654,27 +396,33 @@ export default function SubscribedAccountsPage() {
   }, [graphData, session?.user?.id, isPlayable]);
 
   const handleZoomIn = () => {
+    console.time('HandleZoomIn');
     if (networkInstance.current) {
       const newScale = zoomLevel * 1.2;
       networkInstance.current.moveTo({ scale: newScale });
       setZoomLevel(newScale);
     }
+    console.timeEnd('HandleZoomIn');
   };
 
   const handleZoomOut = () => {
+    console.time('HandleZoomOut');
     if (networkInstance.current) {
       const newScale = zoomLevel * 0.8;
       networkInstance.current.moveTo({ scale: newScale });
       setZoomLevel(newScale);
     }
+    console.timeEnd('HandleZoomOut');
   };
 
   const handleFitNetwork = () => {
+    console.time('HandleFitNetwork');
     if (networkInstance.current) {
       networkInstance.current.fit({
         animation: { duration: 1000, easingFunction: "easeInOutQuad" },
       });
     }
+    console.timeEnd('HandleFitNetwork');
   };
 
   return (
