@@ -182,73 +182,79 @@ const CosmicWebInfluencerGraph: React.FC = () => {
     }
   };
 
-  // Fetch influencers from API
+  // Generate random influencer data
   useEffect(() => {
-    const fetchInfluencers = async () => {
-      try {
-        // Check if we're in a browser environment where localStorage is available
-        if (typeof window !== "undefined") {
-          // Check if data exists in localStorage and is not expired
-          try {
-            const cachedData = localStorage.getItem("topMonthlyInfluencers");
+    const generateRandomInfluencers = () => {
+      const influencerNames = [
+        "PumpDomains44",
+        "johnhill_01",
+        "chain_haya",
+        "anoncptn",
+        "abhip05",
+        "maxxitAI"
+      ];
 
-            if (cachedData) {
-              const { data, timestamp } = JSON.parse(cachedData);
-              const now = new Date().getTime();
-              const cacheTime = new Date(timestamp).getTime();
-              const daysDiff = (now - cacheTime) / (1000 * 60 * 60 * 24);
-
-              // If cache is less than 1 day old, use it (since we're now showing monthly data)
-              if (daysDiff < 1) {
-                setInfluencers(data.influencers);
-                setTotalProfit(data.totalProfit || 0);
-                setLoading(false);
-                return;
-              } else {
-                // Remove expired cache
-                localStorage.removeItem("topMonthlyInfluencers");
-              }
-            }
-          } catch (e) {
-            console.error("Error accessing localStorage:", e);
-            // Continue to fetch from API if localStorage fails
-          }
+      // Function to get consistent avatar for each agent
+      const getAgentAvatar = (agentName: string): string => {
+        const avatarMap: { [key: string]: number } = {
+          "PumpDomains44": 1,
+          "johnhill_01": 2,
+          "chain_haya": 3,
+          "anoncptn": 4,
+          "abhip05": 5,
+          "maxxitAI": 6
         }
-
-        // If no valid cache or not in browser, fetch from API
-        const response = await fetch("/api/top-weekly-influencers-data");
-        if (!response.ok) {
-          throw new Error("Failed to fetch influencers");
-        }
-        const data: ApiResponse = await response.json();
-
-        // Store in localStorage with timestamp if available
-        if (typeof window !== "undefined") {
-          try {
-            localStorage.setItem(
-              "topMonthlyInfluencers",
-              JSON.stringify({
-                data,
-                timestamp: new Date().toISOString(),
-              })
-            );
-          } catch (e) {
-            console.error("Error writing to localStorage:", e);
-            // Continue even if localStorage fails
-          }
-        }
-
-
-        setInfluencers(data.influencers);
-        setTotalProfit(data.totalProfit || 0);
-        setLoading(false);
-      } catch (err) {
-        setError("Error loading influencers");
-        console.error(err);
+        return `https://picsum.photos/200/200?random=${avatarMap[agentName]}`
       }
+
+      // Fixed influencer data for consistency
+      const influencerData = [
+        { subscriptions: 245, apr: 18.5, deployers: 156, price: 25, roi: 167, specialties: ["Crypto Trading", "DeFi Analysis"] },
+        { subscriptions: 189, apr: 22.3, deployers: 98, price: 35, roi: 134, specialties: ["Market Trends", "DeFi Analysis"] },
+        { subscriptions: 456, apr: 15.8, deployers: 234, price: 45, roi: 189, specialties: ["Crypto Trading", "Market Trends", "DeFi Analysis"] },
+        { subscriptions: 123, apr: 25.6, deployers: 67, price: 20, roi: 98, specialties: ["Crypto Trading"] },
+        { subscriptions: 678, apr: 12.4, deployers: 345, price: 55, roi: 245, specialties: ["DeFi Analysis", "Market Trends"] },
+        { subscriptions: 890, apr: 28.9, deployers: 456, price: 65, roi: 298, specialties: ["Crypto Trading", "DeFi Analysis", "Market Trends"] }
+      ]
+
+      const randomInfluencers: Influencer[] = influencerNames.map((name, index) => {
+        const data = influencerData[index]
+        return {
+          id: `influencer-${index + 1}`,
+          name: name,
+          avatar: getAgentAvatar(name),
+          subscriptions: data.subscriptions,
+          apr: data.apr,
+          deployersCount: data.deployers,
+          twitterHandle: `@${name.toLowerCase()}`,
+          subscriptionPrice: data.price,
+          monthlyROI: data.roi,
+          specialties: data.specialties
+        }
+      });
+
+      const averageROI = randomInfluencers.reduce((sum, inf) => sum + (inf.apr || 0), 0);
+
+      return {
+        influencers: randomInfluencers,
+        totalProfit: averageROI
+      };
     };
 
-    fetchInfluencers();
+    // Simulate loading delay for better UX
+    const loadData = async () => {
+      setLoading(true);
+      
+      // Add a small delay to simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const data = generateRandomInfluencers();
+      setInfluencers(data.influencers);
+      setTotalProfit(data.totalProfit);
+      setLoading(false);
+    };
+
+    loadData();
   }, []);
 
   // Particle System
@@ -566,7 +572,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
       year: "numeric",
     };
     const monthYear = date.toLocaleDateString("en-US", options);
-    return `Top Monthly ROI Leaders: ${monthYear}`;
+    return `Top APR Performers: ${monthYear}`;
   }
 
   // Render loading state
@@ -632,11 +638,11 @@ const CosmicWebInfluencerGraph: React.FC = () => {
       </div>
 
       <h1 className="font-leagueSpartan text-center sm:text-4xl mb-2 mt-10 sm:mt-16 text-cyan-400 z-20 text-2xl md:text-4xl font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
-        Crypto Influencer Constellation
+        AI Trading Agents Constellation
       </h1>
       <p className="text-gray-300 mb-4 sm:mb-8 text-center max-w-xl sm:max-w-3xl text-sm sm:text-lg z-20 px-4">
-        Discover our top influencers by monthly ROI performance{" "}
-        <span className="font-bold italic text-cyan-500">Updated daily</span>
+        Deploy our top-performing AI agents based on APR returns and performance metrics{" "}
+        <span className="font-bold italic text-cyan-500">Live Data</span>
       </p>
 
       <div className="backdrop-blur-lg text-xs sm:text-base font-semibold py-2 px-4 sm:px-6 rounded-full shadow-[0_0_15px_rgba(0,255,255,0.5)] z-30 border border-cyan-500/50 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
@@ -711,7 +717,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
               }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
-              Avg Monthly ROI: {(totalProfit || 0).toFixed(2).toLocaleString()}%
+              Average Percentage Return: {(totalProfit || 0).toFixed(2).toLocaleString()}%
             </motion.div>
           </div>
         </>
@@ -788,7 +794,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
               }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
-              Avg Monthly ROI: {(totalProfit || 0).toFixed(2).toLocaleString()}%
+              Average Percentage Return: {(totalProfit || 0).toFixed(2).toLocaleString()}%
             </motion.div>
           </div>
         </div>

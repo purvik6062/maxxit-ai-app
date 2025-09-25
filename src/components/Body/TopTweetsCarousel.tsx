@@ -11,66 +11,96 @@ import { Autoplay } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/autoplay'
 
-interface Influencer {
+interface Agent {
   name: string
   handle: string
   avatar: string
 }
 
-interface Tweet {
+interface AgentPerformance {
   id: string
-  influencer: Influencer
-  coin: string
-  tokenId: string
-  positive: boolean
-  pnl: number
+  agent: Agent
+  gmxProfit: number
+  hyperliquidProfit: number
+  spotTradingProfit: number
+  totalPnl: number
   timestamp: string
 }
 
 export default function CarouselHorizontal() {
-  const [tweets, setTweets] = useState<Tweet[]>([])
+  const [agentPerformances, setAgentPerformances] = useState<AgentPerformance[]>([])
   const [loading, setLoading] = useState(true)
   const swiperRef = useRef<any>(null) // Reference to Swiper instance
 
   useEffect(() => {
-    const fetchTweets = async () => {
-      try {
-        const cachedData = localStorage.getItem('cryptoTweetsCarousel')
-        if (cachedData) {
-          const { data, timestamp } = JSON.parse(cachedData)
-          const now = new Date().getTime()
-          const cacheTime = new Date(timestamp).getTime()
-          const daysDiff = (now - cacheTime) / (1000 * 60 * 60 * 24)
-          
-          if (daysDiff < 7) {
-            setTweets(data)
-            setLoading(false)
-            return
-          } else {
-            localStorage.removeItem('cryptoTweetsCarousel')
-          }
-        }
+    const generateAgentPerformances = () => {
+      const agentNames = [
+        "PumpDomains44",
+        "johnhill_01",
+        "chain_haya",
+        "abhip05",
+        "anoncptn",
+        "maxxitAI"
+      ]
 
-        const response = await fetch('/api/top-crypto-tweets-data')
-        if (!response.ok) {
-          throw new Error('Failed to fetch tweets')
+      // Function to get consistent avatar for each agent
+      const getAgentAvatar = (agentName: string): string => {
+        const avatarMap: { [key: string]: number } = {
+          "PumpDomains44": 1,
+          "johnhill_01": 2,
+          "chain_haya": 3,
+          "abhip05": 5,
+          "anoncptn": 4,
+          "maxxitAI": 6
         }
-        const data = await response.json()
-        
-        localStorage.setItem('cryptoTweetsCarousel', JSON.stringify({
-          data: data.tweets,
-          timestamp: new Date().toISOString()
-        }))
-        
-        setTweets(data.tweets)
-      } catch (error) {
-        console.error('Error fetching tweets:', error)
-      } finally {
-        setLoading(false)
+        return `https://picsum.photos/200/200?random=${avatarMap[agentName]}`
       }
+
+      // Fixed performance data for consistency
+      const agentPerformanceData = [
+        { gmxProfit: 45, hyperliquidProfit: 67, spotTradingProfit: 23 },
+        { gmxProfit: -180, hyperliquidProfit: 89, spotTradingProfit: 54 },
+        { gmxProfit: 78, hyperliquidProfit: -23, spotTradingProfit: 56 },
+        { gmxProfit: -5, hyperliquidProfit: 123, spotTradingProfit: 67 },
+        { gmxProfit: 34, hyperliquidProfit: -45, spotTradingProfit: -8 },
+        { gmxProfit: 156, hyperliquidProfit: 78, spotTradingProfit: 45 }
+      ]
+
+      const performances: AgentPerformance[] = agentNames.map((name, index) => {
+        const performanceData = agentPerformanceData[index]
+        const totalPnl = performanceData.gmxProfit + performanceData.hyperliquidProfit + performanceData.spotTradingProfit
+
+        return {
+          id: `agent-${index + 1}`,
+          agent: {
+            name: name,
+            handle: name.toLowerCase(),
+            avatar: getAgentAvatar(name)
+          },
+          gmxProfit: performanceData.gmxProfit,
+          hyperliquidProfit: performanceData.hyperliquidProfit,
+          spotTradingProfit: performanceData.spotTradingProfit,
+          totalPnl: totalPnl,
+          timestamp: new Date().toISOString()
+        }
+      })
+
+      return performances
     }
 
-    fetchTweets()
+    // Simulate loading delay for better UX
+    const loadData = async () => {
+      setLoading(true)
+      
+      // Add a small delay to simulate API call
+      await new Promise(resolve => setTimeout(resolve, 800))
+      
+      const data = generateAgentPerformances()
+      setAgentPerformances(data)
+      setLoading(false)
+    }
+
+    loadData()
   }, [])
 
   // Add resize event listener to restart autoplay
@@ -85,7 +115,7 @@ export default function CarouselHorizontal() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  const duplicatedTweets = [...tweets, ...tweets, ...tweets]
+  const duplicatedPerformances = [...agentPerformances, ...agentPerformances, ...agentPerformances]
 
   const formatPnL = (pnl: number) => {
     // console.log("pnl", pnl)
@@ -125,11 +155,11 @@ export default function CarouselHorizontal() {
     )
   }
 
-  if (tweets.length === 0) {
+  if (agentPerformances.length === 0) {
     return (
       <div className="w-full overflow-hidden py-8">
         <div className="container mx-auto px-4 mb-6 flex justify-center">
-          <div className="text-white/60 text-lg">No tweets available</div>
+          <div className="text-white/60 text-lg">No agent data available</div>
         </div>
       </div>
     )
@@ -139,9 +169,9 @@ export default function CarouselHorizontal() {
     <div className="w-full overflow-hidden bg-[#020617] py-8 mt-[3rem]">
       <div className="container mx-auto px-4 mb-6 flex flex-col gap-[0.5rem] items-center justify-center text-center md:text-left">
         <h2 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
-          Top Weekly Signal Providers
+          AI Trading Agents Performance
         </h2>
-        <p className="text-white/60 text-base md:text-lg mt-[4px]">Latest insights from leading crypto influencers</p>
+        <p className="text-white/60 text-base md:text-lg mt-[4px]">Real-time performance metrics across GMX, Hyperliquid & Spot Trading</p>
       </div>
 
       <Swiper
@@ -163,9 +193,9 @@ export default function CarouselHorizontal() {
           swiperRef.current = swiper // Store Swiper instance in ref
         }}
       >
-        {duplicatedTweets.map((tweet, index) => (
+        {duplicatedPerformances.map((performance, index) => (
           <SwiperSlide
-            key={`${tweet.id}-${index}`}
+            key={`${performance.id}-${index}`}
             className="!w-[280px] sm:!w-[320px] md:!w-[380px]"
           >
             <div className="flex-shrink-0 w-full bg-gradient-to-br from-[#0a101f] to-[#020617] rounded-xl border border-[#1a2035] shadow-lg overflow-hidden">
@@ -173,16 +203,16 @@ export default function CarouselHorizontal() {
                 <div className="flex items-center mb-4">
                   <div className="relative h-10 w-10 rounded-full overflow-hidden border border-[#1a2035]">
                     <Image
-                      src={tweet.influencer.avatar || "/placeholder.svg"}
-                      alt={tweet.influencer.name}
+                      src={performance.agent.avatar || "/placeholder.svg"}
+                      alt={performance.agent.name}
                       width={40}
                       height={40}
                       className="object-cover"
                     />
                   </div>
                   <div className="ml-3">
-                    <p className="text-white font-medium truncate max-w-[180px]">{tweet.influencer.name}</p>
-                    <p className="text-white/60 text-sm truncate max-w-[180px]">@{tweet.influencer.handle}</p>
+                    <p className="text-white font-medium truncate max-w-[180px]">{performance.agent.name}</p>
+                    <p className="text-white/60 text-sm truncate max-w-[180px]">@{performance.agent.handle}</p>
                   </div>
                   <div className="ml-auto">
                     <svg
@@ -199,32 +229,40 @@ export default function CarouselHorizontal() {
                   <div>
                     <div className="flex flex-col space-y-1 mt-1 text-left">
                       <div className="text-sm">
-                        <span className="text-purple-400 font-medium">Coin: </span>
-                        <span className="text-white/80">{tweet.coin}</span>
+                        <span className="text-purple-400 font-medium">GMX: </span>
+                        <span className={`font-semibold ${performance.gmxProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          {performance.gmxProfit >= 0 ? '+' : ''}{formatPnL(performance.gmxProfit)}%
+                        </span>
                       </div>
                       <div className="text-sm">
-                        <span className="text-cyan-300/80 font-medium">Token ID: </span>
-                        <span className="text-white/70">{tweet.tokenId}</span>
+                        <span className="text-cyan-300/80 font-medium">Hyperliquid: </span>
+                        <span className={`font-semibold ${performance.hyperliquidProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          {performance.hyperliquidProfit >= 0 ? '+' : ''}{formatPnL(performance.hyperliquidProfit)}%
+                        </span>
                       </div>
-                      <div className="text-xs text-white/60 mt-1">
-                        <span className="text-orange-300/80 font-medium">Signal Date: </span>
-                        <span className="bg-[#1a2035] px-2 py-1 rounded-full">{formatDate(tweet.timestamp)}</span>
+                      <div className="text-sm">
+                        <span className="text-orange-300/80 font-medium">Spot Trading: </span>
+                        <span className={`font-semibold ${performance.spotTradingProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          {performance.spotTradingProfit >= 0 ? '+' : ''}{formatPnL(performance.spotTradingProfit)}%
+                        </span>
                       </div>
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-lg font-medium text-white">
-                      <span className="text-green-400">{formatPnL(tweet.pnl)}%</span>
+                      <span className={performance.totalPnl >= 0 ? "text-green-400" : "text-red-400"}>
+                        {performance.totalPnl >= 0 ? '+' : ''}{formatPnL(performance.totalPnl)}%
+                      </span>
                     </div>
                     <div
-                      className={`flex items-center font-medium justify-end text-sm ${tweet.positive ? "text-green-400" : "text-red-400"}`}
+                      className={`flex items-center font-medium justify-end text-sm ${performance.totalPnl >= 0 ? "text-green-400" : "text-red-400"}`}
                     >
-                      {tweet.positive ? (
+                      {performance.totalPnl >= 0 ? (
                         <ArrowUpRight className="h-4 w-4 mr-1" />
                       ) : (
                         <ArrowDownRight className="h-4 w-4 mr-1" />
                       )}
-                      {tweet.positive ? "Profit" : "Loss"}
+                      {performance.totalPnl >= 0 ? "Total Profit" : "Total Loss"}
                     </div>
                   </div>
                 </div>

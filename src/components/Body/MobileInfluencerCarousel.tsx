@@ -14,9 +14,9 @@ export type Influencer = {
   id: string;
   name: string;
   avatar: string;
-  followers: number;
-  recentMonthSignals: number;
-  recentMonthTokens: number;
+  subscriptions: number;
+  apr: number;
+  deployersCount: number;
   specialties?: string[];
   twitterHandle?: string;
   subscriptionPrice?: number;
@@ -154,21 +154,21 @@ const MobileInfluencerCarousel: React.FC<MobileInfluencerCarouselProps> = ({
                     transition={{ delay: 0.2, duration: 0.3 }}
                   >
                     <div className="bg-gray-800/80 p-2 rounded-lg text-center border border-gray-700/30">
-                      <p className="text-[10px] xs:text-xs text-gray-400">Signals (30d)</p>
+                      <p className="text-[10px] xs:text-xs text-gray-400">Subscriptions</p>
                       <p className="text-xs xs:text-sm font-medium text-cyan-400">
-                        {influencer.recentMonthSignals?.toLocaleString()}
+                        {influencer.subscriptions?.toLocaleString()}
                       </p>
                     </div>
                     <div className="bg-gray-800/80 p-2 rounded-lg text-center border border-gray-700/30">
-                      <p className="text-[10px] xs:text-xs text-gray-400">Tokens (30d)</p>
+                      <p className="text-[10px] xs:text-xs text-gray-400">APR</p>
                       <p className="text-xs xs:text-sm font-medium text-cyan-400">
-                        {influencer.recentMonthTokens?.toLocaleString()}
+                        {influencer.apr?.toFixed(2)}%
                       </p>
                     </div>
                     <div className="bg-gray-800/80 p-2 rounded-lg text-center border border-gray-700/30">
-                      <p className="text-[10px] xs:text-xs text-gray-400">Followers</p>
+                      <p className="text-[10px] xs:text-xs text-gray-400">Deployers</p>
                       <p className="text-xs xs:text-sm font-medium text-cyan-400">
-                        {influencer.followers?.toLocaleString()}
+                        {influencer.deployersCount?.toLocaleString()}
                       </p>
                     </div>
                   </motion.div>

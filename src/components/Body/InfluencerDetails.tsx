@@ -56,9 +56,9 @@ const InfluencerDetails: React.FC<InfluencerDetailsProps> = ({ influencer }) => 
                 <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 p-3 sm:p-4 rounded-lg overflow-hidden group transition-all duration-300 hover:scale-105">
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100"></div>
                   <div className="relative z-10">
-                    <p className="text-[10px] sm:text-xs text-gray-100">Signals (past 30d)</p>
+                    <p className="text-[10px] sm:text-xs text-gray-100">Subscriptions</p>
                     <p className="text-sm sm:text-base font-semibold text-cyan-400 animate-value-pulse">
-                      {influencer.recentMonthSignals?.toLocaleString()}
+                      {influencer.subscriptions?.toLocaleString()}
                     </p>
                   </div>
                 </div>
@@ -66,9 +66,9 @@ const InfluencerDetails: React.FC<InfluencerDetailsProps> = ({ influencer }) => 
                 <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 p-3 sm:p-4 rounded-lg overflow-hidden group transition-all duration-300 hover:scale-105">
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100"></div>
                   <div className="relative z-10">
-                    <p className="text-[10px] sm:text-xs text-gray-100">Tokens (past 30d)</p>
+                    <p className="text-[10px] sm:text-xs text-gray-100">APR</p>
                     <p className="text-sm sm:text-base font-semibold text-cyan-400 animate-value-pulse">
-                      {influencer.recentMonthTokens?.toLocaleString()}
+                      {influencer.apr?.toFixed(2)}%
                     </p>
                   </div>
                 </div>
@@ -76,9 +76,9 @@ const InfluencerDetails: React.FC<InfluencerDetailsProps> = ({ influencer }) => 
                 <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 p-3 sm:p-4 rounded-lg overflow-hidden group transition-all duration-300 hover:scale-105">
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100"></div>
                   <div className="relative z-10">
-                    <p className="text-[10px] sm:text-xs text-gray-100">Followers</p>
+                    <p className="text-[10px] sm:text-xs text-gray-100">Deployers</p>
                     <p className="text-sm sm:text-base font-semibold text-cyan-400 animate-value-pulse">
-                      {influencer.followers?.toLocaleString()}
+                      {influencer.deployersCount?.toLocaleString()}
                     </p>
                   </div>
                 </div>
