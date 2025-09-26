@@ -314,7 +314,7 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
             </div>
             <h3 className="text-2xl font-bold text-white mb-4">All Agents Deployed</h3>
             <p className="text-gray-300 mb-6">
-              You have already deployed both Perpetuals and Spot agents for @{agentUsername}.
+              You have already deployed both GMX and Spot agents for @{agentUsername}.
             </p>
             <button
               onClick={handleClose}
@@ -395,7 +395,7 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
                           )}
                         </div>
                         <h3 className="text-xl md:text-2xl font-semibold tracking-tight text-white mb-2 capitalize">
-                          {type === 'perpetuals' ? 'Perpetuals' : 'Spot Trading'}
+                          {type === 'perpetuals' ? 'GMX' : 'Spot Trading'}
                         </h3>
                         <p className="text-gray-300 text-sm mb-4">
                           {type === 'perpetuals'

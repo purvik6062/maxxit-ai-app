@@ -35,7 +35,7 @@ export const Step2TradingType: React.FC<Step2TradingTypeProps> = ({ tradingTypes
             <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-cyan-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <TrendingUp className="w-8 h-8 text-white" />
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">Perpetuals</h3>
+            <h3 className="text-xl font-bold text-white mb-2">GMX</h3>
             <p className="text-gray-300 text-sm">
               Trade with leverage on futures contracts. Higher risk, higher potential returns.
             </p>

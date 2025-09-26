@@ -1347,7 +1347,7 @@ const AllAgentsMarketplace: React.FC = () => {
                       <Rocket className="w-4 h-4" />
                       {availableTypes.length === 2
                         ? "Deploy Agent"
-                        : `Deploy ${availableTypes[0] === "perpetuals" ? "Perpetuals" : "Spot"}`}
+                        : `Deploy ${availableTypes[0] === "perpetuals" ? "GMX" : "Spot"}`}
                     </button>
                   )}
                 </div>
