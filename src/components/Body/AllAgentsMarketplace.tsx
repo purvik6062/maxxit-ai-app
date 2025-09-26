@@ -630,6 +630,23 @@ const AllAgentsMarketplace: React.FC = () => {
   const [userSafeConfigs, setUserSafeConfigs] = useState<SafeConfig[]>([]);
   const [currentUsername, setCurrentUsername] = useState<string | null>(null);
 
+  // Function to refresh user safe configurations
+  const refreshUserSafeConfigs = async () => {
+    try {
+      console.log("[AllAgentsMarketplace] Refreshing user safe configs...");
+      const response = await fetch("/api/user-agents");
+      const data = await response.json();
+      
+      if (data.success) {
+        setUserSafeConfigs(data.data.safeConfigs || []);
+        setCurrentUsername(data.data.twitterUsername);
+        console.log("[AllAgentsMarketplace] User safe configs refreshed successfully");
+      }
+    } catch (err) {
+      console.error("Failed to refresh user safe configs:", err);
+    }
+  };
+
   useEffect(() => {
     const fetchAgents = async () => {
       try {
@@ -1527,6 +1544,7 @@ const AllAgentsMarketplace: React.FC = () => {
         agentUsername={deploymentModal.agentUsername}
         agentId={deploymentModal.agentId}
         existingSafeConfigs={userSafeConfigs}
+        onDeploymentSuccess={refreshUserSafeConfigs}
       />
 
       <style jsx>{`

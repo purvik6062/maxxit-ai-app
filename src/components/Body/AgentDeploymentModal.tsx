@@ -11,6 +11,7 @@ interface AgentDeploymentModalProps {
   agentUsername: string;
   agentId: string;
   existingSafeConfigs: Array<{ type: 'perpetuals' | 'spot'; safeAddress: string; agentId: string }>;
+  onDeploymentSuccess?: () => void;
 }
 
 type DeploymentStep = 'type-selection' | 'safe-creation' | 'funding' | 'confirmation';
@@ -20,7 +21,8 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
   onClose,
   agentUsername,
   agentId,
-  existingSafeConfigs
+  existingSafeConfigs,
+  onDeploymentSuccess
 }) => {
   const [currentStep, setCurrentStep] = useState<DeploymentStep>('type-selection');
   const [selectedType, setSelectedType] = useState<'perpetuals' | 'spot' | null>(null);
@@ -186,6 +188,14 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
   const handleClose = () => {
     resetModal();
     onClose();
+  };
+
+  const handleBackToMarketplace = () => {
+    // Call the refresh callback if provided
+    if (onDeploymentSuccess) {
+      onDeploymentSuccess();
+    }
+    handleClose();
   };
 
   const handleCopyAddress = async () => {
@@ -512,7 +522,7 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
 
                       {!error && safeAddress && (
                         <button
-                          onClick={handleClose}
+                          onClick={handleBackToMarketplace}
                           className="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-900/30"
                         >
                           Back to Marketplace
