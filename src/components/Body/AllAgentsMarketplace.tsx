@@ -33,6 +33,7 @@ import {
   Target,
 } from "lucide-react";
 import { AgentDeploymentModal } from "./AgentDeploymentModal";
+import Image from "next/image";
 
 interface SubscribedAccount {
   twitterHandle: string;
@@ -455,7 +456,7 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
                   <div className="flex flex-col items-center text-center">
                     <div className="relative mb-4">
                       <div className="w-20 h-20 rounded-full border-3 overflow-hidden transition-all duration-300 group-hover:border-blue-500/50 group-hover:scale-105" style={{ borderColor: "#353940", background: "#111528" }}>
-                        <img
+                        <Image
                           src={
                             account.influencerInfo?.userProfileUrl ||
                             `https://picsum.photos/seed/${account.twitterHandle}/80/80`
@@ -469,6 +470,8 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
                             const target = e.target as HTMLImageElement;
                             target.src = `https://picsum.photos/seed/${account.twitterHandle}/80/80`;
                           }}
+                          width={80}
+                          height={80}
                         />
                       </div>
                       {account.influencerInfo?.verified && (
@@ -537,7 +540,7 @@ const SubscribedInfluencersModal: React.FC<SubscribedInfluencersModalProps> = ({
                 >
                   <div className="relative">
                     <div className="w-16 h-16 rounded-full border-2 overflow-hidden transition-all duration-300 group-hover:border-blue-500/50 group-hover:scale-105" style={{ borderColor: "#353940", background: "#111528" }}>
-                      <img
+                      <Image
                         src={
                           account.influencerInfo?.userProfileUrl ||
                           `https://picsum.photos/seed/${account.twitterHandle}/64/64`
@@ -805,6 +808,32 @@ const AllAgentsMarketplace: React.FC = () => {
     }
   };
 
+  const getStrategyPrimaryColor = (strategyType: string): string => {
+    switch (strategyType) {
+      case "Social-Driven":
+        return "#3b82f6"; // blue-500
+      case "Momentum":
+        return "#2563eb"; // blue-600
+      case "Fundamental":
+        return "#22c55e"; // green-500
+      default:
+        return "#6b7280"; // gray-500
+    }
+  };
+
+  const getStrategyGlowColor = (strategyType: string): string => {
+    switch (strategyType) {
+      case "Social-Driven":
+        return "#3b82f6";
+      case "Momentum":
+        return "#2563eb";
+      case "Fundamental":
+        return "#22c55e";
+      default:
+        return "#6b7280";
+    }
+  };
+
   const renderSubscriptionAvatars = (
     accounts: SubscribedAccount[],
     agentUsername: string,
@@ -861,7 +890,7 @@ const AllAgentsMarketplace: React.FC = () => {
                   title={`${account.influencerInfo?.name || account.twitterHandle} (${formatNumber(account.influencerInfo?.followersCount || 0)} followers)`}
                 >
                   <div className="w-12 h-12 rounded-full border-3 border-gray-700 group-hover:border-blue-400 overflow-hidden bg-gray-800 transition-all duration-200 shadow-lg">
-                    <img
+                    <Image
                       src={imageUrl}
                       alt={
                         account.influencerInfo?.name || account.twitterHandle
@@ -871,6 +900,8 @@ const AllAgentsMarketplace: React.FC = () => {
                         const target = e.target as HTMLImageElement;
                         target.src = `https://picsum.photos/seed/${account.twitterHandle}/60/60`;
                       }}
+                      width={60}
+                      height={60}
                     />
                   </div>
                   {account.influencerInfo?.verified && (
@@ -909,37 +940,36 @@ const AllAgentsMarketplace: React.FC = () => {
     if (agentSafeConfigs.length === 0) return null;
 
     return (
-      <div className="mt-4 p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
-        <h4 className="text-green-400 text-sm font-semibold mb-3 flex items-center gap-2">
-          <Shield className="w-4 h-4" />
-          Deployed Safe Wallets
+      <div className="mt-3 p-3 bg-green-500/8 border border-green-500/20 rounded-lg">
+        <h4 className="text-green-400 text-xs font-semibold mb-2 flex items-center gap-1.5">
+          <Shield className="w-3 h-3" />
+          Deployed Safes
         </h4>
-        <div className="space-y-3">
+        <div className="space-y-2">
           {agentSafeConfigs.map((config) => (
             <div
               key={`${config.type}-${config.safeAddress}`}
-              className="flex items-center justify-between bg-green-500/5 p-3 rounded-lg"
+              className="flex items-center justify-between bg-green-500/5 p-2 rounded-md"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <div
-                  className={`p-2 rounded-lg ${config.type === "perpetuals"
+                  className={`p-1.5 rounded-md ${config.type === "perpetuals"
                     ? "bg-blue-500/20 text-blue-400"
                     : "bg-purple-500/20 text-purple-400"
                     }`}
                 >
                   {config.type === "perpetuals" ? (
-                    <TrendingUp className="w-4 h-4" />
+                    <TrendingUp className="w-3 h-3" />
                   ) : (
-                    <BarChart3 className="w-4 h-4" />
+                    <BarChart3 className="w-3 h-3" />
                   )}
                 </div>
                 <div>
-                  <span className="text-green-300 text-sm font-medium capitalize">
+                  <span className="text-green-300 text-xs font-medium capitalize">
                     {config.type}
                   </span>
-                  <div className="text-xs text-gray-400">
-                    {config.safeAddress.slice(0, 8)}...
-                    {config.safeAddress.slice(-6)}
+                  <div className="text-xs text-gray-500">
+                    {config.safeAddress.slice(0, 6)}...{config.safeAddress.slice(-4)}
                   </div>
                 </div>
               </div>
@@ -950,10 +980,10 @@ const AllAgentsMarketplace: React.FC = () => {
                     "_blank",
                   )
                 }
-                className="text-xs bg-green-500/20 hover:bg-green-500/30 text-green-300 px-3 py-2 rounded-lg transition-colors flex items-center gap-1 hover:scale-105 transform duration-200"
+                className="text-xs bg-green-500/20 hover:bg-green-500/30 text-green-300 px-2 py-1 rounded-md transition-colors flex items-center gap-1 hover:scale-105 transform duration-200"
               >
-                <ExternalLink className="w-3 h-3" />
-                View Safe
+                <ExternalLink className="w-2.5 h-2.5" />
+                View
               </button>
             </div>
           ))}
@@ -1109,142 +1139,6 @@ const AllAgentsMarketplace: React.FC = () => {
           </p>
         </div>
 
-        {/* Enhanced Stats Bar */}
-        {/* <div className="bg-[#0D1321] rounded-2xl p-6 md:p-8 mb-10 border" style={{ borderColor: "#353940" }}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-200">
-                <Users className="w-8 h-8 text-white" />
-              </div>
-              <div className="text-3xl font-bold text-blue-400 mb-1">
-                {agents.length}
-              </div>
-              <div className="text-sm text-[#8ba1bc] font-medium">
-                Active Agents
-              </div>
-            </div>
-            <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-200">
-                <Star className="w-8 h-8 text-white" />
-              </div>
-              <div className="text-3xl font-bold text-indigo-400 mb-1">
-                {agents.reduce(
-                  (sum, agent) => sum + agent.subscribedAccounts.length,
-                  0,
-                )}
-              </div>
-              <div className="text-sm text-[#8ba1bc] font-medium">
-                Total Subscriptions
-              </div>
-            </div>
-            <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-r from-cyan-500 to-cyan-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-200">
-                <Zap className="w-8 h-8 text-white" />
-              </div>
-              <div className="text-3xl font-bold text-cyan-400 mb-1">
-                {userSafeConfigs.length}
-              </div>
-              <div className="text-sm text-[#8ba1bc] font-medium">
-                Your Deployments
-              </div>
-            </div>
-          </div>
-        </div> */}
-
-        {/* Enhanced Search and Filter */}
-        {/* <div className="bg-[#0D1321] rounded-2xl p-6 md:p-8 mb-10 border" style={{ borderColor: "#353940" }}>
-          <div className="flex flex-col xl:flex-row gap-6 items-center">
-            <div className="flex-1 w-full">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#8ba1bc] w-6 h-6" />
-                <input
-                  type="text"
-                  placeholder="Search agents by username..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-6 py-4 bg-[#0D1321] border-2 rounded-xl text-white placeholder-[#8ba1bc] focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all text-lg"
-                  style={{ borderColor: "#353940" }}
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-3 w-full xl:w-auto">
-              <div className="flex bg-[#0D1321] rounded-full p-1.5 border" style={{ borderColor: "#353940" }}>
-                {[
-                  {
-                    key: "all",
-                    label: "All Agents",
-                    icon: <Users className="w-4 h-4" />,
-                  },
-                  {
-                    key: "social",
-                    label: "Social-Driven",
-                    icon: <Star className="w-4 h-4" />,
-                  },
-                  {
-                    key: "momentum",
-                    label: "Momentum",
-                    icon: <TrendingUp className="w-4 h-4" />,
-                  },
-                  {
-                    key: "fundamental",
-                    label: "Fundamental",
-                    icon: <Target className="w-4 h-4" />,
-                  },
-                ].map((filter) => (
-                  <button
-                    key={filter.key}
-                    onClick={() => setCategoryFilter(filter.key)}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-full font-medium transition-all duration-200 ${categoryFilter === filter.key
-                      ? "bg-[#1a2234] text-white shadow-inner"
-                      : "text-[#8ba1bc] hover:text-white"
-                      }`}
-                  >
-                    {filter.icon}
-                    <span className="hidden sm:inline">{filter.label}</span>
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex bg-[#0D1321] rounded-full p-1.5 border" style={{ borderColor: "#353940" }}>
-                {[
-                  {
-                    key: "subscribers",
-                    label: "Most Subscribed",
-                    icon: <Star className="w-4 h-4" />,
-                  },
-                  {
-                    key: "recent",
-                    label: "Recently Updated",
-                    icon: <Clock className="w-4 h-4" />,
-                  },
-                  {
-                    key: "performance",
-                    label: "Top Performance",
-                    icon: <TrendingUp className="w-4 h-4" />,
-                  },
-                ].map((sort) => (
-                  <button
-                    key={sort.key}
-                    onClick={() =>
-                      setSortBy(
-                        sort.key as "subscribers" | "recent" | "performance",
-                      )
-                    }
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-full font-medium transition-all duration-200 ${sortBy === sort.key
-                      ? "bg-[#1a2234] text-white shadow-inner"
-                      : "text-[#8ba1bc] hover:text-white"
-                      }`}
-                  >
-                    {sort.icon}
-                    <span className="hidden lg:inline">{sort.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div> */}
-
         {/* Enhanced Agents Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
           {filteredAgents.map((agent, index) => {
@@ -1253,222 +1147,211 @@ const AllAgentsMarketplace: React.FC = () => {
             const availableTypes = getAvailableAgentTypes(agent._id);
             const isOwn = isOwnAgent(agent.twitterUsername);
 
+            // Static agent descriptions and images
+            const getAgentStaticData = (username: string) => {
+              const staticData = {
+                image: `https://picsum.photos/seed/${username}/400/300`,
+                description: strategyType === "Social-Driven"
+                  ? "Advanced AI agent that analyzes social sentiment and market volume to identify trending opportunities in real-time."
+                  : strategyType === "Momentum"
+                    ? "Sophisticated trading bot that captures market momentum through technical analysis and volume-based signals."
+                    : strategyType === "Fundamental"
+                      ? "Data-driven agent that evaluates fundamental metrics and on-chain analytics for strategic positioning."
+                      : "Balanced trading strategy combining technical, social, and fundamental analysis for optimal risk-adjusted returns."
+              };
+              return staticData;
+            };
+
+            // Get random trading platform for each agent
+            const getTradingPlatform = (username: string) => {
+              const platforms = [
+                { name: "GMX", apr: "+7.2%", color: "text-green-400", bgColor: "bg-green-400", icon: <TrendingUp className="w-3 h-3" /> },
+                { name: "Hyperliquid", apr: "+4.8%", color: "text-blue-400", bgColor: "bg-blue-400", icon: <BarChart3 className="w-3 h-3" /> },
+                { name: "Spot Trading", apr: "+2.1%", color: "text-yellow-400", bgColor: "bg-yellow-400", icon: <Star className="w-3 h-3" /> }
+              ];
+              const hash = username.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+              return platforms[hash % platforms.length];
+            };
+
+            const staticData = getAgentStaticData(agent.twitterUsername);
+            const tradingPlatform = getTradingPlatform(agent.twitterUsername);
+
             return (
               <div
                 key={agent._id}
-                className="group bg-[#0D1321] rounded-2xl p-6 border-2 transition-all duration-500 hover:scale-[1.03] shadow-2xl relative overflow-hidden animate-fade-in-up"
+                className="group bg-[#0D1321] rounded-2xl transition-all duration-500 ease-in-out hover:scale-105 relative overflow-hidden animate-fade-in-up border border-[#353940]"
                 style={{
-                  borderColor: "#353940",
-                  animationDelay: `${index * 100}ms`
-                }}
+                  animationDelay: `${index * 100}ms`,
+                  "--hover-border-color": getStrategyPrimaryColor(strategyType),
+                  boxShadow: `0 0 10px #6b7280`,
+                } as React.CSSProperties}
               >
-                {/* Animated background gradient */}
-                <div className="absolute inset-0  bg-blue-500/5  duration-500 rounded-2xl" />
+                {/* Enhanced subtle branded overlay on hover with glow */}
+                <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-[#AAC9FA]/8 via-transparent to-[#E1EAF9]/8 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                {/* Animated border glow */}
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-400/20 opacity-100 transition-opacity duration-500 blur-sm -z-10" style={{ padding: "2px" }}>
-                  <div className="w-full h-full bg-[#0D1321] rounded-2xl" />
-                </div>
-                {/* Agent Header */}
-                <div className="flex items-start justify-between mb-3 relative z-10">
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <div
-                        className={`w-14 h-14 bg-gradient-to-br ${getStrategyColor(strategyType)} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}
-                      >
-                        <Users className="w-8 h-8 text-white group-hover:scale-110 transition-transform duration-300" />
-                      </div>
-                      {/* Animated ring around icon */}
-                      <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${getStrategyColor(strategyType)} opacity-0 group-hover:opacity-30 group-hover:scale-125 transition-all duration-500 blur-sm -z-10`} />
+                {/* Enhanced ring/border highlight on hover with glow */}
+                <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-transparent transition-all duration-500 group-hover:ring-[var(--hover-border-color)]/40 group-hover:shadow-[0_0_16px_var(--hover-border-color)/30]" />
+
+                {/* Compact Hero Image Section with Blurred Logo Background */}
+                <div className="relative h-32 overflow-hidden rounded-t-2xl">
+                  {/* Blurred Logo Background */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#0D1321] to-[#1a2234]">
+                    <Image
+                      src={staticData.image}
+                      alt={`${agent.twitterUsername} agent`}
+                      className="w-full h-full object-cover opacity-20 blur-sm scale-110 transition-all duration-500 group-hover:blur-md group-hover:scale-125"
+                      width={400}
+                      height={300}
+                    />
+                  </div>
+
+                  {/* Overlay gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0D1321]/80 via-transparent to-transparent" />
+
+                  {/* Logo positioned on cover image */}
+                  <div className="absolute bottom-0 left-3">
+                    <div className={`w-14 h-10 bg-gradient-to-br ${getStrategyColor(strategyType)} rounded-t-xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 border-2 border-white/20`}>
+                      <Image
+                        src="/img/maxxit_icon.svg"
+                        alt="Maxxit Logo"
+                        className="w-7 h-7 text-white"
+                        width={28}
+                        height={28}
+                      />
                     </div>
-                    <div>
-                      <h3 className="text-base md:text-lg font-semibold tracking-tight text-white mb-2 group-hover:text-[#AAC9FA] transition-colors duration-300">
-                        @{agent.twitterUsername}
-                      </h3>
-                      <div className="flex items-center gap-2 mb-3">
-                        <span
-                          className={`px-3 py-1.5 rounded-full text-xs font-medium bg-gradient-to-r ${getStrategyColor(strategyType)} text-white shadow-lg group-hover:shadow-xl transition-all duration-300`}
-                        >
-                          {strategyType}
-                        </span>
-                        {isOwn && (
-                          <span className="px-2 py-1 bg-gradient-to-r from-gray-600/50 to-gray-700/50 text-gray-200 rounded-full text-xs border border-gray-600/50 group-hover:border-gray-500/50 transition-all duration-300">
-                            Your Agent
-                          </span>
-                        )}
-                      </div>
+                    {/* Enhanced glow effect for logo */}
+                    <div className={`absolute inset-0 rounded-xl bg-gradient-to-br ${getStrategyColor(strategyType)} opacity-0 group-hover:opacity-40 group-hover:scale-125 transition-all duration-700 blur-lg -z-10`} />
+                  </div>
 
+                  {/* Subscription Count Badge */}
+                  <div className="absolute top-3 right-3">
+                    <div className="px-2 py-1 bg-black/40 backdrop-blur-sm rounded-md border border-white/20 text-white text-xs font-medium flex items-center gap-1 shadow-lg transition-all duration-500 group-hover:scale-105">
+                      <Users className="w-2.5 h-2.5" />
+                      {agent.subscribedAccounts.length}
                     </div>
                   </div>
 
-                  <p className="text-[#8ba1bc] text-sm pl-2 flex items-center gap-1 group-hover:text-[#B8C5D1] transition-colors duration-300">
-                    <Users className="w-3 h-3 text-blue-300 group-hover:scale-110 transition-transform duration-300" />
-                    <span className="text-gray-300">{agent.subscribedAccounts.length} subscriptions</span>
-                  </p>
-                </div>
-
-                <div className="flex items-start justify-between relative z-10 text-right mb-4">
-                  {availableTypes.length === 0 ? (
-                    <div className="px-4 py-2 w-full text-center flex items-center justify-center bg-green-500/20 text-green-400 rounded-xl text-sm font-medium border border-green-500/30">
-                      <CheckCircle className="w-4 h-4 inline mr-1" />
-                      All Deployed
+                  {/* Own Agent Badge */}
+                  {isOwn && (
+                    <div className="absolute bottom-3 right-3">
+                      <span className="px-2 py-0.5 bg-gradient-to-r from-[#AAC9FA]/90 to-[#E1EAF9]/90 backdrop-blur-sm text-[#0D1321] rounded-md text-xs font-semibold shadow-lg border border-white/20 transition-all duration-500 group-hover:scale-105">
+                        Your Agent
+                      </span>
                     </div>
-                  ) : (
-                    <button
-                      onClick={() =>
-                        setDeploymentModal({
-                          isOpen: true,
-                          agentUsername: agent.twitterUsername,
-                          agentId: agent._id,
-                        })
-                      }
-                      className={`cursor-pointer px-4 py-2 w-full  rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2 hover:scale-105 shadow-lg ${availableTypes.length === 2
-                        ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-600"
-                        : "bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-600 hover:to-orange-600"
-                        }`}
-                    >
-                      <Rocket className="w-4 h-4" />
-                      {availableTypes.length === 2
-                        ? "Deploy Agent"
-                        : `Deploy ${availableTypes[0] === "perpetuals" ? "Perpetuals" : "Spot"}`}
-                    </button>
                   )}
                 </div>
 
-                {/* Enhanced Key Metrics */}
-                {/* <div className="grid grid-cols-2 gap-4 mb-6">
-                  <MetricCard
-                    label="Price Momentum"
-                    value={agent.customizationOptions.r_last6h_pct}
-                    icon={<TrendingUp className="w-4 h-4" />}
-                    trend={
-                      agent.customizationOptions.r_last6h_pct > 0
-                        ? "up"
-                        : agent.customizationOptions.r_last6h_pct < 0
-                          ? "down"
-                          : "neutral"
-                    }
-                  />
-                  <MetricCard
-                    label="Market Volume"
-                    value={agent.customizationOptions.d_pct_mktvol_6h}
-                    icon={<BarChart3 className="w-4 h-4" />}
-                    trend={
-                      agent.customizationOptions.d_pct_mktvol_6h > 0
-                        ? "up"
-                        : agent.customizationOptions.d_pct_mktvol_6h < 0
-                          ? "down"
-                          : "neutral"
-                    }
-                  />
-                  <MetricCard
-                    label="Social Volume"
-                    value={agent.customizationOptions.d_pct_socvol_6h}
-                    icon={<Users className="w-4 h-4" />}
-                    trend={
-                      agent.customizationOptions.d_pct_socvol_6h > 0
-                        ? "up"
-                        : agent.customizationOptions.d_pct_socvol_6h < 0
-                          ? "down"
-                          : "neutral"
-                    }
-                  />
-                  <MetricCard
-                    label="Sentiment"
-                    value={agent.customizationOptions.d_pct_sent_6h}
-                    icon={<Star className="w-4 h-4" />}
-                    trend={
-                      agent.customizationOptions.d_pct_sent_6h > 0
-                        ? "up"
-                        : agent.customizationOptions.d_pct_sent_6h < 0
-                          ? "down"
-                          : "neutral"
-                    }
-                  />
-                </div> */}
-
-                {/* Compact APR Metrics */}
-                <div className="mb-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                    <span className="text-gray-300 text-sm font-medium">Trading Performance APR</span>
+                {/* Compact Content Section */}
+                <div className="p-4 relative z-10">
+                  {/* Agent Header */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-leagueSpartan font-bold text-white mb-0.5 group-hover:text-[#AAC9FA] transition-colors duration-500 truncate">
+                        @{agent.twitterUsername}
+                      </h3>
+                      <p className="text-xs text-[#8ba1bc] group-hover:text-[#AAC9FA] transition-colors duration-500">
+                        AI Trading Agent
+                      </p>
+                    </div>
+                    {/* Strategy Type Badge */}
+                    <div className="relative">
+                      <span className={`px-2 py-1 rounded-md text-xs font-medium backdrop-blur-sm bg-gradient-to-r ${getStrategyColor(strategyType)} text-white shadow-md border border-white/10 group-hover:scale-105 transition-all duration-500`}>
+                        {strategyType}
+                      </span>
+                      <div className={`absolute inset-0 rounded-md bg-gradient-to-r ${getStrategyColor(strategyType)} opacity-0 group-hover:opacity-25 group-hover:scale-110 transition-all duration-700 blur-md -z-10`} />
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
-                    {/* GMX APR */}
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-2">
-                        <TrendingUp className="w-3 h-3 text-green-400" />
-                        <span className="text-gray-300 text-xs">GMX</span>
-                        <ArrowUpRight className="w-3 h-3 text-green-400" />
-                      </div>
-                      <div className="text-green-400 font-bold text-base">+7.2%</div>
-                      <div className="text-xs text-gray-500 mb-2">APR</div>
-                      <div className="w-full h-1 bg-gray-700 rounded-full">
-                        <div className="w-4/5 h-full bg-green-400 rounded-full"></div>
-                      </div>
+                  {/* Compact Description */}
+                  <p className="text-[#8ba1bc] text-xs leading-relaxed mb-4 group-hover:text-gray-300 transition-colors duration-500" style={{
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden'
+                  }}>
+                    {staticData.description}
+                  </p>
+
+                  {/* Compact Trading Performance */}
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold text-gray-300 flex items-center gap-1.5">
+                        <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
+                        Performance
+                      </span>
+                      <span className="text-xs text-[#8ba1bc] uppercase tracking-wider">Live APR</span>
                     </div>
 
-                    {/* Hyperliquid APR */}
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-2">
-                        <BarChart3 className="w-3 h-3 text-blue-400" />
-                        <span className="text-gray-300 text-xs">Hyperliquid</span>
-                        <ArrowUpRight className="w-3 h-3 text-blue-400" />
+                    <div className="bg-[#111528] rounded-lg p-3 border border-[#353940] group-hover:border-[var(--hover-border-color)]/30 group-hover:shadow-lg group-hover:bg-[#1a2234] transition-all duration-500">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-1.5">
+                          {tradingPlatform.icon}
+                          <span className="text-white font-medium text-xs">{tradingPlatform.name}</span>
+                        </div>
+                        <ArrowUpRight className={`w-3 h-3 ${tradingPlatform.color} transition-transform duration-500 group-hover:rotate-45`} />
                       </div>
-                      <div className="text-blue-400 font-bold text-base">+4.8%</div>
-                      <div className="text-xs text-gray-500 mb-2">APR</div>
-                      <div className="w-full h-1 bg-gray-700 rounded-full">
-                        <div className="w-3/5 h-full bg-blue-400 rounded-full"></div>
-                      </div>
-                    </div>
 
-                    {/* Spot Trading APR */}
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-2">
-                        <Star className="w-3 h-3 text-yellow-400" />
-                        <span className="text-gray-300 text-xs">Spot Trading</span>
-                        <div className="w-3 h-3 border border-gray-500 rounded-full"></div>
+                      <div className={`text-lg font-bold ${tradingPlatform.color} mb-2 transition-all duration-500 group-hover:scale-105`}>
+                        {tradingPlatform.apr}
                       </div>
-                      <div className="text-yellow-400 font-bold text-base">+2.1%</div>
-                      <div className="text-xs text-gray-500 mb-2">APR</div>
-                      <div className="w-full h-1 bg-gray-700 rounded-full">
-                        <div className="w-2/5 h-full bg-yellow-400 rounded-full"></div>
+
+                      <div className="w-full h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                        <div className={`h-full ${tradingPlatform.bgColor} rounded-full transition-all duration-1000 group-hover:animate-pulse`}
+                          style={{ width: tradingPlatform.name === "GMX" ? "75%" : tradingPlatform.name === "Hyperliquid" ? "60%" : "40%" }}>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Subscriptions Section */}
-                {agent.subscribedAccounts.length > 0 && (
-                  <div className="rounded-xl p-4 mb-4 border" style={{ background: "#111528", borderColor: "#353940" }}>
-                    {renderSubscriptionAvatars(
-                      agent.subscribedAccounts,
-                      agent.twitterUsername,
+                  {/* Deployed Safe Wallets */}
+                  <DeployedSafeWallets agentId={agent._id} />
+
+                  {/* Animated Action Button */}
+                  <div className="mt-4">
+                    {availableTypes.length === 0 ? (
+                      <div className="w-full py-2.5 px-3 bg-gradient-to-r from-green-500/15 to-emerald-500/15 text-green-400 rounded-lg text-xs font-semibold border border-green-500/25 flex items-center justify-center gap-1.5 group-hover:from-green-500/25 group-hover:to-emerald-500/25 transition-all duration-500">
+                        <CheckCircle className="w-3 h-3" />
+                        All Strategies Deployed
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() =>
+                          setDeploymentModal({
+                            isOpen: true,
+                            agentUsername: agent.twitterUsername,
+                            agentId: agent._id,
+                          })
+                        }
+                        className={`group/btn w-full py-2.5 px-3 rounded-full text-xs font-semibold transition-all duration-500 flex items-center justify-center gap-1.5 hover:scale-[1.02] transform relative overflow-hidden ${availableTypes.length === 2
+                          ? "bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] hover:from-[#9AC0F9] hover:to-[#D1DAF8] text-[#0D1321] shadow-md hover:shadow-lg"
+                          : "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-md hover:shadow-lg"
+                          }`}
+                      >
+                        {/* Button animation overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700"></div>
+
+                        <Rocket className={`w-3 h-3 transition-transform duration-500 group-hover/btn:scale-110 ${availableTypes.length === 2 ? "group-hover/btn:rotate-12" : ""}`} />
+                        <span className="relative z-10">
+                          {availableTypes.length === 2
+                            ? "Deploy Agent"
+                            : `Deploy ${availableTypes[0] === "perpetuals" ? "Perpetuals" : "Spot"}`}
+                        </span>
+                      </button>
                     )}
                   </div>
-                )}
 
-                {/* Deployed Safe Wallets */}
-                <DeployedSafeWallets agentId={agent._id} />
-
-                {/* Footer */}
-                <div className="flex items-center justify-between pt-4 border-t text-sm" style={{ borderColor: "#353940", color: "#8ba1bc" }}>
-                  {/* <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    Updated {formatDate(agent.updatedAt)}
-                  </span> */}
+                  {/* Compact Footer */}
                   {deployedTypes.length > 0 && (
-                    <div className="flex gap-1">
+                    <div className="flex items-center justify-center gap-1.5 mt-3 pt-3 border-t border-[#353940]">
                       {deployedTypes.map((type) => (
                         <span
                           key={type}
-                          className={`px-2 py-1 rounded text-xs font-medium ${type === "perpetuals"
-                            ? "bg-blue-500/20 text-blue-400"
-                            : "bg-cyan-500/20 text-cyan-400"
+                          className={`px-2 py-0.5 rounded-md text-xs font-medium transition-all duration-500 group-hover:scale-105 ${type === "perpetuals"
+                            ? "bg-blue-500/15 text-blue-400 border border-blue-500/25"
+                            : "bg-cyan-500/15 text-cyan-400 border border-cyan-500/25"
                             }`}
                         >
-                          {type}
+                          {type === "perpetuals" ? "Perpetuals" : "Spot"}
                         </span>
                       ))}
                     </div>
