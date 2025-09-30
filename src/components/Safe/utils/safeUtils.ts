@@ -166,7 +166,7 @@ export const allNetworks = [
 export const chainIdToNetworkKey: { [key: number]: string } = {
   1: "ethereum",
   11155111: "sepolia",
-  42161: "arbitrum_one",
+  42161: "arbitrum",
   421614: "arbitrum_sepolia",
   137: "polygon",
   8453: "base",
