@@ -1128,10 +1128,10 @@ const AllAgentsMarketplace: React.FC = () => {
       <div className="relative py-6 md:py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8 md:mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent font-napzerRounded mb-4">
+          <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
             Agents Marketplace
           </h1>
-          <div className="h-1 w-24 bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] mx-auto rounded-full animate-fade-in-up delay-200" />
+          {/* <div className="h-1 w-24 bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] mx-auto rounded-full animate-fade-in-up delay-200" /> */}
 
           <p className="text-[#8ba1bc] pt-4 text-base md:text-xl max-w-3xl mx-auto leading-relaxed">
             Discover, explore, and deploy sophisticated trading agents
@@ -1179,15 +1179,15 @@ const AllAgentsMarketplace: React.FC = () => {
             return (
               <div
                 key={agent._id}
-                className="group bg-[#0D1321] rounded-2xl transition-all duration-500 ease-in-out hover:scale-105 relative overflow-hidden animate-fade-in-up border border-[#353940]"
+                className="group bg-[#0D1321] rounded-2xl transition-all duration-500 ease-in-out hover:scale-105 relative overflow-hidden animate-fade-in-up border-[#363f42] hover:shadow-[0_0_15px_#528a9e]"
                 style={{
+                  border: "1px solid #363f42",
                   animationDelay: `${index * 100}ms`,
-                  "--hover-border-color": getStrategyPrimaryColor(strategyType),
-                  boxShadow: `0 0 10px #6b7280`,
+                  // boxShadow: `0 0 5px #26C6DA`,
                 } as React.CSSProperties}
               >
                 {/* Enhanced subtle branded overlay on hover with glow */}
-                <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-[#AAC9FA]/8 via-transparent to-[#E1EAF9]/8 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                {/* <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-[#AAC9FA]/8 via-transparent to-[#E1EAF9]/8 opacity-0 group-hover:opacity-100 transition-opacity duration-500" /> */}
 
                 {/* Enhanced ring/border highlight on hover with glow */}
                 <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-transparent transition-all duration-500 group-hover:ring-[var(--hover-border-color)]/40 group-hover:shadow-[0_0_16px_var(--hover-border-color)/30]" />
@@ -1322,16 +1322,19 @@ const AllAgentsMarketplace: React.FC = () => {
                             agentId: agent._id,
                           })
                         }
-                        className={`group/btn w-full py-2.5 px-3 rounded-full text-xs font-semibold transition-all duration-500 flex items-center justify-center gap-1.5 hover:scale-[1.02] transform relative overflow-hidden ${availableTypes.length === 2
-                          ? "bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] hover:from-[#9AC0F9] hover:to-[#D1DAF8] text-[#0D1321] shadow-md hover:shadow-lg"
-                          : "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-md hover:shadow-lg"
+                        className={`group/btn w-full py-2.5 px-3 rounded-full text-xs font-semibold transition-all duration-300 flex items-center justify-center gap-1.5 hover:scale-[1.03] transform relative overflow-hidden ${availableTypes.length === 2
+                          ? "bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] hover:from-[#9AC0F9] hover:to-[#D1DAF8] text-[#0D1321] shadow-md hover:shadow-2xl"
+                          : "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-md hover:shadow-2xl"
                           }`}
                       >
-                        {/* Button animation overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700"></div>
+                        {/* Pulsing border effect */}
+                        <div className="absolute inset-0 rounded-full opacity-0 group-hover/btn:opacity-100 group-hover/btn:animate-ping bg-white/30"></div>
 
-                        <Rocket className={`w-3 h-3 transition-transform duration-500 group-hover/btn:scale-110 ${availableTypes.length === 2 ? "group-hover/btn:rotate-12" : ""}`} />
-                        <span className="relative z-10">
+                        {/* Shimmer */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700"></div>
+
+                        <Rocket className="w-3 h-3 transition-all duration-300 group-hover/btn:scale-110 group-hover/btn:translate-y-[-2px] relative z-10" />
+                        <span className="relative z-10 group-hover/btn:tracking-wide transition-all duration-300">
                           {availableTypes.length === 2
                             ? "Deploy Agent"
                             : `Deploy ${availableTypes[0] === "perpetuals" ? "Perpetuals" : "Spot"}`}
