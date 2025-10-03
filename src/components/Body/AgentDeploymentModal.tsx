@@ -10,7 +10,8 @@ interface AgentDeploymentModalProps {
   onClose: () => void;
   agentUsername: string;
   agentId: string;
-  existingSafeConfigs: Array<{ type: 'perpetuals' | 'spot'; safeAddress: string; agentId: string }>;
+  existingSafeConfigs: Array<{ type: 'gmx' | 'spot'; safeAddress: string; agentId: string }>;
+  onDeploymentSuccess?: () => void;
 }
 
 type DeploymentStep = 'type-selection' | 'safe-creation' | 'funding' | 'confirmation';
@@ -20,10 +21,11 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
   onClose,
   agentUsername,
   agentId,
-  existingSafeConfigs
+  existingSafeConfigs,
+  onDeploymentSuccess
 }) => {
   const [currentStep, setCurrentStep] = useState<DeploymentStep>('type-selection');
-  const [selectedType, setSelectedType] = useState<'perpetuals' | 'spot' | null>(null);
+  const [selectedType, setSelectedType] = useState<'gmx' | 'spot' | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [safeAddress, setSafeAddress] = useState<string | null>(null);
   const [error, setError] = useState<string>('');
@@ -50,10 +52,10 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
 
   // Determine which agent types are already deployed for this specific agent
   const agentSafeConfigs = existingSafeConfigs.filter(config => config.agentId === agentId);
-  const deployedTypes: Array<'perpetuals' | 'spot'> = agentSafeConfigs.map(config => config.type);
-  const allTypes: Array<'perpetuals' | 'spot'> = ['perpetuals', 'spot'];
-  const availableTypes: Array<'perpetuals' | 'spot'> = allTypes.filter(
-    (type): type is 'perpetuals' | 'spot' => !deployedTypes.includes(type)
+  const deployedTypes: Array<'gmx' | 'spot'> = agentSafeConfigs.map(config => config.type);
+  const allTypes: Array<'gmx' | 'spot'> = ['gmx', 'spot'];
+  const availableTypes: Array<'gmx' | 'spot'> = allTypes.filter(
+    (type): type is 'gmx' | 'spot' => !deployedTypes.includes(type)
   );
 
   // Set default selected type to first available type
@@ -177,7 +179,7 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
   };
 
   // Clear error when starting a new deployment
-  const handleTypeSelect = (type: 'perpetuals' | 'spot') => {
+  const handleTypeSelect = (type: 'gmx' | 'spot') => {
     setSelectedType(type);
     setError(''); // Clear any previous errors
     setCurrentStep('safe-creation');
@@ -186,6 +188,14 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
   const handleClose = () => {
     resetModal();
     onClose();
+  };
+
+  const handleBackToMarketplace = () => {
+    // Call the refresh callback if provided
+    if (onDeploymentSuccess) {
+      onDeploymentSuccess();
+    }
+    handleClose();
   };
 
   const handleCopyAddress = async () => {
@@ -200,7 +210,7 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
     }
   };
 
-  const saveSafeConfiguration = async (address: string, agentType: 'perpetuals' | 'spot') => {
+  const saveSafeConfiguration = async (address: string, agentType: 'gmx' | 'spot') => {
     // Validate all required parameters
     if (!address || !agentType || !agentId || !currentNetworkKey) {
       console.error('Cannot save configuration: missing required parameters', {
@@ -287,7 +297,7 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
     }
   };
 
-  const hasExistingConfigForType = (type: 'perpetuals' | 'spot') => {
+  const hasExistingConfigForType = (type: 'gmx' | 'spot') => {
     return existingSafeConfigs.some(config => config.type === type && config.agentId === agentId);
   };
 
@@ -304,7 +314,7 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
             </div>
             <h3 className="text-2xl font-bold text-white mb-4">All Agents Deployed</h3>
             <p className="text-gray-300 mb-6">
-              You have already deployed both Perpetuals and Spot agents for @{agentUsername}.
+              You have already deployed both GMX and Spot agents for @{agentUsername}.
             </p>
             <button
               onClick={handleClose}
@@ -374,21 +384,21 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
                       onClick={() => !hasExistingConfigForType(type) && handleTypeSelect(type)}
                     >
                       <div className="text-center">
-                        <div className={`font-leagueSpartan w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 transition-transform duration-300 group-hover:rotate-3 ${type === 'perpetuals'
+                        <div className={`font-leagueSpartan w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 transition-transform duration-300 group-hover:rotate-3 ${type === 'gmx'
                           ? 'bg-gradient-to-br from-blue-500 to-cyan-600'
                           : 'bg-gradient-to-br from-green-500 to-emerald-600'
                           }`}>
-                          {type === 'perpetuals' ? (
+                          {type === 'gmx' ? (
                             <TrendingUp className="w-8 h-8 text-white" />
                           ) : (
                             <Coins className="w-8 h-8 text-white" />
                           )}
                         </div>
                         <h3 className="text-xl md:text-2xl font-semibold tracking-tight text-white mb-2 capitalize">
-                          {type === 'perpetuals' ? 'Perpetuals' : 'Spot Trading'}
+                          {type === 'gmx' ? 'GMX' : 'Spot Trading'}
                         </h3>
                         <p className="text-gray-300 text-sm mb-4">
-                          {type === 'perpetuals'
+                          {type === 'gmx'
                             ? 'Trade with leverage on futures contracts. Higher risk, higher potential returns.'
                             : 'Buy and sell actual cryptocurrencies. Lower risk, stable returns.'
                           }
@@ -512,7 +522,7 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
 
                       {!error && safeAddress && (
                         <button
-                          onClick={handleClose}
+                          onClick={handleBackToMarketplace}
                           className="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-900/30"
                         >
                           Back to Marketplace

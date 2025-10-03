@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 
 interface UseAgentSafeDeploymentOptions {
   agentId?: string;
-  agentType?: 'perpetuals' | 'spot';
+  agentType?: 'gmx' | 'spot';
 }
 
 export const useAgentSafeDeployment = (options?: UseAgentSafeDeploymentOptions) => {
@@ -39,7 +39,7 @@ export const useAgentSafeDeployment = (options?: UseAgentSafeDeploymentOptions) 
   const chainIdToNetworkKey: { [key: number]: string } = {
     1: "ethereum",
     11155111: "sepolia",
-    42161: "arbitrum_one",
+    42161: "arbitrum",
     421614: "arbitrum_sepolia",
     137: "polygon",
     8453: "base",
@@ -206,7 +206,7 @@ export const useAgentSafeDeployment = (options?: UseAgentSafeDeploymentOptions) 
     }
   };
 
-  const handleDeploySafe = async (agentId?: string, agentType?: 'perpetuals' | 'spot') => {
+  const handleDeploySafe = async (agentId?: string, agentType?: 'gmx' | 'spot') => {
     if (!session?.user?.id) {
       toast.error("Please login with your Twitter account first");
       return;

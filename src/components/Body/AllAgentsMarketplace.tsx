@@ -81,7 +81,7 @@ interface MetricExplanation {
 
 interface SafeConfig {
   safeAddress: string;
-  type: "perpetuals" | "spot";
+  type: "gmx" | "spot";
   networkKey: string;
   createdAt: string;
   isFunded: boolean;
@@ -776,7 +776,7 @@ const AllAgentsMarketplace: React.FC = () => {
 
   const getAgentDeployedTypes = (
     agentId: string,
-  ): ("perpetuals" | "spot")[] => {
+  ): ("gmx" | "spot")[] => {
     const agentSafeConfigs = userSafeConfigs.filter(
       (config) => config.agentId === agentId,
     );
@@ -785,9 +785,9 @@ const AllAgentsMarketplace: React.FC = () => {
 
   const getAvailableAgentTypes = (
     agentId: string,
-  ): ("perpetuals" | "spot")[] => {
+  ): ("gmx" | "spot")[] => {
     const deployedTypes = getAgentDeployedTypes(agentId);
-    const allTypes = ["perpetuals", "spot"] as const;
+    const allTypes = ["gmx", "spot"] as const;
     return allTypes.filter((type) => !deployedTypes.includes(type));
   };
 
@@ -953,12 +953,12 @@ const AllAgentsMarketplace: React.FC = () => {
             >
               <div className="flex items-center gap-2">
                 <div
-                  className={`p-1.5 rounded-md ${config.type === "perpetuals"
+                  className={`p-1.5 rounded-md ${config.type === "gmx"
                     ? "bg-blue-500/20 text-blue-400"
                     : "bg-purple-500/20 text-purple-400"
                     }`}
                 >
-                  {config.type === "perpetuals" ? (
+                  {config.type === "gmx" ? (
                     <TrendingUp className="w-3 h-3" />
                   ) : (
                     <BarChart3 className="w-3 h-3" />
@@ -1337,7 +1337,7 @@ const AllAgentsMarketplace: React.FC = () => {
                         <span className="relative z-10 group-hover/btn:tracking-wide transition-all duration-300">
                           {availableTypes.length === 2
                             ? "Deploy Agent"
-                            : `Deploy ${availableTypes[0] === "perpetuals" ? "Perpetuals" : "Spot"}`}
+                            : `Deploy ${availableTypes[0] === "gmx" ? "GMX" : "Spot"}`}
                         </span>
                       </button>
                     )}
@@ -1349,12 +1349,12 @@ const AllAgentsMarketplace: React.FC = () => {
                       {deployedTypes.map((type) => (
                         <span
                           key={type}
-                          className={`px-2 py-0.5 rounded-md text-xs font-medium transition-all duration-500 group-hover:scale-105 ${type === "perpetuals"
+                          className={`px-2 py-0.5 rounded-md text-xs font-medium transition-all duration-500 group-hover:scale-105 ${type === "gmx"
                             ? "bg-blue-500/15 text-blue-400 border border-blue-500/25"
                             : "bg-cyan-500/15 text-cyan-400 border border-cyan-500/25"
                             }`}
                         >
-                          {type === "perpetuals" ? "Perpetuals" : "Spot"}
+                          {type === "gmx" ? "GMX" : "Spot"}
                         </span>
                       ))}
                     </div>

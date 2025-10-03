@@ -16,7 +16,7 @@ import {
 const config = getDefaultConfig({
   appName: 'My RainbowKit App',
   projectId: '558056336b17468500aff55e7c05d010',
-  chains: [arbitrum],
+  chains: [arbitrum, arbitrumSepolia],
   ssr: true, // If your dApp uses server side rendering (SSR)
 });
 

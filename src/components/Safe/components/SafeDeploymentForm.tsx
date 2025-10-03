@@ -16,9 +16,9 @@ interface SafeDeploymentFormProps {
   deploymentStatus: "idle" | "deploying" | "success" | "error";
   deploymentResult: any;
   canDeploy: boolean;
-  onDeploy: (agentId?: string, agentType?: 'perpetuals' | 'spot') => void;
+  onDeploy: (agentId?: string, agentType?: 'gmx' | 'spot') => void;
   agentId?: string;
-  agentType?: 'perpetuals' | 'spot';
+  agentType?: 'gmx' | 'spot';
 }
 
 export const SafeDeploymentForm: React.FC<SafeDeploymentFormProps> = ({
