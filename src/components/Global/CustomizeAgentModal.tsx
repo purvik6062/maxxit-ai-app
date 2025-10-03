@@ -74,6 +74,7 @@ interface CustomizeAgentModalProps {
   onClose: () => void;
   onSkip: () => void;
   onContinue: () => void;
+  onSaved?: () => void;
   customizationOptions: CustomizationOptions;
   setCustomizationOptions: (options: CustomizationOptions) => void;
   hasCustomizedAgent?: boolean;
@@ -86,6 +87,7 @@ const CustomizeAgentModal: React.FC<CustomizeAgentModalProps> = ({
   onClose,
   onSkip,
   onContinue,
+  onSaved,
   customizationOptions,
   setCustomizationOptions,
   hasCustomizedAgent,
@@ -129,7 +131,7 @@ const CustomizeAgentModal: React.FC<CustomizeAgentModalProps> = ({
     if (setHasCustomizedAgent) {
       setHasCustomizedAgent(true);
     }
-    
+
     if (preset === "Balanced") {
       setCustomizationOptions({
         r_last6h_pct: 60,
@@ -211,6 +213,14 @@ const CustomizeAgentModal: React.FC<CustomizeAgentModalProps> = ({
 
       if (setHasCustomizedAgent) {
         setHasCustomizedAgent(true);
+      }
+
+      if (onSaved) {
+        try {
+          onSaved();
+        } catch (_) {
+          // no-op
+        }
       }
 
       return true;

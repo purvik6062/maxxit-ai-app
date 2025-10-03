@@ -33,6 +33,7 @@ import {
   Target,
 } from "lucide-react";
 import { AgentDeploymentModal } from "./AgentDeploymentModal";
+import CustomizeAgentModal, { type CustomizationOptions } from "../Global/CustomizeAgentModal";
 import Image from "next/image";
 
 interface SubscribedAccount {
@@ -620,6 +621,18 @@ const AllAgentsMarketplace: React.FC = () => {
   const [sortBy, setSortBy] = useState<
     "subscribers" | "recent" | "performance"
   >("subscribers");
+  const defaultCustomization: CustomizationOptions = {
+    r_last6h_pct: 50,
+    d_pct_mktvol_6h: 50,
+    d_pct_socvol_6h: 50,
+    d_pct_sent_6h: 50,
+    d_pct_users_6h: 50,
+    d_pct_infl_6h: 50,
+    d_galaxy_6h: 5,
+    neg_d_altrank_6h: 50,
+  };
+  const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
+  const [customizationOptions, setCustomizationOptions] = useState<CustomizationOptions>(defaultCustomization);
   const [selectedInfluencersModal, setSelectedInfluencersModal] = useState<{
     isOpen: boolean;
     accounts: SubscribedAccount[];
@@ -632,43 +645,47 @@ const AllAgentsMarketplace: React.FC = () => {
   }>({ isOpen: false, agentUsername: "", agentId: "" });
   const [userSafeConfigs, setUserSafeConfigs] = useState<SafeConfig[]>([]);
   const [currentUsername, setCurrentUsername] = useState<string | null>(null);
+  const [didCustomizeAgent, setDidCustomizeAgent] = useState(false);
+  const [isRefreshingAfterCreate, setIsRefreshingAfterCreate] = useState(false);
+
+  // Reusable fetch agents function (mounted and post-create refresh)
+  const fetchAgents = async () => {
+    try {
+      const start = performance.now();
+      console.log("[AllAgentsMarketplace] Fetch(/api/all-agents) started");
+      const response = await fetch("/api/all-agents");
+      const httpMs = performance.now() - start;
+      const jsonStart = performance.now();
+      const data = await response.json();
+      const jsonMs = performance.now() - jsonStart;
+      console.log("[AllAgentsMarketplace] Fetch(/api/all-agents) completed", {
+        httpMs: Math.round(httpMs),
+        jsonParseMs: Math.round(jsonMs),
+        status: response.status,
+        totalAgents: data?.data?.totalAgents ?? (Array.isArray(data?.data) ? data.data.length : undefined),
+      });
+
+      if (!data.success) {
+        if (data.error?.retryable) {
+          throw new Error(
+            "Database temporarily unavailable. Please refresh the page in a few moments.",
+          );
+        }
+        throw new Error(data.error?.message || "Failed to fetch agents");
+      }
+
+      setAgents(data.data.agents);
+      setFilteredAgents(data.data.agents);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch agents");
+    }
+  };
 
   useEffect(() => {
-    const fetchAgents = async () => {
-      try {
-        const start = performance.now();
-        console.log("[AllAgentsMarketplace] Fetch(/api/all-agents) started");
-        const response = await fetch("/api/all-agents");
-        const httpMs = performance.now() - start;
-        const jsonStart = performance.now();
-        const data = await response.json();
-        const jsonMs = performance.now() - jsonStart;
-        console.log("[AllAgentsMarketplace] Fetch(/api/all-agents) completed", {
-          httpMs: Math.round(httpMs),
-          jsonParseMs: Math.round(jsonMs),
-          status: response.status,
-          totalAgents: data?.data?.totalAgents ?? (Array.isArray(data?.data) ? data.data.length : undefined),
-        });
-
-        if (!data.success) {
-          if (data.error?.retryable) {
-            throw new Error(
-              "Database temporarily unavailable. Please refresh the page in a few moments.",
-            );
-          }
-          throw new Error(data.error?.message || "Failed to fetch agents");
-        }
-
-        setAgents(data.data.agents);
-        setFilteredAgents(data.data.agents);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch agents");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAgents();
+    (async () => {
+      await fetchAgents();
+      setLoading(false);
+    })();
   }, []);
 
   useEffect(() => {
@@ -700,6 +717,18 @@ const AllAgentsMarketplace: React.FC = () => {
 
     fetchUserSafeConfigs();
   }, []);
+
+  // When agent customization is successful, refresh agents
+  useEffect(() => {
+    if (didCustomizeAgent) {
+      (async () => {
+        setIsRefreshingAfterCreate(true);
+        await fetchAgents();
+        setDidCustomizeAgent(false);
+        setIsRefreshingAfterCreate(false);
+      })();
+    }
+  }, [didCustomizeAgent]);
 
   useEffect(() => {
     let filtered = agents;
@@ -992,129 +1021,12 @@ const AllAgentsMarketplace: React.FC = () => {
     );
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="relative">
-            <svg
-              className="w-16 h-16 animate-spin mx-auto mb-6"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-              ></path>
-            </svg>
-
-          </div>
-          <h3 className="text-xl font-semibold text-white mb-2">
-            Loading Marketplace
-          </h3>
-          <p className="text-gray-400">Discovering trading agents...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    const isConnectionError =
-      error.includes("Database temporarily unavailable") ||
-      error.includes("connection") ||
-      error.includes("database");
-
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900 p-4">
-        <div className="text-center max-w-md mx-auto">
-          <div className="mb-6">
-            {isConnectionError ? (
-              <div className="w-20 h-20 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-                <AlertCircle className="w-10 h-10 text-yellow-400" />
-              </div>
-            ) : (
-              <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <X className="w-10 h-10 text-red-400" />
-              </div>
-            )}
-          </div>
-
-          <h3
-            className={`text-2xl font-bold mb-3 ${isConnectionError ? "text-yellow-400" : "text-red-400"}`}
-          >
-            {isConnectionError ? "Connection Issue" : "Error"}
-          </h3>
-
-          <p className="text-gray-300 mb-6 leading-relaxed">{error}</p>
-
-          {isConnectionError && (
-            <p className="text-gray-400 text-sm mb-6">
-              This is usually temporary. Please try again in a few moments.
-            </p>
-          )}
-
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button
-              onClick={() => window.location.reload()}
-              className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 hover:scale-105 font-medium"
-            >
-              <Loader2 className="w-4 h-4 mr-2" />
-              Refresh Page
-            </button>
-
-            {isConnectionError && (
-              <button
-                onClick={() => {
-                  setError(null);
-                  setLoading(true);
-                  setTimeout(() => {
-                    const fetchAgents = async () => {
-                      try {
-                        const response = await fetch("/api/all-agents");
-                        const data = await response.json();
-
-                        if (data.success) {
-                          setAgents(data.data.agents);
-                          setFilteredAgents(data.data.agents);
-                          setError(null);
-                        } else {
-                          setError(
-                            data.error?.message || "Failed to fetch agents",
-                          );
-                        }
-                      } catch (err) {
-                        setError(
-                          err instanceof Error
-                            ? err.message
-                            : "Failed to fetch agents",
-                        );
-                      } finally {
-                        setLoading(false);
-                      }
-                    };
-                    fetchAgents();
-                  }, 1000);
-                }}
-                className="inline-flex items-center justify-center px-6 py-3 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition-all duration-200 font-medium"
-              >
-                Try Again
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Error UI (now displayed below header instead of full-screen)
+  const isConnectionError = error ? (
+    error.includes("Database temporarily unavailable") ||
+    error.includes("connection") ||
+    error.includes("database")
+  ) : false;
 
   return (
     <div className="min-h-screen pb-[4rem]">
@@ -1137,235 +1049,306 @@ const AllAgentsMarketplace: React.FC = () => {
             Discover, explore, and deploy sophisticated trading agents
             configured by the community
           </p>
-        </div>
-
-        {/* Enhanced Agents Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-          {filteredAgents.map((agent, index) => {
-            const strategyType = getAgentStrategyType(agent);
-            const deployedTypes = getAgentDeployedTypes(agent._id);
-            const availableTypes = getAvailableAgentTypes(agent._id);
-            const isOwn = isOwnAgent(agent.twitterUsername);
-
-            // Static agent descriptions and images
-            const getAgentStaticData = (username: string) => {
-              const staticData = {
-                image: `https://picsum.photos/seed/${username}/400/300`,
-                description: strategyType === "Social-Driven"
-                  ? "Advanced AI agent that analyzes social sentiment and market volume to identify trending opportunities in real-time."
-                  : strategyType === "Momentum"
-                    ? "Sophisticated trading bot that captures market momentum through technical analysis and volume-based signals."
-                    : strategyType === "Fundamental"
-                      ? "Data-driven agent that evaluates fundamental metrics and on-chain analytics for strategic positioning."
-                      : "Balanced trading strategy combining technical, social, and fundamental analysis for optimal risk-adjusted returns."
-              };
-              return staticData;
-            };
-
-            // Get random trading platform for each agent
-            const getTradingPlatform = (username: string) => {
-              const platforms = [
-                { name: "GMX", apr: "+7.2%", color: "text-green-400", bgColor: "bg-green-400", icon: <TrendingUp className="w-3 h-3" /> },
-                { name: "Hyperliquid", apr: "+4.8%", color: "text-blue-400", bgColor: "bg-blue-400", icon: <BarChart3 className="w-3 h-3" /> },
-                { name: "Spot Trading", apr: "+2.1%", color: "text-yellow-400", bgColor: "bg-yellow-400", icon: <Star className="w-3 h-3" /> }
-              ];
-              const hash = username.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
-              return platforms[hash % platforms.length];
-            };
-
-            const staticData = getAgentStaticData(agent.twitterUsername);
-            const tradingPlatform = getTradingPlatform(agent.twitterUsername);
-
+          {/* Create Agent Section */}
+          {(() => {
+            const userHasAgent = (!!currentUsername && agents.some(a => a.twitterUsername === currentUsername)) || isRefreshingAfterCreate;
             return (
-              <div
-                key={agent._id}
-                className="group bg-[#0D1321] rounded-2xl transition-all duration-500 ease-in-out hover:scale-105 relative overflow-hidden animate-fade-in-up border-[#363f42] hover:shadow-[0_0_15px_#528a9e]"
-                style={{
-                  border: "1px solid #363f42",
-                  animationDelay: `${index * 100}ms`,
-                  // boxShadow: `0 0 5px #26C6DA`,
-                } as React.CSSProperties}
-              >
-                {/* Enhanced subtle branded overlay on hover with glow */}
-                {/* <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-[#AAC9FA]/8 via-transparent to-[#E1EAF9]/8 opacity-0 group-hover:opacity-100 transition-opacity duration-500" /> */}
-
-                {/* Enhanced ring/border highlight on hover with glow */}
-                <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-transparent transition-all duration-500 group-hover:ring-[var(--hover-border-color)]/40 group-hover:shadow-[0_0_16px_var(--hover-border-color)/30]" />
-
-                {/* Compact Hero Image Section with Blurred Logo Background */}
-                <div className="relative h-32 overflow-hidden rounded-t-2xl">
-                  {/* Blurred Logo Background */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#0D1321] to-[#1a2234]">
-                    <Image
-                      src={staticData.image}
-                      alt={`${agent.twitterUsername} agent`}
-                      className="w-full h-full object-cover opacity-20 blur-sm scale-110 transition-all duration-500 group-hover:blur-md group-hover:scale-125"
-                      width={400}
-                      height={300}
-                    />
-                  </div>
-
-                  {/* Overlay gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0D1321]/80 via-transparent to-transparent" />
-
-                  {/* Logo positioned on cover image */}
-                  <div className="absolute bottom-0 left-3">
-                    <div className={`w-14 h-10 bg-gradient-to-br ${getStrategyColor(strategyType)} rounded-t-xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 border-2 border-white/20`}>
-                      <Image
-                        src="/img/maxxit_icon.svg"
-                        alt="Maxxit Logo"
-                        className="w-7 h-7 text-white"
-                        width={28}
-                        height={28}
-                      />
-                    </div>
-                    {/* Enhanced glow effect for logo */}
-                    <div className={`absolute inset-0 rounded-xl bg-gradient-to-br ${getStrategyColor(strategyType)} opacity-0 group-hover:opacity-40 group-hover:scale-125 transition-all duration-700 blur-lg -z-10`} />
-                  </div>
-
-                  {/* Subscription Count Badge */}
-                  <div className="absolute top-3 right-3">
-                    <div className="px-2 py-1 bg-black/40 backdrop-blur-sm rounded-md border border-white/20 text-white text-xs font-medium flex items-center gap-1 shadow-lg transition-all duration-500 group-hover:scale-105">
-                      <Users className="w-2.5 h-2.5" />
-                      {agent.subscribedAccounts.length}
-                    </div>
-                  </div>
-
-                  {/* Own Agent Badge */}
-                  {isOwn && (
-                    <div className="absolute bottom-3 right-3">
-                      <span className="px-2 py-0.5 bg-gradient-to-r from-[#AAC9FA]/90 to-[#E1EAF9]/90 backdrop-blur-sm text-[#0D1321] rounded-md text-xs font-semibold shadow-lg border border-white/20 transition-all duration-500 group-hover:scale-105">
-                        Your Agent
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Compact Content Section */}
-                <div className="p-4 relative z-10">
-                  {/* Agent Header */}
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-leagueSpartan font-bold text-white mb-0.5 group-hover:text-[#AAC9FA] transition-colors duration-500 truncate">
-                        @{agent.twitterUsername}
-                      </h3>
-                      <p className="text-xs text-[#8ba1bc] group-hover:text-[#AAC9FA] transition-colors duration-500">
-                        AI Trading Agent
-                      </p>
-                    </div>
-                    {/* Strategy Type Badge */}
-                    <div className="relative">
-                      <span className={`px-2 py-1 rounded-md text-xs font-medium backdrop-blur-sm bg-gradient-to-r ${getStrategyColor(strategyType)} text-white shadow-md border border-white/10 group-hover:scale-105 transition-all duration-500`}>
-                        {strategyType}
-                      </span>
-                      <div className={`absolute inset-0 rounded-md bg-gradient-to-r ${getStrategyColor(strategyType)} opacity-0 group-hover:opacity-25 group-hover:scale-110 transition-all duration-700 blur-md -z-10`} />
-                    </div>
-                  </div>
-
-                  {/* Compact Description */}
-                  <p className="text-[#8ba1bc] text-xs leading-relaxed mb-4 group-hover:text-gray-300 transition-colors duration-500" style={{
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden'
-                  }}>
-                    {staticData.description}
-                  </p>
-
-                  {/* Compact Trading Performance */}
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-gray-300 flex items-center gap-1.5">
-                        <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
-                        Performance
-                      </span>
-                      <span className="text-xs text-[#8ba1bc] uppercase tracking-wider">Live APR</span>
-                    </div>
-
-                    <div className="bg-[#111528] rounded-lg p-3 border border-[#353940] group-hover:border-[var(--hover-border-color)]/30 group-hover:shadow-lg group-hover:bg-[#1a2234] transition-all duration-500">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-1.5">
-                          {tradingPlatform.icon}
-                          <span className="text-white font-medium text-xs">{tradingPlatform.name}</span>
-                        </div>
-                        <ArrowUpRight className={`w-3 h-3 ${tradingPlatform.color} transition-transform duration-500 group-hover:rotate-45`} />
+              <div className="mt-8 max-w-7xl mx-auto">
+                <div className="relative rounded-2xl border border-[#2a3347] bg-gradient-to-br from-[#0D1321] to-[#0e1424] p-5 shadow-[0_0_20px_rgba(23,35,66,0.4)] overflow-hidden">
+                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/10 rounded-full blur-2xl" />
+                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                    <div className="flex-1 text-left">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                        <span className="text-xs uppercase tracking-wider text-[#8ba1bc]">Your Trading Agent</span>
                       </div>
-
-                      <div className={`text-lg font-bold ${tradingPlatform.color} mb-2 transition-all duration-500 group-hover:scale-105`}>
-                        {tradingPlatform.apr}
-                      </div>
-
-                      <div className="w-full h-1.5 bg-gray-700 rounded-full overflow-hidden">
-                        <div className={`h-full ${tradingPlatform.bgColor} rounded-full transition-all duration-1000 group-hover:animate-pulse`}
-                          style={{ width: tradingPlatform.name === "GMX" ? "75%" : tradingPlatform.name === "Hyperliquid" ? "60%" : "40%" }}>
-                        </div>
-                      </div>
+                      <h3 className="font-leagueSpartan text-white text-lg font-semibold mb-1">Create and Customize Your Agent</h3>
+                      <p className="text-[#8ba1bc] text-sm">Define thresholds and focus areas. Your agent will analyze markets and surface opportunities tailored to your style.</p>
                     </div>
-                  </div>
-
-                  {/* Deployed Safe Wallets */}
-                  <DeployedSafeWallets agentId={agent._id} />
-
-                  {/* Animated Action Button */}
-                  <div className="mt-4">
-                    {availableTypes.length === 0 ? (
-                      <div className="w-full py-2.5 px-3 bg-gradient-to-r from-green-500/15 to-emerald-500/15 text-green-400 rounded-lg text-xs font-semibold border border-green-500/25 flex items-center justify-center gap-1.5 group-hover:from-green-500/25 group-hover:to-emerald-500/25 transition-all duration-500">
-                        <CheckCircle className="w-3 h-3" />
-                        All Strategies Deployed
-                      </div>
-                    ) : (
+                    <div className="shrink-0">
                       <button
-                        onClick={() =>
-                          setDeploymentModal({
-                            isOpen: true,
-                            agentUsername: agent.twitterUsername,
-                            agentId: agent._id,
-                          })
-                        }
-                        className={`group/btn w-full py-2.5 px-3 rounded-full text-xs font-semibold transition-all duration-300 flex items-center justify-center gap-1.5 hover:scale-[1.03] transform relative overflow-hidden ${availableTypes.length === 2
-                          ? "bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] hover:from-[#9AC0F9] hover:to-[#D1DAF8] text-[#0D1321] shadow-md hover:shadow-2xl"
-                          : "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-md hover:shadow-2xl"
-                          }`}
+                        onClick={() => setIsCustomizeOpen(true)}
+                        disabled={userHasAgent}
+                        className={`relative inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 group overflow-hidden
+                          ${userHasAgent
+                            ? "bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700"
+                            : "bg-[#0f172a] text-white border border-blue-400/30 hover:border-blue-400/60 hover:shadow-[0_0_24px_rgba(56,189,248,0.15)]"}
+                        `}
                       >
-                        {/* Pulsing border effect */}
-                        <div className="absolute inset-0 rounded-full opacity-0 group-hover/btn:opacity-100 group-hover/btn:animate-ping bg-white/30"></div>
-
-                        {/* Shimmer */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700"></div>
-
-                        <Rocket className="w-3 h-3 transition-all duration-300 group-hover/btn:scale-110 group-hover/btn:translate-y-[-2px] relative z-10" />
-                        <span className="relative z-10 group-hover/btn:tracking-wide transition-all duration-300">
-                          {availableTypes.length === 2
-                            ? "Deploy Agent"
-                            : `Deploy ${availableTypes[0] === "gmx" ? "GMX" : "Spot"}`}
+                        {!userHasAgent && (
+                          <span className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-0 transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                        )}
+                        <span className="relative z-10 inline-flex items-center gap-2">
+                          <svg className={`w-4 h-4 ${userHasAgent ? "text-gray-500" : "text-blue-300"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                          </svg>
+                          {userHasAgent ? "Agent Ready" : "Create Agent"}
                         </span>
+                        {!userHasAgent && (
+                          <span className="absolute -inset-px rounded-xl opacity-0 group-hover:opacity-100 group-hover:animate-ping bg-blue-500/10" />
+                        )}
                       </button>
-                    )}
-                  </div>
-
-                  {/* Compact Footer */}
-                  {deployedTypes.length > 0 && (
-                    <div className="flex items-center justify-center gap-1.5 mt-3 pt-3 border-t border-[#353940]">
-                      {deployedTypes.map((type) => (
-                        <span
-                          key={type}
-                          className={`px-2 py-0.5 rounded-md text-xs font-medium transition-all duration-500 group-hover:scale-105 ${type === "gmx"
-                            ? "bg-blue-500/15 text-blue-400 border border-blue-500/25"
-                            : "bg-cyan-500/15 text-cyan-400 border border-cyan-500/25"
-                            }`}
-                        >
-                          {type === "gmx" ? "GMX" : "Spot"}
-                        </span>
-                      ))}
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
             );
-          })}
+          })()}
         </div>
 
-        {filteredAgents.length === 0 && (
+        {/* Error strip under header */}
+        {error && (
+          <div className="max-w-3xl mx-auto mb-6">
+            <div className={`rounded-xl p-4 border ${isConnectionError ? "border-yellow-500/30 bg-yellow-500/10" : "border-red-500/30 bg-red-500/10"}`}>
+              <div className="flex items-center gap-2 mb-1">
+                {isConnectionError ? <AlertCircle className="w-4 h-4 text-yellow-400" /> : <X className="w-4 h-4 text-red-400" />}
+                <span className={`text-sm font-semibold ${isConnectionError ? "text-yellow-300" : "text-red-300"}`}>{isConnectionError ? "Connection Issue" : "Error"}</span>
+              </div>
+              <p className="text-sm text-gray-300">{error}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Enhanced Agents Grid or Loader */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+          {loading ? (
+            Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-2xl border border-[#2a3347] bg-[#0D1321] overflow-hidden animate-pulse">
+                <div className="h-32 bg-[#0f1528]" />
+                <div className="p-4 space-y-3">
+                  <div className="h-4 w-2/3 bg-[#162036] rounded" />
+                  <div className="h-3 w-1/2 bg-[#162036] rounded" />
+                  <div className="h-8 w-full bg-[#111a30] rounded" />
+                </div>
+              </div>
+            ))
+          ) : (
+            filteredAgents.map((agent, index) => {
+              const strategyType = getAgentStrategyType(agent);
+              const deployedTypes = getAgentDeployedTypes(agent._id);
+              const availableTypes = getAvailableAgentTypes(agent._id);
+              const isOwn = isOwnAgent(agent.twitterUsername);
+
+              // Static agent descriptions and images
+              const getAgentStaticData = (username: string) => {
+                const staticData = {
+                  image: `https://picsum.photos/seed/${username}/400/300`,
+                  description: strategyType === "Social-Driven"
+                    ? "Advanced AI agent that analyzes social sentiment and market volume to identify trending opportunities in real-time."
+                    : strategyType === "Momentum"
+                      ? "Sophisticated trading bot that captures market momentum through technical analysis and volume-based signals."
+                      : strategyType === "Fundamental"
+                        ? "Data-driven agent that evaluates fundamental metrics and on-chain analytics for strategic positioning."
+                        : "Balanced trading strategy combining technical, social, and fundamental analysis for optimal risk-adjusted returns."
+                };
+                return staticData;
+              };
+
+              // Get random trading platform for each agent
+              const getTradingPlatform = (username: string) => {
+                const platforms = [
+                  { name: "GMX", apr: "+7.2%", color: "text-green-400", bgColor: "bg-green-400", icon: <TrendingUp className="w-3 h-3" /> },
+                  { name: "Hyperliquid", apr: "+4.8%", color: "text-blue-400", bgColor: "bg-blue-400", icon: <BarChart3 className="w-3 h-3" /> },
+                  { name: "Spot Trading", apr: "+2.1%", color: "text-yellow-400", bgColor: "bg-yellow-400", icon: <Star className="w-3 h-3" /> }
+                ];
+                const hash = username.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+                return platforms[hash % platforms.length];
+              };
+
+              const staticData = getAgentStaticData(agent.twitterUsername);
+              const tradingPlatform = getTradingPlatform(agent.twitterUsername);
+
+              return (
+                <div
+                  key={agent._id}
+                  className="group bg-[#0D1321] rounded-2xl transition-all duration-500 ease-in-out hover:scale-105 relative overflow-hidden animate-fade-in-up border-[#363f42] hover:shadow-[0_0_15px_#528a9e]"
+                  style={{
+                    border: "1px solid #363f42",
+                    animationDelay: `${index * 100}ms`,
+                    // boxShadow: `0 0 5px #26C6DA`,
+                  } as React.CSSProperties}
+                >
+                  {/* Enhanced subtle branded overlay on hover with glow */}
+                  {/* <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-[#AAC9FA]/8 via-transparent to-[#E1EAF9]/8 opacity-0 group-hover:opacity-100 transition-opacity duration-500" /> */}
+
+                  {/* Enhanced ring/border highlight on hover with glow */}
+                  <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-transparent transition-all duration-500 group-hover:ring-[var(--hover-border-color)]/40 group-hover:shadow-[0_0_16px_var(--hover-border-color)/30]" />
+
+                  {/* Compact Hero Image Section with Blurred Logo Background */}
+                  <div className="relative h-32 overflow-hidden rounded-t-2xl">
+                    {/* Blurred Logo Background */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#0D1321] to-[#1a2234]">
+                      <Image
+                        src={staticData.image}
+                        alt={`${agent.twitterUsername} agent`}
+                        className="w-full h-full object-cover opacity-20 blur-sm scale-110 transition-all duration-500 group-hover:blur-md group-hover:scale-125"
+                        width={400}
+                        height={300}
+                      />
+                    </div>
+
+                    {/* Overlay gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0D1321]/80 via-transparent to-transparent" />
+
+                    {/* Logo positioned on cover image */}
+                    <div className="absolute bottom-0 left-3">
+                      <div className={`w-14 h-10 bg-gradient-to-br ${getStrategyColor(strategyType)} rounded-t-xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 border-2 border-white/20`}>
+                        <Image
+                          src="/img/maxxit_icon.svg"
+                          alt="Maxxit Logo"
+                          className="w-7 h-7 text-white"
+                          width={28}
+                          height={28}
+                        />
+                      </div>
+                      {/* Enhanced glow effect for logo */}
+                      <div className={`absolute inset-0 rounded-xl bg-gradient-to-br ${getStrategyColor(strategyType)} opacity-0 group-hover:opacity-40 group-hover:scale-125 transition-all duration-700 blur-lg -z-10`} />
+                    </div>
+
+                    {/* Subscription Count Badge */}
+                    <div className="absolute top-3 right-3">
+                      <div className="px-2 py-1 bg-black/40 backdrop-blur-sm rounded-md border border-white/20 text-white text-xs font-medium flex items-center gap-1 shadow-lg transition-all duration-500 group-hover:scale-105">
+                        <Users className="w-2.5 h-2.5" />
+                        {agent.subscribedAccounts.length}
+                      </div>
+                    </div>
+
+                    {/* Own Agent Badge */}
+                    {isOwn && (
+                      <div className="absolute bottom-3 right-3">
+                        <span className="px-2 py-0.5 bg-gradient-to-r from-[#AAC9FA]/90 to-[#E1EAF9]/90 backdrop-blur-sm text-[#0D1321] rounded-md text-xs font-semibold shadow-lg border border-white/20 transition-all duration-500 group-hover:scale-105">
+                          Your Agent
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Compact Content Section */}
+                  <div className="p-4 relative z-10">
+                    {/* Agent Header */}
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-leagueSpartan font-bold text-white mb-0.5 group-hover:text-[#AAC9FA] transition-colors duration-500 truncate">
+                          @{agent.twitterUsername}
+                        </h3>
+                        <p className="text-xs text-[#8ba1bc] group-hover:text-[#AAC9FA] transition-colors duration-500">
+                          AI Trading Agent
+                        </p>
+                      </div>
+                      {/* Strategy Type Badge */}
+                      <div className="relative">
+                        <span className={`px-2 py-1 rounded-md text-xs font-medium backdrop-blur-sm bg-gradient-to-r ${getStrategyColor(strategyType)} text-white shadow-md border border-white/10 group-hover:scale-105 transition-all duration-500`}>
+                          {strategyType}
+                        </span>
+                        <div className={`absolute inset-0 rounded-md bg-gradient-to-r ${getStrategyColor(strategyType)} opacity-0 group-hover:opacity-25 group-hover:scale-110 transition-all duration-700 blur-md -z-10`} />
+                      </div>
+                    </div>
+
+                    {/* Compact Description */}
+                    <p className="text-[#8ba1bc] text-xs leading-relaxed mb-4 group-hover:text-gray-300 transition-colors duration-500" style={{
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden'
+                    }}>
+                      {staticData.description}
+                    </p>
+
+                    {/* Compact Trading Performance */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-semibold text-gray-300 flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
+                          Performance
+                        </span>
+                        <span className="text-xs text-[#8ba1bc] uppercase tracking-wider">Live APR</span>
+                      </div>
+
+                      <div className="bg-[#111528] rounded-lg p-3 border border-[#353940] group-hover:border-[var(--hover-border-color)]/30 group-hover:shadow-lg group-hover:bg-[#1a2234] transition-all duration-500">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-1.5">
+                            {tradingPlatform.icon}
+                            <span className="text-white font-medium text-xs">{tradingPlatform.name}</span>
+                          </div>
+                          <ArrowUpRight className={`w-3 h-3 ${tradingPlatform.color} transition-transform duration-500 group-hover:rotate-45`} />
+                        </div>
+
+                        <div className={`text-lg font-bold ${tradingPlatform.color} mb-2 transition-all duration-500 group-hover:scale-105`}>
+                          {tradingPlatform.apr}
+                        </div>
+
+                        <div className="w-full h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                          <div className={`h-full ${tradingPlatform.bgColor} rounded-full transition-all duration-1000 group-hover:animate-pulse`}
+                            style={{ width: tradingPlatform.name === "GMX" ? "75%" : tradingPlatform.name === "Hyperliquid" ? "60%" : "40%" }}>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Deployed Safe Wallets */}
+                    <DeployedSafeWallets agentId={agent._id} />
+
+                    {/* Animated Action Button */}
+                    <div className="mt-4">
+                      {availableTypes.length === 0 ? (
+                        <div className="w-full py-2.5 px-3 bg-gradient-to-r from-green-500/15 to-emerald-500/15 text-green-400 rounded-lg text-xs font-semibold border border-green-500/25 flex items-center justify-center gap-1.5 group-hover:from-green-500/25 group-hover:to-emerald-500/25 transition-all duration-500">
+                          <CheckCircle className="w-3 h-3" />
+                          All Strategies Deployed
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() =>
+                            setDeploymentModal({
+                              isOpen: true,
+                              agentUsername: agent.twitterUsername,
+                              agentId: agent._id,
+                            })
+                          }
+                          className={`group/btn w-full py-2.5 px-3 rounded-full text-xs font-semibold transition-all duration-300 flex items-center justify-center gap-1.5 hover:scale-[1.03] transform relative overflow-hidden ${availableTypes.length === 2
+                            ? "bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] hover:from-[#9AC0F9] hover:to-[#D1DAF8] text-[#0D1321] shadow-md hover:shadow-2xl"
+                            : "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-md hover:shadow-2xl"
+                            }`}
+                        >
+                          {/* Pulsing border effect */}
+                          <div className="absolute inset-0 rounded-full opacity-0 group-hover/btn:opacity-100 group-hover/btn:animate-ping bg-white/30"></div>
+
+                          {/* Shimmer */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700"></div>
+
+                          <Rocket className="w-3 h-3 transition-all duration-300 group-hover/btn:scale-110 group-hover/btn:translate-y-[-2px] relative z-10" />
+                          <span className="relative z-10 group-hover/btn:tracking-wide transition-all duration-300">
+                            {availableTypes.length === 2
+                              ? "Deploy Agent"
+                              : `Deploy ${availableTypes[0] === "gmx" ? "GMX" : "Spot"}`}
+                          </span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Compact Footer */}
+                    {deployedTypes.length > 0 && (
+                      <div className="flex items-center justify-center gap-1.5 mt-3 pt-3 border-t border-[#353940]">
+                        {deployedTypes.map((type) => (
+                          <span
+                            key={type}
+                            className={`px-2 py-0.5 rounded-md text-xs font-medium transition-all duration-500 group-hover:scale-105 ${type === "gmx"
+                              ? "bg-blue-500/15 text-blue-400 border border-blue-500/25"
+                              : "bg-cyan-500/15 text-cyan-400 border border-cyan-500/25"
+                              }`}
+                          >
+                            {type === "gmx" ? "GMX" : "Spot"}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {!loading && filteredAgents.length === 0 && (
           <div className="text-center py-20">
             <div className="w-24 h-24 bg-gray-700/30 rounded-full flex items-center justify-center mx-auto mb-6">
               <Users className="w-12 h-12 text-gray-500" />
@@ -1413,6 +1396,24 @@ const AllAgentsMarketplace: React.FC = () => {
         agentUsername={deploymentModal.agentUsername}
         agentId={deploymentModal.agentId}
         existingSafeConfigs={userSafeConfigs}
+      />
+
+      {/* Create Agent Modal */}
+      <CustomizeAgentModal
+        isOpen={isCustomizeOpen}
+        onClose={() => setIsCustomizeOpen(false)}
+        onSkip={() => setIsCustomizeOpen(false)}
+        onContinue={() => {
+          setIsCustomizeOpen(false);
+          setDidCustomizeAgent(true);
+        }}
+        onSaved={() => {
+          // Trigger immediate refresh so the new agent appears without page reload
+          setDidCustomizeAgent(true);
+        }}
+        customizationOptions={customizationOptions}
+        setCustomizationOptions={setCustomizationOptions}
+        isOnboardingFlow={false}
       />
 
       <style jsx>{`
