@@ -82,7 +82,7 @@ interface MetricExplanation {
 
 interface SafeConfig {
   safeAddress: string;
-  type: "gmx" | "spot";
+  type: "perpetuals" | "spot";
   networkKey: string;
   createdAt: string;
   isFunded: boolean;
@@ -688,33 +688,34 @@ const AllAgentsMarketplace: React.FC = () => {
     })();
   }, []);
 
-  useEffect(() => {
-    const fetchUserSafeConfigs = async () => {
-      try {
-        const start = performance.now();
-        console.log("[AllAgentsMarketplace] Fetch(/api/user-agents) started");
-        const response = await fetch("/api/user-agents");
-        const httpMs = performance.now() - start;
-        const jsonStart = performance.now();
-        const data = await response.json();
-        const jsonMs = performance.now() - jsonStart;
-        console.log("[AllAgentsMarketplace] Fetch(/api/user-agents) completed", {
-          httpMs: Math.round(httpMs),
-          jsonParseMs: Math.round(jsonMs),
-          status: response.status,
-          hasData: !!data?.success,
-          safeConfigsCount: data?.data?.safeConfigs?.length,
-        });
+  // Reusable function to fetch user safe configs
+  const fetchUserSafeConfigs = async () => {
+    try {
+      const start = performance.now();
+      console.log("[AllAgentsMarketplace] Fetch(/api/user-agents) started");
+      const response = await fetch("/api/user-agents");
+      const httpMs = performance.now() - start;
+      const jsonStart = performance.now();
+      const data = await response.json();
+      const jsonMs = performance.now() - jsonStart;
+      console.log("[AllAgentsMarketplace] Fetch(/api/user-agents) completed", {
+        httpMs: Math.round(httpMs),
+        jsonParseMs: Math.round(jsonMs),
+        status: response.status,
+        hasData: !!data?.success,
+        safeConfigsCount: data?.data?.safeConfigs?.length,
+      });
 
-        if (data.success) {
-          setUserSafeConfigs(data.data.safeConfigs || []);
-          setCurrentUsername(data.data.twitterUsername);
-        }
-      } catch (err) {
-        console.error("Failed to fetch user safe configs:", err);
+      if (data.success) {
+        setUserSafeConfigs(data.data.safeConfigs || []);
+        setCurrentUsername(data.data.twitterUsername);
       }
-    };
+    } catch (err) {
+      console.error("Failed to fetch user safe configs:", err);
+    }
+  };
 
+  useEffect(() => {
     fetchUserSafeConfigs();
   }, []);
 
@@ -805,7 +806,7 @@ const AllAgentsMarketplace: React.FC = () => {
 
   const getAgentDeployedTypes = (
     agentId: string,
-  ): ("gmx" | "spot")[] => {
+  ): ("perpetuals" | "spot")[] => {
     const agentSafeConfigs = userSafeConfigs.filter(
       (config) => config.agentId === agentId,
     );
@@ -814,9 +815,9 @@ const AllAgentsMarketplace: React.FC = () => {
 
   const getAvailableAgentTypes = (
     agentId: string,
-  ): ("gmx" | "spot")[] => {
+  ): ("perpetuals" | "spot")[] => {
     const deployedTypes = getAgentDeployedTypes(agentId);
-    const allTypes = ["gmx", "spot"] as const;
+    const allTypes = ["perpetuals", "spot"] as const;
     return allTypes.filter((type) => !deployedTypes.includes(type));
   };
 
@@ -982,12 +983,12 @@ const AllAgentsMarketplace: React.FC = () => {
             >
               <div className="flex items-center gap-2">
                 <div
-                  className={`p-1.5 rounded-md ${config.type === "gmx"
+                  className={`p-1.5 rounded-md ${config.type === "perpetuals"
                     ? "bg-blue-500/20 text-blue-400"
                     : "bg-purple-500/20 text-purple-400"
                     }`}
                 >
-                  {config.type === "gmx" ? (
+                  {config.type === "perpetuals" ? (
                     <TrendingUp className="w-3 h-3" />
                   ) : (
                     <BarChart3 className="w-3 h-3" />
@@ -995,7 +996,7 @@ const AllAgentsMarketplace: React.FC = () => {
                 </div>
                 <div>
                   <span className="text-green-300 text-xs font-medium capitalize">
-                    {config.type}
+                    {config.type === "perpetuals" ? "gmx" : config.type}
                   </span>
                   <div className="text-xs text-gray-500">
                     {config.safeAddress.slice(0, 6)}...{config.safeAddress.slice(-4)}
@@ -1319,7 +1320,7 @@ const AllAgentsMarketplace: React.FC = () => {
                           <span className="relative z-10 group-hover/btn:tracking-wide transition-all duration-300">
                             {availableTypes.length === 2
                               ? "Deploy Agent"
-                              : `Deploy ${availableTypes[0] === "gmx" ? "GMX" : "Spot"}`}
+                              : `Deploy ${availableTypes[0] === "perpetuals" ? "GMX" : "Spot"}`}
                           </span>
                         </button>
                       )}
@@ -1331,12 +1332,12 @@ const AllAgentsMarketplace: React.FC = () => {
                         {deployedTypes.map((type) => (
                           <span
                             key={type}
-                            className={`px-2 py-0.5 rounded-md text-xs font-medium transition-all duration-500 group-hover:scale-105 ${type === "gmx"
+                            className={`px-2 py-0.5 rounded-md text-xs font-medium transition-all duration-500 group-hover:scale-105 ${type === "perpetuals"
                               ? "bg-blue-500/15 text-blue-400 border border-blue-500/25"
                               : "bg-cyan-500/15 text-cyan-400 border border-cyan-500/25"
                               }`}
                           >
-                            {type === "gmx" ? "GMX" : "Spot"}
+                            {type === "perpetuals" ? "GMX" : "Spot"}
                           </span>
                         ))}
                       </div>
@@ -1396,6 +1397,7 @@ const AllAgentsMarketplace: React.FC = () => {
         agentUsername={deploymentModal.agentUsername}
         agentId={deploymentModal.agentId}
         existingSafeConfigs={userSafeConfigs}
+        onDeploymentSuccess={fetchUserSafeConfigs}
       />
 
       {/* Create Agent Modal */}
