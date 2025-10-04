@@ -1,4 +1,4 @@
-import MyAgent from '@/components/Body/MyAgent'
+import MyAgent from '@/components/MyAgentDashboard/MyAgent'
 
 function MyAgentPage() {
   return <MyAgent />

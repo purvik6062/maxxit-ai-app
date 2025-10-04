@@ -4,6 +4,9 @@ import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Loader2, Settings, Edit2, Save, X, Users, TrendingUp, Shield, BarChart3, Info, ExternalLink, Copy, Check } from "lucide-react";
 import Link from "next/link";
+import AnalystRankings from "./AnalystRankings";
+import { Tooltip } from "react-tooltip";
+import ReactDOMServer from "react-dom/server";
 
 interface SubscribedAccount {
   twitterHandle: string;
@@ -68,56 +71,43 @@ const EditableMetricCard: React.FC<EditableMetricCardProps> = ({
   isEditing,
   onChange
 }) => {
-  const [showInfo, setShowInfo] = useState(false);
-  const [inputValue, setInputValue] = useState<string>('');
-  const [isFocused, setIsFocused] = useState(false);
-
-  // Initialize input value when entering edit mode or value changes
-  React.useEffect(() => {
-    if (isEditing) {
-      setInputValue(value.toString());
-    }
-  }, [isEditing, value]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setInputValue(val);
-
-    const numValue = val === '' ? 0 : parseInt(val);
-    if (!isNaN(numValue)) {
-      onChange(numValue);
-    }
-  };
-
-  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    setIsFocused(true);
-    // Select all text on focus for easy replacement
-    e.target.select();
-  };
-
-  const handleBlur = () => {
-    setIsFocused(false);
-    if (inputValue === '') {
-      setInputValue('0');
-      onChange(0);
-    }
-  };
-
-  const [isHovered, setIsHovered] = useState(false);
-
-  const getValueColor = () => {
-    if (value > 0) return "text-green-400";
-    if (value < 0) return "text-red-400";
-    return "text-gray-400";
-  };
-
-  const getProgressColor = () => {
-    if (value > 0) return "bg-gradient-to-r from-green-500 to-green-400";
-    if (value < 0) return "bg-gradient-to-r from-red-500 to-red-400";
-    return "bg-gradient-to-r from-gray-500 to-gray-400";
-  };
 
   const normalizedValue = Math.min(Math.max(Math.abs(value), 0), 100);
+
+  let tooltipContent: string | undefined;
+  if (explanation) {
+    const contentJSX = (
+      <div className="transition-all duration-300 animate-fade-in-up p-4 bg-[#0D1321] backdrop-blur-md rounded-xl">
+        <div className="text-sm text-white font-semibold mb-2 flex items-center gap-2">
+          <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+          {explanation.label}
+        </div>
+        <div className="text-xs text-gray-300 mb-3 leading-relaxed">
+          {explanation.description}
+        </div>
+        <div className="flex flex-wrap gap-2 text-xs">
+          <span className={`px-3 py-1.5 rounded-lg font-medium ${
+            explanation.category === 'technical' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
+            explanation.category === 'social' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' :
+              'bg-green-500/20 text-green-400 border border-green-500/30'
+          }`}>
+            {explanation.category}
+          </span>
+          <span className="px-3 py-1.5 bg-gray-700/50 text-gray-300 rounded-lg border border-gray-600/50">
+            Range: {explanation.range}
+          </span>
+          <span className={`px-3 py-1.5 rounded-lg font-medium ${
+            explanation.impact === 'high' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
+            explanation.impact === 'medium' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
+              'bg-green-500/20 text-green-400 border border-green-500/30'
+          }`}>
+            {explanation.impact} impact
+          </span>
+        </div>
+      </div>
+    );
+    tooltipContent = ReactDOMServer.renderToStaticMarkup(contentJSX);
+  }
 
   return (
     <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50 hover:border-gray-600/50 transition-colors relative group">
@@ -125,13 +115,18 @@ const EditableMetricCard: React.FC<EditableMetricCardProps> = ({
         <div className="flex items-center gap-2">
           <span className="text-gray-400 text-sm font-medium">{label}</span>
           {explanation && (
-            <button
-              onClick={() => setShowInfo(!showInfo)}
-              className="p-1.5 rounded-lg hover:bg-gray-700/50 transition-all duration-200 hover:scale-110"
-              title="Click for more info"
-            >
-              <Info className="w-4 h-4 text-blue-300 hover:text-blue-400 transition-colors group-hover/info:scale-110" />
-            </button>
+            <div className="relative">
+              <button
+                data-tooltip-id="info-tooltip"
+                data-tooltip-html={tooltipContent}
+                data-tooltip-place="bottom"
+                className="p-1.5 rounded-lg hover:bg-gray-700/50 transition-all duration-200 hover:scale-110"
+                aria-label="More info"
+              >
+                <Info className="w-4 h-4 text-blue-300 hover:text-blue-400 transition-colors" />
+              </button>
+              <Tooltip id="info-tooltip" style={{ backgroundColor: "#0D1321", borderRadius: "10px", border: "1px solid #353940" }} />
+            </div>
           )}
           <div className={`${color} group-hover:scale-110 transition-transform duration-300`}>
             {icon}
@@ -152,50 +147,19 @@ const EditableMetricCard: React.FC<EditableMetricCardProps> = ({
           <span className="text-white text-sm font-medium">{label === "Heartbeat Score" ? "" : "%"}</span>
         </div>
       ) : (
-        <div className="relative z-10">
-          <div className={`text-xl md:text-2xl font-semibold tracking-tight transition-all duration-300 group-hover:scale-105 ${getValueColor()}`}>
+        <div className="">
+          <div className={`text-xl md:text-2xl font-semibold tracking-tight transition-all duration-300 group-hover:scale-105 text-green-400`}>
             {value}{label === "Heartbeat Score" ? "" : "%"}
           </div>
 
           {/* Enhanced progress bar */}
           <div className="mt-3 h-2 bg-gray-700/50 rounded-full overflow-hidden">
             <div
-              className={`h-full ${getProgressColor()} rounded-full transition-all duration-700 ease-out relative`}
+              className={`h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full transition-all duration-700 ease-out relative`}
               style={{ width: `${normalizedValue}%` }}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse" />
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Enhanced tooltip */}
-      {explanation && showInfo && (
-        <div className="absolute top-full left-0 right-0 mt-3 p-4 bg-[#0D1321]/95 backdrop-blur-md border-2 rounded-xl shadow-2xl z-30 transition-all duration-300 animate-fade-in-up"
-          style={{ borderColor: "#4A5568" }}>
-          <div className="text-sm text-white font-semibold mb-2 flex items-center gap-2">
-            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
-            {explanation.label}
-          </div>
-          <div className="text-xs text-gray-300 mb-3 leading-relaxed">
-            {explanation.description}
-          </div>
-          <div className="flex flex-wrap gap-2 text-xs">
-            <span className={`px-3 py-1.5 rounded-lg font-medium ${explanation.category === 'technical' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
-              explanation.category === 'social' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' :
-                'bg-green-500/20 text-green-400 border border-green-500/30'
-              }`}>
-              {explanation.category}
-            </span>
-            <span className="px-3 py-1.5 bg-gray-700/50 text-gray-300 rounded-lg border border-gray-600/50">
-              Range: {explanation.range}
-            </span>
-            <span className={`px-3 py-1.5 rounded-lg font-medium ${explanation.impact === 'high' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
-              explanation.impact === 'medium' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
-                'bg-green-500/20 text-green-400 border border-green-500/30'
-              }`}>
-              {explanation.impact} impact
-            </span>
           </div>
         </div>
       )}
@@ -756,7 +720,7 @@ const MyAgent: React.FC = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="">
           {/* Enhanced Agent Configuration */}
           <div className="relative bg-[#0D1321] rounded-2xl p-8 md:p-10 border-2 transition-all duration-300 hover:shadow-2xl animate-fade-in-up delay-500 overflow-hidden"
             style={{ borderColor: "#353940" }}>
@@ -854,12 +818,16 @@ const MyAgent: React.FC = () => {
             </div>
           </div>
 
+          <div>
+            <AnalystRankings />
+          </div>
+
           {/* Enhanced Subscribed Accounts */}
-          <div className="relative bg-[#0D1321] rounded-2xl p-8 md:p-10 border-2 transition-all duration-300 hover:shadow-2xl animate-fade-in-up delay-600 overflow-hidden"
+          {/* <div className="relative bg-[#0D1321] rounded-2xl p-8 md:p-10 border-2 transition-all duration-300 hover:shadow-2xl animate-fade-in-up delay-600 overflow-hidden"
             style={{ borderColor: "#353940" }}>
-            {/* Accent top bar */}
+
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 opacity-30" />
-            {/* Subtle patterned overlay */}
+
             <div className="pointer-events-none absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)", backgroundSize: "12px 12px" }} />
             <div className="flex items-center justify-between mb-8 relative z-10">
               <h3 className="font-leagueSpartan text-2xl md:text-3xl font-semibold tracking-tight text-white flex items-center gap-3">
@@ -886,12 +854,10 @@ const MyAgent: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-6">
-                {/* Avatars Row */}
                 <div className="flex items-center justify-center py-4">
                   {renderSubscriptionAvatars(agentData.subscribedAccounts, agentData._id)}
                 </div>
 
-                {/* Subscription Details */}
                 <div className="space-y-3 max-h-64 overflow-y-auto relative z-10">
                   {agentData.subscribedAccounts.map((account) => (
                     <div
@@ -948,7 +914,7 @@ const MyAgent: React.FC = () => {
                 </div>
               </div>
             )}
-          </div>
+          </div> */}
         </div>
       </div>
 
