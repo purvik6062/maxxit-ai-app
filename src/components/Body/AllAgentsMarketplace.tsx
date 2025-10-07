@@ -647,6 +647,7 @@ const AllAgentsMarketplace: React.FC = () => {
   const [currentUsername, setCurrentUsername] = useState<string | null>(null);
   const [didCustomizeAgent, setDidCustomizeAgent] = useState(false);
   const [isRefreshingAfterCreate, setIsRefreshingAfterCreate] = useState(false);
+  const [flippedCards, setFlippedCards] = useState<Record<string, boolean>>({});
 
   // Reusable fetch agents function (mounted and post-create refresh)
   const fetchAgents = async () => {
@@ -1162,186 +1163,283 @@ const AllAgentsMarketplace: React.FC = () => {
               return (
                 <div
                   key={agent._id}
-                  className="group bg-[#0D1321] rounded-2xl transition-all duration-500 ease-in-out hover:scale-105 relative overflow-hidden animate-fade-in-up border-[#363f42] hover:shadow-[0_0_15px_#528a9e]"
-                  style={{
-                    border: "1px solid #363f42",
-                    animationDelay: `${index * 100}ms`,
-                    // boxShadow: `0 0 5px #26C6DA`,
-                  } as React.CSSProperties}
+                  className="relative animate-fade-in-up"
+                  style={{ animationDelay: `${index * 100}ms` } as React.CSSProperties}
                 >
-                  {/* Enhanced subtle branded overlay on hover with glow */}
-                  {/* <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-[#AAC9FA]/8 via-transparent to-[#E1EAF9]/8 opacity-0 group-hover:opacity-100 transition-opacity duration-500" /> */}
+                  {/* Flip container */}
+                  <div
+                    className="relative"
+                    style={{ perspective: "1200px" }}
+                  >
+                    <div
+                      className="relative w-full"
+                      style={{
+                        transformStyle: "preserve-3d",
+                        transition: "transform 0.7s ease",
+                        transform: flippedCards[agent._id] ? "rotateY(180deg)" : "rotateY(0deg)",
+                      }}
+                    >
+                      {/* FRONT FACE */}
+                      <div
+                        className="group bg-[#0D1321] rounded-2xl transition-all duration-500 ease-in-out relative overflow-hidden border-[#363f42] hover:shadow-[0_0_15px_#528a9e]"
+                        style={{
+                          border: "1px solid #363f42",
+                          backfaceVisibility: "hidden",
+                          WebkitBackfaceVisibility: "hidden",
+                          pointerEvents: flippedCards[agent._id] ? "none" : "auto",
+                        } as React.CSSProperties}
+                      >
+                        {/* Enhanced subtle branded overlay on hover with glow */}
+                        {/* <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-[#AAC9FA]/8 via-transparent to-[#E1EAF9]/8 opacity-0 group-hover:opacity-100 transition-opacity duration-500" /> */}
 
-                  {/* Enhanced ring/border highlight on hover with glow */}
-                  <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-transparent transition-all duration-500 group-hover:ring-[var(--hover-border-color)]/40 group-hover:shadow-[0_0_16px_var(--hover-border-color)/30]" />
+                        {/* Enhanced ring/border highlight on hover with glow */}
+                        <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-transparent transition-all duration-500 group-hover:ring-[var(--hover-border-color)]/40 group-hover:shadow-[0_0_16px_var(--hover-border-color)/30]" />
 
-                  {/* Compact Hero Image Section with Blurred Logo Background */}
-                  <div className="relative h-32 overflow-hidden rounded-t-2xl">
-                    {/* Blurred Logo Background */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#0D1321] to-[#1a2234]">
-                      <Image
-                        src={staticData.image}
-                        alt={`${agent.twitterUsername} agent`}
-                        className="w-full h-full object-cover opacity-20 blur-sm scale-110 transition-all duration-500 group-hover:blur-md group-hover:scale-125"
-                        width={400}
-                        height={300}
-                      />
-                    </div>
-
-                    {/* Overlay gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0D1321]/80 via-transparent to-transparent" />
-
-                    {/* Logo positioned on cover image */}
-                    <div className="absolute bottom-0 left-3">
-                      <div className={`w-14 h-10 bg-gradient-to-br ${getStrategyColor(strategyType)} rounded-t-xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 border-2 border-white/20`}>
-                        <Image
-                          src="/img/maxxit_icon.svg"
-                          alt="Maxxit Logo"
-                          className="w-7 h-7 text-white"
-                          width={28}
-                          height={28}
-                        />
-                      </div>
-                      {/* Enhanced glow effect for logo */}
-                      <div className={`absolute inset-0 rounded-xl bg-gradient-to-br ${getStrategyColor(strategyType)} opacity-0 group-hover:opacity-40 group-hover:scale-125 transition-all duration-700 blur-lg -z-10`} />
-                    </div>
-
-                    {/* Subscription Count Badge */}
-                    <div className="absolute top-3 right-3">
-                      <div className="px-2 py-1 bg-black/40 backdrop-blur-sm rounded-md border border-white/20 text-white text-xs font-medium flex items-center gap-1 shadow-lg transition-all duration-500 group-hover:scale-105">
-                        <Users className="w-2.5 h-2.5" />
-                        {agent.subscribedAccounts.length}
-                      </div>
-                    </div>
-
-                    {/* Own Agent Badge */}
-                    {isOwn && (
-                      <div className="absolute bottom-3 right-3">
-                        <span className="px-2 py-0.5 bg-gradient-to-r from-[#AAC9FA]/90 to-[#E1EAF9]/90 backdrop-blur-sm text-[#0D1321] rounded-md text-xs font-semibold shadow-lg border border-white/20 transition-all duration-500 group-hover:scale-105">
-                          Your Agent
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Compact Content Section */}
-                  <div className="p-4 relative z-10">
-                    {/* Agent Header */}
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-leagueSpartan font-bold text-white mb-0.5 group-hover:text-[#AAC9FA] transition-colors duration-500 truncate">
-                          @{agent.twitterUsername}
-                        </h3>
-                        <p className="text-xs text-[#8ba1bc] group-hover:text-[#AAC9FA] transition-colors duration-500">
-                          AI Trading Agent
-                        </p>
-                      </div>
-                      {/* Strategy Type Badge */}
-                      <div className="relative">
-                        <span className={`px-2 py-1 rounded-md text-xs font-medium backdrop-blur-sm bg-gradient-to-r ${getStrategyColor(strategyType)} text-white shadow-md border border-white/10 group-hover:scale-105 transition-all duration-500`}>
-                          {strategyType}
-                        </span>
-                        <div className={`absolute inset-0 rounded-md bg-gradient-to-r ${getStrategyColor(strategyType)} opacity-0 group-hover:opacity-25 group-hover:scale-110 transition-all duration-700 blur-md -z-10`} />
-                      </div>
-                    </div>
-
-                    {/* Compact Description */}
-                    <p className="text-[#8ba1bc] text-xs leading-relaxed mb-4 group-hover:text-gray-300 transition-colors duration-500" style={{
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden'
-                    }}>
-                      {staticData.description}
-                    </p>
-
-                    {/* Compact Trading Performance */}
-                    <div className="mb-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-semibold text-gray-300 flex items-center gap-1.5">
-                          <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
-                          Performance
-                        </span>
-                        <span className="text-xs text-[#8ba1bc] uppercase tracking-wider">Live APR</span>
-                      </div>
-
-                      <div className="bg-[#111528] rounded-lg p-3 border border-[#353940] group-hover:border-[var(--hover-border-color)]/30 group-hover:shadow-lg group-hover:bg-[#1a2234] transition-all duration-500">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-1.5">
-                            {tradingPlatform.icon}
-                            <span className="text-white font-medium text-xs">{tradingPlatform.name}</span>
+                        {/* Compact Hero Image Section with Blurred Logo Background */}
+                        <div className="relative h-32 overflow-hidden rounded-t-2xl">
+                          {/* Blurred Logo Background */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-[#0D1321] to-[#1a2234]">
+                            <Image
+                              src={staticData.image}
+                              alt={`${agent.twitterUsername} agent`}
+                              className="w-full h-full object-cover opacity-20 blur-sm scale-110 transition-all duration-500 group-hover:blur-md group-hover:scale-125"
+                              width={400}
+                              height={300}
+                            />
                           </div>
-                          <ArrowUpRight className={`w-3 h-3 ${tradingPlatform.color} transition-transform duration-500 group-hover:rotate-45`} />
+
+                          {/* Overlay gradient */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#0D1321]/80 via-transparent to-transparent" />
+
+                          {/* Logo positioned on cover image */}
+                          <div className="absolute bottom-0 left-3">
+                            <div className={`w-14 h-10 bg-gradient-to-br ${getStrategyColor(strategyType)} rounded-t-xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 border-2 border-white/20`}>
+                              <Image
+                                src="/img/maxxit_icon.svg"
+                                alt="Maxxit Logo"
+                                className="w-7 h-7 text-white"
+                                width={28}
+                                height={28}
+                              />
+                            </div>
+                            {/* Enhanced glow effect for logo */}
+                            <div className={`absolute inset-0 rounded-xl bg-gradient-to-br ${getStrategyColor(strategyType)} opacity-0 group-hover:opacity-40 group-hover:scale-125 transition-all duration-700 blur-lg -z-10`} />
+                          </div>
+
+                          {/* Subscription Count Badge */}
+                          <div className="absolute top-3 right-3">
+                            <div className="px-2 py-1 bg-black/40 backdrop-blur-sm rounded-md border border-white/20 text-white text-xs font-medium flex items-center gap-1 shadow-lg transition-all duration-500 group-hover:scale-105">
+                              <Users className="w-2.5 h-2.5" />
+                              {agent.subscribedAccounts.length}
+                            </div>
+                          </div>
+
+                          {/* Own Agent Badge */}
+                          {isOwn && (
+                            <div className="absolute bottom-3 right-3">
+                              <span className="px-2 py-0.5 bg-gradient-to-r from-[#AAC9FA]/90 to-[#E1EAF9]/90 backdrop-blur-sm text-[#0D1321] rounded-md text-xs font-semibold shadow-lg border border-white/20 transition-all duration-500 group-hover:scale-105">
+                                Your Agent
+                              </span>
+                            </div>
+                          )}
                         </div>
 
-                        <div className={`text-lg font-bold ${tradingPlatform.color} mb-2 transition-all duration-500 group-hover:scale-105`}>
-                          {tradingPlatform.apr}
+                        {/* Compact Content Section */}
+                        <div className="p-4 relative z-10">
+                          {/* Agent Header */}
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-lg font-leagueSpartan font-bold text-white mb-0.5 group-hover:text-[#AAC9FA] transition-colors duration-500 truncate">
+                                @{agent.twitterUsername}
+                              </h3>
+                              <p className="text-xs text-[#8ba1bc] group-hover:text-[#AAC9FA] transition-colors duration-500">
+                                AI Trading Agent
+                              </p>
+                            </div>
+                            {/* Strategy Type Badge */}
+                            <div className="relative">
+                              <span className={`px-2 py-1 rounded-md text-xs font-medium backdrop-blur-sm bg-gradient-to-r ${getStrategyColor(strategyType)} text-white shadow-md border border-white/10 group-hover:scale-105 transition-all duration-500`}>
+                                {strategyType}
+                              </span>
+                              <div className={`absolute inset-0 rounded-md bg-gradient-to-r ${getStrategyColor(strategyType)} opacity-0 group-hover:opacity-25 group-hover:scale-110 transition-all duration-700 blur-md -z-10`} />
+                            </div>
+                          </div>
+
+                          {/* Compact Description */}
+                          <p className="text-[#8ba1bc] text-xs leading-relaxed mb-4 group-hover:text-gray-300 transition-colors duration-500" style={{
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden'
+                          }}>
+                            {staticData.description}
+                          </p>
+
+                          {/* Compact Trading Performance */}
+                          <div className="mb-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs font-semibold text-gray-300 flex items-center gap-1.5">
+                                <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
+                                Performance
+                              </span>
+                              <span className="text-xs text-[#8ba1bc] uppercase tracking-wider">Live APR</span>
+                            </div>
+
+                            <div className="bg-[#111528] rounded-lg p-3 border border-[#353940] group-hover:border-[var(--hover-border-color)]/30 group-hover:shadow-lg group-hover:bg-[#1a2234] transition-all duration-500">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-1.5">
+                                  {tradingPlatform.icon}
+                                  <span className="text-white font-medium text-xs">{tradingPlatform.name}</span>
+                                </div>
+                                <ArrowUpRight className={`w-3 h-3 ${tradingPlatform.color} transition-transform duration-500 group-hover:rotate-45`} />
+                              </div>
+
+                              <div className={`text-lg font-bold ${tradingPlatform.color} mb-2 transition-all duration-500 group-hover:scale-105`}>
+                                {tradingPlatform.apr}
+                              </div>
+
+                              <div className="w-full h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                                <div className={`h-full ${tradingPlatform.bgColor} rounded-full transition-all duration-1000 group-hover:animate-pulse`}
+                                  style={{ width: tradingPlatform.name === "GMX" ? "75%" : tradingPlatform.name === "Hyperliquid" ? "60%" : "40%" }}>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Deployed Safe Wallets (kept briefly on front for context when none) */}
+                          {!flippedCards[agent._id] && deployedTypes.length === 0 && (
+                            <DeployedSafeWallets agentId={agent._id} />
+                          )}
+
+                          {/* Animated Action Buttons */}
+                          <div className="mt-4 flex gap-2">
+                            {deployedTypes.length > 0 ? (
+                              <button
+                                onClick={() => setFlippedCards((prev) => ({ ...prev, [agent._id]: true }))}
+                                className="group w-full cursor-pointer will-change-transform py-2.5 px-3 rounded-full text-xs font-semibold transition-all duration-300 ease-in-out flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 border border-[#97bdf9] bg-[linear-gradient(to_right,#97bdf9_0%,#afcaf8_50%,#4b7fd0_50%,#071b47_100%)] bg-[size:200%_100%] bg-[position:100%_50%] hover:bg-[position:0%_50%] active:bg-[#1e40af] text-white hover:text-[#0D1321] shadow-md"
+                              >
+                                <Eye className="w-3 h-3 transition-transform duration-300 hover:rotate-12 group-hover:scale-110" />
+                                <span className="transition-opacity duration-300 hover:opacity-90 group-hover:translate-x-1">Show Details</span>
+                              </button>
+                            ) : availableTypes.length === 0 ? (
+                              <div className="w-full py-2.5 px-3 bg-gradient-to-r from-green-500/15 to-emerald-500/15 text-green-400 rounded-lg text-xs font-semibold border border-green-500/25 flex items-center justify-center gap-1.5">
+                                <CheckCircle className="w-3 h-3" />
+                                All Strategies Deployed
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() =>
+                                  setDeploymentModal({
+                                    isOpen: true,
+                                    agentUsername: agent.twitterUsername,
+                                    agentId: agent._id,
+                                  })
+                                }
+                                className={`w-full cursor-pointer will-change-transform py-2.5 px-3 rounded-full text-xs font-semibold transition-transform duration-300 flex items-center justify-center gap-1.5 hover:scale-[1.02]
+                                  bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] hover:from-[#9AC0F9] hover:to-[#D1DAF8] text-[#0D1321] shadow-md`}
+                              >
+                                <Rocket className="w-3 h-3" />
+                                <span>
+                                  {availableTypes.length === 2
+                                    ? "Deploy Agent"
+                                    : `Deploy ${availableTypes[0] === "perpetuals" ? "GMX" : "Spot"}`}
+                                </span>
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Compact Footer */}
+
+                        </div>
+                      </div>
+
+                      {/* BACK FACE */}
+                      <div
+                        className="absolute top-0 left-0 w-full h-full bg-[#0D1321] rounded-2xl border overflow-hidden"
+                        style={{
+                          borderColor: "#363f42",
+                          transform: "rotateY(180deg)",
+                          backfaceVisibility: "hidden",
+                          WebkitBackfaceVisibility: "hidden",
+                          pointerEvents: flippedCards[agent._id] ? "auto" : "none",
+                        } as React.CSSProperties}
+                      >
+                        {/* Back face hero/header (same as front) */}
+                        <div className="relative h-32 overflow-hidden rounded-t-2xl">
+                          <div className="absolute inset-0 bg-gradient-to-br from-[#0D1321] to-[#1a2234]">
+                            <Image
+                              src={staticData.image}
+                              alt={`${agent.twitterUsername} agent`}
+                              className="w-full h-full object-cover opacity-20 blur-sm scale-110"
+                              width={400}
+                              height={300}
+                            />
+                          </div>
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#0D1321]/80 via-transparent to-transparent" />
+                          <div className="absolute bottom-0 left-3">
+                            <div className={`w-14 h-10 bg-gradient-to-br ${getStrategyColor(strategyType)} rounded-t-xl flex items-center justify-center shadow-lg border-2 border-white/20`}>
+                              <Image
+                                src="/img/maxxit_icon.svg"
+                                alt="Maxxit Logo"
+                                className="w-7 h-7 text-white"
+                                width={28}
+                                height={28}
+                              />
+                            </div>
+                            <div className={`absolute inset-0 rounded-xl bg-gradient-to-br ${getStrategyColor(strategyType)} opacity-30 transition-all duration-700 blur-lg -z-10`} />
+                          </div>
+                          <div className="absolute top-3 right-3">
+                            <div className="px-2 py-1 bg-black/40 backdrop-blur-sm rounded-md border border-white/20 text-white text-xs font-medium flex items-center gap-1 shadow-lg">
+                              <Users className="w-2.5 h-2.5" />
+                              {agent.subscribedAccounts.length}
+                            </div>
+                          </div>
+                          {isOwn && (
+                            <div className="absolute bottom-3 right-3">
+                              <span className="px-2 py-0.5 bg-gradient-to-r from-[#AAC9FA]/90 to-[#E1EAF9]/90 backdrop-blur-sm text-[#0D1321] rounded-md text-xs font-semibold shadow-lg border border-white/20">
+                                Your Agent
+                              </span>
+                            </div>
+                          )}
                         </div>
 
-                        <div className="w-full h-1.5 bg-gray-700 rounded-full overflow-hidden">
-                          <div className={`h-full ${tradingPlatform.bgColor} rounded-full transition-all duration-1000 group-hover:animate-pulse`}
-                            style={{ width: tradingPlatform.name === "GMX" ? "75%" : tradingPlatform.name === "Hyperliquid" ? "60%" : "40%" }}>
+                        <div className="p-4">
+                          <div className="mb-3">
+                            <DeployedSafeWallets agentId={agent._id} />
+                          </div>
+
+                          {/* Deploy remaining type (if any) */}
+                          {availableTypes.length > 0 && (
+                            <div className="mt-4">
+                              <button
+                                onClick={() =>
+                                  setDeploymentModal({
+                                    isOpen: true,
+                                    agentUsername: agent.twitterUsername,
+                                    agentId: agent._id,
+                                  })
+                                }
+                                className="w-full cursor-pointer py-2.5 px-3 rounded-full text-xs font-semibold transition-transform duration-300 flex items-center justify-center gap-1.5 hover:scale-[1.02] bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] hover:from-[#9AC0F9] hover:to-[#D1DAF8] text-[#0D1321] shadow-md"
+                              >
+                                <Rocket className="w-3 h-3" />
+                                <span>{`Deploy ${availableTypes[0] === "perpetuals" ? "GMX" : "Spot"}`}</span>
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Flip back */}
+                          <div className="pt-3">
+                            <button
+                              onClick={() => setFlippedCards((prev) => ({ ...prev, [agent._id]: false }))}
+                              className="w-full cursor-pointer py-2.5 px-3 rounded-full text-xs font-semibold transition-transform duration-300 flex items-center justify-center gap-1.5 hover:scale-[1.01] border text-white bg-[#0f172a] hover:bg-[#111a30]"
+                              style={{ borderColor: "#AAC9FA" }}
+                            >
+                              Back to Card
+                            </button>
                           </div>
                         </div>
                       </div>
                     </div>
-
-                    {/* Deployed Safe Wallets */}
-                    <DeployedSafeWallets agentId={agent._id} />
-
-                    {/* Animated Action Button */}
-                    <div className="mt-4">
-                      {availableTypes.length === 0 ? (
-                        <div className="w-full py-2.5 px-3 bg-gradient-to-r from-green-500/15 to-emerald-500/15 text-green-400 rounded-lg text-xs font-semibold border border-green-500/25 flex items-center justify-center gap-1.5 group-hover:from-green-500/25 group-hover:to-emerald-500/25 transition-all duration-500">
-                          <CheckCircle className="w-3 h-3" />
-                          All Strategies Deployed
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() =>
-                            setDeploymentModal({
-                              isOpen: true,
-                              agentUsername: agent.twitterUsername,
-                              agentId: agent._id,
-                            })
-                          }
-                          className={`group/btn w-full py-2.5 px-3 rounded-full text-xs font-semibold transition-all duration-300 flex items-center justify-center gap-1.5 hover:scale-[1.03] transform relative overflow-hidden ${availableTypes.length === 2
-                            ? "bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] hover:from-[#9AC0F9] hover:to-[#D1DAF8] text-[#0D1321] shadow-md hover:shadow-2xl"
-                            : "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-md hover:shadow-2xl"
-                            }`}
-                        >
-                          {/* Pulsing border effect */}
-                          <div className="absolute inset-0 rounded-full opacity-0 group-hover/btn:opacity-100 group-hover/btn:animate-ping bg-white/30"></div>
-
-                          {/* Shimmer */}
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700"></div>
-
-                          <Rocket className="w-3 h-3 transition-all duration-300 group-hover/btn:scale-110 group-hover/btn:translate-y-[-2px] relative z-10" />
-                          <span className="relative z-10 group-hover/btn:tracking-wide transition-all duration-300">
-                            {availableTypes.length === 2
-                              ? "Deploy Agent"
-                              : `Deploy ${availableTypes[0] === "perpetuals" ? "GMX" : "Spot"}`}
-                          </span>
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Compact Footer */}
-                    {deployedTypes.length > 0 && (
-                      <div className="flex items-center justify-center gap-1.5 mt-3 pt-3 border-t border-[#353940]">
-                        {deployedTypes.map((type) => (
-                          <span
-                            key={type}
-                            className={`px-2 py-0.5 rounded-md text-xs font-medium transition-all duration-500 group-hover:scale-105 ${type === "perpetuals"
-                              ? "bg-blue-500/15 text-blue-400 border border-blue-500/25"
-                              : "bg-cyan-500/15 text-cyan-400 border border-cyan-500/25"
-                              }`}
-                          >
-                            {type === "perpetuals" ? "GMX" : "Spot"}
-                          </span>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 </div>
               );

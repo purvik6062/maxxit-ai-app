@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, TrendingUp, Coins, Shield, ExternalLink, ArrowLeft, CheckCircle, TrendingUpDown } from "lucide-react";
+import { X, TrendingUp, Coins, Shield, ExternalLink, ArrowLeft, CheckCircle, TrendingUpDown, Settings, Wallet, Sparkles, Info } from "lucide-react";
 import { SafeDeploymentForm } from "@/components/Safe/components/SafeDeploymentForm";
 import { useAgentSafeDeployment } from "@/components/Safe/hooks/useAgentSafeDeployment";
 
@@ -15,6 +15,79 @@ interface AgentDeploymentModalProps {
 }
 
 type DeploymentStep = 'type-selection' | 'safe-creation' | 'funding' | 'confirmation';
+
+interface StepIndicatorProps {
+  currentStep: DeploymentStep;
+  onStepClick?: (step: DeploymentStep) => void;
+}
+
+const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep, onStepClick }) => {
+  const steps = [
+    { id: 'type-selection' as const, label: 'Type', icon: Settings, description: 'Choose Strategy' },
+    { id: 'safe-creation' as const, label: 'Safe', icon: Shield, description: 'Deploy Wallet' },
+    { id: 'funding' as const, label: 'Fund', icon: Wallet, description: 'Add Funds' },
+    { id: 'confirmation' as const, label: 'Confirm', icon: CheckCircle, description: 'Complete' }
+  ];
+
+  const getStepIndex = (step: DeploymentStep) => {
+    return steps.findIndex(s => s.id === step);
+  };
+
+  const currentIndex = getStepIndex(currentStep);
+
+  return (
+    <div className="flex items-center justify-between ">
+      {steps.map((step, index) => {
+        const Icon = step.icon;
+        const isActive = step.id === currentStep;
+        const isCompleted = index < currentIndex;
+        const isClickable = onStepClick && (isCompleted || isActive);
+
+        return (
+          <div key={step.id} className="flex flex-col items-center flex-1 relative">
+            {/* Connection Line */}
+            {index < steps.length - 1 && (
+              <div className="absolute top-4 left-1/2 w-full h-0.5 bg-[#312e37] -translate-y-1/2 z-0">
+                <div
+                  className={`h-full bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] transition-all duration-500 ${isCompleted ? 'w-full' : 'w-0'
+                    }`}
+                />
+              </div>
+            )}
+
+            {/* Step Circle */}
+            <div
+              className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${isActive
+                ? 'bg-gradient-to-br from-[#AAC9FA] to-[#E1EAF9] shadow-lg shadow-[#AAC9FA]/30 scale-110'
+                : isCompleted
+                  ? 'bg-gradient-to-br from-[#19294c] to-[#287bf0] shadow-lg shadow-white-100/30'
+                  : 'bg-[#312e37] border border-[#4A5568]'
+                } ${isClickable ? 'cursor-pointer hover:scale-105' : ''}`}
+              onClick={() => isClickable && onStepClick?.(step.id)}
+            >
+              <Icon
+                className={`w-4 h-4 transition-colors duration-300 ${isActive ? 'text-[#0D1321]' : isCompleted ? 'text-white' : 'text-[#8ba1bc]'
+                  }`}
+              />
+            </div>
+
+            {/* Step Label */}
+            <div className="mt-3 text-center">
+              <div className={`text-sm font-medium transition-colors duration-300 ${isActive ? 'text-white' : isCompleted ? 'text-[#b4ccfc]' : 'text-gray-400'
+                }`}>
+                {step.label}
+              </div>
+              <div className={`text-xs transition-colors duration-300 ${isActive ? 'text-gray-300' : isCompleted ? 'text-[#8a97b1]' : 'text-gray-500'
+                }`}>
+                {step.description}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
 
 export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
   isOpen,
@@ -295,7 +368,29 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
       setCurrentStep('type-selection');
     } else if (currentStep === 'funding') {
       setCurrentStep('safe-creation');
+    } else if (currentStep === 'confirmation') {
+      setCurrentStep('funding');
     }
+  };
+
+  const handleStepClick = (step: DeploymentStep) => {
+    // Only allow going back to previous steps or current step
+    const stepOrder = ['type-selection', 'safe-creation', 'funding', 'confirmation'];
+    const currentIndex = stepOrder.indexOf(currentStep);
+    const targetIndex = stepOrder.indexOf(step);
+
+    if (targetIndex <= currentIndex) {
+      setCurrentStep(step);
+    }
+  };
+
+  const handleCompleteDeployment = async () => {
+    // Call the refresh callback if provided
+    if (onDeploymentSuccess) {
+      console.log('Refreshing marketplace data after successful deployment...');
+      await onDeploymentSuccess();
+    }
+    handleClose();
   };
 
   const hasExistingConfigForType = (type: 'perpetuals' | 'spot') => {
@@ -330,24 +425,38 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-[#0D1321] via-[#0b1020] to-[#0a0e1c] rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-gray-700 shadow-2xl transition-all duration-300 ease-out hover:shadow-blue-900/30">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
+      <div className="bg-gradient-to-br from-[#0D1321] via-[#0e1424] to-[#0D1321] rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden border border-[#312e37] shadow-2xl transition-all duration-500 ease-out hover:shadow-[#AAC9FA]/20">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-700 bg-gradient-to-r from-white/5 via-transparent to-white/5">
-          <div>
-            <h2 className="font-leagueSpartan text-2xl md:text-3xl font-semibold tracking-tight text-white">Deploy Agent</h2>
-            <p className="text-gray-300 text-sm md:text-base">Configure @{agentUsername} for automated trading</p>
+        <div className="relative p-6 border-b border-[#312e37] bg-gradient-to-r from-[#0D1321] to-[#0e1424]">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-[#AAC9FA] to-[#E1EAF9] rounded-xl flex items-center justify-center shadow-lg shadow-[#AAC9FA]/30">
+                <Sparkles className="w-5 h-5 text-[#0D1321]" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] bg-clip-text text-transparent">
+                  Deploy Agent
+                </h2>
+                <p className="text-[#8ba1bc] text-sm">Configure @{agentUsername} for automated trading</p>
+              </div>
+            </div>
+            <button
+              onClick={handleClose}
+              className="p-2 hover:bg-[#1a2234] rounded-lg transition-all duration-300 hover:rotate-90 group"
+            >
+              <X className="w-5 h-5 text-[#8ba1bc] group-hover:text-white transition-colors" />
+            </button>
           </div>
-          <button
-            onClick={handleClose}
-            className="p-2 hover:bg-gray-700 rounded-lg transition-all duration-200 hover:rotate-90"
-          >
-            <X className="w-5 h-5 text-gray-400" />
-          </button>
+        </div>
+
+        {/* Step Indicator */}
+        <div className="px-6 py-4 bg-[#141d31] border-b border-[#312e37]">
+          <StepIndicator currentStep={currentStep} onStepClick={handleStepClick} />
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+        <div className="p-8 overflow-y-auto  max-h-[calc(90vh-300px)]">
           {/* Error Display */}
           {error && (
             <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/20">
@@ -366,48 +475,57 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
             {/* Type Selection Step */}
             {currentStep === 'type-selection' && (
               <div className="space-y-6">
-                <div className="text-center mb-8">
-                  <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-blue-900/40 animate-pulse">
-                    <TrendingUpDown className="w-8 h-8 text-white" />
+                <div className="text-center">
+                  <div className="mx-auto w-16 h-16 bg-gradient-to-br from-[#AAC9FA] to-[#E1EAF9] rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-[#AAC9FA]/30">
+                    <Settings className="w-8 h-8 text-[#0D1321]" />
                   </div>
-                  <h3 className="font-leagueSpartan text-2xl md:text-3xl font-semibold tracking-tight text-white mb-2">Choose Trading Type</h3>
-                  <p className="text-gray-300">Select the type of trading strategy you want to deploy</p>
+                  <h3 className="text-2xl font-bold text-white mb-2">Choose Trading Strategy</h3>
+                  <p className="text-[#8ba1bc] text-sm max-w-2xl mx-auto">
+                    Select the type of trading strategy you want to deploy for @{agentUsername}
+                  </p>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-2 gap-4">
                   {availableTypes.map((type) => (
                     <div
                       key={type}
-                      className={`group p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 ${hasExistingConfigForType(type)
-                        ? 'border-gray-700 bg-[#0F172A] opacity-50'
-                        : 'border-gray-700 bg-[#0F172A] hover:border-blue-500 hover:shadow-blue-900/30 hover:shadow-xl hover:-translate-y-1 hover:scale-[1.01]'
+                      className={`group relative p-6 rounded-xl border cursor-pointer transition-all duration-300 ${hasExistingConfigForType(type)
+                        ? 'border-[#312e37] bg-[#0d13218a] opacity-60 cursor-not-allowed'
+                        : 'border-[#312e37] bg-[#182543] hover:border-[#AAC9FA] hover:shadow-lg hover:shadow-[#AAC9FA]/20 hover:-translate-y-1'
                         }`}
                       onClick={() => !hasExistingConfigForType(type) && handleTypeSelect(type)}
                     >
                       <div className="text-center">
-                        <div className={`font-leagueSpartan w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 transition-transform duration-300 group-hover:rotate-3 ${type === 'perpetuals'
-                          ? 'bg-gradient-to-br from-blue-500 to-cyan-600'
-                          : 'bg-gradient-to-br from-green-500 to-emerald-600'
+                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-4 transition-all duration-300 group-hover:scale-110 ${type === 'perpetuals'
+                          ? 'bg-gradient-to-br from-[#04c3fc] to-[#73C7E1] shadow-lg shadow-[#04c3fc]/30'
+                          : 'bg-gradient-to-br from-[#3484B3] to-[#4A9CC4] shadow-lg shadow-[#3484B3]/30'
                           }`}>
                           {type === 'perpetuals' ? (
-                            <TrendingUp className="w-8 h-8 text-white" />
+                            <TrendingUp className="w-6 h-6 text-white" />
                           ) : (
-                            <Coins className="w-8 h-8 text-white" />
+                            <Coins className="w-6 h-6 text-white" />
                           )}
                         </div>
-                        <h3 className="text-xl md:text-2xl font-semibold tracking-tight text-white mb-2 capitalize">
-                          {type === 'perpetuals' ? 'GMX' : 'Spot Trading'}
+
+                        <h3 className="text-lg font-bold text-white mb-2">
+                          {type === 'perpetuals' ? 'GMX Perpetuals' : 'Spot Trading'}
                         </h3>
-                        <p className="text-gray-300 text-sm mb-4">
+
+                        <p className="text-[#8ba1bc] text-xs mb-4 leading-relaxed">
                           {type === 'perpetuals'
                             ? 'Trade with leverage on futures contracts. Higher risk, higher potential returns.'
                             : 'Buy and sell actual cryptocurrencies. Lower risk, stable returns.'
                           }
                         </p>
-                        {hasExistingConfigForType(type) && (
-                          <div className="flex items-center justify-center text-green-400 text-sm">
+
+                        {hasExistingConfigForType(type) ? (
+                          <div className="flex items-center justify-center text-[#04c3fc] text-xs font-medium">
                             <CheckCircle className="w-4 h-4 mr-1" />
                             Already Configured
+                          </div>
+                        ) : (
+                          <div className="text-[#AAC9FA] text-xs font-medium group-hover:text-[#E1EAF9] transition-colors">
+                            Click to select →
                           </div>
                         )}
                       </div>
@@ -420,14 +538,17 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
             {/* Safe Creation Step */}
             {currentStep === 'safe-creation' && selectedType && (
               <div className="space-y-6">
-                <div className="text-center mb-8">
-                  <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-blue-900/40">
-                    <Shield className="w-8 h-8 text-white" />
+                <div className="text-center">
+                  <div className="mx-auto w-16 h-16 bg-gradient-to-br from-[#AAC9FA] to-[#E1EAF9] rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-[#AAC9FA]/30">
+                    <Shield className="w-8 h-8 text-[#0D1321]" />
                   </div>
-                  <h3 className="text-2xl md:text-3xl font-semibold tracking-tight text-white mb-2">Create Safe Wallet</h3>
-                  <p className="text-gray-300">Deploy a secure multi-signature wallet for {selectedType} trading</p>
+                  <h3 className="text-2xl font-bold text-white mb-2">Deploy Safe Wallet</h3>
+                  <p className="text-[#8ba1bc] text-sm max-w-2xl mx-auto">
+                    Create a secure multi-signature wallet for your {selectedType} trading strategy
+                  </p>
                 </div>
 
+                {/* <div className="max-w-2xl mx-auto"> */}
                 <SafeDeploymentForm
                   isDeploying={isDeploying}
                   deploymentStatus={deploymentStatus}
@@ -437,105 +558,215 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
                   agentId={agentId}
                   agentType={selectedType}
                 />
+                {/* </div> */}
               </div>
             )}
 
             {/* Funding Step */}
             {currentStep === 'funding' && (
               <div className="space-y-6">
-                <div className="text-center mb-8">
-                  <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-blue-900/40">
-                    <Coins className="w-8 h-8 text-white" />
+                <div className="text-center">
+                  <div className="mx-auto w-16 h-16 bg-gradient-to-br from-[#AAC9FA] to-[#E1EAF9] rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-[#AAC9FA]/30">
+                    <Wallet className="w-8 h-8 text-[#0D1321]" />
                   </div>
-                  <h3 className="text-2xl md:text-3xl font-semibold tracking-tight text-white mb-2">
-                    {isLoading ? 'Configuring Your Agent...' : 'Fund Your Safe Wallet'}
+                  <h3 className="text-2xl font-bold text-white mb-2">
+                    {isLoading ? 'Configuring Agent...' : 'Fund Your Safe Wallet'}
                   </h3>
-                  <p className="text-gray-300">
+                  <p className="text-[#8ba1bc] text-sm max-w-2xl mx-auto">
                     {isLoading ? 'Setting up your agent configuration' : 'Deposit funds to start automated trading'}
                   </p>
                 </div>
 
-                <div className="bg-gray-700/50 rounded-xl p-6">
-                  <h4 className="text-lg md:text-xl font-semibold tracking-tight text-white mb-4">Your Safe Wallet</h4>
-                  <div className="bg-[#0F172A] rounded-lg p-4 mb-4 border border-gray-700">
-                    <p className="text-sm text-gray-400 mb-2">Safe Address</p>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 text-sm text-white font-mono break-all">
-                        {isCheckingAgentSafe ? (
-                          <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
-                            <span className="text-gray-400">Finding your {selectedType} agent Safe wallet...</span>
-                          </div>
-                        ) : safeAddress || 'Unknown'}
+                <div className="max-w-2xl mx-auto">
+                  <div className="bg-[#0D1321] rounded-xl p-6 border border-[#312e37]">
+                    <h4 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                      <div className="w-6 h-6 bg-gradient-to-br from-[#AAC9FA] to-[#E1EAF9] rounded-lg flex items-center justify-center">
+                        <Shield className="w-3 h-3 text-[#0D1321]" />
                       </div>
-                      <button
-                        onClick={handleCopyAddress}
-                        disabled={!safeAddress}
-                        className="px-3 py-1.5 text-xs rounded-md border border-gray-600 text-gray-200 hover:text-white hover:border-blue-500 hover:bg-blue-500/10 disabled:opacity-50 transition-all"
-                      >
-                        {copyStatus || 'Copy'}
-                      </button>
+                      Your Safe Wallet
+                    </h4>
+
+                    <div className="bg-[#111528] rounded-lg p-4 mb-4 border border-[#312e37]">
+                      <p className="text-xs text-[#8ba1bc] mb-2 font-medium">Safe Address</p>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 text-xs text-white font-mono break-all bg-[#0D1321] p-2 rounded">
+                          {isCheckingAgentSafe ? (
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 border-2 border-[#04c3fc] border-t-transparent rounded-full animate-spin"></div>
+                              <span className="text-[#8ba1bc]">Finding your {selectedType} agent Safe wallet...</span>
+                            </div>
+                          ) : safeAddress || 'Unknown'}
+                        </div>
+                        <button
+                          onClick={handleCopyAddress}
+                          disabled={!safeAddress}
+                          className="px-3 py-1.5 text-xs rounded border border-[#312e37] text-[#8ba1bc] hover:text-white hover:border-[#AAC9FA] hover:bg-[#AAC9FA]/10 disabled:opacity-50 transition-all duration-300"
+                        >
+                          {copyStatus || 'Copy'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Configuration Status */}
+                    {isLoading && (
+                      <div className="mb-4 p-3 bg-[#04c3fc]/10 border border-[#04c3fc]/50 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-[#04c3fc] border-t-transparent rounded-full animate-spin"></div>
+                          <p className="text-xs text-[#04c3fc] font-medium">
+                            Saving agent configuration to your account...
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {!isLoading && !error && safeAddress && (
+                      <div className="mb-4 p-3 bg-[#04c3fc]/10 border border-[#04c3fc]/50 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-[#04c3fc]" />
+                          <p className="text-xs text-[#04c3fc] font-medium">
+                            Agent configuration saved successfully!
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {error && (
+                      <div className="mb-4 p-3 bg-red-500/10 border border-red-500/50 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <X className="w-4 h-4 text-red-400" />
+                          <p className="text-xs text-red-400 font-medium">
+                            Configuration Error: {error}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {!isLoading && (
+                      <>
+                        <p className="text-[#8ba1bc] text-sm mb-6 text-center">
+                          To start trading, you need to deposit funds into your Safe wallet. Click the button below to open the Safe app and add funds.
+                        </p>
+
+                        <div className="space-y-3">
+                          <button
+                            onClick={redirectToSafeApp}
+                            disabled={!safeAddress}
+                            className="w-full px-6 py-3 bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] text-[#0D1321] rounded-lg hover:from-[#9AC0F9] hover:to-[#D1DAF8] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#AAC9FA]/30 font-medium"
+                          >
+                            Open Safe App to Add Funds
+                            <ExternalLink className="w-4 h-4" />
+                          </button>
+
+                          {!error && safeAddress && (
+                            <button
+                              onClick={() => setCurrentStep('confirmation')}
+                              className="w-full px-6 py-3 bg-gradient-to-r from-[#04c3fc] to-[#73C7E1] text-white rounded-lg hover:from-[#03b3eb] hover:to-[#6bb8d6] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#04c3fc]/30 font-medium"
+                            >
+                              Continue to Confirmation
+                            </button>
+                          )}
+                        </div>
+                      </>
+                    )}
+
+                    <div className="mt-4 p-3 bg-[#AAC9FA]/10 border border-[#AAC9FA]/50 rounded-lg">
+                      <p className="text-xs text-[#AAC9FA] text-center">
+                        💡 After adding funds, your {selectedType} agent will be ready to start trading.
+                      </p>
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
 
-                  {/* Show configuration status prominently */}
-                  {isLoading && (
-                    <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/50 rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
-                        <p className="text-sm text-blue-400 font-medium">
-                          Saving agent configuration to your account...
-                        </p>
+            {/* Confirmation Step */}
+            {currentStep === 'confirmation' && (
+              <div className="space-y-6">
+                <div className="text-center">
+                  <div className="mx-auto w-16 h-16 bg-gradient-to-br from-[#04c3fc] to-[#73C7E1] rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-[#04c3fc]/30">
+                    <CheckCircle className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-2">Deployment Complete!</h3>
+                  <p className="text-[#8ba1bc] text-sm max-w-2xl mx-auto">
+                    Your {selectedType} agent has been successfully configured and is ready for trading.
+                  </p>
+                </div>
+
+                <div className="max-w-2xl mx-auto">
+                  <div className="bg-[#0D1321] rounded-xl p-6 border border-[#312e37]">
+                    <div className="text-center mb-6">
+                      <div className="w-12 h-12 bg-gradient-to-br from-[#04c3fc] to-[#73C7E1] rounded-full flex items-center justify-center mx-auto mb-3">
+                        <Sparkles className="w-6 h-6 text-white" />
                       </div>
-                    </div>
-                  )}
-
-                  {!isLoading && !error && safeAddress && (
-                    <div className="mb-6 p-4 bg-green-500/10 border border-green-500/50 rounded-lg">
-                      <p className="text-sm text-green-400 font-medium">
-                        ✅ Agent configuration saved successfully!
+                      <h4 className="text-xl font-bold text-white mb-1">Agent Successfully Deployed</h4>
+                      <p className="text-[#8ba1bc] text-sm">
+                        @{agentUsername} is now configured for {selectedType} trading
                       </p>
                     </div>
-                  )}
 
-                  {error && (
-                    <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg">
-                      <p className="text-sm text-red-400 font-medium">
-                        ❌ Configuration Error: {error}
-                      </p>
-                    </div>
-                  )}
+                    <div className="space-y-4">
+                      <div className="bg-[#111528] rounded-lg p-4 border border-[#312e37]">
+                        <h5 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                          <div className="w-5 h-5 bg-gradient-to-br from-[#AAC9FA] to-[#E1EAF9] rounded-lg flex items-center justify-center">
+                            <Shield className="w-3 h-3 text-[#0D1321]" />
+                          </div>
+                          Safe Wallet Details
+                        </h5>
+                        <div className="space-y-2">
+                          <div>
+                            <p className="text-xs text-[#8ba1bc] mb-1">Safe Address</p>
+                            <p className="text-xs text-white font-mono bg-[#0D1321] p-2 rounded break-all">
+                              {safeAddress || 'Unknown'}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-[#8ba1bc] mb-1">Trading Type</p>
+                            <p className="text-xs text-white capitalize">
+                              {selectedType === 'perpetuals' ? 'GMX Perpetuals' : 'Spot Trading'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
 
-                  {!isLoading && (
-                    <>
-                      <p className="text-gray-300 mb-6">
-                        To start trading, you need to deposit funds into your Safe wallet. Click the button below to open the Safe app and add funds.
-                      </p>
+                      <div className="bg-[#AAC9FA]/10 border border-[#AAC9FA]/50 rounded-lg p-4">
+                        <h5 className="text-sm font-semibold text-[#AAC9FA] mb-2 flex items-center gap-2">
+                          <div className="w-5 h-5 bg-gradient-to-br from-[#AAC9FA] to-[#E1EAF9] rounded-lg flex items-center justify-center">
+                            <Wallet className="w-3 h-3 text-[#0D1321]" />
+                          </div>
+                          Next Steps
+                        </h5>
+                        <ul className="space-y-1 text-[#8ba1bc] text-xs">
+                          <li className="flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 bg-[#AAC9FA] rounded-full"></div>
+                            Add funds to your Safe wallet to start trading
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 bg-[#AAC9FA] rounded-full"></div>
+                            Monitor your agent's performance in the dashboard
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 bg-[#AAC9FA] rounded-full"></div>
+                            Adjust settings as needed for optimal performance
+                          </li>
+                        </ul>
+                      </div>
 
-                      <button
-                        onClick={redirectToSafeApp}
-                        disabled={!safeAddress}
-                        className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 mb-4 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-900/30"
-                      >
-                        Open Safe App to Add Funds
-                        <ExternalLink className="w-4 h-4" />
-                      </button>
-
-                      {!error && safeAddress && (
+                      <div className="flex gap-3">
                         <button
-                          onClick={handleBackToMarketplace}
-                          className="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-900/30"
+                          onClick={redirectToSafeApp}
+                          className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#AAC9FA] to-[#E1EAF9] text-[#0D1321] rounded-lg hover:from-[#9AC0F9] hover:to-[#D1DAF8] transition-all duration-300 flex items-center justify-center gap-2 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#AAC9FA]/30 font-medium text-sm"
+                        >
+                          Open Safe App
+                          <ExternalLink className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={handleCompleteDeployment}
+                          className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#04c3fc] to-[#73C7E1] text-white rounded-lg hover:from-[#03b3eb] hover:to-[#6bb8d6] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#04c3fc]/30 font-medium text-sm"
                         >
                           Back to Marketplace
                         </button>
-                      )}
-                    </>
-                  )}
-
-                  <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/50 rounded-lg">
-                    <p className="text-sm text-blue-400">
-                      💡 After adding funds, your {selectedType} agent will be ready to start trading.
-                    </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -543,26 +774,21 @@ export const AgentDeploymentModal: React.FC<AgentDeploymentModalProps> = ({
           </>
         </div>
 
+
+        {/* </div> */}
+
         {/* Footer Navigation */}
-        <div className="flex items-center justify-between p-6 border-t border-gray-700 bg-gradient-to-r from-white/5 via-transparent to-white/5">
-          <div className="flex-1 mr-4">
-            <div className="h-2 w-full bg-gray-800 rounded-full overflow-hidden">
-              <div
-                className={`h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-500`}
-                style={{ width: `${(currentStep === 'type-selection' ? 33 : currentStep === 'safe-creation' ? 66 : 100)}%` }}
-              />
-            </div>
-          </div>
+        <div className="flex items-center justify-between p-6 border-t border-[#312e37] bg-[#141d31]">
           <button
             onClick={handleBack}
-            className="flex items-center px-4 py-2 text-gray-400 hover:text-white transition-all hover:-translate-x-0.5"
+            className="flex items-center px-4 py-2 text-[#8ba1bc] hover:text-white transition-all duration-300 hover:-translate-x-1 group"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
             Back
           </button>
 
-          <div className="text-sm text-gray-500">
-            Step {currentStep === 'type-selection' ? 1 : currentStep === 'safe-creation' ? 2 : 3} of 3
+          <div className="text-xs text-[#8ba1bc]">
+            Step {currentStep === 'type-selection' ? 1 : currentStep === 'safe-creation' ? 2 : currentStep === 'funding' ? 3 : 4} of 4
           </div>
         </div>
       </div>

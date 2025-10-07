@@ -794,7 +794,7 @@ const CosmicWebInfluencerGraph: React.FC = () => {
               }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
-              Average Percentage Return: {(totalProfit || 0).toFixed(2).toLocaleString()}%
+              APR: {(totalProfit || 0).toFixed(2).toLocaleString()}%
             </motion.div>
           </div>
         </div>
